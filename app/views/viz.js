@@ -3,13 +3,13 @@
 import { h, icon } from '../ui.js';
 
 export const WIDGETS = [
-  { id: 'memory-hierarchy', title: 'Memory Hierarchy Explorer', blurb: 'Feel the latency cliffs: cache → RAM → SSD → HDD → network.', accent: '#334155', tag: 'M0 · M2', ready: false },
+  { id: 'memory-hierarchy', title: 'Memory Hierarchy Explorer', blurb: 'Feel the latency cliffs: cache → RAM → SSD → HDD → network.', accent: '#334155', tag: 'M0 · M2', ready: true },
   { id: 'sql-stepper', title: 'SQL Query Stepper', blurb: 'Watch FROM → WHERE → GROUP BY → HAVING → SELECT run on the Spotify tables.', accent: '#3b82f6', tag: 'M1', ready: true },
-  { id: 'joins-race', title: 'Join Algorithms Race', blurb: 'Nested-loop vs hash join, IO by IO.', accent: '#10b981', tag: 'M3', ready: false },
+  { id: 'joins-race', title: 'Join Algorithms Race', blurb: 'Nested-loop vs hash join, IO by IO.', accent: '#10b981', tag: 'M3', ready: true },
   { id: 'external-sort', title: 'External Merge Sort', blurb: 'Sort 100 GB with 1 GB of RAM: runs, merges, and IO cost.', accent: '#10b981', tag: 'M3', ready: false },
   { id: 'btree', title: 'B-Tree Playground', blurb: 'Insert keys, watch nodes split, trace a search from root to leaf.', accent: '#10b981', tag: 'M3B', ready: true },
   { id: 'lsm', title: 'LSM Tree / SSTables', blurb: 'Memtable flushes, compaction, and a read path with bloom filters.', accent: '#10b981', tag: 'M3B', ready: false },
-  { id: 'schedules', title: 'Transaction Schedules', blurb: 'Interleave two transactions and test for conflicts & serializability.', accent: '#8b5cf6', tag: 'M4', ready: false },
+  { id: 'schedules', title: 'Transaction Schedules', blurb: 'Interleave two transactions and test for conflicts & serializability.', accent: '#8b5cf6', tag: 'M4', ready: true },
   { id: 'hashring', title: 'Consistent Hashing Ring', blurb: 'Add and remove nodes; see how few keys move, and play with quorums.', accent: '#ec4899', tag: 'M5', ready: false },
 ];
 
