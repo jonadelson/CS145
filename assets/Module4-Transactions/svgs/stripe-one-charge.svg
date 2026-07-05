@@ -1,0 +1,50 @@
+<svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="soc-t soc-d">
+  <title id="soc-t">One Stripe charge is four writes, wrapped atomically</title>
+  <desc id="soc-d">One Pay button on a Stripe checkout fans out to four writes:
+  charge the card through Visa, write the double-entry ledger as two rows that
+  sum to zero, bump the merchant's running balance, and queue a webhook. A bracket
+  marks all four as one atomic unit: all four land together, or none do. Color key:
+  violet is the single tap and the atomic boundary, grey is the four writes.</desc>
+  <defs><marker id="ah-soc" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#7C3AED"/></marker></defs>
+
+  <text x="480" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">One tap, four writes</text>
+  <text x="480" y="58" text-anchor="middle" font-size="14" fill="#6B7280">A single Pay click fans out into four writes. Stripe wraps them so they land together, or none do.</text>
+
+  <!-- the tap -->
+  <g data-step="1">
+    <rect x="60" y="186" width="150" height="58" rx="8" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <text x="135" y="210" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Pay</text>
+    <text x="135" y="230" text-anchor="middle" font-size="14" fill="#7C3AED" font-weight="700">$9.99</text>
+  </g>
+
+  <!-- the four writes -->
+  <g data-step="2">
+    <line x1="212" y1="200" x2="356" y2="118" stroke="#7C3AED" stroke-width="1.5" opacity="0.75" marker-end="url(#ah-soc)"/>
+    <line x1="212" y1="208" x2="356" y2="178" stroke="#7C3AED" stroke-width="1.5" opacity="0.75" marker-end="url(#ah-soc)"/>
+    <line x1="212" y1="222" x2="356" y2="238" stroke="#7C3AED" stroke-width="1.5" opacity="0.75" marker-end="url(#ah-soc)"/>
+    <line x1="212" y1="230" x2="356" y2="298" stroke="#7C3AED" stroke-width="1.5" opacity="0.75" marker-end="url(#ah-soc)"/>
+    <rect x="360" y="92" width="430" height="48" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="378" y="113" font-size="14" font-weight="700" fill="#0E0E10">Charge the card</text>
+    <text x="378" y="130" font-size="13" fill="#6B7280">through Visa</text>
+    <rect x="360" y="152" width="430" height="48" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="378" y="173" font-size="14" font-weight="700" fill="#0E0E10">Write the ledger</text>
+    <text x="378" y="190" font-size="13" fill="#6B7280">two rows, double entry, sum to zero</text>
+    <rect x="360" y="212" width="430" height="48" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="378" y="233" font-size="14" font-weight="700" fill="#0E0E10">Bump the merchant balance</text>
+    <text x="378" y="250" font-size="13" fill="#6B7280">running total + $9.99</text>
+    <rect x="360" y="272" width="430" height="48" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="378" y="293" font-size="14" font-weight="700" fill="#0E0E10">Queue the webhook</text>
+    <text x="378" y="310" font-size="13" fill="#6B7280">tell the merchant to ship</text>
+  </g>
+
+  <!-- atomic boundary -->
+  <g data-step="3">
+    <path d="M 806 92 q 12 0 12 12 L 818 194 q 0 12 12 12 q -12 0 -12 12 L 818 308 q 0 12 -12 12" fill="none" stroke="#7C3AED" stroke-width="2"/>
+    <text x="844" y="201" font-size="14" font-weight="700" fill="#7C3AED" transform="rotate(90 844 201)" text-anchor="middle">all four, or none</text>
+  </g>
+
+  <text x="480" y="392" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Atomic across the row&#160;&#160;</tspan><tspan fill="#3F3F46">the four writes are one transaction; a failure anywhere rolls back all of them.</tspan></text>
+</svg>

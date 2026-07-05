@@ -1,0 +1,168 @@
+<h1>CS145: Your SQL Career Journey</h1>
+<p>Master the core → Pick a technical path → Build your career.</p>
+<p><img src="assets/Module0-Kickoff/svgs/cs145-journey-map.svg"
+     alt="A left-to-right map: two blue boxes are CS145 content (core curriculum with Project 1, then a Project 2 choice of Science or the Systems path NanoMem), a grey box is what you keep learning beyond the course, a green box is the careers it leads to."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The CS145 journey as one map. Master the core database skills, then a project, then a chosen technical path, then where that path goes in industry. The line is the course; the branches are the careers it leads to.</p>
+</div>
+<hr />
+<h2>After CS145: Interview Questions You Can Answer</h2>
+<p>These are the kinds of questions FAANG-tier screens ask. By the end of CS145 you can work each
+one start to finish, including the scale follow-up.</p>
+<style>
+  .iq {
+    border-left: 2px solid #2563EB;
+    padding: 0.3rem 0 0.3rem 0.9rem;
+    margin: 0.55rem 0;
+  }
+  .iq-head {
+    font-size: 12px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #6B7280;
+    font-weight: 600;
+  }
+  .iq-head strong { color: #2563EB; }
+  .iq-q {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0E0E10;
+    line-height: 1.35;
+    margin-top: 0.1rem;
+  }
+  .iq-sub {
+    font-size: 13px;
+    color: #3F3F46;
+    line-height: 1.4;
+    padding-left: 1.05rem;
+    margin-top: 0.2rem;
+    position: relative;
+  }
+  .iq-sub::before {
+    content: "\203A";
+    position: absolute;
+    left: 0.15rem;
+    color: #6B7280;
+    font-weight: 700;
+  }
+  .iq-sub strong { color: #0E0E10; font-weight: 600; }
+</style>
+
+<h3>SQL &amp; Analytics</h3>
+<div class="iq">
+<div class="iq-head">
+<p><strong>Amazon</strong> · Top products query</p>
+</div>
+<div class="iq-q">
+<p>Products with over $1M revenue in Q4 but under $100K in Q1.</p>
+</div>
+<div class="iq-sub">
+<p><strong>Follow-up:</strong> optimize for a 10 TB orders table; which indexes?</p>
+</div>
+<div class="iq-sub">
+<p><strong>Hints:</strong> orders(order_id, product_id, amount, date), products(product_id, name) · EXTRACT/QUARTER · GROUP BY with HAVING</p>
+</div>
+</div>
+<div class="iq">
+<div class="iq-head">
+<p><strong>Meta</strong> · Friend recommendations</p>
+</div>
+<div class="iq-q">
+<p>Friends-of-friends but not direct friends, ranked by mutual friend count.</p>
+</div>
+<div class="iq-sub">
+<p><strong>Follow-up:</strong> 30 s on 1M users; optimize for 500M.</p>
+</div>
+<div class="iq-sub">
+<p><strong>Hints:</strong> friendships(user1_id, user2_id) bidirectional · self-joins · COUNT DISTINCT · LEFT JOIN with NULL check</p>
+</div>
+</div>
+<div class="iq">
+<div class="iq-head">
+<p><strong>Netflix</strong> · Binge-watching detection</p>
+</div>
+<div class="iq-q">
+<p>Users who watched over 3 episodes of one show in any 24-hour window.</p>
+</div>
+<div class="iq-sub">
+<p><strong>Follow-up:</strong> episodes across midnight, or across time zones?</p>
+</div>
+<div class="iq-sub">
+<p><strong>Hints:</strong> views(user_id, show_id, episode_id, timestamp) · window functions (LAG / LEAD) · timestamp diffs</p>
+</div>
+</div>
+<h3>Systems Design</h3>
+<div class="iq">
+<div class="iq-head">
+<p><strong>Google</strong> · URL deduplication</p>
+</div>
+<div class="iq-q">
+<p>Check if a URL was crawled before. Handle 100B URLs.</p>
+</div>
+<div class="iq-sub">
+<p><strong>Follow-up:</strong> normalization: www vs non-www, http vs https, trailing slash.</p>
+</div>
+<div class="iq-sub">
+<p><strong>Hints:</strong> 100B × 100 bytes = 10 TB (no fit in memory) · Bloom filters (1% false positive ok) · distributed hash tables</p>
+</div>
+</div>
+<div class="iq">
+<div class="iq-head">
+<p><strong>Uber</strong> · Distributed event counter</p>
+</div>
+<div class="iq-q">
+<p>Real-time ride counter across 5 data centers. Under 1 s lag, 99.99% uptime.</p>
+</div>
+<div class="iq-sub">
+<p><strong>Follow-up:</strong> accuracy or availability during a network partition? Why?</p>
+</div>
+<div class="iq-sub">
+<p><strong>Hints:</strong> partitions between DCs · eventually consistent counters · CRDTs · write-through cache</p>
+</div>
+</div>
+<hr />
+<h2>You'll read, debug, and write queries like this</h2>
+<h3>Example: Finding Power Users</h3>
+<div style="background: #f8fafc; padding: 2rem; border-radius: 12px; margin: 2rem 0;">
+<h4 style="color: #1e293b; margin: 0 0 1rem 0;">Complex production query</h4>
+<pre style="background: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 8px; font-size: 12px; overflow-x: auto;">
+WITH user_stats AS (
+SELECT 
+  user_id,
+  COUNT(DISTINCT song_id) as unique_songs,
+  COUNT(DISTINCT genre) as unique_genres,
+  SUM(play_duration) as total_minutes
+FROM listens l
+JOIN songs s ON l.song_id = s.song_id
+GROUP BY user_id
+),
+power_users AS (
+SELECT 
+  user_id,
+  unique_songs,
+  unique_genres,
+  total_minutes,
+  NTILE(10) OVER (ORDER BY total_minutes DESC) as decile
+FROM user_stats
+WHERE unique_genres &gt;= 3
+)
+SELECT 
+u.name,
+p.unique_songs,
+p.unique_genres,
+ROUND(p.total_minutes / 60.0, 1) as total_hours
+FROM power_users p
+JOIN users u ON p.user_id = u.user_id
+WHERE p.decile = 1  -- Top 10% only
+ORDER BY p.total_minutes DESC;</pre>
+</div>
+<h2>Where This Journey Leads: Real-World Architectures</h2>
+<h3>Enterprise Scale: Spotify's Data Pipeline</h3>
+<p>One play event travels through OLTP → ELT → OLAP using the algorithms this course teaches:</p>
+<p><img src="assets/Module0-Kickoff/svgs/spotify-pipeline.svg"
+     alt="One play event traced left to right across three panels: the blue OLTP real-time write path, the grey ELT batch hop, and the green OLAP analytics store that serves dashboards."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> One Spotify play event traced across the stack: the transactional database (OLTP), the ELT hop, and the analytics database (OLAP). Each stage runs on algorithms this course teaches. One SQL backbone, three roles.</p>
+</div>

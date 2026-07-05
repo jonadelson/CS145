@@ -1,0 +1,76 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.119
+Sometimes one query is not enough.
+
+00:00:05.119 --> 00:00:08.238
+You want users who listened to pop, plus users who listened to rock.
+
+00:00:08.238 --> 00:00:11.357
+Or users who did both.
+
+00:00:11.357 --> 00:00:14.477
+Or pop but not rock.
+
+00:00:14.477 --> 00:00:17.596
+These are set operations.
+
+00:00:17.596 --> 00:00:20.715
+SQL has four of them, and each combines two queries into one result.
+
+00:00:20.715 --> 00:00:24.482
+Start with two query results.
+
+00:00:24.482 --> 00:00:28.249
+Query A, the pop listeners: Mickey and Minnie.
+
+00:00:28.249 --> 00:00:32.015
+Query B, the rock listeners: Mickey and Daffy.
+
+00:00:32.015 --> 00:00:35.782
+Mickey is in both.
+
+00:00:35.782 --> 00:00:39.549
+Now combine them four ways.
+
+00:00:39.549 --> 00:00:43.316
+UNION takes either side and removes duplicates: Mickey, Minnie, Daffy, three rows.
+
+00:00:43.316 --> 00:00:47.082
+UNION ALL keeps the duplicate, so Mickey appears twice, four rows.
+
+00:00:47.082 --> 00:00:50.849
+INTERSECT keeps only the rows in both: just Mickey.
+
+00:00:50.849 --> 00:00:54.616
+And EXCEPT, A minus B, keeps what is in A but not in B: just Minnie.
+
+00:00:54.616 --> 00:00:58.672
+One catch.
+
+00:00:58.672 --> 00:01:02.728
+SQL tables are not really sets; they allow duplicates, like real life.
+
+00:01:02.728 --> 00:01:06.784
+Mathematicians call that a multiset, or a bag.
+
+00:01:06.784 --> 00:01:10.839
+The plain operators, UNION, INTERSECT, and EXCEPT, impose set behavior and drop duplicates.
+
+00:01:10.839 --> 00:01:14.895
+Their ALL variants keep the bag-ness.
+
+00:01:14.895 --> 00:01:18.951
+Pick the wrong one and your row counts change in ways that are easy to miss.
+
+00:01:18.951 --> 00:01:23.525
+Four operators, two modes each.
+
+00:01:23.525 --> 00:01:28.099
+The plain modes act on sets and drop duplicates; the ALL modes act on bags and keep them.
+
+00:01:28.099 --> 00:01:32.674
+UNION to add, INTERSECT for overlap, EXCEPT for the difference.
+
+00:01:32.674 --> 00:01:37.248
+Always pause to ask: do I want the duplicates removed, or not?

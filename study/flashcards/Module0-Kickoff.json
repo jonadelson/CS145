@@ -1,0 +1,195 @@
+{
+  "module": "Module0-Kickoff",
+  "title": "Kickoff",
+  "cards": [
+    {
+      "id": "m0-c01",
+      "front": "What does \"memory\" mean in CS145?",
+      "back": "The durable database on disk where data persists long-term — not the volatile RAM chip in your laptop. Actions (algorithms, inference) are short-term; the data they read and write outlives them in a database.",
+      "page": "Module0-Kickoff/why-memory-matters",
+      "tags": ["memory", "big-picture"]
+    },
+    {
+      "id": "m0-c02",
+      "front": "Name the three kickoff teardowns in teaching order, from laptop to planet.",
+      "back": "0.1 Pandas/Polars (small analytics on a ~16 GB laptop), 0.2 agent memory (1 user growing to 800M users), 0.3 UberEats (billions of orders planet-wide, plus the offline edge). Same database, growing scale.",
+      "page": "Module0-Kickoff/why-memory-matters",
+      "tags": ["teardowns", "big-picture"]
+    },
+    {
+      "id": "m0-c03",
+      "front": "What do the context window, the DataFrame, and the phone in a tunnel have in common?",
+      "back": "All three are short-term memory: fast, local, and gone when the session/process/signal ends. Anything that has to outlast them lives in a database.",
+      "page": "Module0-Kickoff/why-memory-matters",
+      "tags": ["memory", "short-term"]
+    },
+    {
+      "id": "m0-c04",
+      "front": "What capability does each module M2–M6 add to the database built in M1?",
+      "back": "M1 is already a complete declarative, parallel database. M2: how rows live on disk. M3: find rows in milliseconds. M4: keep state correct under many concurrent users. M5: spread one logical database across many machines. M6: databases in the wild (phone, inside an LLM, edge).",
+      "page": "Module0-Kickoff/why-memory-matters",
+      "tags": ["course-map", "modules"]
+    },
+    {
+      "id": "m0-c05",
+      "front": "Imperative vs. declarative code — what's the difference?",
+      "back": "Imperative spells out <em>how</em> step by step (nested loops, a count dictionary, a sort). Declarative states <em>what</em> you want (the join, grouping, order) and lets the engine decide how. SQL is the canonical declarative form.",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "tags": ["declarative", "sql"]
+    },
+    {
+      "id": "m0-c06",
+      "front": "What is the course's running example schema?",
+      "back": "Spotify-style: <code>Songs</code> (~100M on real Spotify), <code>Listens</code> (billions of rows, one per play), and <code>Users</code>.",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "tags": ["schema", "spotify"]
+    },
+    {
+      "id": "m0-c07",
+      "front": "What happens to a Pandas job when the dataset exceeds RAM?",
+      "back": "It crashes. Pandas loads every row into RAM and copies at each step, so it stops the moment the data passes the machine's RAM.",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "tags": ["pandas", "ram-limit"]
+    },
+    {
+      "id": "m0-c08",
+      "front": "How does Polars push the single-machine ceiling further than Pandas?",
+      "back": "Nearly the same API, but it runs a lazy, streaming, all-cores plan that only materializes what it needs. The limit moves far out — but it is still one machine with finite disk and CPU.",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "tags": ["polars", "ram-limit"]
+    },
+    {
+      "id": "m0-c09",
+      "front": "How does a database handle data too big for any one machine, where Pandas/Polars cannot?",
+      "back": "It flips the problem: you send the query to the data. The engine spreads the scan and join across many machines and returns just your rows — the data never has to fit on one machine.",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "tags": ["scale", "distributed"]
+    },
+    {
+      "id": "m0-c10",
+      "front": "What \"extra property\" does a SQL query have as data grows?",
+      "back": "The program doesn't change with scale: the same query runs unchanged on a thousand rows on a laptop or a hundred billion rows across two thousand machines. Only the execution plan changes.",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "tags": ["sql", "scale"]
+    },
+    {
+      "id": "m0-c11",
+      "front": "What is a hallucination, in the agent-memory teardown's definition?",
+      "back": "A confident, fluent output that happens to be wrong — e.g. inventing a plausible-sounding function name like <code>verifyJWTWithScope()</code> that exists nowhere in your codebase. It happens because the agent has no memory/context.",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["hallucination", "agents"]
+    },
+    {
+      "id": "m0-c12",
+      "front": "Besides hallucination, what is the second, quieter failure mode of a memoryless agent?",
+      "back": "Rediscovery: the agent re-derives the same pattern, bug fix, or architectural decision every session. You pay for it in both time and tokens.",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["agents", "rediscovery"]
+    },
+    {
+      "id": "m0-c13",
+      "front": "Why is the context window \"the same limit\" as Pandas's RAM ceiling?",
+      "back": "Both are fast working memories that can't hold the whole problem: ~200K–1M tokens vs. tens of millions for a real project, and every session starts empty. The fix is the same — durable storage on disk, i.e. a database.",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["context-window", "memory"]
+    },
+    {
+      "id": "m0-c14",
+      "front": "What is the <em>50 First Dates</em> analogy for agent memory?",
+      "back": "Lucy (the model) wakes with amnesia each morning; Henry's nightly videotape, replayed each morning, is the database. Record what happened, replay it next session — the recording is the cure for hallucination.",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["analogy", "agents"]
+    },
+    {
+      "id": "m0-c15",
+      "front": "Name the four reasons agent-memory tools (QMD, claude-mem, Aider) all store memory in SQLite.",
+      "back": "Zero config (no server to launch), embedded (runs in the agent's process — no network hop, no auth surface), transactional (a mid-task write can't corrupt the DB if the process dies), and one file (copy it, version it, query it anywhere).",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["sqlite", "agents"]
+    },
+    {
+      "id": "m0-c16",
+      "front": "What is QMD and who built it?",
+      "back": "An open-source local search engine built over a weekend by Tobi Lütke (Shopify's CEO) to give coding agents persistent memory across sessions. It indexes docs/notes/code, retrieves relevant snippets, and is exposed over MCP; its index is a SQLite file.",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["qmd", "agents"]
+    },
+    {
+      "id": "m0-c17",
+      "front": "What are the three ranking signals for agent-memory retrieval, and what does each catch?",
+      "back": "BM25 keyword search catches <strong>what you said</strong> (exact recall via FTS5). Vector similarity catches <strong>what you meant</strong> (paraphrase via embeddings). Graph centrality / PageRank catches <strong>what is structurally relevant</strong> in the code right now.",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["retrieval", "ranking"]
+    },
+    {
+      "id": "m0-c18",
+      "front": "How did OpenAI scale per-user agent memory to 800 million users?",
+      "back": "Same primitive, copied: the same SQL goes to one Postgres primary that takes every write and streams replication to ~50 read replicas serving the reads. Each user keeps their own memory; only the database scales.",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["postgres", "replication", "scale"]
+    },
+    {
+      "id": "m0-c19",
+      "front": "In the agent teardown, what actually \"kills hallucination\"?",
+      "back": "Whatever survives on disk after the process exits — persistent, searchable storage. The rest of the course is about how many machines hold that disk (local = Modules 1–4, global = Modules 5–6).",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "tags": ["memory", "durability"]
+    },
+    {
+      "id": "m0-c20",
+      "front": "Why is placing an UberEats order one transaction?",
+      "back": "Charge the diner, assign exactly one driver, decrement the restaurant's inventory — all of it or none of it. That atomic all-or-nothing guarantee is what stops two drivers from claiming the same order.",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "tags": ["transactions", "atomicity"]
+    },
+    {
+      "id": "m0-c21",
+      "front": "App state vs. global state in a three-sided marketplace — what's the split?",
+      "back": "The client app's in-memory state is volatile, local, and gone when the process ends (like a context window or DataFrame). The relational database is the out-of-process, long-lived global truth all three sides read and write at once.",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "tags": ["state", "architecture"]
+    },
+    {
+      "id": "m0-c22",
+      "front": "How does the UberEats driver app keep working in a tunnel or parking garage with no signal?",
+      "back": "The phone runs its own embedded SQLite database: serverless, already preinstalled on every phone, transactional offline (a half-accepted order never exists even if the phone dies mid-write), and it syncs to the cloud source of truth on reconnect.",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "tags": ["sqlite", "offline", "edge"]
+    },
+    {
+      "id": "m0-c23",
+      "front": "Why did the NoSQL movement happen, and what closed the loop?",
+      "back": "In the 1990s–2000s SQL ran on one massive server and scaling out was extremely hard, so the industry sacrificed strict safety and JOINs to partition across cheap machines. Modern distributed SQL (2020s) delivers horizontal scale without giving up safety or the declarative model.",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "tags": ["nosql", "history", "scale"]
+    },
+    {
+      "id": "m0-c24",
+      "front": "How does Google's own infrastructure explain the SQL/NoSQL split?",
+      "back": "Web Search and Gmail needed massive unstructured scale, not strict transactions — Google invented MapReduce and BigTable there, fueling NoSQL. Ads data (the revenue engine) had to be perfectly accurate, so it stayed on custom MySQL — proving SQL's fit for financial data.",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "tags": ["nosql", "history"]
+    },
+    {
+      "id": "m0-c25",
+      "front": "What does the driver app's reconnect sync query do?<br><pre><code>WITH RecentOrders AS (\n  SELECT * FROM Orders\n  WHERE updated_at &gt; datetime('now', '-600 seconds')\n)\nSELECT * FROM RecentOrders;</code></pre>",
+      "back": "A CTE finds only the rows changed inside the sync window (last 600 seconds), so the phone ships just those changed orders to the cloud source of truth instead of the whole table.",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "tags": ["cte", "sync", "offline"]
+    },
+    {
+      "id": "m0-c26",
+      "front": "In Spotify's data pipeline, what path does one play event travel?",
+      "back": "OLTP &#8594; ELT &#8594; OLAP: a real-time transactional write, then a batch hop, then the analytics store that serves dashboards. One SQL backbone, three roles.",
+      "page": "Module0-Kickoff/sql-metro",
+      "tags": ["oltp", "olap", "pipeline"]
+    },
+    {
+      "id": "m0-c27",
+      "front": "What does <code>NTILE(10) OVER (ORDER BY total_minutes DESC)</code> do in the power-users query?",
+      "back": "It splits the ordered rows into ten equal buckets (deciles); with DESC ordering, decile 1 is the top 10% of users by total listening minutes. Filtering <code>decile = 1</code> keeps just those power users.",
+      "page": "Module0-Kickoff/sql-metro",
+      "tags": ["window-functions", "sql"]
+    }
+  ]
+}

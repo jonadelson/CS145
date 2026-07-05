@@ -1,0 +1,84 @@
+<svg viewBox="0 0 1240 424" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="bqp-t bqp-d" font-family="Inter, sans-serif">
+  <title id="bqp-t">Behind a BigQuery API call: five stages, from planning a columnar scan to returning the top 100 in about 30 seconds</title>
+  <desc id="bqp-d">One query flows through five stages, left to right. 1, Plan: the optimizer reads the query and schema, sees only artist and year are touched, and the columnar layout reads just those two columns and skips the rest, so bytes scanned drop from 10 TB to about 200 GB. 2, Schedule: the slot scheduler allocates up to about 2,000 ephemeral compute slots, split across the stages. 3, Scan in parallel: each slot reads a partition of the columnar files in Colossus and hash-aggregates by artist locally into partial counts. 4, Shuffle and merge: a second wave of slots receives the partial counts, hash-partitioned by artist, sums them, sorts, and trims to the top 100 (the same hash partitioning as Distributed Sort and Hash). 5, Return: the result lands in the client in about 30 seconds, slots release, and you pay only for the bytes scanned, about $1.25. Color key: pink is the key number or result at each stage; grey is the stage boxes and the flow between them.</desc>
+  <defs>
+    <marker id="bqp-ar" markerWidth="11" markerHeight="8" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="620" y="30" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Behind the API call: one query, five stages</text>
+  <text x="620" y="54" text-anchor="middle" font-size="15" fill="#3F3F46" font-family="JetBrains Mono, monospace">SELECT artist, COUNT(*) FROM listens_2026 WHERE year=2026 GROUP BY artist ORDER BY plays DESC LIMIT 100</text>
+
+  <!-- Stage 1: Plan -->
+  <g data-step="1">
+    <rect x="24" y="82" width="222" height="252" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="24" y="82" width="222" height="6" rx="3" fill="#DB2777"/>
+    <text x="40" y="112" font-size="16" font-weight="700" fill="#DB2777">1 · Plan</text>
+    <text x="40" y="140" font-size="13" fill="#3F3F46">Optimizer reads the query</text>
+    <text x="40" y="158" font-size="13" fill="#3F3F46">and the table schema.</text>
+    <text x="40" y="184" font-size="13" fill="#3F3F46">Only artist + year are read;</text>
+    <text x="40" y="202" font-size="13" fill="#3F3F46">columnar skips the rest, and</text>
+    <text x="40" y="220" font-size="13" fill="#3F3F46">those two compress hard.</text>
+    <text x="135" y="280" text-anchor="middle" font-size="20" font-weight="800" fill="#DB2777">10 TB → 200 GB</text>
+    <text x="135" y="302" text-anchor="middle" font-size="13" fill="#6B7280">bytes scanned</text>
+  </g>
+
+  <!-- Stage 2: Schedule -->
+  <g data-step="2">
+    <rect x="270" y="82" width="222" height="252" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="270" y="82" width="222" height="6" rx="3" fill="#DB2777"/>
+    <text x="286" y="112" font-size="16" font-weight="700" fill="#DB2777">2 · Schedule</text>
+    <text x="286" y="140" font-size="13" fill="#3F3F46">The slot scheduler hands</text>
+    <text x="286" y="158" font-size="13" fill="#3F3F46">out ephemeral compute</text>
+    <text x="286" y="176" font-size="13" fill="#3F3F46">slots, split across the</text>
+    <text x="286" y="194" font-size="13" fill="#3F3F46">query's stages.</text>
+    <text x="381" y="280" text-anchor="middle" font-size="22" font-weight="800" fill="#DB2777">~2,000 slots</text>
+    <text x="381" y="302" text-anchor="middle" font-size="13" fill="#6B7280">on-demand default</text>
+  </g>
+
+  <!-- Stage 3: Scan in parallel -->
+  <g data-step="3">
+    <rect x="516" y="82" width="222" height="252" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="516" y="82" width="222" height="6" rx="3" fill="#DB2777"/>
+    <text x="532" y="112" font-size="16" font-weight="700" fill="#DB2777">3 · Scan in parallel</text>
+    <text x="532" y="140" font-size="13" fill="#3F3F46">Each slot reads one</text>
+    <text x="532" y="158" font-size="13" fill="#3F3F46">partition of the columnar</text>
+    <text x="532" y="176" font-size="13" fill="#3F3F46">files in Colossus, and</text>
+    <text x="532" y="194" font-size="13" fill="#3F3F46">hash-aggregates by artist.</text>
+    <text x="627" y="280" text-anchor="middle" font-size="20" font-weight="800" fill="#DB2777">partial counts</text>
+    <text x="627" y="302" text-anchor="middle" font-size="13" fill="#6B7280">one per slot, local</text>
+  </g>
+
+  <!-- Stage 4: Shuffle + merge -->
+  <g data-step="4">
+    <rect x="762" y="82" width="222" height="252" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="762" y="82" width="222" height="6" rx="3" fill="#DB2777"/>
+    <text x="778" y="112" font-size="16" font-weight="700" fill="#DB2777">4 · Shuffle + merge</text>
+    <text x="778" y="140" font-size="13" fill="#3F3F46">A second wave of slots</text>
+    <text x="778" y="158" font-size="13" fill="#3F3F46">gets the partial counts,</text>
+    <text x="778" y="176" font-size="13" fill="#3F3F46">hash-partitioned by artist,</text>
+    <text x="778" y="194" font-size="13" fill="#3F3F46">sums, sorts, trims.</text>
+    <text x="873" y="280" text-anchor="middle" font-size="22" font-weight="800" fill="#DB2777">top 100</text>
+    <text x="873" y="302" text-anchor="middle" font-size="12" fill="#6B7280">same hash-partitioning</text>
+    <text x="873" y="318" text-anchor="middle" font-size="12" fill="#6B7280">as Sort &amp; Hash</text>
+  </g>
+
+  <!-- Stage 5: Return -->
+  <g data-step="5">
+    <rect x="1008" y="82" width="222" height="252" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="1008" y="82" width="222" height="6" rx="3" fill="#DB2777"/>
+    <text x="1024" y="112" font-size="16" font-weight="700" fill="#DB2777">5 · Return</text>
+    <text x="1024" y="140" font-size="13" fill="#3F3F46">The result lands in the</text>
+    <text x="1024" y="158" font-size="13" fill="#3F3F46">client, and the slots</text>
+    <text x="1024" y="176" font-size="13" fill="#3F3F46">release. You pay only for</text>
+    <text x="1024" y="194" font-size="13" fill="#3F3F46">the bytes you scanned.</text>
+    <text x="1119" y="280" text-anchor="middle" font-size="22" font-weight="800" fill="#DB2777">~30 s · $1.25</text>
+    <text x="1119" y="302" text-anchor="middle" font-size="13" fill="#6B7280">nothing idle to pay for</text>
+  </g>
+
+  <line x1="248" y1="208" x2="268" y2="208" stroke="#6B7280" stroke-width="1.5" marker-end="url(#bqp-ar)"/>
+  <line x1="494" y1="208" x2="514" y2="208" stroke="#6B7280" stroke-width="1.5" marker-end="url(#bqp-ar)"/>
+  <line x1="740" y1="208" x2="760" y2="208" stroke="#6B7280" stroke-width="1.5" marker-end="url(#bqp-ar)"/>
+  <line x1="986" y1="208" x2="1006" y2="208" stroke="#6B7280" stroke-width="1.5" marker-end="url(#bqp-ar)"/>
+
+  <text x="24" y="360" font-size="13" fill="#6B7280">Color key: pink is the key number or result at each stage; grey is the stage boxes and the flow between them.</text>
+</svg>

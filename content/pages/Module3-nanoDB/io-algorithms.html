@@ -1,0 +1,311 @@
+<h1>IO Algorithms: Cost Analysis &amp; Intuition</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> The IO cost of every algorithm in this module (<code>BigSort</code>, <code>HashPartition</code>, <code>BNLJ</code>, <code>SMJ</code>, <code>HPJ</code>) can be expressed as a function of table size, buffer size, and the read/write cost ratio.</p>
+<p><strong>Intuition.</strong> Different algorithms win in different regimes. Small buffer favors <code>HPJ</code>; large buffer favors <code>BNLJ</code>; pre-sorted input favors <code>SMJ</code>. This page pulls all five formulas together so you can compare them side by side.</p>
+</div>
+<h2>CS145 Equations Sheet</h2>
+<div style="width: 100%; max-width: 1400px; margin: 2rem auto;">
+<iframe src="assets/Module3-nanoDB/cs145_Equations.pdf" width="100%" height="800px" style="border: 1px solid #E5E7EB; border-radius: 8px;"></iframe>
+</div>
+
+<h2>Real-World Examples: Choosing the Right Join Algorithm</h2>
+<p>Assume <strong>C_r = C_w = 1</strong>. For the JOINs below, we always add OUT (for the size of the output result). Always use the Equation Sheet for the full formulae.</p>
+<h3>Test Setup: B = 100 pages (≈ 6.4 GB RAM), Page Size = 64 MB</h3>
+<p>These examples use realistic table sizes from actual database workloads. Costs shown are simplified for clarity; real optimizer costs include additional factors.</p>
+<h3>Scenario Overview</h3>
+<table>
+<thead>
+<tr>
+<th>Example</th>
+<th>Description</th>
+<th>Table R</th>
+<th>Table S</th>
+<th>Special Conditions</th>
+<th>Key Insight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ex1</td>
+<td>Small Tables</td>
+<td>Songs<br/><span style="font-size: 12px; color: #6b7280;">10 GB</span></td>
+<td>Listens<br/><span style="font-size: 12px; color: #6b7280;">10 GB</span></td>
+<td>none</td>
+<td>Tables fit mostly in RAM</td>
+</tr>
+<tr>
+<td>Ex2</td>
+<td>Large Tables</td>
+<td>Songs<br/><span style="font-size: 12px; color: #6b7280;">100 GB</span></td>
+<td>Listens<br/><span style="font-size: 12px; color: #6b7280;">2 TB</span></td>
+<td>none</td>
+<td>Tables >> buffer size</td>
+</tr>
+<tr>
+<td>Ex3</td>
+<td>Pre-sorted Tables</td>
+<td>Songs ↑<br/><span style="font-size: 12px; color: #6b7280;">100 GB sorted</span></td>
+<td>Listens ↑<br/><span style="font-size: 12px; color: #6b7280;">2 TB sorted</span></td>
+<td>Pre-sorted</td>
+<td>SMJ skips sorting phase</td>
+</tr>
+<tr>
+<td>Ex4</td>
+<td>Self-Join</td>
+<td>Listens<br/><span style="font-size: 12px; color: #6b7280;">2 TB</span></td>
+<td>Listens<br/><span style="font-size: 12px; color: #6b7280;">2 TB (same)</span></td>
+<td> Self-join</td>
+<td>Can't optimize table order</td>
+</tr>
+<tr>
+<td>Ex5</td>
+<td>Song Similarity</td>
+<td>Listens<br/><span style="font-size: 12px; color: #6b7280;">100B rows</span></td>
+<td>Listens<br/><span style="font-size: 12px; color: #6b7280;">100B rows</span></td>
+<td> Massive</td>
+<td>Real-world similarity query</td>
+</tr>
+</tbody>
+</table>
+
+<h3>Algorithm performance vs buffer size</h3>
+<p><img src="assets/Module3-nanoDB/svgs/join-cost-vs-buffer.svg" alt="Log-scale chart of join IO cost vs buffer B for Songs3 100 GB joined with Listens3 1 TB at C_r=C_w=1: solid BNLJ falls steeply from 2.6M to 18K as B grows, dashed SMJ-best eases from 159K to 54K, dotted HPJ-best is flat at ~54K, a green divider marks the crossover where HPJ stops being cheapest and BNLJ takes over." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same join, one scale, swept across buffer size (numbers verified from the M3 NanoDB colab, C_r = C_w = 1). HPJ-best is flat at about 54K because partitioning is one read plus one write regardless of B; BNLJ collapses from 2.6M to 18K because a bigger buffer means far fewer rescans of the inner table; SMJ-best eases down as larger runs mean fewer merge passes. The green divider is the practical takeaway: HPJ is cheapest when the buffer is small, BNLJ once it is large, and the qualitative Ex1 to Ex5 regimes above keep the same shape at other table scales. Two edge cases bend it: SMJ with many duplicates backs up and rescans, and HPJ with heavy skew gets oversized partitions, each up to 2 to 10x worse.</p>
+</div>
+<hr />
+<h2>Exercise 2: Impact of Machine Configuration on IO Costs</h2>
+<h3>Scenario: Songs3 (100GB) × Listens3 (1TB)</h3>
+<ul>
+<li>
+<p>Songs3: 100GB = 1,600 pages</p>
+</li>
+<li>
+<p>Listens3: 1TB = 16,384 pages  </p>
+</li>
+<li>
+<p>Row size: 1024 bytes</p>
+</li>
+</ul>
+<div class="v5-callout">
+<p><strong>Key insight.</strong> Different machines have varying RAM (32 GB to 640 GB) and IO devices with different <code>C_r</code> and <code>C_w</code> costs. Query optimizers may allocate only 20–60% of RAM per query when running parallel workloads, which changes which algorithm wins.</p>
+</div>
+<h3>Cost Analysis Across Different Configurations</h3>
+<table>
+<thead>
+<tr>
+<th>Buffer<br/>Size (B)</th>
+<th>C_r</th>
+<th>C_w</th>
+<th>BNLJ</th>
+<th>BNLJ-rev</th>
+<th>SMJ-best</th>
+<th>HPJ-best</th>
+<th>Winner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="4" style="padding: 10px; text-align: center; font-weight: 600;">10<br/><span style="font-size: 11px; color: #6b7280;">(tiny)</span></td>
+<td>1</td>
+<td>1</td>
+<td>2.6M</td>
+<td>2.6M</td>
+<td>159K</td>
+<td>54K</td>
+<td> HPJ</td>
+</tr>
+<tr>
+<td>1</td>
+<td>10</td>
+<td>2.6M</td>
+<td>2.6M</td>
+<td>792K</td>
+<td>216K</td>
+<td> HPJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1</td>
+<td>26M</td>
+<td>26M</td>
+<td>954K</td>
+<td>378K</td>
+<td> HPJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>10</td>
+<td>26M</td>
+<td>26M</td>
+<td>1.6M</td>
+<td>540K</td>
+<td> HPJ</td>
+</tr>
+
+<tr>
+<td rowspan="4" style="padding: 10px; text-align: center; font-weight: 600;">100<br/><span style="font-size: 11px; color: #6b7280;">(small)</span></td>
+<td>1</td>
+<td>1</td>
+<td>264K</td>
+<td>279K</td>
+<td>90K</td>
+<td>54K</td>
+<td> HPJ</td>
+</tr>
+<tr>
+<td>1</td>
+<td>10</td>
+<td>264K</td>
+<td>279K</td>
+<td>414K</td>
+<td>216K</td>
+<td> HPJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1</td>
+<td>2.6M</td>
+<td>2.8M</td>
+<td>575K</td>
+<td>378K</td>
+<td> HPJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>10</td>
+<td>2.6M</td>
+<td>2.8M</td>
+<td>899K</td>
+<td>540K</td>
+<td> HPJ</td>
+</tr>
+
+<tr>
+<td rowspan="4" style="padding: 10px; text-align: center; font-weight: 600;">1,000<br/><span style="font-size: 11px; color: #6b7280;">(medium)</span></td>
+<td>1</td>
+<td>1</td>
+<td>34K</td>
+<td>44K</td>
+<td>87K</td>
+<td>54K</td>
+<td> BNLJ</td>
+</tr>
+<tr>
+<td>1</td>
+<td>10</td>
+<td>34K</td>
+<td>44K</td>
+<td>396K</td>
+<td>216K</td>
+<td> BNLJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1</td>
+<td>344K</td>
+<td>436K</td>
+<td>558K</td>
+<td>378K</td>
+<td> BNLJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>10</td>
+<td>344K</td>
+<td>436K</td>
+<td>867K</td>
+<td>540K</td>
+<td> BNLJ</td>
+</tr>
+
+<tr>
+<td rowspan="4" style="padding: 10px; text-align: center; font-weight: 600;">10,000<br/><span style="font-size: 11px; color: #6b7280;">(large)</span></td>
+<td>1</td>
+<td>1</td>
+<td>18K</td>
+<td>20K</td>
+<td>54K</td>
+<td>54K</td>
+<td> BNLJ</td>
+</tr>
+<tr>
+<td>1</td>
+<td>10</td>
+<td>18K</td>
+<td>20K</td>
+<td>216K</td>
+<td>216K</td>
+<td> BNLJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1</td>
+<td>180K</td>
+<td>196K</td>
+<td>378K</td>
+<td>378K</td>
+<td> BNLJ</td>
+</tr>
+<tr>
+<td>10</td>
+<td>10</td>
+<td>180K</td>
+<td>196K</td>
+<td>540K</td>
+<td>540K</td>
+<td> BNLJ</td>
+</tr>
+</tbody>
+</table>
+
+<h3>Key Observations</h3>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2rem 0;">
+<div class="v5-callout v5-callout--info">
+<h4 style="margin: 0 0 0.5rem 0; color: #059669;"> Buffer Size Impact</h4>
+<ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+<li><strong>Small B (10-100):</strong> HPJ dominates</li>
+<li><strong>Medium B (1,000):</strong> BNLJ becomes competitive</li>
+<li><strong>Large B (10,000):</strong> BNLJ wins. </li>
+</ul>
+</div>
+<div class="v5-callout v5-callout--warn">
+<h4 style="margin: 0 0 0.5rem 0; color: #d97706;"> Read/Write Cost Impact</h4>
+<ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+<li><strong>High C_w:</strong> inflates the algorithms that write intermediate data (SMJ's sort, HPJ's partition). BNLJ only reads, so it is untouched.</li>
+<li><strong>High C_r:</strong> all costs scale up together; the winner is unchanged.</li>
+<li><strong>At fixed B</strong> the winner here never flips on C_r or C_w. Expensive writes just widen BNLJ's lead once B is large.</li>
+</ul>
+</div>
+</div>
+<h3>Practical Implications</h3>
+<ol>
+<li>
+<p><strong>Cloud Environments</strong>: With variable RAM allocation per query, HPJ often wins due to its consistent performance</p>
+</li>
+<li>
+<p><strong>SSDs vs HDDs</strong>: SSDs have C_r ≈ C_w, while HDDs often have C_w &gt; C_r</p>
+</li>
+<li>
+<p><strong>Memory-Rich Systems</strong>: BNLJ becomes optimal when B is large enough to hold significant chunks</p>
+</li>
+<li>
+<p><strong>Multi-Query Workloads</strong>: Conservative B estimates favor HPJ's predictable performance</p>
+</li>
+</ol>
+<hr />
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>Just 5 algorithms</strong> power most database operations.</p>
+</li>
+<li>
+<p><strong>Memory (B) determines</strong> which algorithm is best.</p>
+</li>
+<li>
+<p><strong>No memorization needed.</strong> Formulas follow intuition.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/storage-algorithms-quiz">Storage &amp; Algorithms Quiz →</a></strong> Check your understanding of storage layouts, hash partitioning, BigSort, and the three join algorithms.</p>

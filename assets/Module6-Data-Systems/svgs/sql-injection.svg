@@ -1,0 +1,59 @@
+<svg viewBox="0 0 1100 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sqli-t sqli-d" font-family="Inter, sans-serif">
+  <title id="sqli-t">SQL injection: the same attacker input is a command in a concatenated query but harmless data in a parameterized one</title>
+  <desc id="sqli-d">The same attacker input, Robert semicolon DROP TABLE users dash dash, takes two fates. On the left (red), string concatenation splices it into the query text, so the database runs DROP TABLE users and the table is gone. On the right (green), a parameterized query binds it as a single value, so the database looks for a user literally named that whole string, finds none, and nothing is dropped. Color key: red is the injection executing as code, green is the input bound as data.</desc>
+
+  <text x="550" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">SQL injection: same input, two fates</text>
+
+  <!-- attacker input + LEFT vulnerable panel -->
+  <g data-step="1">
+    <rect x="280" y="56" width="540" height="40" rx="6" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="300" y="81" font-size="13" font-weight="700" fill="#DC2626">input:</text>
+    <text x="360" y="81" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">Robert'; DROP TABLE users; --</text>
+
+    <rect x="30" y="120" width="510" height="350" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="30" y="120" width="510" height="6" rx="3" fill="#DC2626"/>
+    <text x="285" y="148" text-anchor="middle" font-size="16" font-weight="700" fill="#DC2626">String concatenation, vulnerable</text>
+
+    <rect x="50" y="162" width="470" height="92" rx="8" fill="#0D1117" stroke="#30363D"/>
+    <text x="66" y="184" font-family="JetBrains Mono, monospace" font-size="13" fill="#8B949E"># input spliced into query text</text>
+    <text x="66" y="206" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">q = f"SELECT * FROM users</text>
+    <text x="66" y="226" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">     WHERE name = '<tspan fill="#DC2626">{username}</tspan>'"</text>
+    <text x="66" y="246" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">cursor.execute(q)</text>
+
+    <text x="285" y="280" text-anchor="middle" font-size="13" fill="#6B7280">the database receives</text>
+
+    <rect x="50" y="292" width="470" height="92" rx="8" fill="#0D1117" stroke="#30363D"/>
+    <text x="66" y="316" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">SELECT * FROM users WHERE name = 'Robert';</text>
+    <text x="66" y="340" font-family="JetBrains Mono, monospace" font-size="13" fill="#DC2626">DROP TABLE users;</text>
+    <text x="240" y="340" font-family="JetBrains Mono, monospace" font-size="13" fill="#8B949E">--'</text>
+    <text x="66" y="364" font-family="JetBrains Mono, monospace" font-size="12" fill="#8B949E">^ ends query   ^ new command   ^ comment</text>
+
+    <text x="285" y="420" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">input becomes a command</text>
+    <text x="285" y="442" text-anchor="middle" font-size="14" fill="#3F3F46">the users table is dropped</text>
+  </g>
+
+  <!-- RIGHT safe panel -->
+  <g data-step="2">
+    <rect x="560" y="120" width="510" height="350" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="560" y="120" width="510" height="6" rx="3" fill="#16A34A"/>
+    <text x="815" y="148" text-anchor="middle" font-size="16" font-weight="700" fill="#16A34A">Parameterized query, safe</text>
+
+    <rect x="580" y="162" width="470" height="92" rx="8" fill="#0D1117" stroke="#30363D"/>
+    <text x="596" y="184" font-family="JetBrains Mono, monospace" font-size="13" fill="#8B949E"># input passed separately, not spliced</text>
+    <text x="596" y="206" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">q = "SELECT * FROM users</text>
+    <text x="596" y="226" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">     WHERE name = <tspan fill="#16A34A">%s</tspan>"</text>
+    <text x="596" y="246" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">cursor.execute(q, (username,))</text>
+
+    <text x="815" y="280" text-anchor="middle" font-size="13" fill="#6B7280">the database receives</text>
+
+    <rect x="580" y="292" width="470" height="92" rx="8" fill="#0D1117" stroke="#30363D"/>
+    <text x="596" y="320" font-family="JetBrains Mono, monospace" font-size="13" fill="#E6EDF3">SELECT * FROM users WHERE name =</text>
+    <text x="596" y="344" font-family="JetBrains Mono, monospace" font-size="13" fill="#16A34A">'Robert''; DROP TABLE users; --'</text>
+    <text x="596" y="368" font-family="JetBrains Mono, monospace" font-size="12" fill="#8B949E">^ the whole string is one value</text>
+
+    <text x="815" y="420" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">input stays data</text>
+    <text x="815" y="442" text-anchor="middle" font-size="14" fill="#3F3F46">no user matches; nothing is dropped</text>
+  </g>
+
+  <text x="550" y="486" text-anchor="middle" font-size="13"><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the injection runs as code&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the input bound as data</tspan></text>
+</svg>

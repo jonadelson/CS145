@@ -1,0 +1,68 @@
+<h1>Connecting It All Together</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A complete transaction system needs a correctness standard, <em>conflict-serializability</em>, and engines that target it. <em>2PL</em> hits it exactly, locking rows through the lock manager. <em>MVCC</em> trades it for non-blocking reads: its default, <em>snapshot isolation</em>, is a weaker bar that permits write skew, and it reaches full serializability only at the SERIALIZABLE level. Together they let thousands of transactions run concurrently, each at a chosen correctness level.</p>
+<p><strong>Intuition.</strong> When Mickey's playlist update and Minnie's profile edit run at the same time, 2PL serializes them only on the rows they share, the lock manager blocks them on those rows alone (not the whole table), and the resulting schedule is provably equivalent to running them one-after-the-other. All the theory shows up in a single concurrent execution.</p>
+</div>
+<h2>Implementation Motivation</h2>
+<p>The earlier pages built the theory piece by piece. Here it assembles into a working transaction system.</p>
+<div class="v5-callout">
+<p><strong>The Goal:</strong> Implement 2PL locking (or S2PL) to produce conflict-serializable schedules and beat serial execution.</p>
+</div>
+<hr />
+<h2>Implementation: S2PL in Practice</h2>
+<h3>Sample Code for S2PL</h3>
+<pre><code class="language-python"># Strict 2PL: acquire locks as you read/write, release them all at commit.
+class Transaction:
+    def __init__(self, txn_id):
+        self.id = txn_id
+        self.locks_held = set()
+
+    def read(self, item):
+        lock_manager.acquire_lock(self.id, item, &quot;SHARED&quot;)      # grow
+        self.locks_held.<span class="py-ds">add</span>(item)
+        return database.read(item)
+
+    def write(self, item, value):
+        lock_manager.acquire_lock(self.id, item, &quot;EXCLUSIVE&quot;)   # grow
+        self.locks_held.<span class="py-ds">add</span>(item)
+        database.write(item, value)
+
+    def commit(self):
+        for item in self.locks_held:                            # shrink: all at once
+            lock_manager.release_lock(self.id, item)
+        self.locks_held.clear()
+</code></pre>
+<div class="v5-callout">
+<p><strong>Try it yourself:</strong> See the full implementation in the <a href="https://colab.research.google.com/drive/1LmKtLq05fWNgqVFVLMQO1646efR251BD">Transactions Colab</a></p>
+</div>
+<hr />
+<h2>The Big Picture</h2>
+<p><img src="assets/Module4-Transactions/images/concurrency-bigpicture.png" alt="The full transaction-system architecture, top to bottom: the application issues transactions, the transaction manager coordinates them, the lock manager or MVCC grants locks or keeps versions and its grant order is the conflict-serializable schedule, and the recovery manager makes commits survive crashes, together delivering ACID." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The whole concurrency stack in one view: schedules decide the interleaving, the lock manager or MVCC enforces it, and conflict-serializability is the bar 2PL passes (MVCC meets a weaker one, snapshot isolation, by default). Each piece had its own page; here they connect into one transaction system.</p>
+</div>
+<p>Two routes, two correctness levels: <strong>2PL</strong> makes a reader wait for a writer and produces conflict-serializable executions; <strong>MVCC</strong> keeps old versions so readers never block, producing snapshot isolation by default and conflict-serializable executions only at the SERIALIZABLE level.</p>
+<div class="definition-cards">
+<div class="definition-card">
+<h4>Component Integration</h4>
+<p>One transaction, top to bottom:</p>
+<div class="example-box">
+<p><strong>1. Application:</strong> issues transactions (BEGIN ... COMMIT)<br>
+<strong>2. Transaction Manager:</strong> coordinates execution<br>
+<strong>3. Lock Manager (or MVCC):</strong> grants locks (2PL, conflict-serializable) or keeps versions (MVCC, snapshot isolation by default)<br>
+<strong>4. Recovery Manager:</strong> makes commits survive crashes (the next module)<br><br>
+<em>Together they deliver the ACID guarantees.</em></p>
+</div>
+</div>
+</div>
+<p>The performance numbers (49 → 31 time units, ~37% speedup on the worked example; 10× to 100× on IO-bound workloads at scale) come from <a href="#/page/Module4-Transactions/micro">Microschedules &amp; Deadlock</a>.</p>
+<hr />
+<h2>The Power of Transaction Managers: Beyond Simple Locks</h2>
+<p>The same three ideas scale far past two transactions on one machine. The exact lock that serializes Mickey and Minnie here also runs stock exchanges, airline seat maps, and bank ledgers, where the same conflict-serializability guarantee holds across millions of transactions a second. Pushing 2PL across many machines is its own problem, and that is where Module 5 picks up.</p>
+<p><img src="assets/Module4-Transactions/svgs/tms-power.svg" alt="The same two-phase locking at three operating points: it distributes (one transaction locks rows in New York, San Francisco, and Tokyo with 2PL held across all three), it recovers (the recovery manager replays the write-ahead log after a crash so committed work survives), and it scales (stock exchanges and bank ledgers push millions of transactions a second)." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The same protocol stretches three ways. It <strong>distributes</strong>, holding two-phase locking across machines in different cities; it <strong>recovers</strong>, replaying the write-ahead log after a crash so committed work survives; and it <strong>scales</strong>, running millions of transactions a second on stock exchanges and bank ledgers. Same core, different operating point.</p>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4B-Crash-Recovery/recovery-intuition">Change Tracking: Log the Diff →</a></strong> Concurrency control protects transactions from each other. Recovery protects them from crashes. Together they make ACID real, and recovery starts with one idea: log the diff, don't copy.</p>

@@ -1,0 +1,37 @@
+<svg viewBox="0 0 960 196" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ts-t ts-d">
+  <title id="ts-t">The Taylor Swift on-sale, by the numbers</title>
+  <desc id="ts-d">Four figures from the on-sale: 52 show dates, 3.5 million fans
+  pre-registered, 2.4 million tickets sold in a single day, and 3.5 billion system
+  requests in a few hours.</desc>
+
+  <text x="480" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#6B7280" letter-spacing="0.5">THE ON-SALE, BY THE NUMBERS</text>
+
+  <g data-step="1">
+    <rect x="44" y="50" width="210" height="120" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="44" y="50" width="210" height="6" rx="3" fill="#7C3AED"/>
+    <text x="149" y="116" text-anchor="middle" font-size="42" font-weight="800" fill="#7C3AED">52</text>
+    <text x="149" y="144" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">show dates</text>
+  </g>
+  <g data-step="2">
+    <rect x="278" y="50" width="210" height="120" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="278" y="50" width="210" height="6" rx="3" fill="#7C3AED"/>
+    <text x="383" y="116" text-anchor="middle" font-size="42" font-weight="800" fill="#7C3AED">3.5M</text>
+    <text x="383" y="144" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">fans pre-registered</text>
+  </g>
+  <g data-step="3">
+    <rect x="512" y="50" width="210" height="120" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="512" y="50" width="210" height="6" rx="3" fill="#7C3AED"/>
+    <text x="617" y="116" text-anchor="middle" font-size="42" font-weight="800" fill="#7C3AED">2.4M</text>
+    <text x="617" y="140" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">tickets sold</text>
+    <text x="617" y="158" text-anchor="middle" font-size="12.5" fill="#6B7280">in a single day</text>
+  </g>
+  <g data-step="4">
+    <rect x="746" y="50" width="210" height="120" rx="10" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="746" y="50" width="210" height="6" rx="3" fill="#7C3AED"/>
+    <text x="851" y="116" text-anchor="middle" font-size="42" font-weight="800" fill="#7C3AED">3.5B</text>
+    <text x="851" y="140" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">system requests</text>
+    <text x="851" y="158" text-anchor="middle" font-size="12.5" fill="#6B7280">in a few hours</text>
+  </g>
+</svg>

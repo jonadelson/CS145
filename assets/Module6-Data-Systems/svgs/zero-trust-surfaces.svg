@@ -1,0 +1,81 @@
+<svg viewBox="0 0 1100 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="zt-t zt-d" font-family="Inter, sans-serif">
+  <title id="zt-t">Zero Trust: assume every surface between a request and the data is already hostile</title>
+  <desc id="zt-d">A grey data store at the top holds the database and its PII. Below it sit five red surfaces you must not trust by default: the network (assume compromised), users (assume phished), admins (assume insider threat), code (assume injection), and backups (assume deletable). Zero Trust means verifying every request rather than trusting any of these. Color key: grey is the data you protect, red is a surface to distrust and verify.</desc>
+  <defs>
+    <marker id="zt-ar" markerWidth="10" markerHeight="8" refX="2" refY="3.5" orient="auto"><polygon points="10 0, 0 3.5, 10 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="550" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Zero Trust: assume every surface is hostile</text>
+  <text x="550" y="60" text-anchor="middle" font-size="16" fill="#3F3F46">Trust nothing by default; verify every request to the data</text>
+
+  <!-- data store -->
+  <g data-step="1">
+  <rect x="400" y="82" width="300" height="68" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="400" y="82" width="300" height="6" rx="3" fill="#E7EAEE"/>
+  <text x="550" y="110" text-anchor="middle" font-size="16" font-weight="700" fill="#6B7280">Your database + PII</text>
+  <text x="550" y="132" text-anchor="middle" font-size="13" fill="#3F3F46">every path in is a trust boundary</text>
+
+  </g>
+
+  <!-- five distrust surfaces -->
+  <g data-step="2">
+  <g font-family="Inter, sans-serif">
+    <g>
+      <rect x="20" y="200" width="205" height="190" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+      <rect x="20" y="200" width="205" height="6" rx="3" fill="#DC2626"/>
+      <text x="122" y="228" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">Network</text>
+      <text x="122" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">assume: compromised</text>
+      <text x="122" y="300" text-anchor="middle" font-size="13" fill="#6B7280">man-in-the-middle</text>
+      <text x="122" y="320" text-anchor="middle" font-size="13" fill="#6B7280">packet sniffing</text>
+      <text x="122" y="340" text-anchor="middle" font-size="13" fill="#6B7280">DNS poisoning</text>
+    </g>
+    <g>
+      <rect x="235" y="200" width="205" height="190" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+      <rect x="235" y="200" width="205" height="6" rx="3" fill="#DC2626"/>
+      <text x="337" y="228" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">Users</text>
+      <text x="337" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">assume: phished</text>
+      <text x="337" y="300" text-anchor="middle" font-size="13" fill="#6B7280">credential theft</text>
+      <text x="337" y="320" text-anchor="middle" font-size="13" fill="#6B7280">social engineering</text>
+      <text x="337" y="340" text-anchor="middle" font-size="13" fill="#6B7280">malware on devices</text>
+    </g>
+    <g>
+      <rect x="450" y="200" width="205" height="190" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+      <rect x="450" y="200" width="205" height="6" rx="3" fill="#DC2626"/>
+      <text x="552" y="228" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">Admins</text>
+      <text x="552" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">assume: insider threat</text>
+      <text x="552" y="300" text-anchor="middle" font-size="13" fill="#6B7280">privilege abuse</text>
+      <text x="552" y="320" text-anchor="middle" font-size="13" fill="#6B7280">compromised account</text>
+      <text x="552" y="340" text-anchor="middle" font-size="13" fill="#6B7280">least privilege, RLS</text>
+    </g>
+    <g>
+      <rect x="665" y="200" width="205" height="190" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+      <rect x="665" y="200" width="205" height="6" rx="3" fill="#DC2626"/>
+      <text x="767" y="228" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">Code</text>
+      <text x="767" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">assume: injection</text>
+      <text x="767" y="300" text-anchor="middle" font-size="13" fill="#6B7280">SQL injection</text>
+      <text x="767" y="320" text-anchor="middle" font-size="13" fill="#6B7280">supply-chain attacks</text>
+      <text x="767" y="340" text-anchor="middle" font-size="13" fill="#6B7280">parameterize inputs</text>
+    </g>
+    <g>
+      <rect x="880" y="200" width="200" height="190" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+      <rect x="880" y="200" width="200" height="6" rx="3" fill="#DC2626"/>
+      <text x="980" y="228" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">Backups</text>
+      <text x="980" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">assume: deletable</text>
+      <text x="980" y="300" text-anchor="middle" font-size="13" fill="#6B7280">ransomware target</text>
+      <text x="980" y="320" text-anchor="middle" font-size="13" fill="#6B7280">untested restores</text>
+      <text x="980" y="340" text-anchor="middle" font-size="13" fill="#6B7280">3-2-1, immutable</text>
+    </g>
+  </g>
+
+  <g stroke="#6B7280" stroke-width="1.5">
+    <line x1="122" y1="200" x2="430" y2="152" marker-end="url(#zt-ar)"/>
+    <line x1="337" y1="200" x2="470" y2="152" marker-end="url(#zt-ar)"/>
+    <line x1="552" y1="200" x2="552" y2="152" marker-end="url(#zt-ar)"/>
+    <line x1="767" y1="200" x2="630" y2="152" marker-end="url(#zt-ar)"/>
+    <line x1="980" y1="200" x2="670" y2="152" marker-end="url(#zt-ar)"/>
+  </g>
+  </g>
+
+  <text x="550" y="430" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Zero Trust: never trust a surface; verify every request, every time.</text>
+  <text x="550" y="456" text-anchor="middle" font-size="13"><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the data you protect&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = a surface to distrust and verify</tspan></text>
+</svg>

@@ -1,0 +1,82 @@
+<h1>Hashing: From Data to Algorithms</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A hash function maps a key to a fixed-size bucket id, so you can find or insert in expected O(1) by reading the page where the bucket lives.</p>
+<p><strong>Intuition.</strong> Hash-index Listens by <code>user_id</code>, and finding Mickey's 3 listens inside a billion-row table costs one IO, the page where Mickey's bucket lives. No scan, no sort.</p>
+</div>
+<div class="v5-callout v5-callout--info">
+<p><strong>The bridge from hardware to algorithms</strong></p>
+<p>The previous chapter showed why disks and network are slow. From here, the course abstracts those costs into algorithms and data structures:</p>
+<ul>
+<li>
+<p><strong>Ignore device differences.</strong> Reason about IO patterns, not hardware.</p>
+</li>
+<li>
+<p><strong>Count IOs, not milliseconds.</strong> An algorithm that reads 100 pages costs 100 IOs; one that reads a million pages costs 1,000,000 IOs.</p>
+</li>
+</ul>
+<p>So "Algorithm A costs 5N IOs" versus "Algorithm B costs N log N IOs" is a comparison of how many times each hits the disk. Hashing is the first technique that drives that cost down to exactly <strong>1 IO</strong>.</p>
+</div>
+<hr />
+<h2>Basic Hashing</h2>
+<h3>What is Hashing?</h3>
+<p>Hashing turns an input of any size into a fixed-size value in <code>[0, B-1]</code>. It is deterministic (same input, same output) and aims for a uniform spread across buckets, giving expected O(1) access. It is not compression, the output cannot be turned back into the input.</p>
+<hr />
+<h2>Integer Hashing</h2>
+<h3>Simple Modulo Hash</h3>
+<p>The simplest way to hash integers:</p>
+<pre><code class="language-plaintext">// Simple Modulo Hash
+hash_modulo(x, B):
+    return x % B
+</code></pre>
+<h3>Visual Example: Integer Hashing</h3>
+<p><img src="assets/Module2-Systems/svgs/integer-hashing.svg" alt="Inputs 42, 157, 1042, 89 are hashed by x mod 10 into ten buckets. 42 and 1042 both land in bucket 2, a collision (shown in orange); 157 lands in bucket 7 and 89 in bucket 9. Color key: orange is the colliding bucket in focus, grey is the other buckets." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> <code>h(x) = x % 10</code> hashes four integers into ten buckets numbered 0 through 9: 42 and 1042 both land in bucket 2 (orange) because they share a last digit, while 157 and 89 fall in distinct grey buckets. That orange collision is the point. Whenever a hash maps two different inputs to the same bucket, the table needs a collision strategy, either chaining a list at the bucket or open-addressing into the next slot, and modulo by a small bucket count makes such collisions common. The choice of strategy affects lookup cost and load-factor headroom.</p>
+</div>
+<hr />
+<h2>String Hashing</h2>
+<h3>From Characters to Numbers</h3>
+<p>Strings must first become numbers before they can be hashed. Here's how:</p>
+<pre><code class="language-plaintext">// Simple Sum (Bad - many collisions)
+hash_sum(str, B):
+    sum = 0
+    for char in str:
+        sum += ASCII(char)
+    return sum % B
+</code></pre>
+<p>A plain sum collides badly (any reordering sums the same). Production code weights
+each character by a power of a prime so order matters, the <strong>polynomial rolling
+hash</strong> in the <a href="#optional-hash-functions">optional section</a> below.</p>
+<hr />
+<h2>Hash Collisions</h2>
+<h3>The Birthday Paradox</h3>
+<p>Just like 23 people in a room make a birthday match likely, hash collisions are unavoidable: a table of <code>B</code> buckets sees a 50% chance of collision after only about <code>√B</code> inserts. Two standard fixes: <strong>chaining</strong> (a linked list at each bucket) or <strong>open addressing</strong> (probe for the next empty slot). Keep the load factor <code>n/B</code> under about 0.75 to bound the cost.</p>
+<hr />
+<p><a id="optional-hash-functions"></a></p>
+<h2>Optional: Production-Grade Hash Functions</h2>
+<p>The simple versions above carry the idea. Real systems mix the bits first, so keys that
+look alike still scatter across buckets. You do not need these to follow the rest of the
+course, they are here for reference.</p>
+<pre><code class="language-plaintext">// Integer: MurmurHash-style finalizer (better distribution)
+hash_murmur(x, B):
+    x ^= x &gt;&gt; 16
+    x *= 0x85ebca6b
+    x ^= x &gt;&gt; 13
+    x *= 0xc2b2ae35
+    x ^= x &gt;&gt; 16
+    return x % B
+
+// String: Polynomial Rolling Hash (order matters, spreads evenly)
+hash_poly(str, B):
+    P = 31    // prime number
+    hash = 0
+    pow = 1
+    for char in str:
+        hash = (hash + ASCII(char) * pow) % B
+        pow = (pow * P) % B
+    return hash
+</code></pre>
+<hr />
+<blockquote>
+<p><strong>Next.</strong> <a href="#/page/Module2-Systems/case-study-geohashing">Case Study 2.1</a> applies this exact-bucket hashing to 2-D space: how Uber and Google Maps turn a geo radius query into a one-IO lookup. Then the pivot: a close cousin, <strong>Locality-Sensitive Hashing</strong>, deliberately makes <em>similar</em> items collide so you can search by similarity. That idea, and quantizing high-dimensional embeddings, starts the Approximation Algorithms track. See <strong>LSH &amp; Vector Hashing</strong>.</p>
+</blockquote>

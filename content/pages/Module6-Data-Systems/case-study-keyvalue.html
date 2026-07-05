@@ -1,0 +1,95 @@
+<h1>Case Study: Key-Value Stores</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A key-value store maps an opaque key straight to a blob, with no schema, joins, or constraints, so a lookup by key is one fast hop and anything richer is the application's job. Wide-column stores (Cassandra, Bigtable) extend the key into a <em>partition key</em> plus <em>clustering columns</em>, which turns per-user, time-sorted reads into a single-partition scan.</p>
+<p><strong>Intuition.</strong> Spotify keeps structured facts (who played what, when) in SQL, but a song's lyrics or audio file is a blob: store it as <code>{key: song_id, value: blob}</code> in a key-value store (or in S3 with a key-value index), not spread across SQL columns. For Mickey's 20 most recent plays, a wide-column table keyed by user and sorted by time answers from one partition, with no cluster-wide sort.</p>
+</div>
+<h2>Why does Spotify store songs and lyrics in a key-value database?</h2>
+<p><strong>Goal: Learn when to use key-value stores.</strong></p>
+<hr />
+<h3>The Data Spectrum: Structured vs. Blobs</h3>
+<p><strong>1. The Structured Core (Tabular)</strong>
+Imagine a world of neatly typed columns: integers, timestamps, booleans.</p>
+<ul>
+<li><strong>The Reality</strong>: SQL engines are built to slice and dice billions of these tiny rows. This is your core product logic, tracking who listened to what song, and when.</li>
+</ul>
+<p><strong>2. The Massive "Blobs" (Unstructured &amp; Semi-structured)</strong>
+Now think of a 10 GB video file or a sprawling JSON blob with a podcast's details.</p>
+<ul>
+<li><strong>The Reality</strong>: SQL engines excel at scanning rows in memory; huge blobs disrupt that efficiency. It's like cramming a video into a spreadsheet cell. Better to store the video elsewhere and just track its location.</li>
+</ul>
+<p>This is why Spotify divides its architecture.</p>
+<hr />
+<h3>The Spotify Strategy: Key-Value Stores</h3>
+<p>For the unstructured and semi-structured data, Spotify turns to <strong>Key-Value databases</strong> like Google’s <strong>Bigtable</strong> or AWS’ <strong>DynamoDB</strong>.</p>
+<p><strong>How it works</strong>:
+Picture a vast locker room. Each locker has a unique number (the <strong>Key</strong>) and inside is the item (the <strong>Value</strong>).</p>
+<ul>
+<li>
+<p><strong>Example</strong>: Key = <code>song_123</code>, Value = <code>audio_file.mp3</code>.</p>
+</li>
+<li>
+<p><strong>Retrieval</strong>: Hit play, and Spotify uses the song's ID to swiftly fetch the audio from the key-value store and stream it to you.</p>
+</li>
+</ul>
+<p>Alternatively, the actual file might sit in a distributed file system (like Amazon S3). The key-value database acts as an <strong>index</strong> (<code>Key = song_id</code>, <code>Value = S3-location</code>). This setup scales billions of files while keeping performance sharp.</p>
+<h3>SQL vs. Key-Value: The Trade-offs</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">SQL Database (Conventional)</th>
+<th style="text-align: left;">Key-Value Store</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Querying</strong></td>
+<td style="text-align: left;">Rich capability: Joins, Aggregations, Complex filters.</td>
+<td style="text-align: left;">Simple: Given a key, it returns the value.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Schema</strong></td>
+<td style="text-align: left;">Rigid: Needs a predefined structure.</td>
+<td style="text-align: left;">Flexible: No predefined schema required.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Integrity</strong></td>
+<td style="text-align: left;">High: Enforced constraints &amp; transactions.</td>
+<td style="text-align: left;">Low: App has to handle integrity.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Best For</strong></td>
+<td style="text-align: left;">Structured data with complex relationships.</td>
+<td style="text-align: left;">Massive unstructured/semi-structured data (like lyrics or media).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Takeaway</strong>: Storing each line of music lyrics in separate SQL columns isn't practical. Instead, store it as one semi-structured blob in a Key-Value store: <code>{key: song_id, value: lyrics_blob}</code>. (Or in JSONB in modern SQL databases.)</p>
+<h3>Beyond Simple Keys: Cassandra's Wide Rows</h3>
+<p>A pure key-value store returns one opaque value per key. <strong>Wide-column</strong> stores like <strong>Cassandra</strong> (and Google's Bigtable) refine that model by splitting the key into two parts, and that split makes feeds, timelines, and inboxes fast:</p>
+<ul>
+<li>
+<p><strong>Partition key</strong> decides <em>which node</em> stores the data. Cassandra hashes it, so all rows sharing a partition key live together on one node.</p>
+</li>
+<li>
+<p><strong>Clustering columns</strong> decide the <em>sort order within</em> that partition. Rows are stored physically sorted, ready to read in order.</p>
+</li>
+</ul>
+<p>The classic shape is the <strong>per-user inbox</strong>: one user's items all share a partition key, sorted by time inside the partition.</p>
+<pre><code><span class="sql-keyword">CREATE</span> <span class="sql-keyword">TABLE</span> plays_by_user (
+    user_id   text,
+    played_at timestamp,
+    song_id   text,
+    PRIMARY KEY ((user_id), played_at)
+) <span class="sql-keyword">WITH</span> CLUSTERING <span class="sql-keyword">ORDER BY</span> (played_at DESC);
+
+<span class="sql-comment">-- &quot;Mickey's 20 most recent plays&quot;</span>
+<span class="sql-keyword">SELECT</span> song_id, played_at <span class="sql-keyword">FROM</span> plays_by_user
+<span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-string">'mickey'</span> <span class="sql-keyword">LIMIT</span> <span class="sql-number">20</span>;
+</code></pre>
+<p>Because every one of Mickey's plays lives in a single partition already sorted newest-first, "most recent N for this user" is a <strong>single-partition scan</strong>: one node reads the first 20 rows and stops. No scatter-gather across the cluster, no global sort. In a SQL database the same query is an <code>ORDER BY played_at DESC LIMIT 20</code> that, without exactly the right index, scans and sorts a shared table. Modeling the access pattern <em>into the key</em> is the whole game in a wide-column store.</p>
+<h3>The 2026 Perspective: Converging Worlds</h3>
+<p><strong>Modern Hybridization</strong>: These are traditional distinctions. While Spotify's scale justifies dedicated Key-Value stores, for most companies, these lines blur in 2026.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/data-security">Data Security →</a></strong> Everything you have built across this module, the lake, the pipeline, the specialized stores, is now an attack surface. Next: what happens when these systems are attacked, and how Zero Trust defends them.</p>

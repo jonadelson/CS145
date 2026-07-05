@@ -1,0 +1,130 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.122
+You have a hundred billion play logs and want listens per user.
+
+00:00:06.122 --> 00:00:10.243
+Mickey's plays sit on machines four, twelve, seven hundred.
+
+00:00:10.243 --> 00:00:14.364
+How do you sum them without every machine talking to every other?
+
+00:00:14.364 --> 00:00:18.486
+Two primitives: distributed sort and distributed hash.
+
+00:00:18.486 --> 00:00:24.142
+Start with distributed sort.
+
+00:00:24.142 --> 00:00:29.799
+Phase one, every machine sorts its local data.
+
+00:00:29.799 --> 00:00:35.455
+Phase two, the cluster samples keys to find global split points, the boundaries that partition the output evenly.
+
+00:00:35.455 --> 00:00:41.112
+Phase three, every tuple moves to the machine that owns its split, and the splits concatenate into one globally sorted result.
+
+00:00:41.112 --> 00:00:46.768
+Big data frameworks use this for ORDER BY, for window functions, for anything that needs total order.
+
+00:00:46.768 --> 00:00:51.749
+Now the other primitive, hashing.
+
+00:00:51.749 --> 00:00:56.730
+Hash partitioning: hash each tuple's key, route it to the machine whose ID matches.
+
+00:00:56.730 --> 00:01:01.710
+Every play for one user lands on one machine, every play for another user on a different one.
+
+00:01:01.710 --> 00:01:06.691
+Each machine sees its full slice and aggregates locally, no peer talk.
+
+00:01:06.691 --> 00:01:12.287
+The payoff is a join.
+
+00:01:12.287 --> 00:01:17.883
+Matching rows must meet on one machine, so hash both tables on the join key.
+
+00:01:17.883 --> 00:01:23.479
+Take Listens and Users, joined on user id, and every row for one user id, from either table, lands on the same machine.
+
+00:01:23.479 --> 00:01:29.075
+User seven's rows go to machine one, forty-two to two, eighty-eight to three.
+
+00:01:29.075 --> 00:01:34.671
+Each machine joins only its own slice, then unions the parts into the full result.
+
+00:01:34.671 --> 00:01:40.267
+No machine ever compares against another, so throughput scales with the cluster.
+
+00:01:40.267 --> 00:01:42.828
+But how do keys map to machines?
+
+00:01:42.828 --> 00:01:45.389
+The naive way is modulo: hash mod N.
+
+00:01:45.389 --> 00:01:47.950
+Change N and it breaks.
+
+00:01:47.950 --> 00:01:50.510
+Add one machine to three, three quarters of the data moves.
+
+00:01:50.510 --> 00:01:53.071
+Add one to a hundred, ninety-nine percent moves.
+
+00:01:53.071 --> 00:01:55.632
+An hour of reshuffling.
+
+00:01:55.632 --> 00:01:58.193
+Modulo is brittle.
+
+00:01:58.193 --> 00:02:02.040
+Consistent hashing fixes it.
+
+00:02:02.040 --> 00:02:05.886
+Forget modulo, think in circles.
+
+00:02:05.886 --> 00:02:09.733
+The numbers from zero to two-to-the-thirty-second wrap into a ring.
+
+00:02:09.733 --> 00:02:13.580
+First, hash each machine and place the nodes on the ring.
+
+00:02:13.580 --> 00:02:17.427
+Next, hash each key and drop the keys onto the ring.
+
+00:02:17.427 --> 00:02:21.274
+Now the rule: walk clockwise from a key until you hit the first node, and that node owns it.
+
+00:02:21.274 --> 00:02:25.120
+Here is the payoff.
+
+00:02:25.120 --> 00:02:28.967
+Add a machine, and it slots in at one spot.
+
+00:02:28.967 --> 00:02:32.814
+Only its arc of keys moves to the new node, the ones between it and its predecessor.
+
+00:02:32.814 --> 00:02:36.661
+Everybody else stays put.
+
+00:02:36.661 --> 00:02:40.507
+On average just one over N of the data moves, instead of three quarters with modulo.
+
+00:02:40.507 --> 00:02:44.354
+Cassandra, DynamoDB, and Memcached all use this idea.
+
+00:02:44.354 --> 00:02:49.072
+Sort and hash are the primitives behind MapReduce, Spark, and BigQuery.
+
+00:02:49.072 --> 00:02:53.790
+They hide hash partitioning behind GROUP BY and JOIN, sort behind ORDER BY.
+
+00:02:53.790 --> 00:02:58.509
+See the primitives, and you can predict how any query runs and where it stalls.
+
+00:02:58.509 --> 00:03:03.227
+That closes the distributed algorithms.
+
+00:03:03.227 --> 00:03:07.945
+Next, we turn to the real systems built on them, starting with Google's file system.

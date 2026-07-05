@@ -1,0 +1,93 @@
+<h1>Recovery Post-Crash</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A crash leaves two messes on disk at once. Committed work that never flushed is missing, so <strong>durability</strong> is at risk. Uncommitted work that did flush is present, so <strong>atomicity</strong> is at risk. Recovery fixes both in two passes over one log. The forward pass, <strong>REPLAY</strong>, re-applies every logged change top to bottom, redoing every row, committed or not, to rebuild the exact state at the crash. The backward pass, <strong>UNDO</strong>, then reverses every transaction that never committed. Committed work survives the replay, which is durability; uncommitted work is undone, which is atomicity. This repeat-history algorithm is ARIES, from IBM, and it leaves the database fully consistent, ready for new traffic.</p>
+<p><strong>Intuition.</strong> When the server crashes mid-rush, the log shows Mickey, Minnie, and Daffy were all mid-Premium-purchase. The forward pass replays all three in case their account-table pages never flushed, and notes that Mickey and Minnie COMMITted but Daffy did not. The backward pass then reverses Daffy's charge, because his transaction never finished. Mickey and Minnie stay Premium, Daffy is refunded, and the database is back online.</p>
+</div>
+<p><a id="hook-figure"></a></p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/recovery-question.svg"
+     alt="A crash interrupts running transactions; on reboot the WAL decides which committed work survives, green, and which uncommitted work is thrown away, orange."
+     style="width:100%; max-width:1040px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A crash leaves recovery one question: which work survives, which gets thrown away. The whole answer is in the **WAL**. Committed transactions are kept, green; transactions that never committed are reversed, orange. Recovery is the procedure that reads the log and enforces both.</p>
+</div>
+<h2>Recovery on One Log: Down, Then Up</h2>
+<p>The whole algorithm fits on one <strong>WAL</strong>. Here is the example: start state <code>A=10, B=20, C=30, D=40, E=50</code>, update <code>f(x) = x * 1.2</code>, five transactions, then the server crashes. Recovery reads the log down to <strong>replay</strong>, then up to <strong>undo</strong>.</p>
+<p><a id="one-log-figure"></a></p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/recovery-two-pass.svg"
+     alt="A WAL read top to bottom with the same columns as a log table, and a running database-state strip below. The replay pass runs down the left re-applying every row to rebuild the crash state A=12, B=20, C=43.2, D=48, E=60; the undo pass runs up the right reversing only the uncommitted rows newest-first, E 60 to 50, C 43.2 to 36, C 36 to 30, leaving A=12, B=20, C=30, D=48, E=50. T1 and T4 committed and are kept; T2 aborted explicitly; T3 and T5 never committed. A CRASH row marks where the server stopped."
+     style="width:100%; max-width:1040px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Recovery as two passes over one log:</p>
+<ul style="margin:0.3rem 0 0; padding-left:1.2rem;">
+<li><strong>REPLAY (down):</strong> re-apply every row exactly as it happened, redos and undos alike, to rebuild the state at the crash.</li>
+<li><strong>UNDO (up):</strong> then undo every transaction that never committed, reversing its writes newest-first.</li>
+</ul>
+<p style="margin-top:0.4rem;">The undone rows are scattered, not a trailing block: T4 even commits late, after T3's writes, yet survives. What gets undone depends on commit status, not position in the log.</p>
+</div>
+<div class="v5-callout v5-callout--info">
+<p><strong>Why down before up.</strong> After a crash you cannot tell which data pages reached disk, so there is no consistent state to roll back from yet. The forward pass replays the whole log first and rebuilds the exact state at the crash, a known starting point. Only then does the backward pass peel off the transactions that never committed. Run the other way, undoing against half-written pages, and the result is undefined.</p>
+</div>
+<div class="v5-callout">
+<p><strong>No separate analysis pass.</strong> You might expect a first pass just to work out who committed. You do not need one: as the forward pass reads the log, it marks each transaction committed when it meets that transaction's COMMIT. By the crash it already knows which never committed, exactly the ones the backward pass undoes. The tracking is free. (Checkpoints are the one exception, see Optimizations below.)</p>
+</div>
+<hr />
+<h2>After the Crash: Fix the Disk from the WAL</h2>
+<p>On reboot, RAM is gone with every in-progress change. The disk survived, but the pages that flushed before the crash are a half-written mix: some committed writes never reached disk, so committed work is missing; some uncommitted writes did reach disk, so wrong values are sitting there.</p>
+<p><a id="aftercrash-figure"></a></p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/recovery-aftercrash.svg"
+     alt="Just after the crash: RAM, red, is empty; the disk, green, is an inconsistent mix where a committed write is missing and an uncommitted write is wrongly present; the durable WAL, violet, survived with the full history."
+     style="width:100%; max-width:1040px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Just after the crash. RAM, red, is gone with every in-flight change. The disk, green, survived but is not consistent: a committed write is missing, and an uncommitted write is wrongly present. The WAL, violet, is untouched, and it is the only thing recovery can use, because RAM holds nothing.</p>
+</div>
+<p>Why can the WAL fix all of this? Because it survived the crash, and it holds every change as an old and a new value. The <strong>new</strong> values redo the committed writes that never flushed; the <strong>old</strong> values undo the uncommitted writes that did. RAM held the only other copy and it is gone, so the WAL is the sole source of truth. Not one byte of the repair comes from RAM.</p>
+<hr />
+<h2>Recovery Guarantees</h2>
+<p><a id="guarantees-figure"></a></p>
+<p>Recovery restores the ACID guarantees across a crash: committed work survives (durability), unfinished work vanishes (atomicity), the rules hold (consistency), and rerunning it lands on the same state (repeatability). This safety has a cost.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/recovery-guarantees.svg"
+     alt="Recovery restores two ACID guarantees: durability, the violet D icon, comes from committed work surviving the replay; atomicity, the blue A icon, comes from the undo pass; both rest on the write-ahead rule that the log reaches disk before the data."
+     style="width:100%; max-width:1040px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Two ACID guarantees fall out of the two passes, in the order the passes run. Durability, the violet D, comes from the replay: once you see COMMIT, that work is replayed and never undone, so it survives any failure. Atomicity, the blue A, comes from the undo pass: a transaction is all or nothing, so unfinished work is reversed. Both rest on the write-ahead rule at the base, the log reaching disk before the data.</p>
+</div>
+<h3>What Recovery Costs</h3>
+<ul>
+<li>
+<p><strong>Time</strong>: Can take minutes to hours for large databases.</p>
+</li>
+<li>
+<p><strong>I/O</strong>: Must read the WAL since the last checkpoint.</p>
+</li>
+<li>
+<p><strong>Availability</strong>: Database offline during recovery.</p>
+</li>
+<li>
+<p><strong>Complexity</strong>: Requires careful implementation.</p>
+</li>
+</ul>
+<hr />
+<h2>Optimizations</h2>
+<div class="v5-callout v5-callout--info">
+<p><strong>Checkpointing.</strong> Periodically flush all dirty pages to disk. That limits how far back recovery must go: replay can start from the last checkpoint instead of the start of the log. The trade-off is checkpoint overhead against recovery speed.</p>
+</div>
+<p>Checkpoints are the one case where the live-transaction tracking needs its own quick scan. Instead of replaying from the start of the log, recovery scans from the last checkpoint to rebuild the table of live transactions and find where to start replaying. Without checkpoints, the forward pass starts at the beginning and the tracking is free, built as it reads.</p>
+<hr />
+<h2>Practice Questions</h2>
+<div class="v5-callout">
+<p><strong>Test your understanding.</strong></p>
+<ol>
+<li>
+<p>Why does the forward pass run before the backward pass?</p>
+</li>
+<li>
+<p>What if the system crashes during recovery?</p>
+</li>
+<li>
+<p>How does recovery know which transactions were uncommitted at crash time?</p>
+</li>
+</ol>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4C-End-to-End-TM/tm-summary">Transaction Manager: The Architecture →</a></strong> That completes recovery: undo, redo, and the two-pass algorithm that survives a crash. Next, see how it snaps together with the scheduler and lock manager into the full Transaction Manager.</p>

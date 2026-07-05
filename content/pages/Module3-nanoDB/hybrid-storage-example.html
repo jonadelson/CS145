@@ -1,0 +1,108 @@
+<h1>Hybrid Storage: One Table, Two Layouts</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Hybrid storage runs row-oriented and column-oriented layouts side by side: fresh writes land in row format for speed, then a background process converts aged partitions to columnar for cheap analytics. One system, two layouts, picked automatically by data age.</p>
+<p><strong>Intuition.</strong> Spotify's last hour of listens needs blazing inserts (1M/sec); the past year of listens needs blazing aggregates (100ms dashboards). Pure row gives you the inserts but slow analytics; pure columnar gives you the analytics but slow inserts. ClickHouse's MergeTree keeps recent data as row-shaped "parts" and merges them into columnar segments in the background. Same SQL, both worlds.</p>
+</div>
+<h2>The Challenge: Two Workloads, One Table</h2>
+<pre><code><span class="sql-comment">-- OLTP: high-frequency real-time inserts</span>
+<span class="sql-keyword">INSERT</span> <span class="sql-keyword">INTO</span> <span class="sql-table">Listens</span> (listen_id, user_id, song_id, rating, listen_time)
+<span class="sql-keyword">VALUES</span> (<span class="sql-number">75382914</span>, <span class="sql-number">12345</span>, <span class="sql-number">456</span>, <span class="sql-number">4.5</span>, NOW());
+<span class="sql-comment">-- happening 1M times per second</span>
+
+<span class="sql-comment">-- OLAP: complex analytics on the same data</span>
+<span class="sql-keyword">SELECT</span> song_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> plays, <span class="sql-keyword">AVG</span>(rating)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> listen_time &gt; NOW() <span class="sql-operator">-</span> INTERVAL <span class="sql-string">'1 hour'</span>
+<span class="sql-keyword">GROUP BY</span> song_id
+<span class="sql-keyword">ORDER BY</span> plays DESC;
+<span class="sql-comment">-- must complete in &lt;100 ms for dashboards</span>
+</code></pre>
+<p>Pick row, you get the inserts but the analytics take 30 s. Pick columnar, you get 50 ms analytics but inserts crash to 10 K/sec. <strong>Hybrid says: don't pick.</strong></p>
+<h2>The Trade-off</h2>
+<table>
+<thead>
+<tr>
+<th>Layout</th>
+<th>Inserts</th>
+<th>Analytics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pure row</strong></td>
+<td>1M/sec ✓</td>
+<td>30 s ✗</td>
+</tr>
+<tr>
+<td><strong>Pure columnar</strong></td>
+<td>10K/sec ✗</td>
+<td>50 ms ✓</td>
+</tr>
+<tr>
+<td><strong>Hybrid (row + columnar)</strong></td>
+<td><strong>1M/sec ✓</strong></td>
+<td><strong>100 ms ✓</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>How It Works</h2>
+<p><img src="assets/Module3-nanoDB/svgs/hybrid-storage-timeline.svg" alt="A time axis from newest hot data on the left to oldest cold data on the right: fresh listens land as grey row-shaped parts taking 1M inserts/sec; a background-merge arrow converts aged parts into large green columnar segments answering scans in ~100 ms at ~10:1 compression; a green unified-query bar spans the bottom, one SQL surface reading both." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> <code>listen_time</code> is the natural partitioning dimension: recent data needs fast writes, old data needs fast scans, so age chooses the layout, not you. Fresh listens land as small row-shaped parts (grey) that accept inserts at about 1M/sec because each insert writes a whole row in one place. A background merge converts aged parts into columnar segments (green) once activity slows, so analytics read one column and skip the rest at roughly 10:1 compression. A single query engine spans both: one SQL surface, no second system, no ETL lag, and the storage tunes itself to the workload instead of you choosing row or columnar up front.</p>
+</div>
+<h2>Real-World Implementation: ClickHouse MergeTree</h2>
+<p>ClickHouse's MergeTree engine is the canonical example, in production at Cloudflare, Uber, and Bloomberg.</p>
+<ol>
+<li>
+<p><strong>Incoming listens</strong> land in small row-oriented "parts."</p>
+</li>
+<li>
+<p><strong>Background merging</strong> combines parts into larger columnar-compressed segments.</p>
+</li>
+<li>
+<p><strong>Query execution</strong> reads from both formats simultaneously.</p>
+</li>
+<li>
+<p><strong>Automatic optimization</strong> based on <code>listen_time</code> age and size thresholds.</p>
+</li>
+</ol>
+<p><strong>Performance numbers:</strong></p>
+<ul>
+<li>
+<p>Insert throughput: <strong>1M+ listens/sec sustained</strong></p>
+</li>
+<li>
+<p>Query latency: <strong>sub-second</strong> analytics on billions of listening events</p>
+</li>
+<li>
+<p>Storage: <strong>10:1 compression</strong> on real-world listening data</p>
+</li>
+<li>
+<p>Operational simplicity: <strong>one system, not separate OLTP + OLAP</strong></p>
+</li>
+</ul>
+<div class="v5-callout">
+<p><strong>Storage engine connection.</strong> ClickHouse's "parts + background merging" pattern is a variation of <strong>LSM trees</strong>. The twist: traditional LSM trees merge row-to-row; ClickHouse merges row-to-columnar. We cover LSM tree fundamentals in <a href="#/page/Module3-nanoDB/lsm-indexes">LSM Trees</a>.</p>
+</div>
+<h2>Adaptive Storage Research</h2>
+<p>Active research areas:</p>
+<ul>
+<li>
+<p><strong>Workload-adaptive storage.</strong> Systems that learn access patterns and re-tune layout.</p>
+</li>
+<li>
+<p><strong>Online reorganization.</strong> Converting between formats without stopping queries.</p>
+</li>
+<li>
+<p><strong>Hybrid indexing.</strong> Row-based indexes over columnar-compressed data.</p>
+</li>
+<li>
+<p><strong>Multi-format query processing.</strong> Execution across heterogeneous storage layouts.</p>
+</li>
+</ul>
+<p>The paper below explores theoretical foundations and practical implementations:</p>
+<iframe src="https://www.vldb.org/pvldb/vol17/p3731-schulze.pdf" width="100%" height="600px" style="border: 1px solid #D4D7DC; border-radius: 8px; margin: 1rem 0;" title="ClickHouse Hybrid Storage, VLDB Paper"></iframe>
+
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/hash-partitioning">Hash Partitioning →</a></strong> Once the data is laid out on disk, the next question is how to split a too-big-for-RAM table into RAM-sized chunks.</p>

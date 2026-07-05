@@ -1,0 +1,45 @@
+<svg viewBox="0 0 960 340" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ii-t ii-d">
+  <title id="ii-t">A read or write takes time, and interleaving fills the gap</title>
+  <desc id="ii-d">Two transaction lanes over a time axis. T1 computes, then issues a
+  read of B at Rs; the read travels to disk and back, an IO lag during which the CPU
+  is idle, until it completes at Re; then T1 resumes. T2 runs in exactly that idle
+  gap. The notation: Rs and Re are read start and read end, Ws and We are write
+  start and write end, and the span between is the IO lag.</desc>
+
+  <text x="480" y="32" text-anchor="middle" font-size="23" font-weight="700" fill="#0E0E10">A read or write takes time. Interleaving fills the gap.</text>
+  <text x="480" y="55" text-anchor="middle" font-size="13.5" fill="#6B7280">An operation has a start and an end because the data has to travel to disk and back.</text>
+
+  <!-- T1 lane -->
+  <text x="58" y="116" font-size="13" font-weight="700" fill="#3F3F46">T1</text>
+  <g data-step="1">
+    <rect x="92" y="96" width="150" height="34" rx="5" fill="#F4F4F6" stroke="#D4D7DC"/>
+    <text x="167" y="118" text-anchor="middle" font-size="12.5" fill="#3F3F46">computes</text>
+    <rect x="244" y="92" width="8" height="42" rx="2" fill="#7C3AED"/>
+    <text x="258" y="108" font-size="12.5" font-weight="700" fill="#7C3AED">Rs(B)</text>
+    <rect x="254" y="100" width="330" height="26" rx="4" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="419" y="117" text-anchor="middle" font-size="12.5" fill="#6B7280">read of B in flight, CPU idle</text>
+    <rect x="586" y="92" width="8" height="42" rx="2" fill="#7C3AED"/>
+    <text x="600" y="108" font-size="12.5" font-weight="700" fill="#7C3AED">Re(B)</text>
+    <rect x="652" y="96" width="150" height="34" rx="5" fill="#F4F4F6" stroke="#D4D7DC"/>
+    <text x="727" y="118" text-anchor="middle" font-size="12.5" fill="#3F3F46">resumes</text>
+  </g>
+
+  <!-- T2 lane fills the gap -->
+  <text x="58" y="196" font-size="13" font-weight="700" fill="#3F3F46">T2</text>
+  <g data-step="2">
+    <rect x="254" y="176" width="330" height="34" rx="5" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="419" y="198" text-anchor="middle" font-size="12.5" font-weight="700" fill="#7C3AED">T2 runs here, in T1's idle gap</text>
+  </g>
+
+  <!-- time axis -->
+  <line x1="92" y1="238" x2="820" y2="238" stroke="#D4D7DC" stroke-width="1.5"/>
+  <text x="248" y="258" text-anchor="middle" font-size="12" fill="#9AA0AA">Rs</text>
+  <text x="590" y="258" text-anchor="middle" font-size="12" fill="#9AA0AA">Re</text>
+  <text x="419" y="258" text-anchor="middle" font-size="12" fill="#9AA0AA">the IO lag</text>
+  <text x="828" y="242" font-size="12" fill="#9AA0AA">time</text>
+
+  <!-- notation key -->
+  <text x="480" y="300" text-anchor="middle" font-size="13.5"><tspan font-weight="700" fill="#7C3AED">Rs / Re</tspan><tspan fill="#3F3F46"> = read start / end&#160;&#160;&#183;&#160;&#160;</tspan><tspan font-weight="700" fill="#7C3AED">Ws / We</tspan><tspan fill="#3F3F46"> = write start / end&#160;&#160;&#183;&#160;&#160;the span between is the IO lag</tspan></text>
+</svg>

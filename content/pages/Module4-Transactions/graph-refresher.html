@@ -1,0 +1,19 @@
+<h1>A Quick Graph Refresher</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> The correctness test ahead builds a directed graph from a schedule and checks it for a cycle. It needs two graph ideas: <strong>cyclic vs acyclic</strong>, and <strong>topological sort</strong>, a linear order that respects every edge.</p>
+<p><strong>Intuition.</strong> Getting dressed is a topological sort: socks before shoes, pants before belt. If the rules also demanded shoes before socks, that loop is a cycle, and no valid order exists. The next page builds a graph from a transaction schedule and reads it the same way: acyclic means a safe order exists, a cycle means none does.</p>
+</div>
+<h2>Cyclic vs Acyclic Graphs</h2>
+<p>A directed graph is <strong>acyclic</strong> (a <strong>Directed Acyclic Graph</strong>, or <strong>DAG</strong>) when no path loops back to a node it already visited, and <strong>cyclic</strong> when at least one path does.</p>
+<p><img src="assets/Module4-Transactions/svgs/conflict-graph-cyclic-vs-acyclic.svg" alt="Side-by-side directed graphs: an acyclic graph whose arrows never loop back, and a cyclic graph with a loop." style="width:100%; max-width:560px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> On the left, an acyclic graph: follow the arrows and you never return to a node, so the nodes line up in order. On the right, a cyclic graph: the loop means no consistent order exists. On the next page, a cycle in a schedule's graph marks the schedule unsafe.</p>
+</div>
+<h2>Topological Sort</h2>
+<p>A <strong>topological sort</strong> lists a DAG's nodes so that for every edge A to B, A comes before B. A DAG usually has several valid orderings; a graph with a cycle has none.</p>
+<p><img src="assets/Module4-Transactions/svgs/topological-sort.svg" alt="A 4-node DAG (edges A to B, A to C, B to D, C to D) beside its two valid topological orders listed as text: A to B to C to D, and A to C to B to D." style="width:100%; max-width:560px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The DAG has two valid topological orders, A → B → C → D and A → C → B → D; B and C are independent, so either can come first. Each is a safe sequence. On the next page, each valid topological order of a schedule's graph is an equivalent serial run.</p>
+</div>
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4-Transactions/correctness">Correctness →</a></strong> Now use these two ideas. The next page turns a transaction schedule into a directed graph and reads its cycles to decide when concurrent execution stays correct.</p>

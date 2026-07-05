@@ -1,0 +1,148 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.773
+Millions of Taylor Swift fans hit Ticketmaster at once.
+
+00:00:05.773 --> 00:00:09.546
+The transactions held, no fan got the same seat twice.
+
+00:00:09.546 --> 00:00:13.320
+But the site still melted under the load.
+
+00:00:13.320 --> 00:00:17.093
+Keeping transactions correct and fast at that scale is this module.
+
+00:00:17.093 --> 00:00:19.233
+Slow down and watch one fan.
+
+00:00:19.233 --> 00:00:21.373
+Alice clicks Buy.
+
+00:00:21.373 --> 00:00:23.513
+Now the database has three things to do in two seconds.
+
+00:00:23.513 --> 00:00:25.653
+Check that her seat is still open.
+
+00:00:25.653 --> 00:00:27.793
+Charge her card.
+
+00:00:27.793 --> 00:00:29.934
+Record the sale.
+
+00:00:29.934 --> 00:00:32.074
+Three steps.
+
+00:00:32.074 --> 00:00:34.214
+One decision.
+
+00:00:34.214 --> 00:00:36.354
+All three happen, or none of them happen.
+
+00:00:36.354 --> 00:00:38.494
+Now run that ten thousand times every second, with everyone reaching for the same seats.
+
+00:00:38.494 --> 00:00:40.634
+One fan is easy.
+
+00:00:40.634 --> 00:00:42.774
+Millions at once is the problem.
+
+00:00:42.774 --> 00:00:46.928
+So what actually broke?
+
+00:00:46.928 --> 00:00:51.082
+Start with the demand.
+
+00:00:51.082 --> 00:00:55.235
+Twelve million visitors and scalper bots threw three and a half billion requests at the site, four times its prior peak.
+
+00:00:55.235 --> 00:00:59.389
+Two things could give, correctness or performance.
+
+00:00:59.389 --> 00:01:03.543
+Under the load, availability bent: queues froze thousands deep, sales were paused on purpose to stay up, and holds and payments timed out.
+
+00:01:03.543 --> 00:01:07.697
+But correctness held.
+
+00:01:07.697 --> 00:01:11.850
+No seat sold twice, and a record two point four million tickets sold in a day.
+
+00:01:11.850 --> 00:01:16.004
+The transactions did their job.
+
+00:01:16.004 --> 00:01:20.158
+Delivering them fast, under that crush, did not.
+
+00:01:20.158 --> 00:01:25.047
+Here is the thing that should bother you.
+
+00:01:25.047 --> 00:01:29.937
+Other systems handle far more and never make headlines.
+
+00:01:29.937 --> 00:01:34.826
+Visa clears a hundred thousand transactions a second at peak, every single day.
+
+00:01:34.826 --> 00:01:39.716
+Amazon on Prime Day serves a hundred million requests a second, answering in under ten milliseconds.
+
+00:01:39.716 --> 00:01:44.605
+Ticketmaster's peak was four times its own prior record, and it fell over.
+
+00:01:44.605 --> 00:01:49.495
+The difference is decades of engineering for massive concurrent load that Visa and Amazon paid for, and a one-off flash on-sale had not.
+
+00:01:49.495 --> 00:01:54.384
+Size was never the issue.
+
+00:01:54.384 --> 00:01:59.018
+Now pull back and look at the long arc.
+
+00:01:59.018 --> 00:02:03.653
+Each generation of this stack is roughly ten thousand times bigger than the last, about a hundred times every decade.
+
+00:02:03.653 --> 00:02:08.287
+The classic era ran thousands of transactions a second on spinning disks and B-trees.
+
+00:02:08.287 --> 00:02:12.922
+The modern era runs tens of millions a second on solid state and LSM trees.
+
+00:02:12.922 --> 00:02:17.556
+Quick question.
+
+00:02:17.556 --> 00:02:22.191
+What drives the next jump?
+
+00:02:22.191 --> 00:02:26.825
+AI agents.
+
+00:02:26.825 --> 00:02:31.460
+Millions of them, plus serverless apps, all hitting the same data at once, on hardware we have not even standardized yet.
+
+00:02:31.460 --> 00:02:36.094
+Orders of magnitude bigger, three generations running, and every one still owes the same correctness the classic era did.
+
+00:02:36.094 --> 00:02:38.236
+The rest of this module answers one question.
+
+00:02:38.236 --> 00:02:40.378
+How do thousands of transactions run at once, yet each behave as if it ran alone?
+
+00:02:40.378 --> 00:02:42.520
+The answer is ACID.
+
+00:02:42.520 --> 00:02:44.662
+Atomicity.
+
+00:02:44.662 --> 00:02:46.804
+Consistency.
+
+00:02:46.804 --> 00:02:48.946
+Isolation.
+
+00:02:48.946 --> 00:02:51.088
+Durability.
+
+00:02:51.088 --> 00:02:53.230
+Next page starts there.

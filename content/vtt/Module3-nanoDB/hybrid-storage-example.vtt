@@ -1,0 +1,91 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.992
+Row storage gives fast inserts.
+
+00:00:04.992 --> 00:00:07.984
+Columnar gives fast analytics.
+
+00:00:07.984 --> 00:00:10.976
+Real workloads want both.
+
+00:00:10.976 --> 00:00:13.968
+Spotify takes a million listens a second and runs dashboards on the past year.
+
+00:00:13.968 --> 00:00:16.960
+Pick row, analytics crawl for thirty seconds.
+
+00:00:16.960 --> 00:00:19.952
+Pick columnar, inserts collapse to ten thousand a second.
+
+00:00:19.952 --> 00:00:22.944
+Hybrid storage says, do not pick.
+
+00:00:22.944 --> 00:00:27.191
+Here is the trick, laid out along time.
+
+00:00:27.191 --> 00:00:31.438
+Newest data on the left, oldest on the right.
+
+00:00:31.438 --> 00:00:35.686
+Listen time decides everything.
+
+00:00:35.686 --> 00:00:39.933
+Fresh listens land as small row-shaped parts, each insert writing one whole row in one place, so writes hold at a million a second.
+
+00:00:39.933 --> 00:00:44.180
+Then, once the activity slows, a background merge rewrites those aged parts into big columnar segments at about ten to one compression.
+
+00:00:44.180 --> 00:00:48.427
+Now an analytics scan does one column read, the rest skipped, and finishes in a hundred milliseconds.
+
+00:00:48.427 --> 00:00:52.674
+And one query engine spans both.
+
+00:00:52.674 --> 00:00:56.921
+One SQL surface, no second system, no ETL lag.
+
+00:00:56.921 --> 00:01:01.169
+The storage tunes itself to the workload instead of you choosing up front.
+
+00:01:01.169 --> 00:01:05.416
+<!-- Deliberate order inversion: the animated figure (How It Works) leads as the centerpiece by scene 2 per the figure-first template; the trade-off table follows as the payoff.
+
+00:01:05.416 --> 00:01:09.663
+-->
+
+00:01:09.663 --> 00:01:13.386
+The numbers say it.
+
+00:01:13.386 --> 00:01:17.109
+Pure row, a million inserts a second but thirty seconds for analytics.
+
+00:01:17.109 --> 00:01:20.832
+Pure columnar, fifty millisecond analytics but inserts down at ten thousand a second.
+
+00:01:20.832 --> 00:01:24.555
+Hybrid, a million inserts and a hundred millisecond analytics.
+
+00:01:24.555 --> 00:01:28.278
+Both columns win.
+
+00:01:28.278 --> 00:01:32.001
+That is what hybrid buys you.
+
+00:01:32.001 --> 00:01:36.034
+ClickHouse's MergeTree ships exactly this, in production at Cloudflare and Uber.
+
+00:01:36.034 --> 00:01:40.066
+The OLTP versus OLAP choice is not binary.
+
+00:01:40.066 --> 00:01:44.099
+Hybrid gives you both layouts in one system, picked by data age.
+
+00:01:44.099 --> 00:01:48.131
+Partition by time, convert in the background.
+
+00:01:48.131 --> 00:01:52.163
+Next, what happens when the table is bigger than RAM.
+
+00:01:52.163 --> 00:01:56.196
+Hash partitioning.

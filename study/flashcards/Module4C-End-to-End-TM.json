@@ -1,0 +1,111 @@
+{
+  "module": "Module4C-End-to-End-TM",
+  "title": "End-to-End TM",
+  "cards": [
+    {
+      "id": "m4c-c01",
+      "front": "What is a Transaction Manager?",
+      "back": "The orchestrator that runs scheduling, locking, write-ahead logging, deadlock detection, and recovery as one cooperating system, making thousands of concurrent transactions look like each ran alone.",
+      "page": "Module4C-End-to-End-TM/tm-summary",
+      "tags": ["architecture", "transaction-manager"]
+    },
+    {
+      "id": "m4c-c02",
+      "front": "Map each TM component to the guarantee it serves.",
+      "back": "Scheduler: keeps the interleaving conflict-serializable. Lock manager: enforces 2PL with O(1) hash lookups (Isolation). WAL: logs every change before the data page moves (Durability). Deadlock detector: watches the waits-for graph, aborts a victim on a cycle. Recovery manager: replays and undoes after a crash (Atomicity).",
+      "page": "Module4C-End-to-End-TM/tm-summary",
+      "tags": ["architecture", "acid"]
+    },
+    {
+      "id": "m4c-c03",
+      "front": "When three concurrent transactions touch entirely different tuples, which TM component stays idle and why?",
+      "back": "The deadlock detector: with no shared rows there are no waits, so the waits-for graph can never form a cycle. The scheduler, lock manager, and WAL all still fire.",
+      "page": "Module4C-End-to-End-TM/tm-summary",
+      "tags": ["deadlock", "transaction-manager"]
+    },
+    {
+      "id": "m4c-c04",
+      "front": "Three design choices that let a TM run ~1M transactions/second on commodity hardware?",
+      "back": "1. Most transactions touch independent rows (only ~10-20 of ~1,000 conflict), so most never wait. 2. A hash table makes each lock check O(1). 3. The WAL turns scattered updates into one sequential stream. Plus separation of concerns: each component does one job behind a tiny interface.",
+      "page": "Module4C-End-to-End-TM/tm-summary",
+      "tags": ["performance", "architecture"]
+    },
+    {
+      "id": "m4c-c05",
+      "front": "In the three-transaction trace, when is a change durable?",
+      "back": "The moment its COMMIT record lands in the WAL: each write is logged before the commit record follows, so by COMMIT the change is already on the durable log. Only then do the transaction's locks come off (Strict 2PL).",
+      "page": "Module4C-End-to-End-TM/tm-three-transactions",
+      "tags": ["wal", "durability"]
+    },
+    {
+      "id": "m4c-c06",
+      "front": "How does an abort get physically carried out mid-flight?",
+      "back": "The recovery manager reads the aborting transaction's WAL entries backward and restores each old value (e.g., C from 32.4 back to 27, then B from 38.4 back to 32), so the transaction leaves no trace. That is atomicity.",
+      "page": "Module4C-End-to-End-TM/tm-three-transactions",
+      "tags": ["undo", "atomicity"]
+    },
+    {
+      "id": "m4c-c07",
+      "front": "Why does one transaction's abort not cascade to concurrent transactions under Strict 2PL?",
+      "back": "It held its exclusive locks the entire time and never released them before aborting, so no other transaction could read its dirty data. No one read uncommitted data, so no one inherits the failure.",
+      "page": "Module4C-End-to-End-TM/tm-three-transactions",
+      "tags": ["s2pl", "aborts"]
+    },
+    {
+      "id": "m4c-c08",
+      "front": "What were the three bottlenecks in the Ticketdisaster checkout flow?",
+      "back": "Queue management (thousands waiting, and serving live availability reads is itself a bottleneck), lock contention (zone-level locks freeze 1,000+ seats per user), and payment blocking (the lock held 5-10 minutes through payment, leaving reserved-but-unpurchased seats in an uncertain state).",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "tags": ["case-study", "contention"]
+    },
+    {
+      "id": "m4c-c09",
+      "front": "Fix 1 — lock granularity: what changes and what does it buy?",
+      "back": "Lock individual seats (1-8) instead of a whole zone (1,000 seats). A zone lock blocks 999 other fans; a seat lock blocks nobody else. Concurrent users go from ~100 to ~10,000. Key insight: higher-resolution locks mean lower contention and better throughput.",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "tags": ["locking", "granularity"]
+    },
+    {
+      "id": "m4c-c10",
+      "front": "Fix 2 — lock duration: what changes and what does it buy?",
+      "back": "Do the slow, human steps (browsing, typing card and billing details) in the queue with no lock, then take the lock only for the final write. Lock time drops from 5-10 minutes to ~30 seconds. Key insight: move decision-making outside the critical section.",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "tags": ["locking", "performance"]
+    },
+    {
+      "id": "m4c-c11",
+      "front": "Fix 3 — async fallback: what changes and what does it buy?",
+      "back": "When contention is unavoidable, drop real-time blocking: fans submit requests instantly with timestamps, a background job processes them in order, and confirmations arrive by email. ~50,000 concurrent users. Key insight: make waits predictable and transparent.",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "tags": ["async", "scalability"]
+    },
+    {
+      "id": "m4c-c12",
+      "front": "What three moves generalize from Ticketsfaster to any high-contention system?",
+      "back": "Shrink lock granularity (lock the seat, not the zone: the smallest scope that stays correct); shorten lock duration (pre-fill the slow parts, lock only the final write); fall back to async with a timestamp queue when contention is unavoidable.",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "tags": ["contention", "design"]
+    },
+    {
+      "id": "m4c-c13",
+      "front": "Where does the next 100x in transaction throughput come from?",
+      "back": "Not from tuning Strict 2PL, but from protocols that drop it and admit the safe, serializable schedules it refuses: micro-locking, LSM trees, and timestamp ordering, each matched to a workload signature. The correctness target (serializability) never moves; only the scheduler does.",
+      "page": "Module4C-End-to-End-TM/next-100x",
+      "tags": ["scalability", "protocols"]
+    },
+    {
+      "id": "m4c-c14",
+      "front": "Match the three workload signatures to their protocols and systems.",
+      "back": "Fine-grained contention (10M users, one viral counter) &#8594; micro-locking: lock the field, not the row (Postgres, SQL Server, Oracle). Pure write throughput (10M plays/hour) &#8594; LSM trees: lock-free appends to immutable files (ClickHouse, BigQuery, Snowflake). Global ordering (10,000 agents, one shared graph) &#8594; timestamp ordering: run in timestamp order, abort-and-retry conflicts (Spanner).",
+      "page": "Module4C-End-to-End-TM/next-100x",
+      "tags": ["protocols", "workloads"]
+    },
+    {
+      "id": "m4c-c15",
+      "front": "Is conflict-serializability the definition of correctness?",
+      "back": "No. Correct means serializable: equal to some serial order. Conflict-serializability is only the mechanical test 2PL passes. Schedules that are serializable but not conflict-serializable are still safe, and a smarter scheduler can admit them.",
+      "page": "Module4C-End-to-End-TM/next-100x",
+      "tags": ["serializability", "correctness"]
+    }
+  ]
+}

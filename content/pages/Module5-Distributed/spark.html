@@ -1,0 +1,115 @@
+<h1>Apache Spark: MapReduce Evolved</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Spark generalizes MapReduce by representing a dataset as a <em>Resilient Distributed Dataset</em> (RDD): a partitioned, lazily-evaluated, lineage-tracked collection. You chain many transformations into a single in-memory pipeline that recomputes lost partitions from lineage instead of re-reading from disk.</p>
+<p><strong>Intuition.</strong> When a data scientist explores last year's Listens with <code>filter(genre == 'pop').groupBy(user_id).count().orderBy(desc('count')).limit(100)</code>, Spark builds a single in-memory pipeline across thousands of cores, holds intermediate results in RAM (so the next exploratory query takes seconds, not minutes), and if a machine dies mid-job, Spark recomputes only that machine's partition from the lineage.</p>
+</div>
+<hr />
+<h2>RDDs: The In-Memory Pipeline</h2>
+<p>Spark's core abstraction is the <strong>RDD</strong>, a <em>Resilient Distributed Dataset</em>: a collection split into partitions across the cluster, held in memory, and built by chaining transformations like <code>filter</code> and <code>map</code>. Spark does not run each transformation eagerly. It records the chain as a <strong>lineage</strong> graph and evaluates it lazily, in one pass, only when an action finally asks for a result. So intermediate data stays in RAM between stages instead of round-tripping to disk, which is the whole reason the same three-stage pipeline (filter to pop, count by user, sort the top) runs about 100× faster than MapReduce.</p>
+<p><a id="mapreduce-vs-spark-figure"></a></p>
+<div style="width: 100%; max-width: 1200px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/mapreduce-vs-spark.svg" alt="Two panels: MapReduce runs a three-stage pipeline as three chained jobs, each writing its output to pink HDFS before the next job reads it, in about 3 minutes; Spark chains the same three stages into one lazy in-memory pipeline that keeps RDDs in pink RAM with zero disk writes in about 2 seconds" style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same three-stage analytics pipeline (filter to pop, count by user, sort the top), two engines. MapReduce runs it as three chained jobs and materializes each job's output to HDFS before the next reads it (about 3 minutes); Spark chains the same three stages but keeps intermediate RDDs in memory and evaluates lazily, building a plan it runs once when an action triggers it (about 2 seconds). The ~100× gap comes from data staying in RAM between stages, operator fusion from lazy evaluation, and cheap lineage-based recovery instead of replication.</p>
+</div>
+<hr />
+<h2>Resilience: Lineage, Not Replicas</h2>
+<p>The R in RDD is <em>resilient</em>. RAM is volatile, so if a node crashes mid-job Spark could re-read from disk (slow) or keep three copies of every intermediate (expensive). It does neither: it keeps the <strong>recipe</strong>, the lineage, not copies of the data.</p>
+<p><a id="spark-lineage-figure"></a></p>
+<div style="width: 100%; max-width: 900px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/spark-lineage.svg" alt="Four RDD stages with grey partitions, all narrow transformations; the worker holding RDD3.P1 dies so that partition is pink, and Spark replays filter then map then map on just the still-alive upstream RDD0.P1 along the pink path, with no replicas stored" style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Spark recovers lost data by replaying lineage instead of keeping replicas. Each RDD records the transformation that produced it (<code>filter</code>, <code>map</code>, <code>map</code>), so Spark stores the operator graph, not the intermediate data. These are all narrow transformations, so each output partition depends on exactly one upstream partition: when a worker dies and takes <code>RDD3.P1</code> with it, Spark re-runs <code>filter → map → map</code> on just the still-alive <code>RDD0.P1</code>. Storage drops from 3× to 1×, and the cost of a failure rises from reading a replica to recomputing one lost partition. A wide transformation like <code>groupBy</code> would instead re-read every upstream partition through a shuffle.</p>
+</div>
+<p>This works only because Spark's transformations are deterministic: same input, same operator, same output, so replaying the lineage reproduces the lost partition exactly.</p>
+<hr />
+<h2>Spark SQL: DataFrames + Catalyst</h2>
+<p>Most teams do not write low-level RDD code anymore. They write SQL or DataFrame transformations, and Spark's Catalyst optimizer compiles them into the underlying RDD operations.</p>
+<p><a id="spark-sql-figure"></a></p>
+<div style="width: 100%; max-width: 1100px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/spark-sql.svg" alt="The Spotify genre-by-week join query on top, Catalyst's grey execution plan lower-left, and a pink box: PostgreSQL on one machine takes about 2 hours for 1 TB, spilling the join and sort to disk on a single node, while Spark on 100 machines finishes in about 3 minutes and scales linearly" style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Spark SQL runs the same SQL as Postgres but executes it distributed. The Spotify genre-by-week analytics query (a join across <code>listens</code> and <code>songs</code>) is identical text; Catalyst compiles it to RDD operations: broadcast the smaller <code>songs</code> table to every node, join it locally against each <code>listens</code> partition, then group and count. PostgreSQL on one machine takes hours at 1 TB, spilling the join and sort to disk on a single node with no cluster to parallelize across, while Spark on 100 machines finishes in minutes and scales linearly with cluster size. No code changes between single-node and distributed: the optimizer picks join strategies and partition pruning the same way <a href="#/page/Module3C-Query-Optimization/query-optimizer">a single-node optimizer</a> does.</p>
+</div>
+<hr />
+<h2>When Spark vs. When MapReduce</h2>
+<h3>Spark wins for:</h3>
+<ul>
+<li>
+<p><strong>Iterative algorithms.</strong> Machine learning, graph processing, anything that touches the same data repeatedly.</p>
+</li>
+<li>
+<p><strong>Interactive analytics.</strong> Cached intermediates make follow-up queries return in seconds.</p>
+</li>
+<li>
+<p><strong>Multi-step pipelines.</strong> One end-to-end job instead of a chain of separate MR jobs.</p>
+</li>
+<li>
+<p><strong>Mixed workloads.</strong> Batch + streaming + ML in one framework.</p>
+</li>
+</ul>
+<h3>MapReduce still wins for:</h3>
+<ul>
+<li>
+<p><strong>Datasets larger than cluster memory.</strong> Spark spills to disk when it has to, but if every stage spills, MR's design is just a better fit.</p>
+</li>
+<li>
+<p><strong>Single-pass batch jobs.</strong> A nightly ETL that reads once and writes once does not benefit from Spark's in-memory pipelining.</p>
+</li>
+<li>
+<p><strong>Cost-sensitive clusters.</strong> RAM is more expensive than disk; if latency is not the constraint, MR is cheaper.</p>
+</li>
+</ul>
+<hr />
+<h2>Spark at Real-World Scale: Netflix Recommendations</h2>
+<pre><code class="language-python"># Simplified Spark ML pipeline
+user_ratings = spark.read.table(&quot;user_ratings&quot;)     # 1 TB
+movie_features = spark.read.table(&quot;movie_features&quot;) # 100 GB
+
+# Traditional MapReduce would require multiple separate jobs.
+# Spark expresses it as one in-memory pipeline:
+recommendations = user_ratings \
+    .join(movie_features, &quot;movie_id&quot;) \
+    .groupBy(&quot;user_id&quot;) \
+    .agg(collect_list(&quot;rating&quot;).alias(&quot;ratings&quot;)) \
+    .withColumn(&quot;predictions&quot;, ml_model_udf(&quot;ratings&quot;))
+
+# Cache for interactive exploration
+recommendations.cache()
+recommendations.show()                  # first computation
+recommendations.filter(...).show()      # uses cached data
+</code></pre>
+<p><strong>Numbers from Netflix's production reports:</strong></p>
+<ul>
+<li>
+<p>Data: 1 TB user ratings, 100M+ users</p>
+</li>
+<li>
+<p>Wall clock: ~15 minutes (vs. 3+ hours on MapReduce)</p>
+</li>
+<li>
+<p>Workflow: data scientists iterate interactively instead of waiting overnight</p>
+</li>
+</ul>
+<hr />
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>Same primitives, better execution.</strong> Spark uses the same hash partitioning and worker model as MapReduce. The change is keeping intermediate data in RAM and tracking lineage.</p>
+</li>
+<li>
+<p><strong>Memory-centric design unlocks new workloads.</strong> Iterative ML, interactive analytics, and large-scale graph processing become tractable when intermediate state lives in memory.</p>
+</li>
+<li>
+<p><strong>One framework, many APIs.</strong> Spark Core (RDDs) → Spark SQL (DataFrames + the Catalyst optimizer) → Spark Streaming → MLlib. Same execution engine, different surfaces.</p>
+</li>
+<li>
+<p><strong>Determinism enables lineage.</strong> Spark's fault-tolerance trick only works because every transformation is deterministic. Replay produces the same result.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module5-Distributed/bigquery">BigQuery →</a></strong> Spark is the workhorse for ELT-style transformations: you take raw data, run a multi-stage in-memory pipeline, and write the result somewhere. The next case study is what to query that result <em>with</em>. BigQuery is the serverless OLAP engine that pairs naturally with Spark in the modern data stack.</p>

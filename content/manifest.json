@@ -1,0 +1,1542 @@
+{
+ "site": "https://cs145.web.app",
+ "areas": [
+  {
+   "id": "kickoff",
+   "title": "Kickoff",
+   "accent": "#334155",
+   "modules": [
+    {
+     "dir": "Module0-Kickoff",
+     "title": "Kickoff",
+     "sections": [
+      {
+       "title": "Welcome",
+       "pages": [
+        {
+         "path": "Module0-Kickoff/course-logistics.html",
+         "title": "Course Logistics",
+         "kind": "page",
+         "id": "Module0-Kickoff/course-logistics",
+         "words": 1041
+        },
+        {
+         "path": "Module0-Kickoff/why-memory-matters.html",
+         "title": "Why Memory Matters",
+         "kind": "page",
+         "id": "Module0-Kickoff/why-memory-matters",
+         "words": 598
+        },
+        {
+         "path": "Module0-Kickoff/case-study-pandas.html",
+         "title": "C Pandas: Deconstructing Small Analytics",
+         "kind": "case",
+         "id": "Module0-Kickoff/case-study-pandas",
+         "video": "https://cs145.web.app/Module0-Kickoff/gen/case-study-pandas.mp4?v=13686131",
+         "poster": "https://cs145.web.app/Module0-Kickoff/gen/case-study-pandas.thumb.jpg?v=13686131",
+         "vtt": "content/vtt/Module0-Kickoff/case-study-pandas.vtt",
+         "words": 687
+        },
+        {
+         "path": "Module0-Kickoff/case-study-agent-memory.html",
+         "title": "C Claude & OpenAI: Deconstructing Agent Memory",
+         "kind": "case",
+         "id": "Module0-Kickoff/case-study-agent-memory",
+         "video": "https://cs145.web.app/Module0-Kickoff/gen/case-study-agent-memory.mp4?v=20335015",
+         "poster": "https://cs145.web.app/Module0-Kickoff/gen/case-study-agent-memory.thumb.jpg?v=20335015",
+         "vtt": "content/vtt/Module0-Kickoff/case-study-agent-memory.vtt",
+         "words": 1733
+        },
+        {
+         "path": "Module0-Kickoff/case-study-ubereats.html",
+         "title": "C UberEats: Deconstructing a Big Service",
+         "kind": "case",
+         "id": "Module0-Kickoff/case-study-ubereats",
+         "video": "https://cs145.web.app/Module0-Kickoff/gen/case-study-ubereats.mp4?v=18274250",
+         "poster": "https://cs145.web.app/Module0-Kickoff/gen/case-study-ubereats.thumb.jpg?v=18274250",
+         "vtt": "content/vtt/Module0-Kickoff/case-study-ubereats.vtt",
+         "words": 1128
+        },
+        {
+         "path": "Module0-Kickoff/sql-metro.html",
+         "title": "Metro Map",
+         "kind": "page",
+         "id": "Module0-Kickoff/sql-metro",
+         "video": "https://cs145.web.app/Module0-Kickoff/gen/sql-metro.mp4?v=54523080",
+         "poster": "https://cs145.web.app/Module0-Kickoff/gen/sql-metro.thumb.jpg?v=54523080",
+         "vtt": "content/vtt/Module0-Kickoff/sql-metro.vtt",
+         "words": 464
+        },
+        {
+         "path": "Module0-Kickoff/how-to-navigate.html",
+         "title": "How to Navigate the Course",
+         "kind": "page",
+         "id": "Module0-Kickoff/how-to-navigate",
+         "words": 359
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sql",
+   "title": "SQL",
+   "accent": "#3b82f6",
+   "modules": [
+    {
+     "dir": "Module1-SQL",
+     "title": "SQL Basics",
+     "sections": [
+      {
+       "title": "SQL Introduction",
+       "pages": [
+        {
+         "path": "Module1-SQL/learning-outcomes.html",
+         "title": "Learning Outcomes",
+         "kind": "page",
+         "id": "Module1-SQL/learning-outcomes",
+         "words": 362
+        },
+        {
+         "path": "Module1-SQL/spotify-db.html",
+         "title": "Spotify Database",
+         "kind": "page",
+         "id": "Module1-SQL/spotify-db",
+         "video": "https://cs145.web.app/Module1-SQL/gen/spotify-db.mp4?v=7443920",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/spotify-db.thumb.jpg?v=7443920",
+         "vtt": "content/vtt/Module1-SQL/spotify-db.vtt",
+         "words": 547
+        }
+       ]
+      },
+      {
+       "title": "Basic",
+       "pages": [
+        {
+         "path": "Module1-SQL/section1-intro.html",
+         "title": "Intro & Key Problems",
+         "kind": "page",
+         "id": "Module1-SQL/section1-intro",
+         "words": 243
+        },
+        {
+         "path": "Module1-SQL/select-from-where.html",
+         "title": "SELECT-FROM-WHERE",
+         "kind": "page",
+         "id": "Module1-SQL/select-from-where",
+         "video": "https://cs145.web.app/Module1-SQL/gen/select-from-where.mp4?v=8494763",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/select-from-where.thumb.jpg?v=8494763",
+         "vtt": "content/vtt/Module1-SQL/select-from-where.vtt",
+         "words": 582
+        },
+        {
+         "path": "Module1-SQL/nulls.html",
+         "title": "NULLs",
+         "kind": "page",
+         "id": "Module1-SQL/nulls",
+         "video": "https://cs145.web.app/Module1-SQL/gen/nulls.mp4?v=11460306",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/nulls.thumb.jpg?v=11460306",
+         "vtt": "content/vtt/Module1-SQL/nulls.vtt",
+         "words": 1422
+        },
+        {
+         "path": "Module1-SQL/groupby.html",
+         "title": "GROUP BY",
+         "kind": "page",
+         "id": "Module1-SQL/groupby",
+         "video": "https://cs145.web.app/Module1-SQL/gen/groupby.mp4?v=8015303",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/groupby.thumb.jpg?v=8015303",
+         "vtt": "content/vtt/Module1-SQL/groupby.vtt",
+         "words": 1251
+        },
+        {
+         "path": "Module1-SQL/having.html",
+         "title": "HAVING",
+         "kind": "page",
+         "id": "Module1-SQL/having",
+         "video": "https://cs145.web.app/Module1-SQL/gen/having.mp4?v=7396011",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/having.thumb.jpg?v=7396011",
+         "vtt": "content/vtt/Module1-SQL/having.vtt",
+         "words": 1262
+        },
+        {
+         "path": "Module1-SQL/sets.html",
+         "title": "Sets and Multisets",
+         "kind": "page",
+         "id": "Module1-SQL/sets",
+         "video": "https://cs145.web.app/Module1-SQL/gen/sets.mp4?v=4363838",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/sets.thumb.jpg?v=4363838",
+         "vtt": "content/vtt/Module1-SQL/sets.vtt",
+         "words": 698
+        },
+        {
+         "path": "Module1-SQL/joins.html",
+         "title": "JOINs",
+         "kind": "page",
+         "id": "Module1-SQL/joins",
+         "video": "https://cs145.web.app/Module1-SQL/gen/joins.mp4?v=15366837",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/joins.thumb.jpg?v=15366837",
+         "vtt": "content/vtt/Module1-SQL/joins.vtt",
+         "words": 1032
+        },
+        {
+         "path": "Module1-SQL/subqueries-basic.html",
+         "title": "Subqueries: Basic",
+         "kind": "page",
+         "id": "Module1-SQL/subqueries-basic",
+         "video": "https://cs145.web.app/Module1-SQL/gen/subqueries-basic.mp4?v=11940356",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/subqueries-basic.thumb.jpg?v=11940356",
+         "vtt": "content/vtt/Module1-SQL/subqueries-basic.vtt",
+         "words": 1315
+        },
+        {
+         "path": "Module1-SQL/subqueries-correlated.html",
+         "title": "Subqueries: Correlated",
+         "kind": "page",
+         "id": "Module1-SQL/subqueries-correlated",
+         "video": "https://cs145.web.app/Module1-SQL/gen/subqueries-correlated.mp4?v=13096103",
+         "poster": "https://cs145.web.app/Module1-SQL/gen/subqueries-correlated.thumb.jpg?v=13096103",
+         "vtt": "content/vtt/Module1-SQL/subqueries-correlated.vtt",
+         "words": 650
+        },
+        {
+         "path": "Module1-SQL/basic-sql-quiz.html",
+         "title": "Q Basic SQL",
+         "kind": "quiz",
+         "id": "Module1-SQL/basic-sql-quiz",
+         "words": 32
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "dir": "Module1B-Intermediate-SQL",
+     "title": "Intermediate SQL",
+     "sections": [
+      {
+       "title": "Intermediate",
+       "pages": [
+        {
+         "path": "Module1B-Intermediate-SQL/cte.html",
+         "title": "CTEs",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/cte",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/cte.mp4?v=10529139",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/cte.thumb.jpg?v=10529139",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/cte.vtt",
+         "words": 679
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/window-functions.html",
+         "title": "Window Functions",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/window-functions",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/window-functions.mp4?v=11467399",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/window-functions.thumb.jpg?v=11467399",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/window-functions.vtt",
+         "words": 647
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/writing-debug-tables.html",
+         "title": "Debug Tables",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/writing-debug-tables",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/writing-debug-tables.mp4?v=8495920",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/writing-debug-tables.thumb.jpg?v=8495920",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/writing-debug-tables.vtt",
+         "words": 559
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/sql-query-equivalence.html",
+         "title": "Query Equivalence",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/sql-query-equivalence",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/sql-query-equivalence.mp4?v=21964328",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/sql-query-equivalence.thumb.jpg?v=21964328",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/sql-query-equivalence.vtt",
+         "words": 730
+        }
+       ]
+      },
+      {
+       "title": "Agentic Data Stacks",
+       "pages": [
+        {
+         "path": "Module1B-Intermediate-SQL/llm-debug.html",
+         "title": "LLMs and SQL",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/llm-debug",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/llm-debug.mp4?v=4831190",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/llm-debug.thumb.jpg?v=4831190",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/llm-debug.vtt",
+         "words": 478
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/precision-lives-somewhere.html",
+         "title": "Precision",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/precision-lives-somewhere",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/precision-lives-somewhere.mp4?v=15208928",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/precision-lives-somewhere.thumb.jpg?v=15208928",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/precision-lives-somewhere.vtt",
+         "words": 846
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/execution-environment.html",
+         "title": "Execution",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/execution-environment",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/execution-environment.mp4?v=4793349",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/execution-environment.thumb.jpg?v=4793349",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/execution-environment.vtt",
+         "words": 410
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/verifying-machine-sql.html",
+         "title": "Verification",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/verifying-machine-sql",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/verifying-machine-sql.mp4?v=9054789",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/verifying-machine-sql.thumb.jpg?v=9054789",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/verifying-machine-sql.vtt",
+         "words": 681
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/case-study-agentic-data-stack.html",
+         "title": "C 1.3: Claude's Agentic Stack",
+         "kind": "case",
+         "id": "Module1B-Intermediate-SQL/case-study-agentic-data-stack",
+         "words": 551
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/intermediate-sql-quiz.html",
+         "title": "Q Intermediate SQL",
+         "kind": "quiz",
+         "id": "Module1B-Intermediate-SQL/intermediate-sql-quiz",
+         "words": 33
+        }
+       ]
+      },
+      {
+       "title": "Schema Design",
+       "pages": [
+        {
+         "path": "Module1B-Intermediate-SQL/schema-design.html",
+         "title": "Schema Design",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/schema-design",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/schema-design.mp4?v=8608571",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/schema-design.thumb.jpg?v=8608571",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/schema-design.vtt",
+         "words": 465
+        }
+       ]
+      },
+      {
+       "title": "Problem Solving",
+       "pages": [
+        {
+         "path": "Module1B-Intermediate-SQL/sql-reading-queries.html",
+         "title": "Reading Queries",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/sql-reading-queries",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/sql-reading-queries.mp4?v=7722153",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/sql-reading-queries.thumb.jpg?v=7722153",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/sql-reading-queries.vtt",
+         "words": 384
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/sql-writing-queries.html",
+         "title": "Writing Queries",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/sql-writing-queries",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/sql-writing-queries.mp4?v=10016462",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/sql-writing-queries.thumb.jpg?v=10016462",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/sql-writing-queries.vtt",
+         "words": 918
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/sql-practice-problems.html",
+         "title": "Colab: SQL Practice Problems",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/sql-practice-problems",
+         "words": 1003
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/interview-tips.html",
+         "title": "Interview Prep",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/interview-tips",
+         "words": 277
+        }
+       ]
+      },
+      {
+       "title": "SQL at Scale",
+       "pages": [
+        {
+         "path": "Module1B-Intermediate-SQL/parallel-execution.html",
+         "title": "Parallel Execution",
+         "kind": "page",
+         "id": "Module1B-Intermediate-SQL/parallel-execution",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/parallel-execution.mp4?v=8004349",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/parallel-execution.thumb.jpg?v=8004349",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/parallel-execution.vtt",
+         "words": 514
+        },
+        {
+         "path": "Module1B-Intermediate-SQL/case-study-openai-postgres.html",
+         "title": "C 1.2: OpenAI & Postgres",
+         "kind": "case",
+         "id": "Module1B-Intermediate-SQL/case-study-openai-postgres",
+         "video": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/case-study-openai-postgres.mp4?v=3994700",
+         "poster": "https://cs145.web.app/Module1B-Intermediate-SQL/gen/case-study-openai-postgres.thumb.jpg?v=3994700",
+         "vtt": "content/vtt/Module1B-Intermediate-SQL/case-study-openai-postgres.vtt",
+         "words": 363
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "systems",
+   "title": "Systems",
+   "accent": "#f59e0b",
+   "modules": [
+    {
+     "dir": "Module2-Systems",
+     "title": "Systems Basics",
+     "sections": [
+      {
+       "title": "Foundation",
+       "pages": [
+        {
+         "path": "Module2-Systems/section2-intro.html",
+         "title": "Intro & Key Problems",
+         "kind": "page",
+         "id": "Module2-Systems/section2-intro",
+         "words": 180
+        },
+        {
+         "path": "Module2-Systems/data-centers.html",
+         "title": "Data Centers",
+         "kind": "page",
+         "id": "Module2-Systems/data-centers",
+         "video": "https://cs145.web.app/Module2-Systems/gen/data-centers.mp4?v=19922411",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/data-centers.thumb.jpg?v=19922411",
+         "vtt": "content/vtt/Module2-Systems/data-centers.vtt",
+         "words": 301
+        }
+       ]
+      },
+      {
+       "title": "IO & Storage",
+       "pages": [
+        {
+         "path": "Module2-Systems/storage-paging.html",
+         "title": "Storage & Paging",
+         "kind": "page",
+         "id": "Module2-Systems/storage-paging",
+         "video": "https://cs145.web.app/Module2-Systems/gen/storage-paging.mp4?v=8980215",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/storage-paging.thumb.jpg?v=8980215",
+         "vtt": "content/vtt/Module2-Systems/storage-paging.vtt",
+         "words": 849
+        },
+        {
+         "path": "Module2-Systems/io-cost-model.html",
+         "title": "IO Cost Model",
+         "kind": "page",
+         "id": "Module2-Systems/io-cost-model",
+         "video": "https://cs145.web.app/Module2-Systems/gen/io-cost-model.mp4?v=3869819",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/io-cost-model.thumb.jpg?v=3869819",
+         "vtt": "content/vtt/Module2-Systems/io-cost-model.vtt",
+         "words": 428
+        },
+        {
+         "path": "Module2-Systems/io-reference.html",
+         "title": "IO Reference",
+         "kind": "page",
+         "id": "Module2-Systems/io-reference",
+         "words": 279
+        },
+        {
+         "path": "Module2-Systems/problems-io-cost.html",
+         "title": "Problem Solving",
+         "kind": "page",
+         "id": "Module2-Systems/problems-io-cost",
+         "words": 1128
+        }
+       ]
+      },
+      {
+       "title": "Basic Algorithms",
+       "pages": [
+        {
+         "path": "Module2-Systems/basic-hashing.html",
+         "title": "Basic Hashing",
+         "kind": "page",
+         "id": "Module2-Systems/basic-hashing",
+         "video": "https://cs145.web.app/Module2-Systems/gen/basic-hashing.mp4?v=3894081",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/basic-hashing.thumb.jpg?v=3894081",
+         "vtt": "content/vtt/Module2-Systems/basic-hashing.vtt",
+         "words": 661
+        },
+        {
+         "path": "Module2-Systems/case-study-geohashing.html",
+         "title": "C 2.1: How Uber and Maps use Geo-hashing",
+         "kind": "case",
+         "id": "Module2-Systems/case-study-geohashing",
+         "video": "https://cs145.web.app/Module2-Systems/gen/case-study-geohashing.mp4?v=23629325",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/case-study-geohashing.thumb.jpg?v=23629325",
+         "vtt": "content/vtt/Module2-Systems/case-study-geohashing.vtt",
+         "words": 1076
+        },
+        {
+         "path": "Module2-Systems/compression-basics.html",
+         "title": "Compression",
+         "kind": "page",
+         "id": "Module2-Systems/compression-basics",
+         "video": "https://cs145.web.app/Module2-Systems/gen/compression-basics.mp4?v=16892382",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/compression-basics.thumb.jpg?v=16892382",
+         "vtt": "content/vtt/Module2-Systems/compression-basics.vtt",
+         "words": 476
+        }
+       ]
+      },
+      {
+       "title": "Approximation Algorithms",
+       "pages": [
+        {
+         "path": "Module2-Systems/bloom-filters.html",
+         "title": "Bloom Filters",
+         "kind": "page",
+         "id": "Module2-Systems/bloom-filters",
+         "video": "https://cs145.web.app/Module2-Systems/gen/bloom-filters.mp4?v=18306719",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/bloom-filters.thumb.jpg?v=18306719",
+         "vtt": "content/vtt/Module2-Systems/bloom-filters.vtt",
+         "words": 580
+        },
+        {
+         "path": "Module2-Systems/case-study-bloomfilters.html",
+         "title": "C 2.2: How Chrome Safe Browsing uses Bloom Filters",
+         "kind": "case",
+         "id": "Module2-Systems/case-study-bloomfilters",
+         "video": "https://cs145.web.app/Module2-Systems/gen/case-study-bloomfilters.mp4?v=24076076",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/case-study-bloomfilters.thumb.jpg?v=24076076",
+         "vtt": "content/vtt/Module2-Systems/case-study-bloomfilters.vtt",
+         "words": 703
+        },
+        {
+         "path": "Module2-Systems/lsh-vector-hashing.html",
+         "title": "LSH & Vector Hashing",
+         "kind": "page",
+         "id": "Module2-Systems/lsh-vector-hashing",
+         "video": "https://cs145.web.app/Module2-Systems/gen/lsh-vector-hashing.mp4?v=6704167",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/lsh-vector-hashing.thumb.jpg?v=6704167",
+         "vtt": "content/vtt/Module2-Systems/lsh-vector-hashing.vtt",
+         "words": 828
+        },
+        {
+         "path": "Module2-Systems/case-study-vectordb.html",
+         "title": "C 2.3: How OpenAI uses Vector DB",
+         "kind": "case",
+         "id": "Module2-Systems/case-study-vectordb",
+         "video": "https://cs145.web.app/Module2-Systems/gen/case-study-vectordb.mp4?v=20636946",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/case-study-vectordb.thumb.jpg?v=20636946",
+         "vtt": "content/vtt/Module2-Systems/case-study-vectordb.vtt",
+         "words": 1122
+        },
+        {
+         "path": "Module2-Systems/case-study-vector-compression.html",
+         "title": "C 2.4: Compressing a Billion Embeddings",
+         "kind": "case",
+         "id": "Module2-Systems/case-study-vector-compression",
+         "video": "https://cs145.web.app/Module2-Systems/gen/case-study-vector-compression.mp4?v=19570980",
+         "poster": "https://cs145.web.app/Module2-Systems/gen/case-study-vector-compression.thumb.jpg?v=19570980",
+         "vtt": "content/vtt/Module2-Systems/case-study-vector-compression.vtt",
+         "words": 946
+        },
+        {
+         "path": "Module2-Systems/data-structures-problem-solving.html",
+         "title": "Problem Solving",
+         "kind": "page",
+         "id": "Module2-Systems/data-structures-problem-solving",
+         "words": 1422
+        }
+       ]
+      },
+      {
+       "title": "Quizzes",
+       "pages": [
+        {
+         "path": "Module2-Systems/system-basics-quiz.html",
+         "title": "Q System Basics",
+         "kind": "quiz",
+         "id": "Module2-Systems/system-basics-quiz",
+         "words": 48
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "nanodb",
+   "title": "nanoDB",
+   "accent": "#10b981",
+   "modules": [
+    {
+     "dir": "Module3-nanoDB",
+     "title": "nanoDB",
+     "sections": [
+      {
+       "title": "Storage",
+       "pages": [
+        {
+         "path": "Module3-nanoDB/storage-layout.html",
+         "title": "Storage Layout",
+         "kind": "page",
+         "id": "Module3-nanoDB/storage-layout",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/storage-layout.mp4?v=11598778",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/storage-layout.thumb.jpg?v=11598778",
+         "vtt": "content/vtt/Module3-nanoDB/storage-layout.vtt",
+         "words": 962
+        },
+        {
+         "path": "Module3-nanoDB/case-study-bigquery-scaling.html",
+         "title": "C 3.1: BigQuery Scaling",
+         "kind": "case",
+         "id": "Module3-nanoDB/case-study-bigquery-scaling",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/case-study-bigquery-scaling.mp4?v=18131778",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/case-study-bigquery-scaling.thumb.jpg?v=18131778",
+         "vtt": "content/vtt/Module3-nanoDB/case-study-bigquery-scaling.vtt",
+         "words": 748
+        },
+        {
+         "path": "Module3-nanoDB/hybrid-storage-example.html",
+         "title": "Hybrid Storage",
+         "kind": "page",
+         "id": "Module3-nanoDB/hybrid-storage-example",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/hybrid-storage-example.mp4?v=4385566",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/hybrid-storage-example.thumb.jpg?v=4385566",
+         "vtt": "content/vtt/Module3-nanoDB/hybrid-storage-example.vtt",
+         "words": 540
+        }
+       ]
+      },
+      {
+       "title": "Single Table Algorithms",
+       "pages": [
+        {
+         "path": "Module3-nanoDB/hash-partitioning.html",
+         "title": "Hash Partitioning",
+         "kind": "page",
+         "id": "Module3-nanoDB/hash-partitioning",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/hash-partitioning.mp4?v=5667692",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/hash-partitioning.thumb.jpg?v=5667692",
+         "vtt": "content/vtt/Module3-nanoDB/hash-partitioning.vtt",
+         "words": 408
+        },
+        {
+         "path": "Module3-nanoDB/big-sort.html",
+         "title": "BigSort",
+         "kind": "page",
+         "id": "Module3-nanoDB/big-sort",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/big-sort.mp4?v=4646751",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/big-sort.thumb.jpg?v=4646751",
+         "vtt": "content/vtt/Module3-nanoDB/big-sort.vtt",
+         "words": 850
+        }
+       ]
+      },
+      {
+       "title": "Join Algorithms",
+       "pages": [
+        {
+         "path": "Module3-nanoDB/block-nested-loop-join.html",
+         "title": "Block Nested Loop Join",
+         "kind": "page",
+         "id": "Module3-nanoDB/block-nested-loop-join",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/block-nested-loop-join.mp4?v=8001228",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/block-nested-loop-join.thumb.jpg?v=8001228",
+         "vtt": "content/vtt/Module3-nanoDB/block-nested-loop-join.vtt",
+         "words": 605
+        },
+        {
+         "path": "Module3-nanoDB/hash-partition-join.html",
+         "title": "Hash Partition Join",
+         "kind": "page",
+         "id": "Module3-nanoDB/hash-partition-join",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/hash-partition-join.mp4?v=6890508",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/hash-partition-join.thumb.jpg?v=6890508",
+         "vtt": "content/vtt/Module3-nanoDB/hash-partition-join.vtt",
+         "words": 536
+        },
+        {
+         "path": "Module3-nanoDB/sort-merge-join.html",
+         "title": "Sort-Merge Join",
+         "kind": "page",
+         "id": "Module3-nanoDB/sort-merge-join",
+         "video": "https://cs145.web.app/Module3-nanoDB/gen/sort-merge-join.mp4?v=5865945",
+         "poster": "https://cs145.web.app/Module3-nanoDB/gen/sort-merge-join.thumb.jpg?v=5865945",
+         "vtt": "content/vtt/Module3-nanoDB/sort-merge-join.vtt",
+         "words": 418
+        },
+        {
+         "path": "Module3-nanoDB/io-algorithms.html",
+         "title": "IO Cost Equations Reference",
+         "kind": "page",
+         "id": "Module3-nanoDB/io-algorithms",
+         "words": 764
+        }
+       ]
+      },
+      {
+       "title": "Quizzes",
+       "pages": [
+        {
+         "path": "Module3-nanoDB/storage-algorithms-quiz.html",
+         "title": "Q Storage Algorithms",
+         "kind": "quiz",
+         "id": "Module3-nanoDB/storage-algorithms-quiz",
+         "words": 47
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "dir": "Module3B-Indexing",
+     "title": "Indexing",
+     "sections": [
+      {
+       "title": "Indexing Fundamentals",
+       "pages": [
+        {
+         "path": "Module3B-Indexing/index-fundamentals.html",
+         "title": "Index Fundamentals",
+         "kind": "page",
+         "id": "Module3B-Indexing/index-fundamentals",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/index-fundamentals.mp4?v=7562063",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/index-fundamentals.thumb.jpg?v=7562063",
+         "vtt": "content/vtt/Module3B-Indexing/index-fundamentals.vtt",
+         "words": 458
+        },
+        {
+         "path": "Module3B-Indexing/hash-indexes.html",
+         "title": "Hash Indexes",
+         "kind": "page",
+         "id": "Module3B-Indexing/hash-indexes",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/hash-indexes.mp4?v=8452241",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/hash-indexes.thumb.jpg?v=8452241",
+         "vtt": "content/vtt/Module3B-Indexing/hash-indexes.vtt",
+         "words": 624
+        },
+        {
+         "path": "Module3B-Indexing/btree-indexes.html",
+         "title": "B+Tree Indexes",
+         "kind": "page",
+         "id": "Module3B-Indexing/btree-indexes",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/btree-indexes.mp4?v=11629728",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/btree-indexes.thumb.jpg?v=11629728",
+         "vtt": "content/vtt/Module3B-Indexing/btree-indexes.vtt",
+         "words": 947
+        },
+        {
+         "path": "Module3B-Indexing/sstables.html",
+         "title": "SSTables",
+         "kind": "page",
+         "id": "Module3B-Indexing/sstables",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/sstables.mp4?v=6890654",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/sstables.thumb.jpg?v=6890654",
+         "vtt": "content/vtt/Module3B-Indexing/sstables.vtt",
+         "words": 487
+        },
+        {
+         "path": "Module3B-Indexing/lsm-indexes.html",
+         "title": "LSM Trees",
+         "kind": "page",
+         "id": "Module3B-Indexing/lsm-indexes",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/lsm-indexes.mp4?v=9122722",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/lsm-indexes.thumb.jpg?v=9122722",
+         "vtt": "content/vtt/Module3B-Indexing/lsm-indexes.vtt",
+         "words": 670
+        },
+        {
+         "path": "Module3B-Indexing/io-indexes.html",
+         "title": "Index IO Costs",
+         "kind": "page",
+         "id": "Module3B-Indexing/io-indexes",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/io-indexes.mp4?v=12963601",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/io-indexes.thumb.jpg?v=12963601",
+         "vtt": "content/vtt/Module3B-Indexing/io-indexes.vtt",
+         "words": 1157
+        },
+        {
+         "path": "Module3B-Indexing/index-problem-solving.html",
+         "title": "Problem Solving",
+         "kind": "page",
+         "id": "Module3B-Indexing/index-problem-solving",
+         "words": 1159
+        }
+       ]
+      },
+      {
+       "title": "Case Studies",
+       "pages": [
+        {
+         "path": "Module3B-Indexing/case-study-spotify-search.html",
+         "title": "C 3.2: Spotify Search",
+         "kind": "case",
+         "id": "Module3B-Indexing/case-study-spotify-search",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/case-study-spotify-search.mp4?v=11765930",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/case-study-spotify-search.thumb.jpg?v=11765930",
+         "vtt": "content/vtt/Module3B-Indexing/case-study-spotify-search.vtt",
+         "words": 425
+        },
+        {
+         "path": "Module3B-Indexing/case-study-lsm-spotify.html",
+         "title": "C 3.3: Spotify Activity",
+         "kind": "case",
+         "id": "Module3B-Indexing/case-study-lsm-spotify",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/case-study-lsm-spotify.mp4?v=14023027",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/case-study-lsm-spotify.thumb.jpg?v=14023027",
+         "vtt": "content/vtt/Module3B-Indexing/case-study-lsm-spotify.vtt",
+         "words": 674
+        },
+        {
+         "path": "Module3B-Indexing/case-study-wrapped-indexing.html",
+         "title": "C 3.4: Spotify Wrapped",
+         "kind": "case",
+         "id": "Module3B-Indexing/case-study-wrapped-indexing",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/case-study-wrapped-indexing.mp4?v=15071946",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/case-study-wrapped-indexing.thumb.jpg?v=15071946",
+         "vtt": "content/vtt/Module3B-Indexing/case-study-wrapped-indexing.vtt",
+         "words": 697
+        },
+        {
+         "path": "Module3B-Indexing/case-study-query-disaster.html",
+         "title": "C Problem Solving: $550k Query Disaster",
+         "kind": "case",
+         "id": "Module3B-Indexing/case-study-query-disaster",
+         "video": "https://cs145.web.app/Module3B-Indexing/gen/case-study-query-disaster.mp4?v=14496173",
+         "poster": "https://cs145.web.app/Module3B-Indexing/gen/case-study-query-disaster.thumb.jpg?v=14496173",
+         "vtt": "content/vtt/Module3B-Indexing/case-study-query-disaster.vtt",
+         "words": 980
+        }
+       ]
+      },
+      {
+       "title": "Quizzes",
+       "pages": [
+        {
+         "path": "Module3B-Indexing/indexing-quiz.html",
+         "title": "Q Indexing",
+         "kind": "quiz",
+         "id": "Module3B-Indexing/indexing-quiz",
+         "words": 43
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "dir": "Module3C-Query-Optimization",
+     "title": "Query Optimization",
+     "sections": [
+      {
+       "title": "Query Optimization",
+       "pages": [
+        {
+         "path": "Module3C-Query-Optimization/query-optimizer.html",
+         "title": "Query Optimizer",
+         "kind": "page",
+         "id": "Module3C-Query-Optimization/query-optimizer",
+         "video": "https://cs145.web.app/Module3C-Query-Optimization/gen/query-optimizer.mp4?v=12041325",
+         "poster": "https://cs145.web.app/Module3C-Query-Optimization/gen/query-optimizer.thumb.jpg?v=12041325",
+         "vtt": "content/vtt/Module3C-Query-Optimization/query-optimizer.vtt",
+         "words": 427
+        },
+        {
+         "path": "Module3C-Query-Optimization/selectivity-statistics.html",
+         "title": "Selectivity & Statistics",
+         "kind": "page",
+         "id": "Module3C-Query-Optimization/selectivity-statistics",
+         "video": "https://cs145.web.app/Module3C-Query-Optimization/gen/selectivity-statistics.mp4?v=7078840",
+         "poster": "https://cs145.web.app/Module3C-Query-Optimization/gen/selectivity-statistics.thumb.jpg?v=7078840",
+         "vtt": "content/vtt/Module3C-Query-Optimization/selectivity-statistics.vtt",
+         "words": 776
+        },
+        {
+         "path": "Module3C-Query-Optimization/io-cost-summary.html",
+         "title": "Comparing Query Plans",
+         "kind": "page",
+         "id": "Module3C-Query-Optimization/io-cost-summary",
+         "video": "https://cs145.web.app/Module3C-Query-Optimization/gen/io-cost-summary.mp4?v=7557591",
+         "poster": "https://cs145.web.app/Module3C-Query-Optimization/gen/io-cost-summary.thumb.jpg?v=7557591",
+         "vtt": "content/vtt/Module3C-Query-Optimization/io-cost-summary.vtt",
+         "words": 919
+        },
+        {
+         "path": "Module3C-Query-Optimization/postgres-explain.html",
+         "title": "Reading PostgreSQL EXPLAIN",
+         "kind": "page",
+         "id": "Module3C-Query-Optimization/postgres-explain",
+         "video": "https://cs145.web.app/Module3C-Query-Optimization/gen/postgres-explain.mp4?v=8391515",
+         "poster": "https://cs145.web.app/Module3C-Query-Optimization/gen/postgres-explain.thumb.jpg?v=8391515",
+         "vtt": "content/vtt/Module3C-Query-Optimization/postgres-explain.vtt",
+         "words": 750
+        },
+        {
+         "path": "Module3C-Query-Optimization/distributed-query.html",
+         "title": "Distributed Query Planning",
+         "kind": "page",
+         "id": "Module3C-Query-Optimization/distributed-query",
+         "video": "https://cs145.web.app/Module3C-Query-Optimization/gen/distributed-query.mp4?v=10269413",
+         "poster": "https://cs145.web.app/Module3C-Query-Optimization/gen/distributed-query.thumb.jpg?v=10269413",
+         "vtt": "content/vtt/Module3C-Query-Optimization/distributed-query.vtt",
+         "words": 543
+        }
+       ]
+      },
+      {
+       "title": "Putting It All Together",
+       "pages": [
+        {
+         "path": "Module3C-Query-Optimization/spotify-architecture-end-to-end.html",
+         "title": "\ud83c\udfb5 Spotify End-to-End",
+         "kind": "page",
+         "id": "Module3C-Query-Optimization/spotify-architecture-end-to-end",
+         "video": "https://cs145.web.app/Module3C-Query-Optimization/gen/spotify-architecture-end-to-end.mp4?v=11692513",
+         "poster": "https://cs145.web.app/Module3C-Query-Optimization/gen/spotify-architecture-end-to-end.thumb.jpg?v=11692513",
+         "vtt": "content/vtt/Module3C-Query-Optimization/spotify-architecture-end-to-end.vtt",
+         "words": 626
+        },
+        {
+         "path": "Module3C-Query-Optimization/problem-solving-modular-systems.html",
+         "title": "Module 3 Capstone: Picking the Right Algorithm",
+         "kind": "page",
+         "id": "Module3C-Query-Optimization/problem-solving-modular-systems",
+         "video": "https://cs145.web.app/Module3C-Query-Optimization/gen/problem-solving-modular-systems.mp4?v=5037014",
+         "poster": "https://cs145.web.app/Module3C-Query-Optimization/gen/problem-solving-modular-systems.thumb.jpg?v=5037014",
+         "vtt": "content/vtt/Module3C-Query-Optimization/problem-solving-modular-systems.vtt",
+         "words": 765
+        }
+       ]
+      },
+      {
+       "title": "Quizzes",
+       "pages": [
+        {
+         "path": "Module3C-Query-Optimization/query-optimization-quiz.html",
+         "title": "Q Query Optimization",
+         "kind": "quiz",
+         "id": "Module3C-Query-Optimization/query-optimization-quiz",
+         "words": 45
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "transactions",
+   "title": "Transactions",
+   "accent": "#8b5cf6",
+   "modules": [
+    {
+     "dir": "Module4-Transactions",
+     "title": "Transactions",
+     "sections": [
+      {
+       "title": "1. Using Transactions",
+       "pages": [
+        {
+         "path": "Module4-Transactions/motivation.html",
+         "title": "Transaction Motivation",
+         "kind": "page",
+         "id": "Module4-Transactions/motivation",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/motivation.mp4?v=9024163",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/motivation.thumb.jpg?v=9024163",
+         "vtt": "content/vtt/Module4-Transactions/motivation.vtt",
+         "words": 540
+        },
+        {
+         "path": "Module4-Transactions/acid-properties.html",
+         "title": "ACID Properties",
+         "kind": "page",
+         "id": "Module4-Transactions/acid-properties",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/acid-properties.mp4?v=8880985",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/acid-properties.thumb.jpg?v=8880985",
+         "vtt": "content/vtt/Module4-Transactions/acid-properties.vtt",
+         "words": 586
+        },
+        {
+         "path": "Module4-Transactions/case-study-transactions.html",
+         "title": "C 4.1: ACID at Stripe",
+         "kind": "case",
+         "id": "Module4-Transactions/case-study-transactions",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/case-study-transactions.mp4?v=13402167",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/case-study-transactions.thumb.jpg?v=13402167",
+         "vtt": "content/vtt/Module4-Transactions/case-study-transactions.vtt",
+         "words": 583
+        },
+        {
+         "path": "Module4-Transactions/transaction-examples.html",
+         "title": "Sample Code: Running Transactions",
+         "kind": "page",
+         "id": "Module4-Transactions/transaction-examples",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/transaction-examples.mp4?v=12532190",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/transaction-examples.thumb.jpg?v=12532190",
+         "vtt": "content/vtt/Module4-Transactions/transaction-examples.vtt",
+         "words": 1539
+        }
+       ]
+      },
+      {
+       "title": "Concurrency correctness",
+       "pages": [
+        {
+         "path": "Module4-Transactions/naive-concurrency.html",
+         "title": "Naive Concurrency",
+         "kind": "page",
+         "id": "Module4-Transactions/naive-concurrency",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/naive-concurrency.mp4?v=9587405",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/naive-concurrency.thumb.jpg?v=9587405",
+         "vtt": "content/vtt/Module4-Transactions/naive-concurrency.vtt",
+         "words": 662
+        },
+        {
+         "path": "Module4-Transactions/graph-refresher.html",
+         "title": "Graph Refresher",
+         "kind": "page",
+         "id": "Module4-Transactions/graph-refresher",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/graph-refresher.mp4?v=2780026.r2",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/graph-refresher.thumb.jpg?v=2780026.r2",
+         "vtt": "content/vtt/Module4-Transactions/graph-refresher.vtt",
+         "words": 309
+        },
+        {
+         "path": "Module4-Transactions/correctness.html",
+         "title": "Correctness",
+         "kind": "page",
+         "id": "Module4-Transactions/correctness",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/correctness.mp4?v=19926815",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/correctness.thumb.jpg?v=19926815",
+         "vtt": "content/vtt/Module4-Transactions/correctness.vtt",
+         "words": 1613
+        }
+       ]
+      },
+      {
+       "title": "Lock-based concurrency",
+       "pages": [
+        {
+         "path": "Module4-Transactions/concurrency-stack.html",
+         "title": "Locks Stack & the Lock Manager",
+         "kind": "page",
+         "id": "Module4-Transactions/concurrency-stack",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/concurrency-stack.mp4?v=9202019",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/concurrency-stack.thumb.jpg?v=9202019",
+         "vtt": "content/vtt/Module4-Transactions/concurrency-stack.vtt",
+         "words": 436
+        },
+        {
+         "path": "Module4-Transactions/lock-manager-cycle.html",
+         "title": "DB Locks Lifecycle",
+         "kind": "page",
+         "id": "Module4-Transactions/lock-manager-cycle",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/lock-manager-cycle.mp4?v=5855770",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/lock-manager-cycle.thumb.jpg?v=5855770",
+         "vtt": "content/vtt/Module4-Transactions/lock-manager-cycle.vtt",
+         "words": 443
+        },
+        {
+         "path": "Module4-Transactions/db-locks-2pl.html",
+         "title": "Two-Phase Locking",
+         "kind": "page",
+         "id": "Module4-Transactions/db-locks-2pl",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/db-locks-2pl.mp4?v=4843337",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/db-locks-2pl.thumb.jpg?v=4843337",
+         "vtt": "content/vtt/Module4-Transactions/db-locks-2pl.vtt",
+         "words": 534
+        },
+        {
+         "path": "Module4-Transactions/micro.html",
+         "title": "Microschedules & Deadlock",
+         "kind": "page",
+         "id": "Module4-Transactions/micro",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/micro.mp4?v=13593568",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/micro.thumb.jpg?v=13593568",
+         "vtt": "content/vtt/Module4-Transactions/micro.vtt",
+         "words": 1070
+        }
+       ]
+      },
+      {
+       "title": "Alternate Concurrency Models",
+       "pages": [
+        {
+         "path": "Module4-Transactions/mvcc.html",
+         "title": "MVCC",
+         "kind": "page",
+         "id": "Module4-Transactions/mvcc",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/mvcc.mp4?v=10005463",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/mvcc.thumb.jpg?v=10005463",
+         "vtt": "content/vtt/Module4-Transactions/mvcc.vtt",
+         "words": 1616
+        },
+        {
+         "path": "Module4-Transactions/occ.html",
+         "title": "Optimistic Concurrency Control",
+         "kind": "page",
+         "id": "Module4-Transactions/occ",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/occ.mp4?v=4356339",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/occ.thumb.jpg?v=4356339",
+         "vtt": "content/vtt/Module4-Transactions/occ.vtt",
+         "words": 356
+        },
+        {
+         "path": "Module4-Transactions/connecting-together.html",
+         "title": "Connecting It All Together",
+         "kind": "page",
+         "id": "Module4-Transactions/connecting-together",
+         "video": "https://cs145.web.app/Module4-Transactions/gen/connecting-together.mp4?v=7132175",
+         "poster": "https://cs145.web.app/Module4-Transactions/gen/connecting-together.thumb.jpg?v=7132175",
+         "vtt": "content/vtt/Module4-Transactions/connecting-together.vtt",
+         "words": 575
+        }
+       ]
+      },
+      {
+       "title": "Quizzes",
+       "pages": [
+        {
+         "path": "Module4-Transactions/concurrency-control-quiz.html",
+         "title": "Q Concurrency Control",
+         "kind": "quiz",
+         "id": "Module4-Transactions/concurrency-control-quiz",
+         "words": 27
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "dir": "Module4B-Crash-Recovery",
+     "title": "Crash Recovery",
+     "sections": [
+      {
+       "title": "Versions and Recovery",
+       "pages": [
+        {
+         "path": "Module4B-Crash-Recovery/recovery-intuition.html",
+         "title": "Change Tracking",
+         "kind": "page",
+         "id": "Module4B-Crash-Recovery/recovery-intuition",
+         "video": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-intuition.mp4?v=7794627",
+         "poster": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-intuition.thumb.jpg?v=7794627",
+         "vtt": "content/vtt/Module4B-Crash-Recovery/recovery-intuition.vtt",
+         "words": 878
+        },
+        {
+         "path": "Module4B-Crash-Recovery/recovery-concepts.html",
+         "title": "The WAL Log",
+         "kind": "page",
+         "id": "Module4B-Crash-Recovery/recovery-concepts",
+         "video": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-concepts.mp4?v=11139488",
+         "poster": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-concepts.thumb.jpg?v=11139488",
+         "vtt": "content/vtt/Module4B-Crash-Recovery/recovery-concepts.vtt",
+         "words": 1086
+        },
+        {
+         "path": "Module4B-Crash-Recovery/recovery-wal.html",
+         "title": "Undo for Aborts",
+         "kind": "page",
+         "id": "Module4B-Crash-Recovery/recovery-wal",
+         "video": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-wal.mp4?v=5857924",
+         "poster": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-wal.thumb.jpg?v=5857924",
+         "vtt": "content/vtt/Module4B-Crash-Recovery/recovery-wal.vtt",
+         "words": 674
+        },
+        {
+         "path": "Module4B-Crash-Recovery/recovery-postcrash.html",
+         "title": "Post-Crash Recovery",
+         "kind": "page",
+         "id": "Module4B-Crash-Recovery/recovery-postcrash",
+         "video": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-postcrash.mp4?v=12124116",
+         "poster": "https://cs145.web.app/Module4B-Crash-Recovery/gen/recovery-postcrash.thumb.jpg?v=12124116",
+         "vtt": "content/vtt/Module4B-Crash-Recovery/recovery-postcrash.vtt",
+         "words": 986
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "dir": "Module4C-End-to-End-TM",
+     "title": "End-to-End TM",
+     "sections": [
+      {
+       "title": "End-to-End TM",
+       "pages": [
+        {
+         "path": "Module4C-End-to-End-TM/tm-summary.html",
+         "title": "Transaction Manager Architecture",
+         "kind": "page",
+         "id": "Module4C-End-to-End-TM/tm-summary",
+         "video": "https://cs145.web.app/Module4C-End-to-End-TM/gen/tm-summary.mp4?v=9955500",
+         "poster": "https://cs145.web.app/Module4C-End-to-End-TM/gen/tm-summary.thumb.jpg?v=9955500",
+         "vtt": "content/vtt/Module4C-End-to-End-TM/tm-summary.vtt",
+         "words": 438
+        },
+        {
+         "path": "Module4C-End-to-End-TM/tm-three-transactions.html",
+         "title": "Three Transactions",
+         "kind": "page",
+         "id": "Module4C-End-to-End-TM/tm-three-transactions",
+         "video": "https://cs145.web.app/Module4C-End-to-End-TM/gen/tm-three-transactions.mp4?v=9241969",
+         "poster": "https://cs145.web.app/Module4C-End-to-End-TM/gen/tm-three-transactions.thumb.jpg?v=9241969",
+         "vtt": "content/vtt/Module4C-End-to-End-TM/tm-three-transactions.vtt",
+         "words": 584
+        }
+       ]
+      },
+      {
+       "title": "Capstone & Beyond",
+       "pages": [
+        {
+         "path": "Module4C-End-to-End-TM/problem-solving.html",
+         "title": "Problem Solving",
+         "kind": "page",
+         "id": "Module4C-End-to-End-TM/problem-solving",
+         "video": "https://cs145.web.app/Module4C-End-to-End-TM/gen/problem-solving.mp4?v=7858142",
+         "poster": "https://cs145.web.app/Module4C-End-to-End-TM/gen/problem-solving.thumb.jpg?v=7858142",
+         "vtt": "content/vtt/Module4C-End-to-End-TM/problem-solving.vtt",
+         "words": 1068
+        },
+        {
+         "path": "Module4C-End-to-End-TM/next-100x.html",
+         "title": "Next 100x",
+         "kind": "page",
+         "id": "Module4C-End-to-End-TM/next-100x",
+         "video": "https://cs145.web.app/Module4C-End-to-End-TM/gen/next-100x.mp4?v=9611312",
+         "poster": "https://cs145.web.app/Module4C-End-to-End-TM/gen/next-100x.thumb.jpg?v=9611312",
+         "vtt": "content/vtt/Module4C-End-to-End-TM/next-100x.vtt",
+         "words": 594
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "distributed",
+   "title": "Distributed",
+   "accent": "#ec4899",
+   "modules": [
+    {
+     "dir": "Module5-Distributed",
+     "title": "Distributed Systems",
+     "sections": [
+      {
+       "title": "Algorithms",
+       "pages": [
+        {
+         "path": "Module5-Distributed/sharding-replication.html",
+         "title": "Sharding & Replication",
+         "kind": "page",
+         "id": "Module5-Distributed/sharding-replication",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/sharding-replication.mp4?v=5821161",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/sharding-replication.thumb.jpg?v=5821161",
+         "vtt": "content/vtt/Module5-Distributed/sharding-replication.vtt",
+         "words": 445
+        },
+        {
+         "path": "Module5-Distributed/distributed-commit.html",
+         "title": "Distributed Commit",
+         "kind": "page",
+         "id": "Module5-Distributed/distributed-commit",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/distributed-commit.mp4?v=3952063",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/distributed-commit.thumb.jpg?v=3952063",
+         "vtt": "content/vtt/Module5-Distributed/distributed-commit.vtt",
+         "words": 497
+        },
+        {
+         "path": "Module5-Distributed/consensus-leader-election.html",
+         "title": "Consistency in Replicas",
+         "kind": "page",
+         "id": "Module5-Distributed/consensus-leader-election",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/consensus-leader-election.mp4?v=7976660",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/consensus-leader-election.thumb.jpg?v=7976660",
+         "vtt": "content/vtt/Module5-Distributed/consensus-leader-election.vtt",
+         "words": 929
+        },
+        {
+         "path": "Module5-Distributed/cap-theorem.html",
+         "title": "CAP Theorem",
+         "kind": "page",
+         "id": "Module5-Distributed/cap-theorem",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/cap-theorem.mp4?v=6171371",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/cap-theorem.thumb.jpg?v=6171371",
+         "vtt": "content/vtt/Module5-Distributed/cap-theorem.vtt",
+         "words": 396
+        },
+        {
+         "path": "Module5-Distributed/distributed-sort-hash.html",
+         "title": "Distributed Sort & Hash",
+         "kind": "page",
+         "id": "Module5-Distributed/distributed-sort-hash",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/distributed-sort-hash.mp4?v=8150438",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/distributed-sort-hash.thumb.jpg?v=8150438",
+         "vtt": "content/vtt/Module5-Distributed/distributed-sort-hash.vtt",
+         "words": 730
+        }
+       ]
+      },
+      {
+       "title": "Modern Systems",
+       "pages": [
+        {
+         "path": "Module5-Distributed/case-study-gfs.html",
+         "title": "C GFS",
+         "kind": "case",
+         "id": "Module5-Distributed/case-study-gfs",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/case-study-gfs.mp4?v=16157839",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/case-study-gfs.thumb.jpg?v=16157839",
+         "vtt": "content/vtt/Module5-Distributed/case-study-gfs.vtt",
+         "words": 846
+        },
+        {
+         "path": "Module5-Distributed/distributed-file-systems.html",
+         "title": "Distributed File Systems",
+         "kind": "page",
+         "id": "Module5-Distributed/distributed-file-systems",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/distributed-file-systems.mp4?v=6272183",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/distributed-file-systems.thumb.jpg?v=6272183",
+         "vtt": "content/vtt/Module5-Distributed/distributed-file-systems.vtt",
+         "words": 781
+        },
+        {
+         "path": "Module5-Distributed/mapreduce.html",
+         "title": "MapReduce",
+         "kind": "page",
+         "id": "Module5-Distributed/mapreduce",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/mapreduce.mp4?v=4699232",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/mapreduce.thumb.jpg?v=4699232",
+         "vtt": "content/vtt/Module5-Distributed/mapreduce.vtt",
+         "words": 712
+        },
+        {
+         "path": "Module5-Distributed/spark.html",
+         "title": "Spark",
+         "kind": "page",
+         "id": "Module5-Distributed/spark",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/spark.mp4?v=8779998",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/spark.thumb.jpg?v=8779998",
+         "vtt": "content/vtt/Module5-Distributed/spark.vtt",
+         "words": 983
+        },
+        {
+         "path": "Module5-Distributed/bigquery.html",
+         "title": "BigQuery",
+         "kind": "page",
+         "id": "Module5-Distributed/bigquery",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/bigquery.mp4?v=7446609",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/bigquery.thumb.jpg?v=7446609",
+         "vtt": "content/vtt/Module5-Distributed/bigquery.vtt",
+         "words": 975
+        },
+        {
+         "path": "Module5-Distributed/kafka.html",
+         "title": "Kafka",
+         "kind": "page",
+         "id": "Module5-Distributed/kafka",
+         "video": "https://cs145.web.app/Module5-Distributed/gen/kafka.mp4?v=4436717",
+         "poster": "https://cs145.web.app/Module5-Distributed/gen/kafka.thumb.jpg?v=4436717",
+         "vtt": "content/vtt/Module5-Distributed/kafka.vtt",
+         "words": 681
+        }
+       ]
+      },
+      {
+       "title": "Quizzes",
+       "pages": [
+        {
+         "path": "Module5-Distributed/distributed-algorithms-quiz.html",
+         "title": "Q Distributed Algorithms",
+         "kind": "quiz",
+         "id": "Module5-Distributed/distributed-algorithms-quiz",
+         "words": 15
+        },
+        {
+         "path": "Module5-Distributed/modern-systems-quiz.html",
+         "title": "Q Modern Systems",
+         "kind": "quiz",
+         "id": "Module5-Distributed/modern-systems-quiz",
+         "words": 14
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "datasystems",
+   "title": "Data Systems",
+   "accent": "#64748b",
+   "modules": [
+    {
+     "dir": "Module6-Data-Systems",
+     "title": "Patterns of Big Data Systems",
+     "sections": [
+      {
+       "title": "Small Data Patterns (1-100 GB)",
+       "pages": [
+        {
+         "path": "Module6-Data-Systems/section1a-intro.html",
+         "title": "Intro & Key Problems",
+         "kind": "page",
+         "id": "Module6-Data-Systems/section1a-intro",
+         "words": 142
+        },
+        {
+         "path": "Module6-Data-Systems/db-design-startup.html",
+         "title": "6.1: DB Design for a Startup",
+         "kind": "page",
+         "id": "Module6-Data-Systems/db-design-startup",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/db-design-startup.mp4?v=2176823",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/db-design-startup.thumb.jpg?v=2176823",
+         "vtt": "content/vtt/Module6-Data-Systems/db-design-startup.vtt",
+         "words": 523
+        },
+        {
+         "path": "Module6-Data-Systems/sql-beyond-tables.html",
+         "title": "6.2: SQL's Complex Types (JSONB, Vectors, Geo)",
+         "kind": "page",
+         "id": "Module6-Data-Systems/sql-beyond-tables",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/sql-beyond-tables.mp4?v=4589364",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/sql-beyond-tables.thumb.jpg?v=4589364",
+         "vtt": "content/vtt/Module6-Data-Systems/sql-beyond-tables.vtt",
+         "words": 790
+        }
+       ]
+      },
+      {
+       "title": "Big Data Patterns (100 GB - PB)",
+       "pages": [
+        {
+         "path": "Module6-Data-Systems/db-design-bigtech.html",
+         "title": "6.3: DB Design for Big Tech (Data Lakes)",
+         "kind": "page",
+         "id": "Module6-Data-Systems/db-design-bigtech",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/db-design-bigtech.mp4?v=5278799",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/db-design-bigtech.thumb.jpg?v=5278799",
+         "vtt": "content/vtt/Module6-Data-Systems/db-design-bigtech.vtt",
+         "words": 1012
+        },
+        {
+         "path": "Module6-Data-Systems/case-study-nosql.html",
+         "title": "C 6.4: SQL vs NoSQL",
+         "kind": "case",
+         "id": "Module6-Data-Systems/case-study-nosql",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/case-study-nosql.mp4?v=11279428",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/case-study-nosql.thumb.jpg?v=11279428",
+         "vtt": "content/vtt/Module6-Data-Systems/case-study-nosql.vtt",
+         "words": 614
+        },
+        {
+         "path": "Module6-Data-Systems/case-study-keyvalue.html",
+         "title": "C 6.5: Key-Value Stores",
+         "kind": "case",
+         "id": "Module6-Data-Systems/case-study-keyvalue",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/case-study-keyvalue.mp4?v=8241104",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/case-study-keyvalue.thumb.jpg?v=8241104",
+         "vtt": "content/vtt/Module6-Data-Systems/case-study-keyvalue.vtt",
+         "words": 782
+        }
+       ]
+      },
+      {
+       "title": "How To Safely Use Data",
+       "pages": [
+        {
+         "path": "Module6-Data-Systems/data-security.html",
+         "title": "Zero Trust Security",
+         "kind": "page",
+         "id": "Module6-Data-Systems/data-security",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/data-security.mp4?v=6085153",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/data-security.thumb.jpg?v=6085153",
+         "vtt": "content/vtt/Module6-Data-Systems/data-security.vtt",
+         "words": 595
+        },
+        {
+         "path": "Module6-Data-Systems/data-privacy.html",
+         "title": "Data Privacy",
+         "kind": "page",
+         "id": "Module6-Data-Systems/data-privacy",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/data-privacy.mp4?v=4921002",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/data-privacy.thumb.jpg?v=4921002",
+         "vtt": "content/vtt/Module6-Data-Systems/data-privacy.vtt",
+         "words": 593
+        },
+        {
+         "path": "Module6-Data-Systems/case-study-privacy.html",
+         "title": "C 6.6: Privacy",
+         "kind": "case",
+         "id": "Module6-Data-Systems/case-study-privacy",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/case-study-privacy.mp4?v=11466402",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/case-study-privacy.thumb.jpg?v=11466402",
+         "vtt": "content/vtt/Module6-Data-Systems/case-study-privacy.vtt",
+         "words": 566
+        }
+       ]
+      },
+      {
+       "title": "Optional",
+       "pages": [
+        {
+         "path": "Module6-Data-Systems/sql-trends.html",
+         "title": "Modern Big Data Economics",
+         "kind": "page",
+         "id": "Module6-Data-Systems/sql-trends",
+         "video": "https://cs145.web.app/Module6-Data-Systems/gen/sql-trends.mp4",
+         "poster": "https://cs145.web.app/Module6-Data-Systems/gen/sql-trends.thumb.jpg",
+         "words": 701
+        }
+       ]
+      },
+      {
+       "title": "Quizzes",
+       "pages": [
+        {
+         "path": "Module6-Data-Systems/architecture-quiz.html",
+         "title": "Q Data Systems Architecture",
+         "kind": "quiz",
+         "id": "Module6-Data-Systems/architecture-quiz",
+         "words": 15
+        },
+        {
+         "path": "Module6-Data-Systems/sql-journey-quiz.html",
+         "title": "Q Data Privacy & Design",
+         "kind": "quiz",
+         "id": "Module6-Data-Systems/sql-journey-quiz",
+         "words": 31
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

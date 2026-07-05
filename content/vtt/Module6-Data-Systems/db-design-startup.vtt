@@ -1,0 +1,52 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.727
+Your startup's real risk is not scale.
+
+00:00:05.727 --> 00:00:09.454
+It is corrupting your first users' data.
+
+00:00:09.454 --> 00:00:13.180
+So start boring: one managed Postgres node.
+
+00:00:13.180 --> 00:00:16.907
+Instagram rode it to a billion-dollar exit, and WhatsApp served nine hundred million users on it.
+
+00:00:16.907 --> 00:00:20.331
+When that one node finally strains, do you shard?
+
+00:00:20.331 --> 00:00:23.756
+Almost never.
+
+00:00:23.756 --> 00:00:27.180
+The first move is read replicas.
+
+00:00:27.180 --> 00:00:30.604
+All writes still go to one primary.
+
+00:00:30.604 --> 00:00:34.028
+Then you spread the reads across many copies.
+
+00:00:34.028 --> 00:00:37.453
+The primary streams its changes to them in the background, so a replica can lag by a few milliseconds.
+
+00:00:37.453 --> 00:00:40.877
+If a user must see their own write, send that one read back to the primary.
+
+00:00:40.877 --> 00:00:45.444
+The classic mistake is over-engineering.
+
+00:00:45.444 --> 00:00:50.010
+Sharding, microservices, web-scale NoSQL, all before you have a single user.
+
+00:00:50.010 --> 00:00:54.577
+Ship on one Postgres, and let real load tell you what to scale.
+
+00:00:54.577 --> 00:00:58.602
+So: one boring Postgres node, then read replicas when reads pile up.
+
+00:00:58.602 --> 00:01:02.626
+That carries you well past a hundred thousand daily users.
+
+00:01:02.626 --> 00:01:06.651
+Next, how much that single node can actually do.

@@ -1,0 +1,53 @@
+<svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="gh-t gh-d">
+  <title id="gh-t">Cheap hardware at scale: failure becomes routine</title>
+  <desc id="gh-d">Google chose commodity disks over a few expensive enterprise drives. At ten
+  thousand cheap disks, a failure every day is a certainty, so the software has to treat
+  failure as normal. The figure shows the choice (commodity chosen over enterprise), the
+  scale (a grid of ten thousand disks), and the reality (some disks fail every day). Color
+  key: pink is the commodity choice and its consequence, red is a failed disk, grey is the
+  working disks.</desc>
+
+  <defs><marker id="ah-gh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Cheap Hardware, at Scale</text>
+  <text x="450" y="54" text-anchor="middle" font-size="14" fill="#6B7280">Google linked thousands of commodity disks instead of a few costly ones.</text>
+
+  <!-- the choice -->
+  <g data-step="1">
+    <rect x="140" y="74" width="250" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="265" y="98" text-anchor="middle" font-size="15" font-weight="700" fill="#6B7280">Enterprise drives</text>
+    <text x="265" y="120" text-anchor="middle" font-size="13" fill="#6B7280">reliable, but cost-prohibitive</text>
+    <text x="368" y="90" text-anchor="middle" font-size="15" font-weight="700" fill="#6B7280">✗</text>
+
+    <text x="450" y="110" text-anchor="middle" font-size="15" fill="#6B7280">vs</text>
+
+    <rect x="510" y="74" width="250" height="62" rx="8" fill="#FFFFFF" stroke="#DB2777" stroke-width="2"/>
+    <text x="635" y="98" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Commodity disks</text>
+    <text x="635" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#DB2777">cheap — chosen</text>
+  </g>
+
+  <!-- the scale -->
+  <g data-step="2">
+    <text x="450" y="172" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">10,000 commodity disks</text>
+    <g fill="#FFFFFF" stroke="#6B7280" stroke-width="1">
+      <rect x="318" y="184" width="16" height="16" rx="2"/><rect x="340" y="184" width="16" height="16" rx="2"/><rect x="362" y="184" width="16" height="16" rx="2"/><rect x="384" y="184" width="16" height="16" rx="2"/><rect x="406" y="184" width="16" height="16" rx="2"/><rect x="428" y="184" width="16" height="16" rx="2"/><rect x="450" y="184" width="16" height="16" rx="2"/><rect x="472" y="184" width="16" height="16" rx="2"/><rect x="494" y="184" width="16" height="16" rx="2"/><rect x="516" y="184" width="16" height="16" rx="2"/><rect x="538" y="184" width="16" height="16" rx="2"/><rect x="560" y="184" width="16" height="16" rx="2"/>
+      <rect x="318" y="206" width="16" height="16" rx="2"/><rect x="340" y="206" width="16" height="16" rx="2"/><rect x="362" y="206" width="16" height="16" rx="2"/><rect x="384" y="206" width="16" height="16" rx="2"/><rect x="406" y="206" width="16" height="16" rx="2"/><rect x="428" y="206" width="16" height="16" rx="2"/><rect x="450" y="206" width="16" height="16" rx="2"/><rect x="472" y="206" width="16" height="16" rx="2"/><rect x="494" y="206" width="16" height="16" rx="2"/><rect x="516" y="206" width="16" height="16" rx="2"/><rect x="538" y="206" width="16" height="16" rx="2"/><rect x="560" y="206" width="16" height="16" rx="2"/>
+      <rect x="318" y="228" width="16" height="16" rx="2"/><rect x="340" y="228" width="16" height="16" rx="2"/><rect x="362" y="228" width="16" height="16" rx="2"/><rect x="384" y="228" width="16" height="16" rx="2"/><rect x="406" y="228" width="16" height="16" rx="2"/><rect x="428" y="228" width="16" height="16" rx="2"/><rect x="450" y="228" width="16" height="16" rx="2"/><rect x="472" y="228" width="16" height="16" rx="2"/><rect x="494" y="228" width="16" height="16" rx="2"/><rect x="516" y="228" width="16" height="16" rx="2"/><rect x="538" y="228" width="16" height="16" rx="2"/><rect x="560" y="228" width="16" height="16" rx="2"/>
+      <rect x="318" y="250" width="16" height="16" rx="2"/><rect x="340" y="250" width="16" height="16" rx="2"/><rect x="362" y="250" width="16" height="16" rx="2"/><rect x="384" y="250" width="16" height="16" rx="2"/><rect x="406" y="250" width="16" height="16" rx="2"/><rect x="428" y="250" width="16" height="16" rx="2"/><rect x="450" y="250" width="16" height="16" rx="2"/><rect x="472" y="250" width="16" height="16" rx="2"/><rect x="494" y="250" width="16" height="16" rx="2"/><rect x="516" y="250" width="16" height="16" rx="2"/><rect x="538" y="250" width="16" height="16" rx="2"/><rect x="560" y="250" width="16" height="16" rx="2"/>
+    </g>
+  </g>
+
+  <!-- the reality -->
+  <g data-step="3">
+    <rect x="362" y="184" width="16" height="16" rx="2" fill="#DC2626"/>
+    <rect x="494" y="206" width="16" height="16" rx="2" fill="#DC2626"/>
+    <rect x="406" y="228" width="16" height="16" rx="2" fill="#DC2626"/>
+    <rect x="538" y="250" width="16" height="16" rx="2" fill="#DC2626"/>
+    <text x="450" y="312" text-anchor="middle" font-size="15" font-weight="700" fill="#DB2777">A disk fails every day — by design.</text>
+    <text x="450" y="334" text-anchor="middle" font-size="14" fill="#3F3F46">So the software treats failure as routine, not an emergency.</text>
+  </g>
+
+  <text x="450" y="416" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the commodity choice &amp; its consequence&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = a failed disk&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = working disks</tspan></text>
+</svg>

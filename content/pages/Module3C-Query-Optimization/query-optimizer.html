@@ -1,0 +1,22 @@
+<h1>Query Optimizer: Building Execution from Lego Blocks</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> The query optimizer transforms a SQL query into an executable plan by enumerating possible join orders and access paths, estimating each one's IO cost, and picking the cheapest.</p>
+<p><strong>Intuition.</strong> For a 3-table join (Users, Listens, Songs) there are six possible join orders and dozens of access paths (full scan vs index scan, hash join vs nested loop). The optimizer asks "what does each cost?" using statistics, then runs the winning plan. A 100× speedup over the naive ordering is normal.</p>
+</div>
+<h2>The Journey: SQL to a Plan</h2>
+<p><img src="assets/Module3C-Query-Optimization/svgs/query-optimizer-journey.svg" alt="Five-stage pipeline: SQL (declarative) to parse and bind, to a logical plan of equivalence-preserving relational-algebra rewrites that defines the result, to the physical-plan cost search (pick join order, algorithm, access path; dynamic programming reuses the best sub-plan per table subset so n! becomes about 2 to the n; cost each from statistics) where speed is decided, to executing the chosen operator tree about 100x faster than naive." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> SQL is declarative: it states the result, not the procedure. Parsing and binding produce a validated tree; the <strong>logical plan</strong> then applies <em>equivalence-preserving</em> relational-algebra rewrites (predicate pushdown, projection pruning, subquery flattening). "Defines the result" means exactly this: every rewrite, and every plan the next stage considers, returns the same rows, so the answer is now pinned and only running time can still change. The <strong>physical-plan cost search</strong> decides speed: it chooses a join order, join algorithm, and access path, and because trying all <code>n!</code> orders is infeasible it uses <em>dynamic programming</em>, computing the cheapest sub-plan for each subset of tables once and reusing it (so <code>n!</code> work collapses to about <code>2&#8319;</code>), with each candidate costed from table statistics. Only the winner executes, routinely about 100 times faster than the naive ordering.</p>
+</div>
+<h2>Algorithm Lego Blocks</h2>
+<p>The optimizer's job is to pick from a catalog of algorithm "blocks" and assemble them into a physical plan. Four families:</p>
+<p><img src="assets/Module3C-Query-Optimization/svgs/query-optimizer-lego-blocks.svg" alt="Algorithm 'lego blocks' the optimizer can mix and match into physical plans. Four columns: Access Methods (sequential, index, bitmap scans), Partition/Sort (Hash Partition, BigSort), Aggregation (Hash Aggregate, Sort Aggregate), Join Algorithms (Hash Join, Sort-Merge Join, Block Nested Loop)." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The optimizer assembles a physical plan from four families of interchangeable blocks: access methods (sequential, index, and bitmap scans), partition and sort (Hash Partition, BigSort), aggregation (Hash Aggregate, Sort Aggregate), and join algorithms (Hash Join, Sort-Merge Join, Block Nested Loop). Any plan is just one choice from each family wired together. Each block is a primitive studied on its own page, so plan selection is really a cost comparison across these combinations.</p>
+</div>
+<p>Cost mechanics (how the optimizer picks among these) live in <strong><a href="#/page/Module3C-Query-Optimization/selectivity-statistics">Selectivity &amp; Statistics</a></strong> and <strong><a href="#/page/Module3C-Query-Optimization/io-cost-summary">IO Cost Summary</a></strong>.</p>
+<hr />
+<p><a id="bad-stats-trap"></a></p>
+<p><strong>When the optimizer is wrong: stale statistics.</strong> If <code>pg_class.reltuples</code> says Listens has 1,000 rows when it actually has a billion, the optimizer picks a plan tuned for small data, runs it on big data, and your query takes hours. The fix in production is almost always <code>ANALYZE</code>, which refreshes the statistics. Most slow queries in the world come down to stale stats, not bad SQL.</p>
+<hr />
+<p><strong>Next:</strong> <a href="#/page/Module3C-Query-Optimization/selectivity-statistics">Selectivity &amp; Statistics</a> covers how the optimizer estimates the cost of each plan it considers.</p>

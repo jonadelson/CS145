@@ -1,0 +1,157 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.120
+A trading app has millions of users and thousands of trades a second, each one moving a balance.
+
+00:00:05.120 --> 00:00:08.239
+A user disputes a trade.
+
+00:00:08.239 --> 00:00:11.358
+The app showed five thousand dollars when they hit Sell, then it filled lower.
+
+00:00:11.358 --> 00:00:14.478
+To settle it, you have to show the exact state of that account at that instant.
+
+00:00:14.478 --> 00:00:17.597
+Not now.
+
+00:00:17.597 --> 00:00:20.717
+Then.
+
+00:00:20.717 --> 00:00:23.837
+And it is not only one upset user.
+
+00:00:23.837 --> 00:00:26.956
+Regulators require this.
+
+00:00:26.956 --> 00:00:30.075
+The SEC can order a firm to reconstruct any trade, to prove there was no insider trading.
+
+00:00:30.075 --> 00:00:33.195
+Keeping the history is the law, and it is what earns a user's trust.
+
+00:00:33.195 --> 00:00:36.315
+So, could you just copy the whole database, and keep every version?
+
+00:00:36.315 --> 00:00:39.434
+No.
+
+00:00:39.434 --> 00:00:42.553
+Not with thousands of accounts changing it every instant.
+
+00:00:42.553 --> 00:00:45.673
+That is billions of rows per second.
+
+00:00:45.673 --> 00:00:48.792
+Impossible.
+
+00:00:48.792 --> 00:00:51.912
+Same shape everywhere.
+
+00:00:51.912 --> 00:00:55.031
+A hospital has to show what a chart said the moment a drug was given.
+
+00:00:55.031 --> 00:00:58.151
+An exchange has to replay its order book to the microsecond a crash hit.
+
+00:00:58.151 --> 00:01:01.270
+Everyone needs a past version.
+
+00:01:01.270 --> 00:01:04.390
+Nobody can copy the whole thing to keep one.
+
+00:01:04.390 --> 00:01:07.509
+That is the version problem.
+
+00:01:07.509 --> 00:01:10.629
+So stop copying and start logging.
+
+00:01:10.629 --> 00:01:13.748
+Save each change, not the whole database.
+
+00:01:13.748 --> 00:01:16.868
+Then replay the changes to reach any version you want.
+
+00:01:16.868 --> 00:01:19.465
+Two systems you already use do the same two things.
+
+00:01:19.465 --> 00:01:22.062
+Start with Google Docs.
+
+00:01:22.062 --> 00:01:24.659
+Don't copy.
+
+00:01:24.659 --> 00:01:27.256
+It never keeps fifty full copies of your document.
+
+00:01:27.256 --> 00:01:29.853
+It logs each edit.
+
+00:01:29.853 --> 00:01:32.450
+Type a sentence.
+
+00:01:32.450 --> 00:01:35.048
+Delete a paragraph.
+
+00:01:35.048 --> 00:01:37.645
+Fix a typo.
+
+00:01:37.645 --> 00:01:40.242
+Now, Docs keeps the current document and snapshots itself now and then.
+
+00:01:40.242 --> 00:01:42.839
+So to show it an hour ago, it does not rebuild from your first keystroke.
+
+00:01:42.839 --> 00:01:45.436
+It starts from a recent snapshot and replays the edits forward.
+
+00:01:45.436 --> 00:01:48.033
+That replay is exactly what a database calls redo.
+
+00:01:48.033 --> 00:01:50.630
+Stepping back from where you are is undo.
+
+00:01:50.630 --> 00:01:53.661
+Git does the same.
+
+00:01:53.661 --> 00:01:56.692
+Don't copy.
+
+00:01:56.692 --> 00:01:59.723
+A commit is a snapshot, but files that did not change are shared, not recopied.
+
+00:01:59.723 --> 00:02:02.754
+The first commit records what changed.
+
+00:02:02.754 --> 00:02:05.785
+The second, more changes.
+
+00:02:05.785 --> 00:02:08.816
+The third, more still.
+
+00:02:08.816 --> 00:02:11.847
+History stays small, with no full copies.
+
+00:02:11.847 --> 00:02:14.878
+Any version.
+
+00:02:14.878 --> 00:02:17.909
+Check out any commit to see what the code was at that point, or revert to it.
+
+00:02:17.909 --> 00:02:20.940
+A database does both, at the finest grain.
+
+00:02:20.940 --> 00:02:23.971
+It logs the old and the new value of every change.
+
+00:02:23.971 --> 00:02:27.002
+From that log it rebuilds any past version, which powers an audit, an undo, and, after a crash, recovery.
+
+00:02:27.002 --> 00:02:30.033
+Crashes are rare, but the log earns its keep every day.
+
+00:02:30.033 --> 00:02:33.064
+Recovery is next.
+
+00:02:33.064 --> 00:02:36.095
+Redo and undo.

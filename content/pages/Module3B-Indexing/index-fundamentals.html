@@ -1,0 +1,72 @@
+<h1>Index Fundamentals</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> An index is an auxiliary data structure that maps a key (e.g. <code>artist</code>) to the page where matching rows live, turning a full-table scan into a one-IO lookup.</p>
+<p><strong>Intuition.</strong> Without an index, <code>WHERE artist = 'Beatles'</code> scans all 160,000 pages of the 10 TB Songs table. With an index on <code>artist</code>, the database looks up "Beatles lives on page 47," reads page 47, and returns the matching songs. Same answer, 80,000× fewer IOs.</p>
+</div>
+<p><em>This page defines what every index stores. The next four pages each show a different way of organizing those <code>(key, page#)</code> pairs: hash indexes for equality, B+Trees for ranges, SSTables for immutable writes, and LSM trees for write-heavy workloads.</em></p>
+<div class="metrics-grid">
+<div class="metric-card">
+<div class="metric-value">
+<p>160,000</p>
+</div>
+<div class="metric-label">
+<p>Pages in the Songs table</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>2</p>
+</div>
+<div class="metric-label">
+<p>IOs with an index</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>80,000×</p>
+</div>
+<div class="metric-label">
+<p>Speedup for equality queries</p>
+</div>
+</div>
+</div>
+<hr />
+<p><a id="two-ios-payoff"></a></p>
+<h2>What an Index Stores</h2>
+<p>Data and index live on disk in the same 64 MB pages but hold very different things. A <strong>data page</strong> holds whole rows: a Songs row with its audio and metadata is roughly 10 MB, so 1 M songs is 10 TB, about 160,000 pages. An <strong>index page</strong> holds only <code>(search_key, page#)</code> pairs of 8 to 20 bytes, so 1 M of them is 20 MB, a single page. The pointer, the <code>Page 47</code> half of each pair, is the compact coordinate that jumps from the index straight to the row.</p>
+<p><img src="assets/Module3B-Indexing/svgs/index-size-comparison.svg" alt="Same data, two footprints. The Songs table is 10 TB spread over 160,000 pages; the artist index is 20 MB on a single page, 500,000 times smaller." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same information in two footprints: the Songs table stores whole 10 MB rows (10 TB, 160,000 pages), the artist index stores only 20-byte pointers (20 MB, one page), 500,000 times smaller. That gap is the whole point. <code>WHERE artist = 'Beatles'</code> without an index scans all 160,000 pages; with one the database reads a single index page to learn Beatles is on page 47, then reads page 47: two IOs instead of 160,000, 80,000 times fewer for the same answer.</p>
+</div>
+<hr />
+<h2>When to Add an Index, and When to Skip It</h2>
+<p>An index is a tradeoff: faster reads in exchange for extra storage and slower writes. It pays off on columns the query engine actually uses, and that narrow the result set down to a few rows.</p>
+<table>
+<thead>
+<tr>
+<th>Add an index when</th>
+<th>Skip the index when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary keys (indexed automatically in most databases)</td>
+<td>Rarely queried columns: you pay the cost without the benefit</td>
+</tr>
+<tr>
+<td>Foreign keys, because joins walk them constantly</td>
+<td>Low-selectivity columns like a boolean, where the index points at half the table</td>
+</tr>
+<tr>
+<td>High-selectivity columns with many unique values, like <code>email</code> or <code>user_id</code></td>
+<td>Frequently updated columns, because every write rewrites the index too</td>
+</tr>
+<tr>
+<td>Frequently filtered columns that <code>WHERE</code> clauses target</td>
+<td>Small tables (under about 1,000 rows), where a scan is already fast</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/hash-indexes">Hash Indexes →</a></strong> Constant-time lookup for equality queries. The simplest way to organize <code>(key, page#)</code> pairs.</p>

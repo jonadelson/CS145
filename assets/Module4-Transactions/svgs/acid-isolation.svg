@@ -1,0 +1,75 @@
+<svg viewBox="0 0 1100 560" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ai-t ai-d">
+  <title id="ai-t">Isolation prevents the lost update: $324 without it versus $318 with it</title>
+  <desc id="ai-d">Two columns share the start state Alice $200, Bob $100, total $300. Left, red,
+  without isolation: the transfer credits Bob first so Bob is already $200 while Alice is not yet
+  debited and still $200, the interest job reads that half-done state and applies 6% to $400, the
+  moving $100 counted in both accounts, and the books end at $324, six dollars from nothing. Right,
+  green, with isolation: the interest job waits on the transfer's lock, reads the settled $300, and
+  ends at the correct $318, exactly $18 of interest. Color key: red is the interleaved run that
+  invents money, green is the locked run that stays correct, grey is the shared start state.</desc>
+
+  <text x="550" y="36" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Isolation prevents the lost update</text>
+  <text x="550" y="60" text-anchor="middle" font-size="15" fill="#3F3F46">A $100 transfer and a 6% interest job race at month-end. Same start, two outcomes.</text>
+
+  <rect x="370" y="78" width="360" height="38" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="550" y="102" text-anchor="middle" font-size="14" fill="#3F3F46"><tspan font-weight="700">Start</tspan>  Alice $200 &#183; Bob $100 &#183; total $300</text>
+
+  <defs><marker id="ah-ai" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+  <line x1="430" y1="116" x2="300" y2="142" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-ai)"/>
+  <line x1="670" y1="116" x2="800" y2="142" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-ai)"/>
+
+  <!-- ===================== LEFT: WITHOUT isolation ===================== -->
+  <g data-step="1">
+    <rect x="40" y="144" width="500" height="356" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="144" width="500" height="6" rx="3" fill="#DC2626"/>
+    <text x="64" y="178" font-size="18" font-weight="700" fill="#DC2626">Without isolation: interleaved</text>
+    <text x="64" y="200" font-size="13.5" fill="#6B7280">The interest job reads a half-done transfer.</text>
+    <text x="64" y="234" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#7C3AED">Transfer</tspan>  credits Bob first: $100 &#8594; $200</text>
+    <text x="64" y="258" font-size="14" fill="#3F3F46">Alice is not debited yet, still $200</text>
+  </g>
+
+  <g data-step="2">
+    <rect x="64" y="274" width="452" height="50" rx="6" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="80" y="296" font-size="14" font-weight="700" fill="#0E0E10">Interest reads now: $200 + $200 = $400</text>
+    <text x="80" y="314" font-size="12.5" fill="#DC2626">the moving $100 is counted in both accounts</text>
+    <text x="64" y="350" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#475569">Interest</tspan>  +6% on $400 &#8594; Alice $212, Bob $212</text>
+    <text x="64" y="374" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#7C3AED">Transfer</tspan>  finishes, debits Alice: $212 &#8594; $112</text>
+  </g>
+
+  <g data-step="3">
+    <rect x="64" y="392" width="452" height="64" rx="8" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+    <rect x="64" y="392" width="6" height="64" rx="3" fill="#DC2626"/>
+    <text x="90" y="418" font-size="14" font-weight="700" fill="#0E0E10">Alice $112 + Bob $212</text>
+    <text x="90" y="444" font-size="22" font-weight="700" fill="#DC2626">= $324<tspan font-size="14" font-weight="400" fill="#3F3F46">&#160;&#160;$6 created from nothing</tspan></text>
+  </g>
+
+  <!-- ===================== RIGHT: WITH isolation ===================== -->
+  <g data-step="4">
+    <rect x="560" y="144" width="500" height="356" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="560" y="144" width="500" height="6" rx="3" fill="#16A34A"/>
+    <text x="584" y="178" font-size="18" font-weight="700" fill="#16A34A">With isolation: locked</text>
+    <text x="584" y="200" font-size="13.5" fill="#6B7280">The interest job waits for the transfer to finish.</text>
+    <text x="584" y="234" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#7C3AED">Transfer</tspan>  locks the rows and commits</text>
+    <text x="584" y="258" font-size="14" fill="#3F3F46">Alice $200 &#8594; $100, Bob $100 &#8594; $200</text>
+  </g>
+
+  <g data-step="5">
+    <rect x="584" y="274" width="452" height="50" rx="6" fill="#E1F4EC" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="600" y="296" font-size="14" font-weight="700" fill="#0E0E10">Interest reads settled: $100 + $200 = $300</text>
+    <text x="600" y="314" font-size="12.5" fill="#16A34A">no half-done state is ever visible</text>
+    <text x="584" y="350" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#475569">Interest</tspan>  +6% on $300 &#8594; Alice $106, Bob $212</text>
+    <text x="584" y="374" font-size="14" fill="#6B7280">the interest ran only after the transfer</text>
+  </g>
+
+  <g data-step="6">
+    <rect x="584" y="392" width="452" height="64" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+    <rect x="584" y="392" width="6" height="64" rx="3" fill="#16A34A"/>
+    <text x="610" y="418" font-size="14" font-weight="700" fill="#0E0E10">Alice $106 + Bob $212</text>
+    <text x="610" y="444" font-size="22" font-weight="700" fill="#16A34A">= $318<tspan font-size="14" font-weight="400" fill="#3F3F46">&#160;&#160;exactly $18, 6% of $300</tspan></text>
+  </g>
+
+  <text x="550" y="524" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Isolation makes the two appear sequential: the interest job runs as if it simply followed the transfer.</text>
+  <text x="550" y="548" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the interleaved run that invents money&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the locked run that stays correct</tspan></text>
+</svg>

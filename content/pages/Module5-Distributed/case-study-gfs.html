@@ -1,0 +1,74 @@
+<h1>Case Study: How did Google store the entire internet on cheap, dying hard drives?</h1>
+<div class="case-study-meta">
+<p><span>Reading Time: 8 mins</span></p>
+</div>
+<h2>How did Google store the entire internet on cheap, dying hard drives?</h2>
+<p><strong>Goal: Understand how sharding, replication, and leader election address the capacity and reliability limits of single machines.</strong></p>
+<h3>Problem 1: Cheap, Failing Hardware</h3>
+<p>In the early 2000s, Google had to store petabytes of web crawl data. High-end supercomputers from legacy vendors cost too much, so they linked thousands of cheap, consumer-grade hard drives instead. Back then these were spinning disks, not today's SSDs.</p>
+<p><strong>The Catch</strong>: Consumer HDDs are unreliable. Their Mean Time To Failure (MTTF) is low, so across 10,000 spinning disks a failure every day was a certainty. Google needed software that treats failing hardware as normal.</p>
+<p><a id="gfs-hardware-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/gfs-hardware.svg" alt="Google chose thousands of cheap commodity disks over a few costly enterprise drives; across a grid of 10,000 disks, several fail (red) every day, so the software is built to treat failure as routine." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Cheap hardware at scale. Google linked thousands of commodity disks instead of a few costly enterprise drives. Across ten thousand disks a failure every day is a certainty, shown by the red disks in the grid, so the software treats failure as routine rather than an emergency.</p>
+</div>
+<hr />
+<h3>Problem 2: The Capacity Problem (Sharding)</h3>
+<p><strong>The Problem</strong>: The web crawl reached 100 Terabytes, while the largest hard drive was just 1 Terabyte. A single machine couldn't handle it.</p>
+<p><strong>The Solution (Chunks / Sharding)</strong>: Google's engineers split the massive file into 64-Megabyte pieces, known as "Chunks."</p>
+<p><a id="gfs-sharding-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/gfs-sharding.svg" alt="A 100 TB file cannot fit on a 1 TB disk, so it is split into 64 MB chunks (about 1.6 million of them) and the chunks are scattered across machines, so total capacity grows with every machine added." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Sharding for capacity. A 100 TB file cannot fit on a 1 TB disk, so GFS splits it into 64 MB chunks, about 1.6 million of them, and scatters them across machines. Total capacity then grows with every machine added to the cluster.</p>
+</div>
+<p><strong>The Two-Tier Architecture</strong>: Google developed a two-tier system with a <strong>Leader</strong> and numerous <strong>Chunk Servers</strong>.</p>
+<ul>
+<li>
+<p><strong>Chunk Servers</strong>: These are the cheap machines storing the 64MB data chunks.</p>
+</li>
+<li>
+<p><strong>Leader</strong>: This central node keeps an in-memory <strong>directory</strong>. For every file it stores the ordered list of chunk handles; for every chunk handle it stores the set of Chunk Servers holding a replica. A client sends a (file name, byte offset); the Leader turns the offset into a chunk index, <strong>looks up</strong> the matching chunk handle and its replica locations, and hands them back. The client then reads from a Chunk Server directly. Where each chunk physically lands is the Leader's own placement decision, balancing disk usage and load across the cluster, not a function of the file's name.</p>
+</li>
+</ul>
+<p><a id="gfs-architecture-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/gfs-architecture.svg" alt="A client, a leader, and three chunk servers: the client asks the leader for a chunk's replica locations, the leader replies with the chunk handle and server list, then the client reads the chunk directly from a chunk server; every chunk is stored as three replicas on different servers." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> The GFS lookup. Data never streams through the Leader: the client asks it only for a chunk's replica locations (steps 1 and 2), then reads the chunk directly from a Chunk Server (step 3). The Leader holds just the directory, small enough to keep in memory. Every chunk is stored as three replicas on different servers, here chunk C7 on all three, so a dead disk costs nothing.</p>
+</div>
+<hr />
+<h3>Problem 3: The Reliability Problem (Replication)</h3>
+<p><strong>The Problem</strong>: With 1,000 chunks across 1,000 Chunk Servers and low MTTF, server failures were inevitable. Losing even one chunk could corrupt the entire 100TB file.</p>
+<p><strong>The Solution (Replicas)</strong>: Store each 64 MB chunk as <strong>three identical copies (Replicas)</strong> on different Chunk Servers, ideally on separate power racks.</p>
+<p><strong>The Result is Self-Healing</strong>: When a Chunk Server fails, the Leader redirects requests to a surviving replica and copies the chunk to a healthy server.</p>
+<p><a id="gfs-replication-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/gfs-replication.svg" alt="Every chunk is stored as three replicas on different racks; when one server dies, two replicas keep serving and the Leader copies the chunk to a fresh healthy server, restoring three copies." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Replication and self-healing. Every chunk is stored as three identical replicas on different racks. When a server dies, two replicas keep serving, and the Leader copies the chunk to a fresh healthy server to restore three copies.</p>
+</div>
+<hr />
+<h3>Summary: The Impact</h3>
+<p>By combining <strong>Sharding</strong> for capacity and <strong>Replication</strong> for reliability, the Google File System (GFS) showed you can build a scalable, reliable system from unreliable hardware. 2003 GFS leaned on a <strong>single master</strong>, kept available through external monitoring and fast restart; replacing that single master with the consensus-based <strong>leader election</strong> (Paxos/Raft) covered earlier in this module came later in practice. This architecture laid the groundwork for Hadoop (HDFS) and the modern cloud.</p>
+<hr />
+<h2>Read the Original Paper</h2>
+<p>The original 2003 Google File System paper started the Big Data era. Focus on the overall architecture.</p>
+<iframe src="https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf" width="100%" height="600px" style="border: 1px solid #D4D7DC; border-radius: 8px; margin: 1rem 0;" title="The Google File System, SOSP 2003 Paper"></iframe>
+
+<p>If the embed doesn't load in your browser, open the paper directly: <a href="https://research.google/pubs/the-google-file-system/">The Google File System (research.google)</a>.</p>
+<hr />
+<h2>Where This Leads</h2>
+<p>GFS combines everything this module covers, and each limit it hit maps to another page. Two of those threads you have already seen; two are just ahead.</p>
+<ul>
+<li>
+<p><strong>Master as a single point of failure</strong> → <a href="#/page/Module5-Distributed/consensus-leader-election">Consensus &amp; Replication</a>, earlier in this module, replaces one Master with a Paxos/Raft-coordinated council.</p>
+</li>
+<li>
+<p><strong>Resharding pain when machines join or leave</strong> → <a href="#/page/Module5-Distributed/distributed-sort-hash">Distributed Sort &amp; Hash</a>, earlier in this module, gives consistent hashing (the ring), used by Dynamo and Cassandra.</p>
+</li>
+<li>
+<p><strong>3× replication's storage overhead</strong> → <a href="#/page/Module5-Distributed/distributed-file-systems">Distributed File Systems</a> traces the move to erasure coding in Colossus (~50% overhead instead of 200%).</p>
+</li>
+<li>
+<p><strong>Master metadata RAM ceiling</strong> → <a href="#/page/Module5-Distributed/distributed-file-systems">Distributed File Systems</a> covers the move to sharded metadata (Colossus, HDFS Federation).</p>
+</li>
+</ul>
+<p>The next page picks up the thread from here, generalizing GFS into the four-generation pattern (GFS → HDFS → S3 → Colossus).</p>

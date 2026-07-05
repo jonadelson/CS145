@@ -1,0 +1,103 @@
+<svg viewBox="0 0 980 614" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="storage-row-vs-columnar-t storage-row-vs-columnar-d">
+  <title id="storage-row-vs-columnar-t">The same logical Listens table stored two ways on disk: row-oriented packs whole rows together into pages; columnar puts each column in its own file</title>
+  <desc id="storage-row-vs-columnar-d">The same logical Listens table stored two ways on disk: row-oriented packs whole rows together into pages; columnar puts each column in its own file. Both layouts live on disk, shown by green frames. The rating column is the highlight, shown in violet: a query for AVG(rating) reads only that one file in columnar, but every row page in row-oriented. Color key: green is the on-disk file layouts, violet is the focal rating column.</desc>
+    <defs>
+        <marker id="ar-sl" markerWidth="14" markerHeight="14" refX="12" refY="5" orient="auto"><polygon points="0 0, 14 5, 0 10" fill="#6B7280"/></marker>
+    </defs>
+    <text x="490" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#0E0E10">Same logical table, two physical storage layouts</text>
+
+    <g data-step="1">
+    <rect x="270" y="60" width="440" height="170" rx="10" fill="#FFFFFF" stroke="#3F3F46" stroke-width="2.5"/>
+    <text x="490" y="86" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#0E0E10">Listens (logical table)</text>
+    <text x="490" y="103" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">what your query sees</text>
+    <text x="335" y="130" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#6B7280">user_id</text>
+    <text x="425" y="130" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#6B7280">song_id</text>
+    <text x="535" y="130" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#7C3AED">rating</text>
+    <text x="640" y="130" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#6B7280">listen_time</text>
+    <line x1="285" y1="138" x2="695" y2="138" stroke="#D4D7DC"/>
+    <text x="335" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">42</text>
+    <text x="425" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">100</text>
+    <text x="535" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">5</text>
+    <text x="640" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:32</text>
+    <text x="335" y="173" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">7</text>
+    <text x="425" y="173" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">200</text>
+    <text x="535" y="173" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">4</text>
+    <text x="640" y="173" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:35</text>
+    <text x="335" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">13</text>
+    <text x="425" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">100</text>
+    <text x="535" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">3</text>
+    <text x="640" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:40</text>
+    <text x="335" y="207" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">42</text>
+    <text x="425" y="207" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">300</text>
+    <text x="535" y="207" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">5</text>
+    <text x="640" y="207" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:42</text>
+    <text x="335" y="224" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">7</text>
+    <text x="425" y="224" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">100</text>
+    <text x="535" y="224" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">5</text>
+    <text x="640" y="224" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:45</text>
+    <path d="M 350 232 L 220 282" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-sl)"/>
+    <text x="240" y="262" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="600" fill="#3F3F46">stored as rows</text>
+    <path d="M 630 232 L 760 282" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-sl)"/>
+    <text x="740" y="262" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="600" fill="#3F3F46">stored as columns</text>
+    </g>
+
+    <g data-step="2">
+    <rect x="20" y="290" width="440" height="290" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="20" y="290" width="440" height="6" rx="10" fill="#059669"/>
+    <text x="240" y="316" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#059669">Row-Oriented File · disk</text>
+    <text x="240" y="333" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#6B7280">each page packs whole rows together</text>
+    <rect x="40" y="346" width="400" height="120" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="362" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">Page 1</text>
+    <text x="240" y="385" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[ 42 · 100 · 5 · 10:32 ]</text>
+    <text x="240" y="408" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[  7 · 200 · 4 · 10:35 ]</text>
+    <text x="240" y="431" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[ 13 · 100 · 3 · 10:40 ]</text>
+    <rect x="40" y="476" width="400" height="92" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="492" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">Page 2</text>
+    <text x="240" y="515" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[ 42 · 300 · 5 · 10:42 ]</text>
+    <text x="240" y="538" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[  7 · 100 · 5 · 10:45 ]</text>
+    </g>
+
+    <g data-step="3">
+    <rect x="520" y="290" width="440" height="290" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="520" y="290" width="440" height="6" rx="10" fill="#059669"/>
+    <text x="740" y="316" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#059669">Columnar Files · disk</text>
+    <text x="740" y="333" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#6B7280">each column gets its own file</text>
+    <rect x="540" y="346" width="92" height="200" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="540" y="346" width="92" height="22" rx="6" fill="#E7EAEE"/>
+    <text x="586" y="362" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">user_id</text>
+    <text x="586" y="392" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">42</text>
+    <text x="586" y="416" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">7</text>
+    <text x="586" y="440" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">13</text>
+    <text x="586" y="464" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">42</text>
+    <text x="586" y="488" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">7</text>
+    <rect x="640" y="346" width="92" height="200" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="640" y="346" width="92" height="22" rx="6" fill="#E7EAEE"/>
+    <text x="686" y="362" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">song_id</text>
+    <text x="686" y="392" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">100</text>
+    <text x="686" y="416" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">200</text>
+    <text x="686" y="440" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">100</text>
+    <text x="686" y="464" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">300</text>
+    <text x="686" y="488" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#3F3F46">100</text>
+    <rect x="740" y="346" width="92" height="200" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="740" y="346" width="92" height="6" rx="6" fill="#7C3AED"/>
+    <text x="786" y="368" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#7C3AED">rating</text>
+    <text x="786" y="394" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#7C3AED">5</text>
+    <text x="786" y="416" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#7C3AED">4</text>
+    <text x="786" y="440" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#7C3AED">3</text>
+    <text x="786" y="464" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#7C3AED">5</text>
+    <text x="786" y="488" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#7C3AED">5</text>
+    <text x="786" y="528" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#7C3AED">AVG reads</text>
+    <text x="786" y="542" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#7C3AED">only this</text>
+    <path d="M 535 232 C 560 322, 700 346, 781 350" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6,4" fill="none" opacity="0.85"/>
+    <rect x="840" y="346" width="100" height="200" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="840" y="346" width="100" height="22" rx="6" fill="#E7EAEE"/>
+    <text x="890" y="362" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">listen_time</text>
+    <text x="890" y="392" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:32</text>
+    <text x="890" y="416" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:35</text>
+    <text x="890" y="440" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:40</text>
+    <text x="890" y="464" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:42</text>
+    <text x="890" y="488" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">10:45</text>
+    </g>
+
+    <text x="490" y="600" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = both layouts on disk&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the focal rating column. Columnar reads only it for AVG(rating); row-oriented reads every page.</tspan></text>
+</svg>

@@ -1,0 +1,72 @@
+<svg viewBox="0 0 980 590" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="hs-t hs-d">
+  <title id="hs-t">HNSW search: the query walks toward itself, layer by layer</title>
+  <desc id="hs-d">The query is a point we already hold, drawn as a vertical dashed line marking its position. The walk starts at the single top-layer entry node and, at each node, steps to the neighbour closest to the query. It takes a long jump on the top layer, drops a layer and, where a node has two neighbours, takes the one nearer the query, then drops to the bottom layer and lands on the nearest. Only the orange path is visited. Color key: orange is the path the query walks and the node it is on, the grey ring is a neighbour it weighed but did not take, the black dashed line is the query.</desc>
+  <defs><marker id="ahn" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#EA580C"/></marker></defs>
+  <text x="490" y="38" text-anchor="middle" style="font-size:23px;font-weight:700;fill:#0E0E10;">HNSW search: the query walks toward itself</text>
+  <text x="490" y="64" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">At each node, step to the neighbour closest to the query. Big jumps up top, fine steps at the bottom.</text>
+
+  <line x1="120" y1="460" x2="260" y2="460" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="260" y1="460" x2="400" y2="460" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="400" y1="460" x2="540" y2="460" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="540" y1="460" x2="680" y2="460" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="680" y1="460" x2="820" y2="460" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="260" y1="310" x2="540" y2="310" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="540" y1="310" x2="680" y2="310" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="680" y1="310" x2="820" y2="310" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="260" y1="160" x2="680" y2="160" stroke="#D4D7DC" stroke-width="1.5"/>
+  <circle cx="120" cy="460" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="260" cy="460" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="400" cy="460" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="540" cy="460" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="680" cy="460" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="820" cy="460" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="260" cy="310" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="540" cy="310" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="680" cy="310" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="820" cy="310" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="260" cy="160" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <circle cx="680" cy="160" r="9" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <text x="52" y="465" style="font-size:13px;font-weight:700;fill:#6B7280;">Layer 0</text>
+  <text x="52" y="315" style="font-size:13px;font-weight:700;fill:#6B7280;">Layer 1</text>
+  <text x="52" y="165" style="font-size:13px;font-weight:700;fill:#6B7280;">Layer 2</text>
+
+  <g data-step="1">
+  <line x1="760" y1="92" x2="760" y2="505" stroke="#0E0E10" stroke-width="1.5" stroke-dasharray="5,5" opacity="0.5"/>
+  <text x="760" y="86" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#0E0E10;">the query</text>
+  <circle cx="760" cy="460" r="11" fill="none" stroke="#0E0E10" stroke-width="2"/>
+  <circle cx="760" cy="460" r="3" fill="#0E0E10"/>
+  <circle cx="260" cy="160" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="260" cy="160" r="16" fill="none" stroke="#EA580C" stroke-width="2.5"/>
+  <text x="260" y="138" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#EA580C;">entry</text>
+  </g>
+
+  <g data-step="2">
+  <line x1="260" y1="160" x2="668" y2="160" stroke="#EA580C" stroke-width="2.5" marker-end="url(#ahn)"/>
+  <circle cx="260" cy="160" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="680" cy="160" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="680" cy="160" r="16" fill="none" stroke="#EA580C" stroke-width="2.5"/>
+  <text x="470" y="138" text-anchor="middle" style="font-size:13px;fill:#EA580C;">closest to the query, a long jump</text>
+  </g>
+
+  <g data-step="3">
+  <line x1="680" y1="176" x2="680" y2="282" stroke="#EA580C" stroke-width="2.5" marker-end="url(#ahn)"/>
+  <circle cx="680" cy="310" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="540" cy="310" r="14" fill="none" stroke="#6B7280" stroke-width="2"/>
+  <circle cx="820" cy="310" r="14" fill="none" stroke="#6B7280" stroke-width="2"/>
+  <text x="540" y="344" text-anchor="middle" style="font-size:12px;fill:#6B7280;">farther</text>
+  <line x1="680" y1="310" x2="808" y2="310" stroke="#EA580C" stroke-width="2.5" marker-end="url(#ahn)"/>
+  <circle cx="820" cy="310" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="820" cy="310" r="16" fill="none" stroke="#EA580C" stroke-width="2.5"/>
+  <text x="430" y="288" text-anchor="middle" style="font-size:13px;fill:#EA580C;">drop a layer; take the nearer neighbour</text>
+  </g>
+
+  <g data-step="4">
+  <line x1="820" y1="326" x2="820" y2="432" stroke="#EA580C" stroke-width="2.5" marker-end="url(#ahn)"/>
+  <circle cx="820" cy="460" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="820" cy="460" r="16" fill="none" stroke="#EA580C" stroke-width="3"/>
+  <text x="820" y="494" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#EA580C;">nearest</text>
+  <text x="300" y="494" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#0E0E10;">no neighbour is closer, the walk stops</text>
+  </g>
+
+  <text x="490" y="578" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = the path the query walks&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey ring</tspan><tspan fill="#3F3F46"> = a neighbour weighed but not taken&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#0E0E10" font-weight="700">black dashed</tspan><tspan fill="#3F3F46"> = the query</tspan></text>
+</svg>

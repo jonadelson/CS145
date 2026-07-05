@@ -1,0 +1,145 @@
+<svg viewBox="0 0 1040 700" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="rtp-t rtp-d"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="rtp-t">Crash recovery on one WAL: a forward replay rebuilds the crash state, then a backward undo reverses the uncommitted transactions</title>
+  <desc id="rtp-d">A WAL drawn top to bottom in time order, with the page log columns: Time, Txn, Action, Var, old value, new value. Start state A=10, B=20, C=30, D=40, E=50, update f(x)=x times 1.2. The figure runs in five stages. First the log and the start state. Then a red CRASH line marks where the server stopped. Then the REPLAY pass runs down the left re-applying every logged row, original writes and the in-log abort rows alike, rebuilding the exact crash state A=12, B=20, C=43.2, D=48, E=60. Then the UNDO pass runs up the right and reverses only the uncommitted transactions newest-first: E 60 to 50, C 43.2 to 36, C 36 to 30. Finally the consistent state A=12, B=20, C=30, D=48, E=50. T1 and T4 committed and are kept; T2 aborted explicitly and was already rolled back in the log; T3 and T5 never committed and are undone. Color key: violet = the replay and undo passes and the rows undo removes, blue = durability, the committed work the replay keeps, orange = atomicity, the uncommitted work the undo removes, grey = rows left untouched, red = the crash.</desc>
+
+  <defs>
+    <marker id="ah-rtp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <!-- Static frame -->
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">Two passes over one log: replay down, then undo up</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">Start A=10, B=20, C=30, D=40, E=50, update f(x) = x &#215; 1.2. Five transactions run, then the server crashes.</text>
+
+  <!-- ================= STEP 1: the log + start state ================= -->
+  <g data-step="1">
+  <!-- Table header -->
+  <text x="225" y="96" font-size="13.5" font-weight="700" fill="#0E0E10" text-anchor="middle">Time</text>
+  <text x="300" y="96" font-size="13.5" font-weight="700" fill="#0E0E10" text-anchor="middle">Txn</text>
+  <text x="380" y="96" font-size="13.5" font-weight="700" fill="#0E0E10" text-anchor="middle">Action</text>
+  <text x="470" y="96" font-size="13.5" font-weight="700" fill="#0E0E10" text-anchor="middle">Var</text>
+  <text x="552" y="96" font-size="13.5" font-weight="700" fill="#0E0E10" text-anchor="middle">old value</text>
+  <text x="636" y="96" font-size="13.5" font-weight="700" fill="#0E0E10" text-anchor="middle">new value</text>
+  <line x1="180" y1="104" x2="678" y2="104" stroke="#0E0E10" stroke-width="2"/>
+
+  <!-- Uncommitted-row tints (orange = atomicity, will be undone): rows 2,8,10 -->
+  <rect x="180" y="136" width="498" height="32" fill="#FDEBE0"/><rect x="180" y="136" width="4" height="32" fill="#EA580C"/>
+  <rect x="180" y="328" width="498" height="32" fill="#FDEBE0"/><rect x="180" y="328" width="4" height="32" fill="#EA580C"/>
+  <rect x="180" y="392" width="498" height="32" fill="#FDEBE0"/><rect x="180" y="392" width="4" height="32" fill="#EA580C"/>
+
+  <!-- Row 1 T1 W A 10 12 -->
+  <text x="225" y="125" font-size="14" fill="#0E0E10" text-anchor="middle">1</text>
+  <text x="300" y="125" font-size="14" fill="#0E0E10" text-anchor="middle">T1</text>
+  <text x="380" y="125" font-size="14" fill="#0E0E10" text-anchor="middle">W</text>
+  <text x="470" y="125" font-size="14" fill="#0E0E10" text-anchor="middle">A</text>
+  <text x="552" y="125" font-size="14" fill="#0E0E10" text-anchor="middle">10</text>
+  <text x="636" y="125" font-size="14" fill="#0E0E10" text-anchor="middle">12</text>
+  <!-- Row 2 T3 W C 30 36 (uncommitted) -->
+  <text x="225" y="157" font-size="14" fill="#0E0E10" text-anchor="middle">2</text>
+  <text x="300" y="157" font-size="14" fill="#0E0E10" text-anchor="middle">T3</text>
+  <text x="380" y="157" font-size="14" fill="#0E0E10" text-anchor="middle">W</text>
+  <text x="470" y="157" font-size="14" fill="#0E0E10" text-anchor="middle">C</text>
+  <text x="552" y="157" font-size="14" fill="#0E0E10" text-anchor="middle">30</text>
+  <text x="636" y="157" font-size="14" fill="#0E0E10" text-anchor="middle">36</text>
+  <!-- Row 3 T1 COMMIT -->
+  <text x="225" y="189" font-size="14" fill="#0E0E10" text-anchor="middle">3</text>
+  <text x="300" y="189" font-size="14" fill="#0E0E10" text-anchor="middle">T1</text>
+  <text x="380" y="189" font-size="14" font-weight="600" fill="#2563EB" text-anchor="middle">COMMIT</text>
+  <!-- Row 4 T2 W B 20 24 -->
+  <text x="225" y="221" font-size="14" fill="#0E0E10" text-anchor="middle">4</text>
+  <text x="300" y="221" font-size="14" fill="#0E0E10" text-anchor="middle">T2</text>
+  <text x="380" y="221" font-size="14" fill="#0E0E10" text-anchor="middle">W</text>
+  <text x="470" y="221" font-size="14" fill="#0E0E10" text-anchor="middle">B</text>
+  <text x="552" y="221" font-size="14" fill="#0E0E10" text-anchor="middle">20</text>
+  <text x="636" y="221" font-size="14" fill="#0E0E10" text-anchor="middle">24</text>
+  <!-- Row 5 T4 W D 40 48 -->
+  <text x="225" y="253" font-size="14" fill="#0E0E10" text-anchor="middle">5</text>
+  <text x="300" y="253" font-size="14" fill="#0E0E10" text-anchor="middle">T4</text>
+  <text x="380" y="253" font-size="14" fill="#0E0E10" text-anchor="middle">W</text>
+  <text x="470" y="253" font-size="14" fill="#0E0E10" text-anchor="middle">D</text>
+  <text x="552" y="253" font-size="14" fill="#0E0E10" text-anchor="middle">40</text>
+  <text x="636" y="253" font-size="14" fill="#0E0E10" text-anchor="middle">48</text>
+  <!-- Row 6 T2 W-abort B 24 20 -->
+  <text x="225" y="285" font-size="14" fill="#0E0E10" text-anchor="middle">6</text>
+  <text x="300" y="285" font-size="14" fill="#0E0E10" text-anchor="middle">T2</text>
+  <text x="380" y="285" font-size="14" fill="#0E0E10" text-anchor="middle">W-abort</text>
+  <text x="470" y="285" font-size="14" fill="#0E0E10" text-anchor="middle">B</text>
+  <text x="552" y="285" font-size="14" fill="#0E0E10" text-anchor="middle">24</text>
+  <text x="636" y="285" font-size="14" fill="#0E0E10" text-anchor="middle">20</text>
+  <!-- Row 7 T2 ABORT -->
+  <text x="225" y="317" font-size="14" fill="#0E0E10" text-anchor="middle">7</text>
+  <text x="300" y="317" font-size="14" fill="#0E0E10" text-anchor="middle">T2</text>
+  <text x="380" y="317" font-size="14" font-weight="600" fill="#6B7280" text-anchor="middle">ABORT</text>
+  <!-- Row 8 T3 W C 36 43.2 (uncommitted) -->
+  <text x="225" y="349" font-size="14" fill="#0E0E10" text-anchor="middle">8</text>
+  <text x="300" y="349" font-size="14" fill="#0E0E10" text-anchor="middle">T3</text>
+  <text x="380" y="349" font-size="14" fill="#0E0E10" text-anchor="middle">W</text>
+  <text x="470" y="349" font-size="14" fill="#0E0E10" text-anchor="middle">C</text>
+  <text x="552" y="349" font-size="14" fill="#0E0E10" text-anchor="middle">36</text>
+  <text x="636" y="349" font-size="14" fill="#0E0E10" text-anchor="middle">43.2</text>
+  <!-- Row 9 T4 COMMIT (late) -->
+  <text x="225" y="381" font-size="14" fill="#0E0E10" text-anchor="middle">9</text>
+  <text x="300" y="381" font-size="14" fill="#0E0E10" text-anchor="middle">T4</text>
+  <text x="380" y="381" font-size="14" font-weight="600" fill="#2563EB" text-anchor="middle">COMMIT</text>
+  <!-- Row 10 T5 W E 50 60 (uncommitted) -->
+  <text x="225" y="413" font-size="14" fill="#0E0E10" text-anchor="middle">10</text>
+  <text x="300" y="413" font-size="14" fill="#0E0E10" text-anchor="middle">T5</text>
+  <text x="380" y="413" font-size="14" fill="#0E0E10" text-anchor="middle">W</text>
+  <text x="470" y="413" font-size="14" fill="#0E0E10" text-anchor="middle">E</text>
+  <text x="552" y="413" font-size="14" fill="#0E0E10" text-anchor="middle">50</text>
+  <text x="636" y="413" font-size="14" fill="#0E0E10" text-anchor="middle">60</text>
+
+  <!-- Running-state strip: start state -->
+  <text x="40" y="468" font-size="13.5" font-weight="700" fill="#6B7280">Database state</text>
+  <text x="40" y="492" font-size="15" font-weight="700" fill="#3F3F46" font-family="JetBrains Mono, monospace">start</text>
+  <text x="150" y="492" font-size="15" fill="#0E0E10" font-family="JetBrains Mono, monospace">A=10  B=20  C=30  D=40  E=50</text>
+  </g>
+
+  <!-- ================= STEP 2: the crash ================= -->
+  <g data-step="2">
+  <line x1="180" y1="424" x2="678" y2="424" stroke="#DC2626" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="429" y="446" font-size="15" font-weight="700" fill="#DC2626" text-anchor="middle">CRASH &#8212; server stops here, recovery begins</text>
+  <text x="40" y="524" font-size="14" fill="#3F3F46">Disk holds whatever was written before the crash, not a consistent state. Replay rebuilds the crash state, then undo cleans it.</text>
+  </g>
+
+  <!-- ================= STEP 3: REPLAY down, rebuilds crash state ================= -->
+  <g data-step="3">
+  <line x1="150" y1="110" x2="150" y2="414" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#ah-rtp)"/>
+  <text x="128" y="262" font-size="14.5" font-weight="700" fill="#7C3AED" text-anchor="middle" transform="rotate(-90 128 262)">REPLAY &#183; every row, top to bottom</text>
+  <!-- crash state rebuilt -->
+  <text x="40" y="556" font-size="15" font-weight="700" fill="#7C3AED" font-family="JetBrains Mono, monospace">crash</text>
+  <text x="150" y="556" font-size="15" fill="#0E0E10" font-family="JetBrains Mono, monospace">A=12  B=20  C=43.2  D=48  E=60</text>
+  <text x="560" y="556" font-size="13" fill="#6B7280">every logged row re-applied</text>
+  </g>
+
+  <!-- ================= STEP 4: UNDO up, newest-first ================= -->
+  <g data-step="4">
+  <line x1="708" y1="410" x2="708" y2="146" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#ah-rtp)"/>
+  <circle cx="708" cy="408" r="11" fill="#7C3AED"/><text x="708" y="413" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+  <text x="726" y="413" font-size="13.5" fill="#7C3AED" text-anchor="start">undo E: 60&#8594;50</text>
+  <circle cx="708" cy="344" r="11" fill="#7C3AED"/><text x="708" y="349" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+  <text x="726" y="349" font-size="13.5" fill="#7C3AED" text-anchor="start">undo C: 43.2&#8594;36</text>
+  <circle cx="708" cy="152" r="11" fill="#7C3AED"/><text x="708" y="157" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+  <text x="726" y="157" font-size="13.5" fill="#7C3AED" text-anchor="start">undo C: 36&#8594;30</text>
+  <text x="876" y="280" font-size="14.5" font-weight="700" fill="#7C3AED" text-anchor="middle" transform="rotate(-90 876 280)">UNDO &#183; the uncommitted (newest-first)</text>
+  <!-- state after undo -->
+  <text x="40" y="588" font-size="15" font-weight="700" fill="#7C3AED" font-family="JetBrains Mono, monospace">undone</text>
+  <text x="150" y="588" font-size="15" fill="#0E0E10" font-family="JetBrains Mono, monospace">A=12  B=20  C=<tspan fill="#7C3AED" font-weight="700">30</tspan>  D=48  E=<tspan fill="#7C3AED" font-weight="700">50</tspan></text>
+  <text x="560" y="588" font-size="13" fill="#6B7280">T3, T5 reversed; T2 already rolled back</text>
+  </g>
+
+  <!-- ================= STEP 5: final consistent state + fates ================= -->
+  <g data-step="5">
+  <rect x="40" y="606" width="700" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="40" y="606" width="700" height="6" rx="3" fill="#0E0E10"/>
+  <text x="56" y="630" font-size="15" font-weight="700" fill="#0E0E10">&#8857; Final, consistent: </text>
+  <text x="232" y="630" font-size="15" fill="#0E0E10" font-family="JetBrains Mono, monospace">A=12  B=20  C=30  D=48  E=50</text>
+  <text x="556" y="630" font-size="13.5" fill="#3F3F46">T1, T4 kept &#183; T2, T3, T5 gone</text>
+
+  <text x="40" y="664" font-size="13.5" fill="#3F3F46"><tspan font-weight="700" fill="#2563EB">Committed (T1, T4):</tspan> replayed and kept (durability).<tspan dx="14" font-weight="700" fill="#EA580C">Never committed (T3, T5):</tspan> undone now (atomicity).<tspan dx="14" font-weight="700" fill="#6B7280">Explicit abort (T2):</tspan> already rolled back in-log.</text>
+  </g>
+
+  <!-- Color key (static, outside steps) -->
+  <text x="40" y="690" font-size="13" fill="#6B7280" xml:space="preserve"><tspan>Color key   </tspan><tspan fill="#7C3AED">violet = the replay and undo passes</tspan><tspan>   &#183;   </tspan><tspan fill="#2563EB">blue = committed work kept</tspan><tspan>   &#183;   </tspan><tspan fill="#EA580C">orange = uncommitted work undone</tspan><tspan>   &#183;   </tspan><tspan fill="#DC2626">red = the crash</tspan></text>
+</svg>

@@ -1,0 +1,287 @@
+<h1>GROUP BY: Grouping and Aggregating Data</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> GROUP BY collapses every row that shares a value in the named column into a single output row, so aggregates like COUNT and AVG run once per group.</p>
+<p><strong>Intuition.</strong> GROUP BY sorts the 9 Listens rows into one bucket (one group) per <code>user_id</code>, so the 9 rows become one row per user, Mickey, Minnie, Daffy. COUNT and AVG run once per bucket: Mickey's total listens, Minnie's average rating.</p>
+</div>
+<div style="width: 100%; max-width: 1200px; margin: 2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/groupby-collapse.svg" style="width:100%;height:auto;display:block;" alt="GROUP BY collapses nine listen rows into three group cards, one per user, each carrying COUNT and AVG."></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> GROUP BY collapses rows into one summary row per group: nine listen rows, colored by user identity, become one row per user_id carrying the aggregate. Nine rows, three groups, three output rows.</p>
+</div>
+</div>
+<hr />
+<h2>Simple GROUP BY</h2>
+<pre><code><span class="sql-comment">-- Count how many songs each user has listened to</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> listen_count
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="py-key"><span class="sql-keyword">GROUP BY</span> user_id  <span class="sql-comment">-- one group per unique user_id value</span></span>
+</code></pre>
+<p><a id="buckets-fig"></a></p>
+<p><img src="assets/Module1-SQL/svgs/groupby-buckets.svg" alt="GROUP BY user_id collapses nine Listens rows into three buckets, one per user, each with COUNT three. Pluto has no listens, so Pluto gets no bucket and no output row." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure.</strong> The nine input listens (left, bucketed by user) collapse into the three-row output (right): one row per bucket, <code>COUNT(*)</code> = 3 each. Pluto has zero listens, so Pluto forms no bucket and appears in no output row.</p>
+</div>
+<ul>
+<li>
+<p>One group per unique value</p>
+</li>
+<li>
+<p>Aggregates work per group</p>
+</li>
+<li>
+<p>Groups are isolated from each other</p>
+</li>
+</ul>
+<hr />
+<h2>GROUP BY with Multiple Aggregates</h2>
+<p><a id="multi-agg-table"></a></p>
+<pre><code><span class="sql-comment">-- Get listening stats per user: count, average, max, min ratings</span>
+<span class="sql-keyword">SELECT</span> 
+    user_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> listen_count,      <span class="sql-comment">-- Counts ALL rows in group (including NULLs)</span>
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating,      <span class="sql-comment">-- AVG ignores NULL values</span>
+    <span class="sql-keyword">MAX</span>(rating) <span class="sql-keyword">AS</span> max_rating,      <span class="sql-comment">-- Finds highest non-NULL rating</span>
+    <span class="sql-keyword">MIN</span>(rating) <span class="sql-keyword">AS</span> min_rating       <span class="sql-comment">-- Finds lowest non-NULL rating</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id                    <span class="sql-comment">-- Each user gets their own stats</span>
+</code></pre>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/groupby-agg.svg" style="width:100%;height:auto;display:block;" alt="GROUP BY user_id groups nine listens into three rows, each carrying COUNT, AVG, MAX and MIN of the ratings; AVG, MAX and MIN ignore the NULL."></p>
+</div>
+<ul>
+<li>
+<p>All aggregates in one pass</p>
+</li>
+<li>
+<p>Each sees only its group</p>
+</li>
+<li>
+<p>NULLs follow aggregate rules</p>
+</li>
+</ul>
+<hr />
+<h2>GROUP BY Multiple Columns</h2>
+<pre><code><span class="sql-comment">-- Count how many times each user played each song</span>
+<span class="sql-keyword">SELECT</span> 
+    user_id,
+    song_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> play_count,
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="py-key"><span class="sql-keyword">GROUP BY</span> user_id, song_id    <span class="sql-comment">-- multi-column GROUP BY: unique (user, song) pairs</span></span>
+<span class="sql-keyword">ORDER BY</span> user_id, song_id    <span class="sql-comment">-- Sort output: first by user, then by song</span>
+</code></pre>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/groupby-multikey.svg" style="width:100%;height:auto;display:block;" alt="Multi-column GROUP BY makes finer buckets. By user_id alone, Mickey's three listens are one bucket of three rows, COUNT(*) = 3. Add song_id and that bucket splits into three buckets, (1,1), (1,2) and (1,6), one row each, COUNT(*) = 1."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The bucket key is whatever combination of columns you name. By <code>user_id</code>, Mickey is one bucket of three. Add <code>song_id</code> and each (user, song) pair is its own bucket, so Mickey splits into three single-row buckets. More columns, finer buckets.</p>
+</div>
+<ul>
+<li>The bucket key is the column combination you name</li>
+</ul>
+<hr />
+<h2>GROUP BY with WHERE</h2>
+<pre><code><span class="sql-comment">-- Count high-rated songs (&gt;4.0) per user</span>
+<span class="sql-keyword">SELECT</span> 
+    user_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> high_rating_count,
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_high_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> rating &gt; <span class="sql-number">4.0</span>            <span class="sql-comment">-- WHERE filters BEFORE grouping (NULL &gt; 4.0 = false)</span>
+<span class="sql-keyword">GROUP BY</span> user_id              <span class="sql-comment">-- Groups only the filtered rows</span>
+<span class="sql-keyword">ORDER BY</span> user_id              <span class="sql-comment">-- Sort by user_id ascending (default)</span>
+</code></pre>
+<div class="side-by-side align-top">
+<div><p><strong>Step 1: WHERE rating &gt; 4.0</strong> · 9 rows → 5 rows (crossed-out rows fail the test; NULL is UNKNOWN, also removed)</p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>listen_id</th><th>user_id</th><th>rating</th><th>rating &gt; 4.0</th></tr>
+</thead>
+<tbody>
+<tr class="row-keep"><td class="color-bar blue"></td><td>1</td><td>1</td><td>4.5</td><td>4.5 &gt; 4.0</td></tr><tr class="row-keep"><td class="color-bar blue"></td><td>2</td><td>1</td><td>4.2</td><td>4.2 &gt; 4.0</td></tr><tr class="row-drop"><td class="color-bar blue"></td><td>3</td><td>1</td><td>3.9</td><td>3.9 &gt; 4.0</td></tr><tr class="row-keep"><td class="color-bar orange"></td><td>4</td><td>2</td><td>4.7</td><td>4.7 &gt; 4.0</td></tr><tr class="row-keep"><td class="color-bar orange"></td><td>5</td><td>2</td><td>4.6</td><td>4.6 &gt; 4.0</td></tr><tr class="row-drop"><td class="color-bar orange"></td><td>6</td><td>2</td><td>3.9</td><td>3.9 &gt; 4.0</td></tr><tr class="row-drop"><td class="color-bar purple"></td><td>7</td><td>3</td><td>2.9</td><td>2.9 &gt; 4.0</td></tr><tr class="row-keep"><td class="color-bar purple"></td><td>8</td><td>3</td><td>4.9</td><td>4.9 &gt; 4.0</td></tr><tr class="row-drop"><td class="color-bar purple"></td><td>9</td><td>3</td><td><span class="null-value">NULL</span></td><td>NULL → unknown</td></tr>
+</tbody>
+</table></div><div><p><strong>Step 2: GROUP BY on Filtered Data</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>COUNT(*)</th><th>AVG(rating)</th><th class="annotation">Notes: Post-Filtered Rows</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>2</td><td>(4.5+4.2)/2 = 4.35</td><td class="annotation">Ratings from listen_ids=1,2</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>2</td><td>(4.7+4.6)/2 = 4.65</td><td class="annotation">Ratings from listen_ids=4,5</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>1</td><td>4.9/1 = 4.9</td><td class="annotation">Ratings from listen_id=8</td></tr>
+</tbody>
+</table>
+<p><strong>Output</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>high_rating_count</th><th>avg_high_rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>2</td><td>4.35</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>2</td><td>4.65</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>1</td><td>4.9</td></tr>
+</tbody>
+</table></div>
+</div>
+<ul>
+<li>
+<p>WHERE happens first</p>
+</li>
+<li>
+<p>Form Groups for kept rows</p>
+</li>
+<li>
+<p>Aggregates on kept data</p>
+</li>
+</ul>
+<hr />
+<h2>GROUP BY with NULL Values</h2>
+<pre><code><span class="sql-comment">-- Count how many listens for each rating value (including NULL)</span>
+<span class="sql-keyword">SELECT</span> 
+    rating,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> <span class="sql-keyword">COUNT</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> rating               <span class="sql-comment">-- NULL values form their own group</span>
+<span class="sql-keyword">ORDER BY</span> rating               <span class="sql-comment">-- NULLs appear first or last (DB-dependent)</span>
+</code></pre>
+<div class="side-by-side">
+<div><p><strong>NULL Grouping Behavior</strong></p>
+<table>
+<thead>
+<tr><th>rating</th><th class="annotation">Notes: Groups</th></tr>
+</thead>
+<tbody>
+<tr><td>2.9</td><td class="annotation">Group: 2.9; listen_id = 7</td></tr><tr><td>3.9</td><td class="annotation">Group: 3.9; listen_id = 3,6</td></tr><tr><td>4.2</td><td class="annotation">Group: 4.2 ; listen_id = 2</td></tr><tr><td>4.5</td><td class="annotation">Group: 4.5 ; listen_id = 1</td></tr><tr><td>4.6</td><td class="annotation">Group: 4.6 ; listen_id = 5</td></tr><tr><td>4.7</td><td class="annotation">Group: 4.7 ; listen_id = 4</td></tr><tr><td>4.9</td><td class="annotation">Group: 4.9 ; listen_id = 8</td></tr><tr><td><span class="null-value">NULL</span></td><td class="annotation">Group: NULL ; NULLs group together <br> listen_id = 9</td></tr>
+</tbody>
+</table></div><div><p><strong>Output</strong></p>
+<table>
+<thead>
+<tr><th>rating</th><th>count</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td><span class="null-value">NULL</span></td><td>1</td><td class="annotation">NULL forms its own group</td></tr><tr><td>2.9</td><td>1</td><td class="annotation">Single occurrence</td></tr><tr><td>3.9</td><td>2</td><td class="annotation">Two occurrences</td></tr><tr><td>4.2</td><td>1</td><td class="annotation">Single occurrence</td></tr><tr><td>4.5</td><td>1</td><td class="annotation">Single occurrence</td></tr><tr><td>4.6</td><td>1</td><td class="annotation">Single occurrence</td></tr><tr><td>4.7</td><td>1</td><td class="annotation">Single occurrence</td></tr><tr><td>4.9</td><td>1</td><td class="annotation">Single occurrence</td></tr>
+</tbody>
+</table></div>
+</div>
+<ul>
+<li>
+<p>All NULLs = one group</p>
+</li>
+<li>
+<p>NULLs match each other here</p>
+</li>
+<li>
+<p>Sort puts NULLs at edges</p>
+</li>
+</ul>
+<hr />
+<h2>COUNT(*) vs COUNT(column)</h2>
+<pre><code><span class="sql-comment">-- Compare total listens vs rated vs timed listens per user</span>
+<span class="sql-keyword">SELECT</span> 
+    user_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> total_listens,           <span class="sql-comment">-- COUNT(*) includes NULL rows</span>
+    <span class="sql-keyword">COUNT</span>(rating) <span class="sql-keyword">AS</span> rated_listens,      <span class="sql-comment">-- COUNT(column) skips NULL values</span>
+    <span class="sql-keyword">COUNT</span>(listen_time) <span class="sql-keyword">AS</span> timed_listens  <span class="sql-comment">-- Different NULLs = different counts</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">ORDER BY</span> user_id
+</code></pre>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>total_listens</th><th>rated_listens</th><th>timed_listens</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>3</td><td>3</td><td>2</td><td class="annotation">1: has time<br>2: time=NULL<br>3: has time</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>3</td><td>3</td><td>2</td><td class="annotation">4: time=NULL<br>5: has time<br>6: has time</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>3</td><td>2</td><td>1</td><td class="annotation">7: time=NULL<br>8: has time<br>9: time=NULL</td></tr>
+</tbody>
+</table>
+<p><strong>COUNT Variants:</strong></p>
+<ul>
+<li>
+<p>COUNT(*) = all rows (including NULLs)</p>
+</li>
+<li>
+<p>COUNT(column) = non-NULL values only</p>
+</li>
+<li>
+<p>COUNT(DISTINCT column) = unique non-NULL values</p>
+</li>
+</ul>
+<hr />
+<h2>Key Rules</h2>
+<ol>
+<li>
+<p><strong>Simple Grouping</strong>: <code>GROUP BY user_id</code> creates one group per user</p>
+</li>
+<li>
+<p><strong>Multi-Column Grouping</strong>: <code>GROUP BY user_id, song_id</code> groups by combinations</p>
+</li>
+<li>
+<p><strong>Aggregate Scope</strong>: Functions like COUNT() operate within each group. <code>SELECT user_id, COUNT(*), AVG(rating)</code></p>
+</li>
+<li>
+<p><strong>Execution Order</strong>: FROM → WHERE → GROUP BY → SELECT (SELECT always happens last!)</p>
+</li>
+<li>
+<p><strong>NULL Grouping</strong>: NULL values form their own group ⚠️</p>
+</li>
+<li>
+<p><strong>SELECT Restriction</strong>: Only GROUP BY columns and aggregates allowed in SELECT (else invalid: a non-aggregated column that is not in GROUP BY) ⚠️</p>
+</li>
+</ol>
+<hr />
+<h2>Common Mistakes</h2>
+<h3>The Non-Grouped Column Error; UNSAFE queries</h3>
+<pre><code><span class="sql-comment">-- Unsafe: song_id is in SELECT but not in GROUP BY</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id;
+</code></pre>
+<p>We grouped by <code>user_id</code>, so each user collapses to one row. But we also asked for <code>song_id</code>, and Mickey's one group holds three different songs. Which one goes in his single row?</p>
+<p><a id="ambiguous-fig"></a></p>
+<p><img src="assets/Module1-SQL/svgs/groupby-ambiguous.svg" alt="After GROUP BY user_id, the result has one row per user with COUNT three. The query also asks for song_id, which was never grouped, so every song_id is a grey question mark: Mickey collapsed songs 1, 2, 6, so the database cannot pick one." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<p>The database can't pick, so it errors or silently guesses. Every <code>?</code> is an ambiguous column.</p>
+<h3>The fix: group by it</h3>
+<p>You don't need another table. Add <code>song_id</code> to GROUP BY, and each song becomes its own group, so every <code>song_id</code> resolves to exactly one value.</p>
+<pre><code><span class="sql-comment">-- Safe: every non-aggregate column is in GROUP BY</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id, song_id;
+</code></pre>
+<h3>WHERE Can't See Aggregates</h3>
+<pre><code><span class="sql-comment">-- WRONG: WHERE can't filter on aggregates (they don't exist yet)</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">AVG</span>(rating)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+
+<span class="sql-comment">-- CORRECT: Use HAVING to filter groups after aggregation</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">AVG</span>(rating)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>
+</code></pre>
+<p><strong>Problem:</strong> WHERE executes before grouping; aggregates don't exist yet</p>
+<h3>The COUNT NULL Trap</h3>
+<pre><code><span class="sql-comment">-- Misleading: COUNT(rating) skips NULL ratings</span>
+<span class="sql-keyword">SELECT</span> user_id, 
+       <span class="sql-keyword">COUNT</span>(rating) <span class="sql-keyword">AS</span> total_ratings  <span class="sql-comment">-- Skips NULLs!</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+
+<span class="sql-comment">-- Better: Show both total rows and non-NULL ratings</span>
+<span class="sql-keyword">SELECT</span> user_id, 
+       <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> total_listens,
+       <span class="sql-keyword">COUNT</span>(rating) <span class="sql-keyword">AS</span> rated_listens
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+</code></pre>
+<p><strong>Problem:</strong> COUNT(column) behavior with NULL often unexpected</p>
+<h3>Redundant DISTINCT</h3>
+<pre><code><span class="sql-comment">-- REDUNDANT: GROUP BY already ensures unique user_id values</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> user_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+
+<span class="sql-comment">-- SIMPLER: GROUP BY alone creates unique groups</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+</code></pre>
+<p><strong>Problem:</strong> GROUP BY already ensures unique group values</p>

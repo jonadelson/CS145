@@ -1,0 +1,27 @@
+<h1>Data Centers: The Backbone of Modern Databases</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Latency in a modern data center spans seven orders of magnitude, from L1 cache at 1 ns to a cross-continent round trip at 100 ms, and an algorithm's cost depends entirely on which tier its data lives in.</p>
+<p><strong>Intuition.</strong> A <code>SELECT</code> against a 10-billion-row Listens table doesn't run on one machine. It runs in a data center the size of a Costco, and the cost of every read depends on which tier the data lives in, L1 cache (1 ns), RAM (100 ns), SSD (100 µs), or cross-continent network (100 ms). Seven orders of magnitude.</p>
+</div>
+<p><a id="latency-tiers"></a></p>
+<h2>Latency Tiers: Seven Orders of Magnitude</h2>
+<p>Inside one data center the same byte can be a nanosecond away or a hundred milliseconds away, depending on which tier it lives in. Every algorithm in this course is implicitly priced against this ladder.</p>
+<p><img src="assets/Module2-Systems/svgs/latency-tiers.svg"
+     alt="Seven latency tiers on one axis, fastest to slowest: L1 cache 1 ns on-chip, RAM 100 ns, SSD 100 µs, network within the data center 500 µs, disk 10 ms, cross-region 50 ms, cross-continent 100 ms."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Seven latency tiers in one data center, ordered fastest to slowest: L1 cache at 1 ns up to a cross-continent round trip at 100 ms. End to end is 100,000,000x, and a read from the wrong tier costs up to 10,000,000x more. The rest of the course prices every page-count and join argument against this ladder.</p>
+</div>
+<p><a id="why-it-matters"></a></p>
+<h2>Why a Database Course Cares</h2>
+<p>Every cost model we will use, every page-count argument, every join algorithm, is shaped by this hierarchy. A query plan is a routing decision: which tier do you read from, how often, and in what order. Get the tier right and a billion-row query finishes in seconds. Get it wrong and the same query never finishes.</p>
+<hr />
+<h2>Google Data Centers</h2>
+<iframe src="https://datacenters.google/" width="100%" height="600px" style="border: 1px solid #ddd; border-radius: 8px; margin: 1.5rem 0;" title="Google Data Centers Virtual Tour"></iframe>
+
+<p>These are the nerve centers for BigQuery, Cloud SQL, and Spanner. Each query you run is a tiny cog in this vast machine.</p>
+<hr />
+<h2>Microsoft Azure Documentary</h2>
+<iframe width="100%" height="450" src="https://www.youtube.com/embed/80aK2_iwMOs" title="Inside Microsoft's Data Centers" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 8px; margin: 1.5rem 0;"></iframe>
+
+<p>A behind-the-scenes tour of where your data physically lives.</p>

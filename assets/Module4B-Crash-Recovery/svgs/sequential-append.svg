@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" role="img" aria-labelledby="sa-t sa-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="sa-t">WAL turns scattered random writes into one sequential append</title>
+  <desc id="sa-d">A comparison of two ways to write the same changes to disk. On the left, without the log, each change is a random I/O to its own scattered 64 MB data page, about 13 ms, shown in grey. On the right, the WAL log appends every change as a tiny row, about 40 bytes, to one growing file shown in violet: a 64 KB WAL page costs about 13 microseconds, roughly a thousand times less, and a row in battery-backed NVRAM is durable in about 100 nanoseconds, a hundred thousand times less than the page flush. Small and sequential beats big and random. Color key: grey is the big scattered data pages, violet is the tiny sequential log.</desc>
+
+  <defs>
+    <marker id="ah-sa" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+  </defs>
+
+  <text x="550" y="36" font-size="24" font-weight="700" fill="#0E0E10">Small and sequential, not big and random</text>
+  <text x="550" y="60" text-anchor="middle" font-size="14" fill="#6B7280">A WAL row is about 40 bytes and only appends; a data page is 64 MB and needs a random I/O.</text>
+
+  <!-- LEFT: scattered random writes (grey, out of focus) -->
+  <g data-step="1">
+    <text x="270" y="100" text-anchor="middle" font-size="18" font-weight="700" fill="#6B7280">Without the log: big and scattered</text>
+    <rect x="60" y="124" width="120" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="120" y="151" text-anchor="middle" font-size="14" fill="#3F3F46">page 17</text>
+    <rect x="360" y="124" width="120" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="420" y="151" text-anchor="middle" font-size="14" fill="#3F3F46">page 492</text>
+    <rect x="200" y="196" width="120" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="260" y="223" text-anchor="middle" font-size="14" fill="#3F3F46">page 1038</text>
+    <path d="M 180 146 Q 290 120 360 146" fill="none" stroke="#9AA0AA" stroke-width="2" marker-end="url(#ah-sa)"/>
+    <path d="M 420 168 Q 360 210 320 218" fill="none" stroke="#9AA0AA" stroke-width="2" marker-end="url(#ah-sa)"/>
+    <text x="270" y="278" text-anchor="middle" font-size="14" fill="#6B7280">Each is a 64 MB page, a random I/O. ~13 ms.</text>
+  </g>
+
+  <!-- divider -->
+  <line x1="555" y1="92" x2="555" y2="300" stroke="#D4D7DC"/>
+
+  <!-- RIGHT: sequential append (violet, the focus) -->
+  <g data-step="2">
+    <text x="830" y="100" text-anchor="middle" font-size="18" font-weight="700" fill="#7C3AED">With the log: tiny and appended</text>
+    <rect x="660" y="126" width="340" height="104" rx="6" fill="#FFFFFF" stroke="#A78BFA" stroke-width="2"/>
+    <rect x="660" y="126" width="6" height="104" rx="3" fill="#A78BFA"/>
+    <text x="835" y="158" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">T1  A  <tspan fill="#D97706">19</tspan> <tspan fill="#6B7280">&#8594;</tspan> <tspan fill="#16A34A">22.8</tspan></text>
+    <text x="835" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">T1  B  <tspan fill="#D97706">23</tspan> <tspan fill="#6B7280">&#8594;</tspan> <tspan fill="#16A34A">27.6</tspan></text>
+    <text x="835" y="216" text-anchor="middle" font-size="13" fill="#6B7280">&#8230;  each row appends at the tail  &#8595;</text>
+    <text x="830" y="262" text-anchor="middle" font-size="14" fill="#3F3F46">Each row is about 40 B, right after the last.</text>
+    <text x="830" y="290" text-anchor="middle" font-size="15" font-weight="700" fill="#7C3AED">64 KB WAL page: ~13 µs.</text>
+  </g>
+
+  <!-- color key -->
+  <text x="40" y="356" font-size="14" fill="#6B7280">Color key  <tspan fill="#6B7280" font-weight="700">grey</tspan> = the big scattered data pages  ·  <tspan fill="#7C3AED" font-weight="700">violet</tspan> = the tiny sequential log</text>
+  <text x="40" y="380" font-size="14" fill="#6B7280">64 MB page flush ~13 ms  &#183;  64 KB WAL page ~13 µs (~1,000&#215; less)  &#183;  NVRAM row ~100 ns (~100,000&#215; less).</text>
+</svg>

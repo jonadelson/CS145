@@ -1,0 +1,36 @@
+<h1>Section 2: Systems Basics</h1>
+<p>You know SQL and the architectural tradeoffs. Now we look at how a database executes those operations.</p>
+<hr />
+<h2>The Key Problems We Solve</h2>
+<h3>1. The I/O Bottleneck</h3>
+<p>Hardware dictates software behavior. </p>
+<ul>
+<li>
+<p><strong>The Problem:</strong> Why does one operation fly while another crawls? Why does a query suddenly choke the server?</p>
+</li>
+<li>
+<p><strong>The Reality:</strong> We build an <strong>I/O Cost Model</strong> based on the latency gap between RAM and Disk. You'll see how databases use paging to sidestep costly disk access.</p>
+</li>
+</ul>
+<h3>2. The Search Problem</h3>
+<p>Scanning a billion rows? That's a fool's errand.</p>
+<ul>
+<li>
+<p><strong>The Problem:</strong> How do systems pinpoint a record, or confirm its absence, without combing through everything?</p>
+</li>
+<li>
+<p><strong>The Reality:</strong> We'll dive into <strong>Basic Hashing</strong> and <strong>Bloom Filters</strong>. Learn how databases use mathematical shortcuts to dodge unnecessary disk reads.</p>
+</li>
+</ul>
+<h3>3. The Physical Constraints Problem</h3>
+<p>Data centers aren't infinite.</p>
+<ul>
+<li>
+<p><strong>The Problem:</strong> How do you store petabytes without ballooning costs or delays?</p>
+</li>
+<li>
+<p><strong>The Reality:</strong> We explore <strong>Compression</strong> techniques, showing how databases squeeze more into fewer bytes by trading CPU cycles for savings on pricey disk operations.</p>
+</li>
+</ul>
+<hr />
+<p>Let's peek under the hood.</p>

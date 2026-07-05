@@ -1,0 +1,51 @@
+<h1>Where's the Next 100x?</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Strict 2PL gives safe, correct concurrency and runs most production databases today, but it refuses many schedules that are perfectly serializable. The next 100x in throughput comes from protocols that drop Strict 2PL and admit those refused schedules: micro-locking, LSM trees, and timestamp ordering, each matched to a workload signature. The correctness target never moves; only the scheduler does.</p>
+<p><strong>Intuition.</strong> Correctness is a set of nested rings: Serializable on the outside, then conflict-serializable, then 2PL, with Strict 2PL the smallest ring at the core. Every ring outside Strict 2PL is safe to run, yet your database refuses it. A song landing 10M plays an hour does not need locks at all; an LSM tree appends every play and never blocks. Read the workload signature and the protocol falls out.</p>
+</div>
+<p><a id="hook-figure"></a></p>
+<p>We built the whole transaction manager: locks, schedules, write-ahead logging, crash recovery. Strict 2PL gives you safe, correct concurrency and runs most production databases today. The next 100x comes from three protocols that drop it and admit the schedules it refuses: micro-locking, LSM trees, and timestamp ordering.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/next-100x-hook.svg"
+     alt="A scaling axis from today's Strict 2PL baseline forking into a grey dead end (faster 2PL) and a violet path (drop 2PL entirely) where the next 100x lives"
+     style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Scaling runs about 100x per decade. Strict 2PL, blue, is where production databases run today. The next 100x, violet, comes from protocols that drop Strict 2PL and admit the schedules it refuses; tuning 2PL itself, grey, does not scale.</p>
+</div>
+<hr />
+<h2>The Opportunity Space</h2>
+<p>In the real world, most schedules aren't conflict-serializable under 2PL. Yet, there are countless valid schedules we can safely execute.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/correctness-hierarchy.svg" alt="Nested hierarchy: S2PL inside 2PL inside Conflict-Serializable inside Serializable" style="width:100%; max-width:460px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Every ring outside S2PL is safe, valid schedules that today's S2PL databases refuse to run. The Serializable − CS ring and the CS − 2PL ring are real schedules a smarter scheduler could admit; that untapped gap is the 100x opportunity.</p>
+</div>
+<hr />
+<h2>Match the Protocol to the Workload</h2>
+<p><a id="choosing-figure"></a></p>
+<p>Look at what the system actually does. Each of these three workloads has one clear answer:</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/choosing.svg"
+     alt="Three rows mapping a workload signature to a protocol to the real systems: fine-grained contention to micro-locking (Postgres, SQL Server, Oracle); write throughput to LSM trees (ClickHouse, BigQuery, Snowflake); global ordering to timestamp ordering (Spanner)"
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Each workload signature, grey, maps to one protocol, violet, and the real systems that ship it, blue. The signature is the case: a viral counter, a play stream, a shared graph.</p>
+</div>
+<ul>
+<li>
+<p><strong>A video goes viral, 10M users on one counter.</strong> That is fine-grained contention. Reach for <strong>micro-locking</strong>: lock the single field, not the whole row, so thousands of writes to one entity barely wait. Postgres, SQL Server, Oracle.</p>
+</li>
+<li>
+<p><strong>A song lands 10M plays in an hour.</strong> That is pure write throughput. Reach for <strong>LSM trees</strong>: append every write to an immutable file, no locks at all, with reads that settle a moment later. ClickHouse, BigQuery, Snowflake.</p>
+</li>
+<li>
+<p><strong>10,000 agents update one shared graph.</strong> That is global ordering. Reach for <strong>timestamp ordering</strong>: run every operation in timestamp order and abort-and-retry the conflicts instead of waiting. Spanner.</p>
+</li>
+</ul>
+<hr />
+<h2>The Next Machine</h2>
+<p><a id="takeaway-figure"></a></p>
+<p>Strict 2PL is the baseline of database concurrency, and the next 100x lives in the schedules it refuses. The correctness target itself is wider than 2PL enforces: what defines correct is <strong>serializability</strong>, equal to some serial order. Conflict-serializability is only the mechanical test 2PL passes, so a scheduler that admits the serializable-but-not-conflict-serializable schedules is still correct, and that gap is real headroom. Every protocol here ran on one machine. Next we break that machine into a thousand.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/next-100x-takeaway.svg"
+     alt="Three stacked statements: Strict 2PL is the baseline, correct still means serializable, and next we break one machine into a thousand"
+     style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Strict 2PL, violet, is the baseline, and the next 100x lives in the safe schedules it refuses. What defines correct is serializability, green: a smarter scheduler can admit schedules that are serializable yet not even conflict-serializable. Every protocol here ran on one machine; distributed systems break that machine into a thousand, with the data, the locks, and the clock on different computers.</p>
+</div>

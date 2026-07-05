@@ -1,0 +1,142 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.583
+The model generated a query.
+
+00:00:04.583 --> 00:00:07.167
+It runs.
+
+00:00:07.167 --> 00:00:09.750
+But does it answer the question?
+
+00:00:09.750 --> 00:00:12.333
+You trust generated SQL the way you trust any code: with tests.
+
+00:00:12.333 --> 00:00:14.916
+And software gives you three.
+
+00:00:14.916 --> 00:00:17.500
+A unit test proves one piece is right.
+
+00:00:17.500 --> 00:00:20.083
+A regression test proves it stays right.
+
+00:00:20.083 --> 00:00:22.666
+A library lets you build on what is already trusted.
+
+00:00:22.666 --> 00:00:26.172
+Start with one query.
+
+00:00:26.172 --> 00:00:29.678
+You already know the answer you expect, so you check that the query reproduces it.
+
+00:00:29.678 --> 00:00:33.185
+And a query is a stack of exact operations.
+
+00:00:33.185 --> 00:00:36.691
+A schema, then joins and filters, then a group-by and count, then the result.
+
+00:00:36.691 --> 00:00:40.197
+Each layer fixes a piece of the meaning, so each layer is one thing you can test.
+
+00:00:40.197 --> 00:00:43.703
+Did the right rows survive, the Pluto case?
+
+00:00:43.703 --> 00:00:47.209
+Did it count the right thing?
+
+00:00:47.209 --> 00:00:50.716
+Did the number match what you expected?
+
+00:00:50.716 --> 00:00:54.222
+You settle each by running the query, not by arguing in English.
+
+00:00:54.222 --> 00:00:57.728
+That is a unit test.
+
+00:00:57.728 --> 00:01:01.884
+Trace the first reading, the LEFT JOIN, on one page.
+
+00:01:01.884 --> 00:01:06.041
+First, every play joined to its artist.
+
+00:01:06.041 --> 00:01:10.197
+Mickey, Minnie, and Daffy each played a Taylor song, but each also played the Beatles.
+
+00:01:10.197 --> 00:01:14.353
+Then the WHERE clause drops the Taylor rows.
+
+00:01:14.353 --> 00:01:18.510
+And here is the catch: every user still has a row left, a Beatles play, or Pluto with no song at all.
+
+00:01:18.510 --> 00:01:22.666
+So after the group by, all four users survive.
+
+00:01:22.666 --> 00:01:26.823
+That is the bug.
+
+00:01:26.823 --> 00:01:30.979
+Query A keeps people who did hear Taylor, just because they also heard something else.
+
+00:01:30.979 --> 00:01:35.104
+Now trace the second reading, the NOT IN, the same way.
+
+00:01:35.104 --> 00:01:39.230
+The subquery finds everyone who heard Taylor.
+
+00:01:39.230 --> 00:01:43.355
+Mickey, Minnie, and Daffy all did.
+
+00:01:43.355 --> 00:01:47.480
+Then NOT IN drops exactly those three.
+
+00:01:47.480 --> 00:01:51.606
+And only Pluto is left, the one user who never heard Taylor at all.
+
+00:01:51.606 --> 00:01:55.731
+Same English as before, two queries, two different answers, and this is the one the spec actually asked for.
+
+00:01:55.731 --> 00:02:00.254
+A unit test answers one thing: is this query right, today.
+
+00:02:00.254 --> 00:02:04.777
+Keep it, and re-run it on every change, and it answers a harder question.
+
+00:02:04.777 --> 00:02:09.301
+Is it still right.
+
+00:02:09.301 --> 00:02:13.824
+The day someone quietly redefines what active user means, the stored test fails that day.
+
+00:02:13.824 --> 00:02:18.347
+Not months later, after the dashboard has already lied to a hundred people.
+
+00:02:18.347 --> 00:02:22.581
+And a verified query is a function.
+
+00:02:22.581 --> 00:02:26.815
+Once you have proven that non Taylor listeners returns just Pluto, you build the next query on top of it, and you check only the new layer.
+
+00:02:26.815 --> 00:02:31.049
+Verified queries compose into a library of trusted SQL.
+
+00:02:31.049 --> 00:02:35.282
+That library is the semantic layer.
+
+00:02:35.282 --> 00:02:39.516
+You could never do this in English.
+
+00:02:39.516 --> 00:02:43.750
+You cannot run a sentence, re-run it, or build a bigger query on top of it.
+
+00:02:43.750 --> 00:02:47.628
+So that is verification.
+
+00:02:47.628 --> 00:02:51.506
+A unit test for one query, a regression test so it stays right, and a library you compose on.
+
+00:02:51.506 --> 00:02:55.383
+The model writes the query.
+
+00:02:55.383 --> 00:02:59.261
+Deciding whether that query is right stays your job, and that job is SQL.

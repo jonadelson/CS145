@@ -1,0 +1,56 @@
+<svg viewBox="0 0 960 430" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ad-t ad-d">
+  <title id="ad-t">ACID: the four guarantees, the rule and the intuition for each</title>
+  <desc id="ad-d">Four panels, one per ACID guarantee, each tagged with its coloured
+  letter circle. Atomicity (blue A): all the writes commit together, or none do;
+  a declined card means no ticket, no charge, no change. Consistency (green C):
+  every commit leaves the rules satisfied; seats sold and revenue always move as
+  one. Isolation (orange I): concurrent transactions never see each other's
+  half-done work; Alice locks the last seat and Bob waits, so no double sale.
+  Durability (violet D): once committed it survives any crash; the receipt is
+  shown, the server dies, and the ticket is still there.</desc>
+
+  <text x="480" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">ACID: four guarantees</text>
+  <text x="480" y="58" text-anchor="middle" font-size="14" fill="#6B7280">The rule, and what each one looks like when Alice buys a ticket.</text>
+
+  <!-- A: Atomicity -->
+  <g data-step="1">
+    <rect x="60" y="88" width="410" height="146" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <circle cx="104" cy="130" r="24" fill="#2563EB"/>
+    <text x="104" y="139" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">A</text>
+    <text x="146" y="126" font-size="17" font-weight="700" fill="#2563EB">Atomicity</text>
+    <text x="146" y="150" font-size="13.5" fill="#3F3F46">All the writes commit together, or none do.</text>
+    <text x="82" y="196" font-size="13.5" fill="#6B7280">Card declines, so no ticket, no charge, no change.</text>
+  </g>
+
+  <!-- C: Consistency -->
+  <g data-step="2">
+    <rect x="490" y="88" width="410" height="146" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <circle cx="534" cy="130" r="24" fill="#16A34A"/>
+    <text x="534" y="139" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">C</text>
+    <text x="576" y="126" font-size="17" font-weight="700" fill="#16A34A">Consistency</text>
+    <text x="576" y="150" font-size="13.5" fill="#3F3F46">Every commit leaves the rules satisfied.</text>
+    <text x="512" y="196" font-size="13.5" fill="#6B7280">Seats sold and revenue always move as one.</text>
+  </g>
+
+  <!-- I: Isolation -->
+  <g data-step="3">
+    <rect x="60" y="256" width="410" height="146" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <circle cx="104" cy="298" r="24" fill="#EA580C"/>
+    <text x="104" y="307" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">I</text>
+    <text x="146" y="294" font-size="17" font-weight="700" fill="#EA580C">Isolation</text>
+    <text x="146" y="318" font-size="13.5" fill="#3F3F46">Transactions don't see each other's half-work.</text>
+    <text x="82" y="364" font-size="13.5" fill="#6B7280">Alice locks the last seat; Bob waits. No double-sale.</text>
+  </g>
+
+  <!-- D: Durability -->
+  <g data-step="4">
+    <rect x="490" y="256" width="410" height="146" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <circle cx="534" cy="298" r="24" fill="#7C3AED"/>
+    <text x="534" y="307" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">D</text>
+    <text x="576" y="294" font-size="17" font-weight="700" fill="#7C3AED">Durability</text>
+    <text x="576" y="318" font-size="13.5" fill="#3F3F46">Once committed, it survives any crash.</text>
+    <text x="512" y="364" font-size="13.5" fill="#6B7280">Receipt shown, server dies, the ticket is still there.</text>
+  </g>
+</svg>

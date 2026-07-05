@@ -1,0 +1,94 @@
+<svg viewBox="0 0 1120 576" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="qdw-t qdw-d">
+  <title id="qdw-t">From a $550,000 query disaster to $400: three orthogonal optimizations that multiply</title>
+  <desc id="qdw-d">The same weekly aggregation in four stages, left to right. The red baseline is a Hash Partition Join scanning the full 1 TB at 49,200 IOs and about $550,000 a year. Adding a B+Tree index cuts the rows scanned (about 90 times fewer), columnar storage cuts the columns read (about 9 times), and compression cuts the bytes stored (about 2 times), so the green final stage is roughly 1,400 times cheaper at about $400 a year. Color key: red is the costly baseline disaster, green is the optimized end, grey is the intermediate steps and structure.</desc>
+    <defs>
+        <marker id="ar-wf" markerWidth="13" markerHeight="13" refX="11" refY="4.5" orient="auto"><polygon points="0 0, 13 4.5, 0 9" fill="#6B7280"/></marker>
+    </defs>
+
+    <g class="step">
+        <text x="560" y="34" text-anchor="middle" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#0E0E10">Saving $550,000 on one query</text>
+        <text x="560" y="58" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">three orthogonal optimizations multiply to roughly a 1,400× improvement</text>
+    </g>
+
+    <g class="step" data-step="1">
+        <rect x="30" y="90" width="212" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <rect x="30" y="90" width="212" height="6" rx="10" fill="#DC2626"/>
+        <text x="136" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#DC2626">Baseline · HPJ</text>
+        <text x="136" y="138" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-style="italic" fill="#6B7280">scan all 1 TB, every column</text>
+        <text x="136" y="178" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#0E0E10">49,200 IOs</text>
+        <text x="136" y="202" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#DC2626">$550,000 / yr</text>
+        <rect x="46" y="232" width="180" height="12" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1"/>
+        <rect x="46" y="232" width="180" height="12" rx="3" fill="#DC2626"/>
+        <text x="136" y="268" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">1× · the disaster</text>
+    </g>
+
+    <g class="step" data-step="2">
+        <text x="277" y="170" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#0E0E10">×90</text>
+        <line x1="248" y1="188" x2="306" y2="188" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-wf)"/>
+        <text x="277" y="208" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6B7280">cheaper</text>
+        <rect x="312" y="90" width="212" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <text x="418" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">+ B+Tree Index</text>
+        <text x="418" y="138" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-style="italic" fill="#6B7280">skip to the 1% in date range</text>
+        <text x="418" y="178" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#0E0E10">~554 IOs</text>
+        <text x="418" y="202" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">~$6,500 / yr</text>
+        <rect x="328" y="232" width="180" height="12" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1"/>
+        <rect x="328" y="232" width="70" height="12" rx="3" fill="#6B7280"/>
+        <text x="418" y="268" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">fewer ROWS scanned</text>
+    </g>
+
+    <g class="step" data-step="3">
+        <text x="559" y="170" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#0E0E10">×9</text>
+        <line x1="530" y1="188" x2="588" y2="188" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-wf)"/>
+        <text x="559" y="208" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6B7280">cheaper</text>
+        <rect x="594" y="90" width="212" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <text x="700" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">+ Columnar Store</text>
+        <text x="700" y="138" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-style="italic" fill="#6B7280">read only the 4 needed columns</text>
+        <text x="700" y="178" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#0E0E10">~60 IOs</text>
+        <text x="700" y="202" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">~$730 / yr</text>
+        <rect x="610" y="232" width="180" height="12" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1"/>
+        <rect x="610" y="232" width="16" height="12" rx="3" fill="#6B7280"/>
+        <text x="700" y="268" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">fewer COLUMNS read</text>
+    </g>
+
+    <g class="step step-final" data-step="4">
+        <text x="841" y="170" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#0E0E10">×2</text>
+        <line x1="812" y1="188" x2="870" y2="188" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-wf)"/>
+        <text x="841" y="208" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6B7280">cheaper</text>
+        <rect x="876" y="90" width="212" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <rect x="876" y="90" width="212" height="6" rx="10" fill="#059669"/>
+        <text x="982" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#059669">+ Compression</text>
+        <text x="982" y="138" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-style="italic" fill="#6B7280">dictionary · bit-pack · RLE</text>
+        <text x="982" y="178" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#0E0E10">~35 IOs</text>
+        <text x="982" y="202" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">~$400 / yr</text>
+        <rect x="892" y="232" width="180" height="12" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1"/>
+        <rect x="892" y="232" width="6" height="12" rx="3" fill="#059669"/>
+        <text x="982" y="268" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">fewer BYTES stored</text>
+    </g>
+
+    <g class="step" data-step="5">
+        <text x="560" y="304" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">bar length = relative annual cost (log scale, illustrative)</text>
+        <text x="560" y="340" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">They stack because each attacks a different, independent kind of waste</text>
+        <rect x="70" y="358" width="300" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <text x="220" y="384" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">B+Tree Index</text>
+        <text x="220" y="403" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">fewer ROWS scanned</text>
+        <text x="220" y="422" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0E0E10">×90</text>
+        <text x="390" y="402" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#0E0E10">×</text>
+        <rect x="410" y="358" width="300" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <text x="560" y="384" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Columnar Store</text>
+        <text x="560" y="403" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">fewer COLUMNS read</text>
+        <text x="560" y="422" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0E0E10">×9</text>
+        <text x="730" y="402" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#0E0E10">×</text>
+        <rect x="750" y="358" width="300" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <text x="900" y="384" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Compression</text>
+        <text x="900" y="403" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280">fewer BYTES stored</text>
+        <text x="900" y="422" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0E0E10">×2</text>
+    </g>
+
+    <g class="step step-take" data-step="6">
+        <rect x="210" y="450" width="700" height="66" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+        <rect x="210" y="510" width="700" height="6" rx="4" fill="#0E0E10"/>
+        <text x="234" y="478" text-anchor="start" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0E0E10">&#8857; Takeaway</text>
+        <text x="560" y="500" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">90 × 9 × 2 stacks to about 1,400×. The $550,000 / yr disaster collapses to ~$400 / yr.</text>
+        <text x="560" y="552" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the costly baseline disaster&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the optimized end&#160;&#160;&#183;&#160;&#160;grey = intermediate steps</tspan></text>
+    </g>
+</svg>

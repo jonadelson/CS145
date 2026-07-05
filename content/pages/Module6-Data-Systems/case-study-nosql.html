@@ -1,0 +1,79 @@
+<h1>Case Study: SQL vs NoSQL</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> The SQL-versus-NoSQL choice has flipped twice. When data first outgrew one machine, teams dropped SQL's ACID guarantees for NoSQL's horizontal scale; now distributed SQL, plus JSONB and vector columns inside Postgres, gives most of that scale back without giving up SQL. For most apps, start with SQL and specialize only when scale demands it.</p>
+<p><strong>Intuition.</strong> One modern Postgres row can hold a rigid <code>user_id</code>, a flexible JSONB <code>preferences</code> blob, and a vector taste profile, so "we need NoSQL for flexible data" mostly disappears. You reach for a dedicated key-value or graph store only for the narrow cases (sub-millisecond lookups, friend-of-a-friend traversals) where a specialized engine genuinely wins.</p>
+</div>
+<h2>How to think of SQL and NoSQL in 2026</h2>
+<p>When your database balloons to terabytes, a single machine's memory isn't enough. That's where the real contrast lies: algorithms that shine on small data crumble at scale.</p>
+<p>In the early Big Data days, teams dropped SQL and its ACID guarantees (the Module 4 rules that keep a bank balance accurate) for NoSQL's horizontal scale. Today distributed SQL runs across clusters without giving that up, so SQL and NoSQL are no longer at odds.</p>
+<p>JSONB only became a first-class Postgres type in late 2014 (version 9.4); before that, storing documents inside SQL was not yet a credible alternative to spinning up a separate document database.</p>
+<h2>Modern SQL vs. Ultra-Specialized Systems</h2>
+<p>For most apps (Instagram, banking apps, school portals), a modern SQL database like PostgreSQL or MySQL is the right call. SQL used to mean rigid tables; today it absorbs documents, vectors, and geo types, so one table can do work that once needed several systems:</p>
+<h3>The Modern SQL Table: One Table, Three Worlds</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">User ID (Standard)</th>
+<th style="text-align: left;">Name (Standard)</th>
+<th style="text-align: left;">Preferences (JSONB)</th>
+<th style="text-align: left;">Taste Profile (Vector)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">101</td>
+<td style="text-align: left;">Bob</td>
+<td style="text-align: left;"><code>{"theme": "dark", "genres": ["Jazz", "Lo-fi"]}</code></td>
+<td style="text-align: left;"><code>[0.12, -0.98, 0.45, ...]</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">102</td>
+<td style="text-align: left;">Alice</td>
+<td style="text-align: left;"><code>{"theme": "light", "notifications": false}</code></td>
+<td style="text-align: left;"><code>[0.88, 0.11, -0.23, ...]</code></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p><strong>Standard Columns (The 80%)</strong>: <code>User ID</code> and <code>Name</code> are classic SQL. Rigid, organized, and clean.</p>
+</li>
+<li>
+<p><strong>JSONB Column (The "NoSQL" part)</strong>: <code>Preferences</code> let you add a "Favorite Color" for Bob without altering the whole table. Just add it to the JSON column, no table migration needed. This is why much of the NoSQL use case folded back into SQL.</p>
+</li>
+<li>
+<p><strong>Vector Column (The "AI" part)</strong>: <code>Taste Profile</code> uses AI embeddings to capture music preferences.</p>
+</li>
+</ol>
+<h3>When to go Ultra-Specialized? [The 2026 View]</h3>
+<p>If Modern SQL is so versatile, why bother with other systems? It's for the <strong>remaining 20%</strong> when specialization is key.</p>
+<ul>
+<li>
+<p><strong>Ultra-Specialized Key-Value Stores</strong>: Needed for sub-millisecond text-based lookups (think Spotify's lyrics).</p>
+</li>
+<li>
+<p><strong>Ultra-Specialized Graph Databases</strong>: Crucial when relationships (like a social network's "friend of a friend") matter more than the data itself.</p>
+</li>
+</ul>
+<p>The goal for most developers in 2025 is to <strong>start with the 80%</strong> (SQL) and only pivot to specialized systems when scale demands it.</p>
+<h2>The NoSQL To SQL Migration</h2>
+<p><strong><a href="https://medium.com/pinterest-engineering/hbase-deprecation-at-pinterest-8a99e6c8e6b7">HBase Deprecation at Pinterest</a></strong><br />
+Why Pinterest moved away from NoSQL back to SQL systems. A case study in choosing the right tool for the job.</p>
+<p><strong><a href="https://thenewstack.io/why-nosql-deployments-are-failing-at-scale/">Why NoSQL Deployments Are Failing at Scale</a></strong><br />
+Industry analysis on NoSQL limitations and why companies are returning to SQL-based systems.</p>
+<h2>Why Companies Transitioned Data Stacks From NoSQL to SQL</h2>
+<p>Here's the paper on how Google's Spanner evolved from a pure key-value store into a full SQL system. Focus on the big picture and get a sense of the tradeoffs. (It's a PhD-level paper, so don't worry about understanding all the details.)</p>
+<p><iframe
+  src="https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/46103.pdf"
+  title="Spanner: Becoming a SQL System (Google, 2017)"
+  style="width:100%; height:720px; border:1px solid var(--border); border-radius:12px; margin: 1.5rem 0;"
+  loading="lazy">
+</iframe>
+</p>
+<p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">
+  Can't see the embed? <a href="https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/46103.pdf" target="_blank">Open the PDF directly</a>.
+</p>
+
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/case-study-keyvalue">Key-Value Stores →</a></strong> SQL absorbs most of the exceptions, but not all. The clearest case for a specialized store is the simplest one: a key and a blob.</p>

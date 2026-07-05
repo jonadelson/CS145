@@ -1,0 +1,45 @@
+<h1>Case Study 4.1: ACID at Stripe</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Every Stripe charge is a transaction that touches several tables (payment, ledger, merchant balance, webhook queue) and must satisfy all four ACID properties, or real money goes missing. Atomicity stops half-charges; Consistency keeps the ledger obeying its rules; Isolation keeps two concurrent charges on one balance from losing an update; Durability guarantees a confirmed payment survives a datacenter power loss.</p>
+<p><strong>Intuition.</strong> When Mickey clicks "Pay $9.99" for a book on a Stripe checkout, a single API call turns into a handful of database writes: charge the card, record the payment in the ledger, update the merchant's balance, and notify the merchant's server. All of those writes must happen together, must not lose an update when another charge hits the same balance at the same instant, and must stay on disk even if the datacenter loses power the instant after Mickey sees the receipt.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 4.1</span>
+<span>Reading Time: 7 mins</span></p>
+</div>
+<hr />
+<h2>What a Single Charge Touches</h2>
+<p>Stripe processes roughly $1T of payments a year. Every "Pay" click triggers a handful of writes behind the scenes:</p>
+<p><a id="stripe-one-charge-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/stripe-one-charge.svg" alt="A single Pay $9.99 click fans out to four writes: charge the card through Visa, write the double-entry ledger as two rows that sum to zero, bump the merchant's balance, and queue a webhook. A bracket marks all four as one atomic unit: all four land together, or none do." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One Pay click is four writes: charge the card, write the double-entry ledger (two rows that must sum to zero), bump the merchant's balance, and queue a webhook. Stripe wraps them as one transaction, so all four land together or none do. The double-entry detail is why the ledger can never silently drift.</p>
+</div>
+<p>If any one write fails, the whole charge fails together. If two charges interleave, the ledger breaks. If the server crashes after the customer sees <code>200 OK</code>, the charge still has to exist tomorrow. That is A, C, I, D, the four guarantees you just learned, now under load in production.</p>
+<hr />
+<h2>What Each Letter Buys You</h2>
+<p><a id="stripe-four-failures-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/stripe-four-failures.svg" alt="A two-by-two grid of four payment failures and the ACID guarantee that stops each: the charge that wasn't (card charged, webhook never queued) which atomicity prevents; the ledger that drifts (two rows stop summing to zero) which consistency prevents; the lost update (two concurrent charges on one balance both read and write it, so one is lost) which isolation prevents; and lost to a crash (a confirmed charge vanishes when the server dies) which durability prevents." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Four ways a payment breaks, and the guarantee that stops each: a partial charge where the card is charged but the webhook never queues (atomicity), a ledger whose two rows stop summing to zero (consistency), two concurrent charges that race on one balance so one update is lost (isolation), and a confirmed charge lost when the server crashes (durability). The full definitions are on the <a href="#/page/Module4-Transactions/acid-properties">ACID Properties</a> page; here each letter is a real way Stripe loses money.</p>
+</div>
+<p>Each failure costs money directly, and each grows <em>more</em> likely as traffic climbs. ACID is the minimum contract that lets a payments system scale from $1 a day to $1 trillion a year without the failure rate scaling with it.</p>
+<hr />
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>A single "charge" is a multi-row transaction.</strong> Card auth, ledger entries, balance update, and webhook queue all have to commit together or none of them.</p>
+</li>
+<li>
+<p><strong>Unreversible side effects go outside the transaction.</strong> Charge the card first (reversible via refund), wrap only Stripe's own writes in the transaction, issue a refund if the transaction fails.</p>
+</li>
+<li>
+<p><strong>ACID guarantees show up in the API.</strong> <code>200 OK</code> only after the log hits disk is durability; a ledger that always balances is consistency; serializable isolation keeps two concurrent charges from clobbering the balance. An idempotency key (an app-level dedup, not isolation) is what stops a double-submit from charging twice.</p>
+</li>
+<li>
+<p><strong>"Is this failure possible with one transaction at a time?"</strong> is the fastest way to tell consistency from isolation. If yes, it's consistency; if it only happens under concurrency, it's isolation.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4-Transactions/transaction-examples">Sample Code: Running Transactions →</a></strong> The next page shows how to write transactions in SQL: four worked <code>BEGIN ... COMMIT</code> examples (ticket purchase, bank transfer, inventory, viral counter) that make ACID concrete.</p>

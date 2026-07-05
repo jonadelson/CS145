@@ -1,0 +1,133 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.325
+Two-phase commit left one weak spot: a single coordinator.
+
+00:00:07.325 --> 00:00:12.650
+Replace it by keeping copies of the data on several machines.
+
+00:00:12.650 --> 00:00:17.975
+But copies only help if they agree, and getting every write onto them, in sync, is the whole problem of this page.
+
+00:00:17.975 --> 00:00:21.703
+Reads are easy, ask any one copy.
+
+00:00:21.703 --> 00:00:25.432
+Writes are the hard part, and option one is the obvious move: send it to all three copies, and wait for every one to confirm.
+
+00:00:25.432 --> 00:00:29.160
+Watch it break.
+
+00:00:29.160 --> 00:00:32.889
+Two replicas acknowledge fast.
+
+00:00:32.889 --> 00:00:36.617
+But the third is slow, or crashed.
+
+00:00:36.617 --> 00:00:40.346
+Since every copy must confirm, the whole write blocks.
+
+00:00:40.346 --> 00:00:44.074
+One dead replica stalls everything, so writing to all has no fault tolerance.
+
+00:00:44.074 --> 00:00:47.563
+Option two fixes it.
+
+00:00:47.563 --> 00:00:51.051
+Instead of writing to all, elect one leader and route every write through it.
+
+00:00:51.051 --> 00:00:54.540
+Two wins.
+
+00:00:54.540 --> 00:00:58.029
+A write is safe once a majority confirms, not all, so a minority can fail.
+
+00:00:58.029 --> 00:01:01.518
+And one leader orders every write, so there is no vote per write.
+
+00:01:01.518 --> 00:01:05.007
+Without a leader, each write needs its own majority round, about two hundred milliseconds.
+
+00:01:05.007 --> 00:01:08.495
+With a leader, fifty.
+
+00:01:08.495 --> 00:01:11.984
+One slow vote buys a million fast writes.
+
+00:01:11.984 --> 00:01:15.295
+How does one vote pick exactly one leader?
+
+00:01:15.295 --> 00:01:18.605
+The majority.
+
+00:01:18.605 --> 00:01:21.916
+A candidate needs more than half the machines, three of five, four of seven.
+
+00:01:21.916 --> 00:01:25.226
+And any two majorities must overlap on at least one machine.
+
+00:01:25.226 --> 00:01:28.537
+That shared machine votes once, so it can never put two candidates over the top.
+
+00:01:28.537 --> 00:01:31.847
+One winner, never two.
+
+00:01:31.847 --> 00:01:35.158
+That is what rules out split-brain.
+
+00:01:35.158 --> 00:01:39.133
+So what happens when the leader dies?
+
+00:01:39.133 --> 00:01:43.108
+In steady state, one leader serves and the followers replicate its log.
+
+00:01:43.108 --> 00:01:47.083
+Then the leader fails, and its heartbeats stop.
+
+00:01:47.083 --> 00:01:51.057
+The first follower to time out becomes a candidate and asks the others for votes.
+
+00:01:51.057 --> 00:01:55.032
+Does it lead yet?
+
+00:01:55.032 --> 00:01:59.007
+It wins a majority, takes over, and resumes heartbeats, about two hundred milliseconds after the crash.
+
+00:01:59.007 --> 00:02:02.982
+The election runs only on failure, not as a routine of stages.
+
+00:02:02.982 --> 00:02:07.347
+The leader now takes every write, and it has to get each one onto the followers.
+
+00:02:07.347 --> 00:02:11.713
+When does it tell the client a write is safe?
+
+00:02:11.713 --> 00:02:16.078
+Synchronous replication waits for a follower to acknowledge before it replies okay.
+
+00:02:16.078 --> 00:02:20.443
+Nothing is lost on a failover, but every write pays a full round trip.
+
+00:02:20.443 --> 00:02:24.808
+Asynchronous replication replies okay immediately and ships the write to the followers later.
+
+00:02:24.808 --> 00:02:29.174
+That is fast.
+
+00:02:29.174 --> 00:02:33.539
+But if the leader crashes, the writes that had not shipped yet are gone.
+
+00:02:33.539 --> 00:02:38.118
+Raft elects one leader by a majority, so thousands of machines act as one, even as machines die.
+
+00:02:38.118 --> 00:02:42.697
+The leader then replicates to its followers, synchronously for zero loss, or asynchronously for speed.
+
+00:02:42.697 --> 00:02:47.276
+But all of it leans on the network.
+
+00:02:47.276 --> 00:02:51.855
+When the network splits, you cannot always reach a majority or a fresh copy.
+
+00:02:51.855 --> 00:02:56.434
+That tradeoff is next.

@@ -1,0 +1,63 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="smd-t smd-d">
+  <title id="smd-t">One machine: compute is free, the link is the bottleneck</title>
+  <desc id="smd-d">Two single-machine setups side by side, a laptop and a server, each drawn as a vertical data path: compute (CPU plus GPU) at the top, then RAM, then SSD storage at the bottom, joined by links. Compute is grey because it is effectively free: a GPU does hundreds of trillions of operations per second. RAM has a red strip because it is volatile, lost on power off. The SSD has a green strip because it is durable, it survives. The links are orange because that is the bottleneck: the PCIe bus feeds the GPU at only about 32 GB/s and an SSD reads at about 5 GB/s. The server has more cores, more RAM, and many SSDs, but each link runs at the same speed, so scaling adds capacity, not bandwidth. Color key: orange is a data-movement link, the bottleneck; grey is compute, effectively free; red is RAM, volatile; green is the SSD, durable.</desc>
+  <defs><marker id="ah-smd" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#EA580C"/></marker></defs>
+
+  <text x="600" y="40" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">One machine: compute is free, the link is the bottleneck</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">Laptop or server, the GPU outruns every link that feeds it.</text>
+
+  <!-- LAPTOP -->
+  <text x="320" y="104" text-anchor="middle" style="font-size:17px;font-weight:700;fill:#0E0E10;">Laptop</text>
+
+  <rect x="140" y="120" width="360" height="92" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="140" y="120" width="360" height="6" rx="3" fill="#6B7280"/>
+  <text x="320" y="152" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">Compute: 8 CPU cores + GPU</text>
+  <text x="320" y="176" text-anchor="middle" style="font-size:14px;fill:#6B7280;">~10 TFLOPS</text>
+  <text x="320" y="196" text-anchor="middle" style="font-size:14px;fill:#6B7280;">does the math in ~0 time</text>
+
+  <line x1="320" y1="212" x2="320" y2="256" stroke="#EA580C" stroke-width="2" marker-end="url(#ah-smd)"/>
+  <text x="332" y="238" style="font-size:14px;font-weight:700;fill:#EA580C;">memory bus ~50 GB/s</text>
+
+  <rect x="180" y="262" width="280" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="180" y="262" width="280" height="6" rx="3" fill="#DC2626"/>
+  <text x="320" y="296" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">RAM</text>
+  <text x="320" y="318" text-anchor="middle" style="font-size:14px;fill:#3F3F46;">16 GB · volatile</text>
+
+  <line x1="320" y1="334" x2="320" y2="370" stroke="#EA580C" stroke-width="2" marker-end="url(#ah-smd)"/>
+  <text x="332" y="356" style="font-size:14px;font-weight:700;fill:#EA580C;">SSD link ~5 GB/s</text>
+
+  <rect x="180" y="374" width="280" height="76" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="180" y="374" width="280" height="6" rx="3" fill="#059669"/>
+  <text x="320" y="408" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">1 &#215; NVMe SSD</text>
+  <text x="320" y="430" text-anchor="middle" style="font-size:14px;fill:#3F3F46;">1 TB · durable</text>
+
+  <!-- SERVER -->
+  <text x="880" y="104" text-anchor="middle" style="font-size:17px;font-weight:700;fill:#0E0E10;">Server</text>
+
+  <rect x="700" y="120" width="360" height="92" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="700" y="120" width="360" height="6" rx="3" fill="#6B7280"/>
+  <text x="880" y="152" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">Compute: 64 CPU cores + A100 GPU</text>
+  <text x="880" y="176" text-anchor="middle" style="font-size:14px;fill:#6B7280;">312 TFLOPS, GPU memory ~2 TB/s</text>
+  <text x="880" y="196" text-anchor="middle" style="font-size:14px;fill:#6B7280;">starves waiting for data</text>
+
+  <line x1="880" y1="212" x2="880" y2="256" stroke="#EA580C" stroke-width="2" marker-end="url(#ah-smd)"/>
+  <text x="892" y="238" style="font-size:14px;font-weight:700;fill:#EA580C;">PCIe bus ~32 GB/s</text>
+
+  <rect x="740" y="262" width="280" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="740" y="262" width="280" height="6" rx="3" fill="#DC2626"/>
+  <text x="880" y="296" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">RAM</text>
+  <text x="880" y="318" text-anchor="middle" style="font-size:14px;fill:#3F3F46;">512 GB · volatile</text>
+
+  <line x1="880" y1="334" x2="880" y2="370" stroke="#EA580C" stroke-width="2" marker-end="url(#ah-smd)"/>
+  <text x="892" y="356" style="font-size:14px;font-weight:700;fill:#EA580C;">SSD link ~5 GB/s each</text>
+
+  <rect x="740" y="374" width="280" height="76" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="740" y="374" width="280" height="6" rx="3" fill="#059669"/>
+  <text x="880" y="408" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">8 &#215; NVMe SSD</text>
+  <text x="880" y="430" text-anchor="middle" style="font-size:14px;fill:#3F3F46;">16 TB · durable</text>
+
+  <text x="600" y="492" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">Reading 1 TB across the PCIe link to the GPU: ~30 s. The computation on it: ~0.</text>
+  <text x="600" y="518" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">A server adds capacity and devices, never link speed. Same bottleneck, laptop or rack.</text>
+
+  <text x="600" y="580" text-anchor="middle" style="font-size:14px;"><tspan style="fill:#0E0E10;font-weight:700;">Color key&#160;&#160;</tspan><tspan style="fill:#EA580C;font-weight:700;">orange</tspan><tspan style="fill:#3F3F46;"> = a link, the bottleneck&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#6B7280;font-weight:700;">grey</tspan><tspan style="fill:#3F3F46;"> = compute, ~free&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#DC2626;font-weight:700;">red</tspan><tspan style="fill:#3F3F46;"> = RAM, volatile&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#059669;font-weight:700;">green</tspan><tspan style="fill:#3F3F46;"> = SSD, durable</tspan></text>
+</svg>

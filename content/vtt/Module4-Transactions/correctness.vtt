@@ -1,0 +1,346 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.505
+The naive ways both failed.
+
+00:00:06.505 --> 00:00:11.009
+Serial ran one transaction at a time, correct but far too slow.
+
+00:00:11.009 --> 00:00:15.514
+Drop all coordination and the data corrupts.
+
+00:00:15.514 --> 00:00:20.019
+The fix is to interleave for speed and still land on a correct result, the same one some one-at-a-time order would give.
+
+00:00:20.019 --> 00:00:24.523
+But which interleavings are correct?
+
+00:00:24.523 --> 00:00:29.028
+One property answers it, conflict-serializability, and the test is a graph with no cycle.
+
+00:00:29.028 --> 00:00:32.901
+First, the vocabulary.
+
+00:00:32.901 --> 00:00:36.774
+An action is a single reed or write of one row.
+
+00:00:36.774 --> 00:00:40.647
+The notation is compact.
+
+00:00:40.647 --> 00:00:44.520
+T1 dot R of A means transaction T1 reeds row A.
+
+00:00:44.520 --> 00:00:48.394
+T1 dot W of A means T1 writes row A.
+
+00:00:48.394 --> 00:00:52.267
+And a transaction is just a sequence of these.
+
+00:00:52.267 --> 00:00:56.140
+Here, T1 reeds A, then writes A, then reeds B.
+
+00:00:56.140 --> 00:01:00.013
+Blue marks a reed, orange marks a write, and the transaction name rides in front, so you always know who did what.
+
+00:01:00.013 --> 00:01:03.886
+One rule to remember.
+
+00:01:03.886 --> 00:01:07.759
+Correctness tracks only the order of these actions, never the values they compute.
+
+00:01:07.759 --> 00:01:11.563
+One swap is easy to judge.
+
+00:01:11.563 --> 00:01:15.367
+But a real interleaving makes hundreds of swaps at once, so is the whole thing still correct?
+
+00:01:15.367 --> 00:01:19.170
+Three building blocks.
+
+00:01:19.170 --> 00:01:22.974
+A serial schedule runs one transaction to completion, then the next, with no overlap.
+
+00:01:22.974 --> 00:01:26.778
+An interleaved schedule mixes their actions in time, which is faster.
+
+00:01:26.778 --> 00:01:30.582
+A serializable schedule is an interleaving whose final state matches what some serial run would have produced.
+
+00:01:30.582 --> 00:01:34.386
+That is the prize.
+
+00:01:34.386 --> 00:01:38.190
+Serial behavior at interleaved speed.
+
+00:01:38.190 --> 00:01:41.993
+And notice the word some.
+
+00:01:41.993 --> 00:01:45.797
+The database only has to match some valid serial outcome, any one will do.
+
+00:01:45.797 --> 00:01:49.601
+So serializable is not the same as serial.
+
+00:01:49.601 --> 00:01:53.475
+To judge an interleaving, the database hunts for conflicts.
+
+00:01:53.475 --> 00:01:57.350
+A conflict is two transactions, the same row, at least one a write.
+
+00:01:57.350 --> 00:02:01.225
+Start with the safe case.
+
+00:02:01.225 --> 00:02:05.099
+Two reeds on the same row never conflict, because reeds change nothing.
+
+00:02:05.099 --> 00:02:08.974
+The other three pairs all conflict.
+
+00:02:08.974 --> 00:02:12.848
+A reed then a write, a write then a reed, or two writes.
+
+00:02:12.848 --> 00:02:16.722
+The value an action sees or leaves behind depends on the order.
+
+00:02:16.722 --> 00:02:20.597
+That taxonomy is the whole input to the graph.
+
+00:02:20.597 --> 00:02:24.730
+Now the test, in three steps.
+
+00:02:24.730 --> 00:02:28.863
+One, a node for every transaction.
+
+00:02:28.863 --> 00:02:32.996
+Two, a directed edge for every conflict, pointing the way the order must go.
+
+00:02:32.996 --> 00:02:37.130
+Three, look for a cycle.
+
+00:02:37.130 --> 00:02:41.263
+No cycle, and a serial order respects every edge, so the schedule is conflict-serializable.
+
+00:02:41.263 --> 00:02:45.396
+A cycle, and two edges demand opposite orders, so no order works, and it is not conflict-serializable.
+
+00:02:45.396 --> 00:02:49.529
+Let us run it on a real schedule.
+
+00:02:49.529 --> 00:02:53.650
+A concert booking, two counters.
+
+00:02:53.650 --> 00:02:57.772
+Counter A holds the VIP seats at ten, Counter B the general seats at twenty-two.
+
+00:02:57.772 --> 00:03:01.893
+Three transactions book at once, T1, T2, T3.
+
+00:03:01.893 --> 00:03:06.015
+The target after they commit, nine and twenty.
+
+00:03:06.015 --> 00:03:09.777
+This is your first schedule, so read it with me.
+
+00:03:09.777 --> 00:03:13.538
+Each row is one action, in time order, with five columns: who acts, reed or write, which counter, the step, and the value after.
+
+00:03:13.538 --> 00:03:17.300
+Now follow it down, one row at a time.
+
+00:03:17.300 --> 00:03:21.061
+First, T1 reeds Counter A, which holds ten.
+
+00:03:21.061 --> 00:03:24.823
+Then T1 writes Counter A down to nine.
+
+00:03:24.823 --> 00:03:28.585
+Next, T2 reeds Counter A.
+
+00:03:28.585 --> 00:03:32.346
+It reeds Counter B.
+
+00:03:32.346 --> 00:03:36.108
+And it writes Counter B to twenty-one.
+
+00:03:36.108 --> 00:03:39.870
+Finally, T3 reeds Counter B, then writes it to twenty.
+
+00:03:39.870 --> 00:03:43.631
+Every transaction ran start to finish, so the brackets on the left show three clean blocks.
+
+00:03:43.631 --> 00:03:47.393
+That blocked shape is what serial looks like.
+
+00:03:47.393 --> 00:03:51.154
+The counters end at nine and twenty, and nothing ran in parallel.
+
+00:03:51.154 --> 00:03:54.916
+This is the baseline every interleaving has to beat.
+
+00:03:54.916 --> 00:03:59.111
+Even this serial run has conflicts.
+
+00:03:59.111 --> 00:04:03.306
+List every pair of actions that touch the same row.
+
+00:04:03.306 --> 00:04:07.501
+T1 writes A, then T2 reeds it, an edge from T1 to T2.
+
+00:04:07.501 --> 00:04:11.696
+T2 writes B, then T3 writes it, an edge from T2 to T3.
+
+00:04:11.696 --> 00:04:15.891
+The conflict graph from those edges has no cycle.
+
+00:04:15.891 --> 00:04:20.086
+Topological sort hands back T1, then T2, then T3, exactly the order we ran.
+
+00:04:20.086 --> 00:04:23.680
+Now interleave them.
+
+00:04:23.680 --> 00:04:27.275
+Schedule S1 prime mixes actions from all three transactions in time, hopping between them.
+
+00:04:27.275 --> 00:04:30.869
+Same actions as the serial run, just shuffled.
+
+00:04:30.869 --> 00:04:34.464
+It also lands on A equals nine, B equals twenty.
+
+00:04:34.464 --> 00:04:38.058
+The question is whether the shuffle broke anything.
+
+00:04:38.058 --> 00:04:42.019
+Build the conflict graph for S1 prime.
+
+00:04:42.019 --> 00:04:45.979
+Here T2 touches A before T1 does, so the edge runs from T2 to T1, the opposite direction from the serial run.
+
+00:04:45.979 --> 00:04:49.940
+T2 still writes B before T3, an edge from T2 to T3.
+
+00:04:49.940 --> 00:04:53.901
+The graph has no cycle.
+
+00:04:53.901 --> 00:04:57.862
+Topological sort gives a valid serial order, T2, then T1, then T3.
+
+00:04:57.862 --> 00:05:01.822
+Conflict-serializable.
+
+00:05:01.822 --> 00:05:05.783
+Faster than serial, still provably safe.
+
+00:05:05.783 --> 00:05:10.829
+Schedule S2 prime is the same three transactions under a different interleaving.
+
+00:05:10.829 --> 00:05:15.876
+It adds a second write on B and reorders the actions in a way that looks reasonable.
+
+00:05:15.876 --> 00:05:20.922
+To see whether it is safe, build its conflict graph and watch the shape.
+
+00:05:20.922 --> 00:05:24.890
+The conflict graph for S2 prime starts the same way.
+
+00:05:24.890 --> 00:05:28.858
+T2 grabs A before T1, an edge from T2 to T1.
+
+00:05:28.858 --> 00:05:32.826
+T2 writes B before T3 reeds it, an edge from T2 to T3.
+
+00:05:32.826 --> 00:05:36.794
+But now watch.
+
+00:05:36.794 --> 00:05:40.762
+T3 writes B before T2 reeds it later, an edge from T3 to T2.
+
+00:05:40.762 --> 00:05:44.730
+T2 must come before T3, and T3 must come before T2.
+
+00:05:44.730 --> 00:05:48.698
+That is a cycle.
+
+00:05:48.698 --> 00:05:52.666
+No serial order satisfies both, so S2 prime is not conflict-serializable.
+
+00:05:52.666 --> 00:05:56.634
+The shuffle broke the one thing the serial run had for free, a single consistent order.
+
+00:05:56.634 --> 00:05:59.919
+You have watched the test rule on two schedules.
+
+00:05:59.919 --> 00:06:03.204
+Now see why it works.
+
+00:06:03.204 --> 00:06:06.489
+Take this small interleaved schedule, and look at T1, in violet.
+
+00:06:06.489 --> 00:06:09.773
+Its two actions sit apart, with a T2 action wedged between them.
+
+00:06:09.773 --> 00:06:13.058
+The whole goal is to swap neighbours and slide T1's actions together into one block, then T2's into the next.
+
+00:06:13.058 --> 00:06:16.343
+That is a serial schedule.
+
+00:06:16.343 --> 00:06:19.628
+The catch.
+
+00:06:19.628 --> 00:06:22.913
+You can only swap a pair that does not conflict.
+
+00:06:22.913 --> 00:06:26.198
+Check the neighbouring pairs here.
+
+00:06:26.198 --> 00:06:29.483
+The middle pair touches different rows, so it swaps freely.
+
+00:06:29.483 --> 00:06:32.768
+Make that one swap, and T1 is one block, T2 is the next.
+
+00:06:32.768 --> 00:06:36.052
+Serial, T1 then T2.
+
+00:06:36.052 --> 00:06:39.337
+So the rule is simple.
+
+00:06:39.337 --> 00:06:42.622
+A schedule slides to serial exactly when its conflict graph has no cycle.
+
+00:06:42.622 --> 00:06:45.907
+A cycle is a knot the swaps can never undo.
+
+00:06:45.907 --> 00:06:50.868
+Step back and see the full landscape of schedules.
+
+00:06:50.868 --> 00:06:55.830
+The outermost ring holds every serializable schedule, anything equivalent to some serial run.
+
+00:06:55.830 --> 00:07:00.791
+Inside it sits the conflict-serializable class, the one our cycle test draws.
+
+00:07:00.791 --> 00:07:05.752
+Smaller still are the locking protocols built next in this section, starting with two-phase locking.
+
+00:07:05.752 --> 00:07:10.714
+And tighter again, strict two-phase locking.
+
+00:07:10.714 --> 00:07:15.675
+Each ring sits strictly inside the next, so a protocol only ever produces schedules already known safe.
+
+00:07:15.675 --> 00:07:18.703
+Conflict-serializability is the gold standard for a correct interleaving.
+
+00:07:18.703 --> 00:07:21.731
+We now know what correct means.
+
+00:07:21.731 --> 00:07:24.758
+How does a database deliver it while staying fast?
+
+00:07:24.758 --> 00:07:27.786
+A lock manager.
+
+00:07:27.786 --> 00:07:30.814
+Next, the locks stack and the lock manager.

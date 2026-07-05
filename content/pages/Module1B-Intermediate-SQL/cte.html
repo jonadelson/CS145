@@ -1,0 +1,160 @@
+<h1>CTEs: Common Table Expressions</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A CTE (<code>WITH name AS (...)</code>) names an intermediate query result so the rest of the query can reference it like a table.</p>
+<p><strong>Intuition.</strong> Find the users who listen to Rock by naming the steps: a <code>RockSongs</code> CTE lists the Rock song ids, a <code>RockListeners</code> CTE finds who played them, then the final query reads their names. Each step is a named table you reference, instead of nesting one subquery inside another.</p>
+</div>
+<p><strong>Goal:</strong> Identify users who listen to Rock genre songs.</p>
+<p><a id="cte-two-forms"></a></p>
+<div style="width: 100%; max-width: 1200px; margin: 2rem auto;">
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/cte-hero.svg" style="width:100%;height:auto;display:block;" alt="A before-and-after. The left panel (red, the problem) shows three subqueries nested inside one another, read inside-out and hard to debug. The right panel (green, the better way) shows the same logic as three named CTE steps read top to bottom: RockSongs returns {3,4,5,9}, RockListeners returns {1,2,3}, the final query returns {Mickey, Minnie, Daffy}. Color key: red is the hard-to-read nested way, green is the clear CTE way, grey is a neutral step label, and the ink target marks the takeaway."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A CTE turns nested chaos into named, linear steps. Left (red): subqueries nested inside one another, read inside-out and hard to debug. Right (green): the same logic as named steps read top to bottom. Same result, far easier to follow.</p>
+</div>
+</div>
+<h2>Why CTEs?</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/why-cte.svg" style="width:100%;height:auto;display:block;" alt="Three reasons databases made CTEs first-class. One, readable: each step is a named block read top to bottom. Two, optimizer-friendly: the engine can reason about and optimize each named block on its own. Three, recursion: a CTE can reference itself to walk org charts, trees, and dependency graphs."></p>
+</div>
+<ul>
+<li>
+<p><strong>Comparable to functions in Python/Java</strong> - Named, reusable computations defined before the outer SELECT that uses them.</p>
+</li>
+<li>
+<p><strong>Linear to read</strong> - top to bottom, like steps in a recipe.</p>
+</li>
+<li>
+<p><strong>Debug intermediate steps</strong> - test each CTE on its own.</p>
+</li>
+<li>
+<p><strong>Reusable</strong> - reference the same CTE multiple times.</p>
+</li>
+<li>
+<p><strong>Recursion support</strong> for hierarchical data (a unique feature of CTEs).</p>
+</li>
+</ul>
+<h2>Simple CTE: HighRatedSongs</h2>
+<pre><code><span class="sql-comment">-- Step 1: WITH names a result you can reuse</span>
+<span class="sql-keyword">WITH</span> HighRatedSongs <span class="sql-keyword">AS</span> (
+    <span class="sql-keyword">SELECT</span> song_id, <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+    <span class="sql-keyword">GROUP BY</span> song_id
+    <span class="sql-keyword">HAVING</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>
+)
+<span class="sql-comment">-- Step 2: the outer query reads it by name</span>
+<span class="sql-keyword">SELECT</span> s.title, h.avg_rating
+<span class="sql-keyword">FROM</span> HighRatedSongs h
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">ON</span> h.song_id <span class="sql-operator">=</span> s.song_id
+</code></pre>
+<p><a id="simple-cte-result"></a></p>
+<div class="side-by-side">
+<div><p><strong>HighRatedSongs CTE</strong></p>
+<table>
+<thead>
+<tr><th>song_id</th><th>avg_rating</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td>2</td><td>4.6</td><td class="annotation">Song 2: (4.2 + 4.7 + 4.9) / 3 = 4.6 &gt; 4.0</td></tr><tr><td>7</td><td>4.6</td><td class="annotation">Song 7: Single rating 4.6 &gt; 4.0</td></tr>
+</tbody>
+</table></div><div><p><strong>Final Output</strong></p>
+<table>
+<thead>
+<tr><th>title</th><th>avg_rating</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td>Willow</td><td>4.6</td><td class="annotation">From HighRatedSongs CTE</td></tr><tr><td>Yellow Submarine</td><td>4.6</td><td class="annotation">From HighRatedSongs CTE</td></tr>
+</tbody>
+</table></div>
+</div>
+<ul>
+<li>
+<p>CTE calculates averages first, then filters.</p>
+</li>
+<li>
+<p>Only songs 2 and 7 pass the &gt;4.0 threshold.</p>
+</li>
+<li>
+<p>Main query joins CTE with Songs for titles.</p>
+</li>
+</ul>
+<hr />
+<h2>Multiple CTEs: User Statistics</h2>
+<pre><code><span class="sql-comment">-- Step 1: count every user's listens</span>
+<span class="sql-keyword">WITH</span> UserListenCounts <span class="sql-keyword">AS</span> (
+    <span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> listen_count
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+    <span class="sql-keyword">GROUP BY</span> user_id
+),
+<span class="sql-comment">-- Step 2: average only their 4+ ratings</span>
+UserHighRatings <span class="sql-keyword">AS</span> (
+    <span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> high_avg, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> high_count
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+    <span class="sql-keyword">WHERE</span> rating &gt;<span class="sql-operator">=</span> <span class="sql-number">4.0</span>
+    <span class="sql-keyword">GROUP BY</span> user_id
+)
+<span class="sql-comment">-- Step 3: join both CTEs back to Users</span>
+<span class="sql-keyword">SELECT</span> u.name, lc.listen_count, hr.high_avg, hr.high_count
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">LEFT JOIN</span> UserListenCounts lc <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> lc.user_id
+<span class="sql-keyword">LEFT JOIN</span> UserHighRatings hr <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> hr.user_id
+</code></pre>
+<p><strong>Note:</strong> These could be combined using CASE statements (e.g., <code>COUNT(CASE WHEN rating &gt;= 4.0 THEN 1 END)</code>), but separating them is clearer: each CTE has one purpose, filtering logic is obvious, and it demonstrates how multiple CTEs work together.</p>
+<p><a id="multi-cte-result"></a></p>
+<div class="side-by-side cols-3">
+<div><p><strong>UserListenCounts CTE</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>listen_count</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>3</td><td class="annotation">Mickey has 3 listens</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>3</td><td class="annotation">Minnie has 3 listens</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>3</td><td class="annotation">Daffy has 3 listens</td></tr>
+</tbody>
+</table></div><div><p><strong>UserHighRatings CTE</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>high_avg</th><th>high_count</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>4.35</td><td>2</td><td class="annotation">Mickey: (4.5 + 4.2) / 2</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>4.65</td><td>2</td><td class="annotation">Minnie: (4.7 + 4.6) / 2</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>4.9</td><td>1</td><td class="annotation">Daffy: Only 4.9 &gt;= 4.0</td></tr>
+</tbody>
+</table></div><div><p><strong>Final Output</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>name</th><th>listen_count</th><th>high_avg</th><th>high_count</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>Mickey</td><td>3</td><td>4.35</td><td>2</td></tr><tr><td class="color-bar orange"></td><td>Minnie</td><td>3</td><td>4.65</td><td>2</td></tr><tr><td class="color-bar purple"></td><td>Daffy</td><td>3</td><td>4.9</td><td>1</td></tr><tr><td class="color-bar cyan"></td><td>Pluto</td><td><span class="null-value">NULL</span></td><td><span class="null-value">NULL</span></td><td><span class="null-value">NULL</span></td></tr>
+</tbody>
+</table></div>
+</div>
+<ul>
+<li>
+<p>Two CTEs with different purposes: all listens vs high ratings only.</p>
+</li>
+<li>
+<p>UserHighRatings filters to ratings &gt;= 4.0 before aggregating.</p>
+</li>
+<li>
+<p>Main query combines both CTEs with LEFT JOINs.</p>
+</li>
+<li>
+<p>Pluto gets NULL values (no listens to count).</p>
+</li>
+</ul>
+<hr />
+<h2>Common Patterns</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/cte-patterns.svg" style="width:100%;height:auto;display:block;" alt="Three CTE patterns and performance notes. A reusable named step: a CTE names a result you reference several times in one query, instead of repeating the subquery. Index the join keys: a CTE result joins back on source columns, so index those base-table columns. Materialized or inlined: whether the engine computes the CTE once (MATERIALIZED, a reused temp result) or inlines it into the query and may re-run it depends on the database."></p>
+</div>
+<ul>
+<li>
+<p><strong>A reusable named step.</strong> A CTE names a result you can reference several times in one query, instead of repeating the same subquery.</p>
+</li>
+<li>
+<p><strong>Index the join keys.</strong> When a CTE result joins back on source columns, index those columns in the base tables to keep the join fast.</p>
+</li>
+<li>
+<p><strong>Materialized or inlined.</strong> Whether the engine computes a CTE <em>once</em> (materialized into a reused temp result) or <em>folds it into the query</em> (inlined, and possibly re-run) depends on the database. Older engines and <code>WITH ... AS MATERIALIZED</code> force compute-once-and-reuse, which helps when a CTE is expensive and referenced several times; modern defaults (Postgres 12+) often inline it instead, which lets the optimizer push your <code>WHERE</code> filters inside.</p>
+</li>
+</ul>

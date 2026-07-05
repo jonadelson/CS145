@@ -1,0 +1,49 @@
+<svg viewBox="0 0 900 290" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="tp-t tp-d">
+  <title id="tp-t">The same two-phase locking, at every scale</title>
+  <desc id="tp-d">Once the transaction-manager pieces exist, the same protocol stretches three
+  ways. It distributes: one transaction can lock rows on machines in different cities and the
+  manager holds two-phase locking across all of them. It recovers: the recovery manager
+  replays the write-ahead log after a crash so committed work survives. And it scales: stock exchanges and bank ledgers push
+  millions of transactions a second through this exact idea. Color key: violet is the shared
+  two-phase-locking core under all three.</desc>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The same lock, at every scale</text>
+  <text x="450" y="56" text-anchor="middle" font-size="14" fill="#6B7280">One protocol, two-phase locking, at three different operating points.</text>
+
+  <!-- Distributes -->
+  <g data-step="1">
+  <rect x="28" y="84" width="270" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="28" y="84" width="270" height="6" rx="3" fill="#7C3AED"/>
+  <text x="163" y="116" text-anchor="middle" font-size="17" font-weight="700" fill="#7C3AED">Distributes</text>
+  <text x="163" y="146" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">across machines</text>
+  <text x="163" y="174" text-anchor="middle" font-size="13.5" fill="#6B7280">one transaction locks rows in</text>
+  <text x="163" y="192" text-anchor="middle" font-size="13.5" fill="#6B7280">New York, San Francisco, Tokyo,</text>
+  <text x="163" y="210" text-anchor="middle" font-size="13.5" fill="#6B7280">2PL held across all three</text>
+  </g>
+
+  <!-- Recovers -->
+  <g data-step="2">
+  <rect x="315" y="84" width="270" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="315" y="84" width="270" height="6" rx="3" fill="#7C3AED"/>
+  <text x="450" y="116" text-anchor="middle" font-size="17" font-weight="700" fill="#7C3AED">Recovers</text>
+  <text x="450" y="146" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">from a crash</text>
+  <text x="450" y="174" text-anchor="middle" font-size="13.5" fill="#6B7280">the recovery manager replays</text>
+  <text x="450" y="192" text-anchor="middle" font-size="13.5" fill="#6B7280">the write-ahead log, so</text>
+  <text x="450" y="210" text-anchor="middle" font-size="13.5" fill="#6B7280">committed work survives a crash</text>
+  </g>
+
+  <!-- Scales -->
+  <g data-step="3">
+  <rect x="602" y="84" width="270" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="602" y="84" width="270" height="6" rx="3" fill="#7C3AED"/>
+  <text x="737" y="116" text-anchor="middle" font-size="17" font-weight="700" fill="#7C3AED">Scales</text>
+  <text x="737" y="146" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">to millions per second</text>
+  <text x="737" y="174" text-anchor="middle" font-size="13.5" fill="#6B7280">stock exchanges and bank</text>
+  <text x="737" y="192" text-anchor="middle" font-size="13.5" fill="#6B7280">ledgers run the same idea,</text>
+  <text x="737" y="210" text-anchor="middle" font-size="13.5" fill="#6B7280">millions of transactions a second</text>
+  </g>
+
+  <text x="450" y="276" text-anchor="middle" font-size="13"><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the same two-phase-locking core under all three</tspan></text>
+</svg>

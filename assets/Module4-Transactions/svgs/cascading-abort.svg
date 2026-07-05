@@ -1,0 +1,39 @@
+<svg viewBox="0 0 960 312" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ca-t ca-d">
+  <title id="ca-t">Why strict 2PL stops cascading aborts</title>
+  <desc id="ca-d">Two protocols compared. Under regular 2PL, T1 writes x then unlocks
+  it early, T2 reads that uncommitted value, and when T1 aborts, T2 has read a value
+  that never committed and must abort too, a cascading abort. Under strict 2PL, T1
+  holds the lock on x until it commits or aborts, so T2 waits and only ever reads a
+  committed value, and there is no cascade.</desc>
+
+  <text x="480" y="32" text-anchor="middle" font-size="23" font-weight="700" fill="#0E0E10">Why strict 2PL: stop the cascade</text>
+  <text x="480" y="56" text-anchor="middle" font-size="13.5" fill="#6B7280">Releasing a lock early lets another transaction read work you might still undo.</text>
+
+  <!-- Regular 2PL -->
+  <g data-step="1">
+    <rect x="40" y="84" width="420" height="200" rx="9" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+    <rect x="40" y="84" width="420" height="6" rx="3" fill="#DC2626"/>
+    <text x="64" y="116" font-size="13" font-weight="700" fill="#DC2626" letter-spacing="0.5">REGULAR 2PL · RELEASES EARLY</text>
+    <rect x="64" y="130" width="372" height="92" rx="6" fill="#0D1117"/>
+    <text x="80" y="152" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T1: W(x) <tspan fill="#79C0FF">Unl(x)</tspan>  <tspan fill="#8B949E">releases early</tspan></text>
+    <text x="80" y="174" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T2: Get(x) R(x)  <tspan fill="#8B949E">reads uncommitted x</tspan></text>
+    <text x="80" y="202" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T1: <tspan fill="#DC2626" font-weight="700">ABORT</tspan></text>
+    <text x="64" y="250" font-size="13.5" font-weight="700" fill="#DC2626">T2 read a value that never committed.</text>
+    <text x="64" y="271" font-size="13" fill="#3F3F46">T2 must abort too: a cascading abort.</text>
+  </g>
+
+  <!-- Strict 2PL -->
+  <g data-step="2">
+    <rect x="500" y="84" width="420" height="200" rx="9" fill="#FFFFFF" stroke="#16A34A" stroke-width="1.5"/>
+    <rect x="500" y="84" width="420" height="6" rx="3" fill="#16A34A"/>
+    <text x="524" y="116" font-size="13" font-weight="700" fill="#16A34A" letter-spacing="0.5">STRICT 2PL · HOLDS TO COMMIT</text>
+    <rect x="524" y="130" width="372" height="92" rx="6" fill="#0D1117"/>
+    <text x="540" y="152" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T1: W(x)  <tspan fill="#8B949E">holds the lock</tspan></text>
+    <text x="540" y="174" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#8B949E">T2: [waits]</text>
+    <text x="540" y="202" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T1: ABORT <tspan fill="#79C0FF">Unl(x)</tspan>  T2: R(x) <tspan fill="#16A34A">ok</tspan></text>
+    <text x="524" y="250" font-size="13.5" font-weight="700" fill="#16A34A">T2 only ever reads committed values.</text>
+    <text x="524" y="271" font-size="13" fill="#3F3F46">No one builds on work that gets undone. No cascade.</text>
+  </g>
+</svg>

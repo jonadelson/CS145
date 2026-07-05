@@ -1,0 +1,27 @@
+<h1>Transaction Manager: The Architecture</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A Transaction Manager is the orchestrator that runs scheduling, locking, write-ahead logging, deadlock detection, and recovery as one cooperating system, making thousands of concurrent transactions look like each ran alone, with the database in a consistent state at every moment.</p>
+<p><strong>Intuition.</strong> When Mickey buys Premium while Minnie updates her profile and Daffy adds a song, the TM routes each one through the <strong>scheduler</strong> (interleave for throughput), the <strong>lock manager</strong> (block them only on rows they share), the <strong>WAL</strong> (log every change before it touches the data), and, if the server crashes, the <strong>recovery manager</strong> (replay committed work, roll back the rest). One coherent execution, four cooperating components, ACID preserved.</p>
+</div>
+<p>You assembled these pieces at the close of the Transactions module, in <a href="#/page/Module4-Transactions/connecting-together">Connecting It All Together</a>. This page is the reference architecture: the whole Transaction Manager in one diagram. The next page runs it: <a href="#/page/Module4C-End-to-End-TM/tm-three-transactions">Three Transactions</a> traces a concrete execution. Recovery itself, the two-pass algorithm, you saw in the <a href="#/page/Module4B-Crash-Recovery/recovery-postcrash">last section</a>.</p>
+<h2>The Architecture</h2>
+<p><a id="tm-arch-fig"></a></p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/tm-architecture.svg" alt="Transaction Manager architecture: User Transactions enter the TM (Scheduler, Lock Manager, Write-Ahead Log, Deadlock Detector, Recovery Manager) and a consistent ACID Database State comes out." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Five components, one guarantee. The scheduler keeps the interleaving conflict-serializable (Consistency); the lock manager enforces 2PL with O(1) hash lookups (Isolation); the WAL logs every change before the data page moves (Durability); the deadlock detector watches the waits-for graph and aborts a victim on a cycle; the recovery manager runs Analysis, REDO, and UNDO after a crash (Atomicity). Together they turn concurrent transactions into one consistent state.</p>
+</div>
+<p style="text-align:center; font-size:0.92rem; color:#3F3F46;">Jump to a component: <a href="#/page/Module4-Transactions/correctness">Scheduler</a> · <a href="#/page/Module4-Transactions/db-locks-2pl">Lock Manager</a> · <a href="#/page/Module4B-Crash-Recovery/recovery-wal">Write-Ahead Log</a> · <a href="#/page/Module4-Transactions/micro">Deadlock Detector</a> · <a href="#/page/Module4B-Crash-Recovery/recovery-postcrash">Recovery Manager</a></p>
+
+<h2>Five Components, Four Firing</h2>
+<p><a id="tm-walkthrough"></a></p>
+<p>Watch the components run together on a no-conflict trace. Mickey buys Premium, Minnie updates her profile, and Daffy adds a song, all at the same instant. Because the three touch different tuples, the deadlock detector has nothing to do: five components, four firing.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/tm-walkthrough.svg" alt="Three transactions on different tuples (Mickey blue, Minnie orange, Daffy violet) flow through the Scheduler, Lock Manager, and Write-Ahead Log; the Deadlock Detector stays grey and idle; the Recovery Manager stands by; the result is one consistent committed state." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> One coherent execution. The scheduler routes each transaction to a thread, the lock manager grants all three locks with no waiting (the rows do not overlap), and the WAL logs every change before its commit becomes durable. The deadlock detector stays quiet because there is no waits-for cycle, and the recovery manager only acts if the server crashes. ACID preserved.</p>
+</div>
+<hr />
+<h2>Why It Scales</h2>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/tm-scaling.svg" alt="Out of about 1000 concurrent transactions, ~980 touch independent rows (green) and never wait; only 10 to 20 actually conflict (amber). Three design choices keep this cheap: O(1) hash lock checks, a sequential WAL, and separation of concerns. The takeaway: a million transactions per second on commodity hardware." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Most transactions never touch the same row, so most never wait. Out of roughly a thousand concurrent transactions, only ten to twenty actually conflict. A hash table makes each lock check O(1), the WAL turns scattered updates into one sequential stream, and each component does one job behind a tiny interface. That separation of concerns is what lets a database run a million transactions per second on commodity hardware.</p>
+</div>

@@ -1,0 +1,77 @@
+<h1>Data Security: Trust No One</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Zero Trust assumes every layer (the network, users, admins, code, and backups) is already compromised, so the system <strong>verifies every request</strong> instead of trusting any boundary. The database holds the crown jewels (PII), so a single unverified path is a breach.</p>
+<p><strong>Intuition.</strong> The 2024 mega-breaches were not exotic. National Public Data left plaintext database passwords in an exposed file; Change Healthcare ran a remote portal with no MFA; Snowflake customers reused stolen credentials on accounts without MFA. Each is one trusted surface that should have been verified.</p>
+</div>
+<hr />
+<h2>Three Breaches, Half a Billion Records</h2>
+<p>The vector is almost never a clever zero-day. It is an unpatched library, a plaintext password, or a missing MFA prompt.</p>
+<table>
+<thead>
+<tr>
+<th>Breach</th>
+<th>Year</th>
+<th>Records</th>
+<th>Root cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Equifax</strong></td>
+<td>2017</td>
+<td>148M SSNs</td>
+<td>unpatched Apache Struts bug, pivoted to root on the DB</td>
+</tr>
+<tr>
+<td><strong>National Public Data</strong></td>
+<td>2024</td>
+<td>170M people (2.9B records)</td>
+<td>plaintext DB passwords in an exposed backend file</td>
+</tr>
+<tr>
+<td><strong>Change Healthcare</strong></td>
+<td>2024</td>
+<td>193M medical records</td>
+<td>remote portal with no MFA, then ransomware</td>
+</tr>
+<tr>
+<td><strong>Snowflake / Ticketmaster</strong></td>
+<td>2024</td>
+<td>terabytes exfiltrated</td>
+<td>stolen credentials on cloud accounts without MFA</td>
+</tr>
+</tbody>
+</table>
+<p>The average breach cost $4.88M in 2024 (IBM), and the count rose sharply year over year. Every root cause above is a surface someone trusted instead of verifying.</p>
+<hr />
+<h2>Zero Trust: The Five Surfaces</h2>
+<p><a id="zero-trust-fig"></a></p>
+<p><img src="assets/Module6-Data-Systems/svgs/zero-trust-surfaces.svg" alt="A grey data store holding the database and PII, with five red surfaces below it you must not trust by default: the network (assume compromised), users (assume phished), admins (assume insider threat), code (assume injection), and backups (assume deletable)." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Zero Trust treats every path to the data as hostile until verified. The network can be sniffed, a user can be phished, an admin can turn or be compromised, code can be injected, and backups can be encrypted by ransomware. The defense is not a stronger wall around one of them; it is verifying every request at every surface, plus least privilege, MFA, and immutable backups so no single failure reaches the data.</p>
+</div>
+<hr />
+<h2>Zero Trust DB Checklist (Starter)</h2>
+<table>
+<thead>
+<tr><th>Priority</th><th>Time</th><th class="annotation">Action</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>CRITICAL</strong></td><td>5 min</td><td class="annotation"><strong>Passwords.</strong> Change defaults, set expiry, enforce strong passwords.</td></tr><tr><td><strong>CRITICAL</strong></td><td>1 hour</td><td class="annotation"><strong>Network.</strong> Enable SSL/TLS, limit max connections, restrict connection sources.</td></tr><tr><td><strong>CRITICAL</strong></td><td>10 min</td><td class="annotation"><strong>Least privilege.</strong> <code>REVOKE ALL ON users FROM public;</code> then <code>GRANT SELECT ON users TO analytics_role;</code> and enable Row-Level Security.</td></tr><tr><td><strong>HIGH</strong></td><td>5 min</td><td class="annotation"><strong>Audit logging.</strong> Turn it on.</td></tr><tr><td><strong>HIGH</strong></td><td>45 min</td><td class="annotation"><strong>3-2-1 backups.</strong> 3 copies, 2 storage types, 1 offsite; test restores; keep them immutable against ransomware.</td></tr>
+</tbody>
+</table>
+<hr />
+<h2>SQL Injection: The One Bug That Keeps Winning</h2>
+<p>Injection defense is the clearest case of "verify every input." The classic Bobby Tables attack still works wherever a query is built by string concatenation.</p>
+<p><a id="sql-injection-fig"></a></p>
+<p><img src="assets/Module6-Data-Systems/svgs/sql-injection.svg" alt="The same attacker input Robert'; DROP TABLE users; -- takes two fates: a string-concatenated query splices it in and runs DROP TABLE users (red); a parameterized query binds it as one value, so the database searches for a user with that literal name and drops nothing (green)." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The same input, two outcomes. When the query is built by string concatenation (left), the attacker's quote closes the string and the rest of the input runs as a new command, so <code>DROP TABLE users</code> executes. A parameterized query (right) sends the input separately from the query text, so the database treats the whole string as one value to match, finds no such user, and drops nothing. The fix is mechanical: never concatenate input into SQL, always parameterize.</p>
+</div>
+<hr />
+<h2>Module 6 Capstone: Power Cuts Both Ways</h2>
+<p>In <strong>Module 1</strong> you saw that SQL is powerful: a few declarative <code>SELECT</code> and <code>JOIN</code> statements move enormous amounts of data. Here in <strong>Module 6</strong> you see the other edge. That same power means one mistake, a single concatenated string, lets an attacker turn your query engine against you. SQL injection is just an attacker hijacking your syntax to run their own <code>SELECT</code> and <code>DROP</code>.</p>
+<p>Do not trust the network. Do not trust the user. <strong>Verify every query.</strong></p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/data-privacy">Data Privacy →</a></strong> Security keeps attackers out. Privacy is the harder problem: even data you release on purpose, "anonymized," can still betray the people in it.</p>

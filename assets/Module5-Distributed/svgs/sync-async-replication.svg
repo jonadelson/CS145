@@ -1,0 +1,81 @@
+<svg viewBox="0 0 900 372" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="rep-t rep-d">
+  <title id="rep-t">Synchronous vs asynchronous replication</title>
+  <desc id="rep-d">Two panels, each with a client, a primary, and a replica.
+  Left, synchronous: the primary forwards the write to the replica and waits
+  for the replica's acknowledgement before it replies OK to the client, so no
+  committed write is lost on failover, at the cost of higher latency. Right,
+  asynchronous: the primary replies OK to the client immediately and ships the
+  write to the replica later, so latency is low but the un-shipped tail can be
+  lost if the primary fails. Color key: pink is the acknowledgement the client
+  waits for, grey is the nodes and messages, a dashed line is replication that
+  can lag.</desc>
+  <defs>
+    <marker id="ah-rep" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+      orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+    <marker id="ah-pink" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+      orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#DB2777"/></marker>
+  </defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Synchronous vs asynchronous replication</text>
+  <text x="450" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Wait for the replica (safe, slower) or reply now (fast, can lose the tail).</text>
+
+  <!-- Synchronous panel -->
+  <g data-step="1">
+  <rect x="24" y="80" width="404" height="258" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="24" y="80" width="404" height="6" rx="3" fill="#DB2777"/>
+  <text x="226" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Synchronous</text>
+  <text x="226" y="132" text-anchor="middle" font-size="14" fill="#6B7280">Wait for the replica before replying</text>
+
+  <rect x="44" y="168" width="96" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="92" y="195" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Client</text>
+  <rect x="178" y="168" width="96" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="226" y="195" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Primary</text>
+  <rect x="312" y="168" width="96" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="360" y="195" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Replica</text>
+
+  <line x1="140" y1="182" x2="176" y2="182" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-rep)"/>
+  <text x="158" y="174" text-anchor="middle" font-size="12" fill="#6B7280">1 write</text>
+  <line x1="274" y1="182" x2="310" y2="182" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-rep)"/>
+  <text x="292" y="174" text-anchor="middle" font-size="12" fill="#6B7280">2 copy</text>
+  <line x1="310" y1="200" x2="276" y2="200" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-rep)"/>
+  <text x="292" y="222" text-anchor="middle" font-size="12" fill="#6B7280">3 ack</text>
+  <line x1="176" y1="200" x2="142" y2="200" stroke="#DB2777" stroke-width="2.5" marker-end="url(#ah-pink)"/>
+  <text x="158" y="222" text-anchor="middle" font-size="12" font-weight="700" fill="#DB2777">4 OK</text>
+
+  <text x="226" y="280" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">No committed write lost on failover</text>
+  <text x="226" y="300" text-anchor="middle" font-size="14" fill="#6B7280">Higher write latency (full round trip)</text>
+  </g>
+
+  <!-- divider -->
+  <line x1="450" y1="92" x2="450" y2="326" stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- Asynchronous panel -->
+  <g data-step="2">
+  <rect x="472" y="80" width="404" height="258" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="472" y="80" width="404" height="6" rx="3" fill="#DB2777"/>
+  <text x="674" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Asynchronous</text>
+  <text x="674" y="132" text-anchor="middle" font-size="14" fill="#6B7280">Reply now, ship to the replica later</text>
+
+  <rect x="492" y="168" width="96" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="540" y="195" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Client</text>
+  <rect x="626" y="168" width="96" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="674" y="195" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Primary</text>
+  <rect x="760" y="168" width="96" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="808" y="195" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Replica</text>
+
+  <line x1="588" y1="182" x2="624" y2="182" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-rep)"/>
+  <text x="606" y="174" text-anchor="middle" font-size="12" fill="#6B7280">1 write</text>
+  <line x1="624" y1="200" x2="590" y2="200" stroke="#DB2777" stroke-width="2.5" marker-end="url(#ah-pink)"/>
+  <text x="606" y="222" text-anchor="middle" font-size="12" font-weight="700" fill="#DB2777">2 OK now</text>
+  <line x1="722" y1="191" x2="758" y2="191" stroke="#6B7280" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ah-rep)"/>
+  <text x="740" y="174" text-anchor="middle" font-size="12" fill="#6B7280">3 later</text>
+  <text x="740" y="232" text-anchor="middle" font-size="12" fill="#6B7280">(lag)</text>
+
+  <text x="674" y="280" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Low write latency (no waiting)</text>
+  <text x="674" y="300" text-anchor="middle" font-size="14" fill="#6B7280">Un-shipped tail can be lost on failover</text>
+  </g>
+
+  <text x="450" y="362" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the OK the client waits for&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = nodes &amp; messages&#160;&#160;&#183;&#160;&#160;dashed = replication that can lag</tspan></text>
+</svg>

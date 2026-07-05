@@ -1,0 +1,74 @@
+<h1>Verification: Prove the Result</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Step three: verification. The model generates SQL, and you trust it like any code, handwritten or not, with three tools from software: a <strong>unit test</strong> proves one query is right, a <strong>regression test</strong> proves it stays right, and a <strong>library</strong> lets verified queries compose. All three need code. None of them work in English.</p>
+<p><strong>Intuition.</strong> The debug table is the unit test, the tests you keep are the regression suite, and the verified queries are the library.</p>
+</div>
+<p>The spec is Query B: return only Pluto. Execution got the query to run, but runs ≠ correct, as you've seen. You know the answer to expect, so confirm the query reproduces it: start with one query, by hand, on both readings.</p>
+<h2>Unit Test: One Query</h2>
+<p>The two readings, in SQL:</p>
+<div class="side-by-side">
+<div><h3>Query A: LEFT JOIN Approach</h3>
+<pre><code><span class="sql-comment">-- Attempt: non-Taylor listeners. But this returns all four users, the bug.</span>
+<span class="sql-keyword">SELECT</span> u.user_id, u.name
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">LEFT JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> l.user_id
+<span class="sql-keyword">LEFT JOIN</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">WHERE</span> s.artist <span class="sql-operator">!=</span> <span class="sql-string">'Taylor Swift'</span> <span class="sql-keyword">OR</span> s.artist <span class="sql-keyword">IS</span> <span class="sql-keyword">NULL</span>
+<span class="sql-keyword">GROUP BY</span> u.user_id, u.name
+</code></pre></div><div><h3>Query B: NOT IN Subquery Approach</h3>
+<pre><code><span class="sql-comment">-- Find users who never listened to any Taylor Swift song</span>
+<span class="sql-keyword">SELECT</span> u.user_id, u.name
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">WHERE</span> u.user_id <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (
+    <span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> l.user_id
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l
+    <span class="sql-keyword">JOIN</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+    <span class="sql-keyword">WHERE</span> s.artist <span class="sql-operator">=</span> <span class="sql-string">'Taylor Swift'</span>
+)
+</code></pre>
+<div class="v5-callout v5-callout--warn">
+<p><strong>Reminder.</strong> Beware the <a href="#/page/Module1-SQL/subqueries-basic">NULL in NOT IN trap</a>. Here we are safe because <code>l.user_id</code> cannot be NULL per the <a href="#/page/Module1-SQL/spotify-db">Spotify schema</a>; adding <code>WHERE l.user_id IS NOT NULL</code> is still good defensive practice.</p>
+</div></div>
+</div>
+<p>A <a href="#/page/Module1B-Intermediate-SQL/writing-debug-tables">debug table</a> traces a query the way the engine runs it, one clause at a time, writing the rows after each step. Trace both readings and they diverge, exactly as the spec predicted: Query A keeps all four users, Query B keeps only Pluto.</p>
+<p>Both queries, traced step by step:</p>
+<h3>Query A Execution Trace</h3>
+<p><a id="trace-a"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/verify-trace-a.svg" alt="Query A (LEFT JOIN) traced on one page. The joined plays show Mickey, Minnie, and Daffy each played a Taylor song and a Beatles song; Pluto played nothing. The WHERE clause strikes out the five Taylor rows, but every user still has a surviving row (a Beatles play, or Pluto's NULL), so GROUP BY returns all four users. Keeping the Taylor listeners is the bug." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<h3>Query B Execution Trace</h3>
+<p><a id="trace-b"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/verify-trace-b.svg" alt="Query B (NOT IN) traced on one page. The subquery finds that Mickey, Minnie, and Daffy heard Taylor; Pluto did not. NOT IN strikes out those three Taylor listeners, leaving only Pluto, which is exactly what the spec asked for." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<p>That is a unit test: one query, run against the answer you expected. "Did this LEFT JOIN keep Pluto? Did the GROUP BY count once?" You answer those by running the query and comparing the result.</p>
+<h3>A Query Is a Stack of Tests</h3>
+<p><a id="claim-fig"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/verify-relational-claim.svg"
+     alt="The answer is built by a pipeline of relational operations on the left (blue): schema and definitions, then joins and filters, then GROUP BY and COUNT, then the result. On the right, each layer has a verification question: is this the governed metric, do the right rows survive (Pluto), does it count the right thing, does the number match the result you expected."
+     style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A query is a stack of exact relational operations (blue): a schema and its definitions, then joins and filters, then a GROUP BY and COUNT, then the result. Each one fixes a piece of the meaning, so each is one thing you can test: is this the governed metric, do the right rows survive (the Pluto case), does it count the right thing, does the number match what you expected. You settle each by running the query, not by arguing in English.</p>
+</div>
+<h2>Regression Test: It Stays Right</h2>
+<p>A unit test proves the query is right today. Keep it and re-run it on every change, and it proves the query is <em>still</em> right tomorrow. That is a regression test: if a definition silently shifts, the stored test fails that day, not months later.</p>
+<h2>Library: Verified Queries Compose</h2>
+<p>A verified query is a function, and functions compose. You proved "non-Taylor listeners" returns {Pluto}, so the next question, "weekly active non-Taylor listeners," builds on it, and you verify only the new layer.</p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/verify-compose-library.svg"
+     alt="Three columns of verified SQL blocks (blue, each with a green check). Base metrics on the left (active user, Taylor listener) compose into composed queries in the middle (weekly actives, non-Taylor listeners), which compose into a complex query on the right (weekly active non-Taylor listeners). Arrows run left to right, and each block is verified once and reused."
+     style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Each block is a verified query (blue, green check). Base metrics (active user, Taylor listener) compose into bigger queries (weekly actives, non-Taylor listeners), which compose into a complex one. Every block is verified once and reused, so a new query verifies only its own layer. A library is verified SQL you reuse, which is what the semantic layer provides.</p>
+</div>
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>Unit test.</strong> One query against an expected result. You cannot assert about a join in English.</p>
+</li>
+<li>
+<p><strong>Regression test.</strong> Keep the tests and re-run them, so a definition cannot silently drift.</p>
+</li>
+<li>
+<p><strong>Library.</strong> Verified queries stack into bigger ones, each reused. That library is the semantic layer.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module1B-Intermediate-SQL/case-study-agentic-data-stack">Case Study 1.3: Claude's Agentic Stack →</a></strong> You now have all three steps: precision, execution, verification. Next, a company that runs all three at once, taking a bare model from 21% to 95%.</p>

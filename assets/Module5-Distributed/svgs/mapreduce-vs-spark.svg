@@ -1,0 +1,84 @@
+<svg viewBox="0 0 1100 392" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="mvs-t mvs-d">
+  <title id="mvs-t">Same multi-stage pipeline: MapReduce writes to disk, Spark stays in RAM</title>
+  <desc id="mvs-d">Two panels, same three-stage analytics pipeline (filter to
+  pop, count by user, sort the top). Left, MapReduce runs it as three
+  chained jobs and materializes each job's output to HDFS before the next
+  reads it, about 3 minutes for three disk writes. Right, Spark chains the
+  same three stages into one lazy pipeline that an action triggers and
+  keeps the intermediate RDDs in RAM between stages, about 2 seconds with
+  zero disk writes. The pink elements are the staging medium that sets the speed:
+  the HDFS writes on the left, the RAM pipeline on the right. Color key:
+  pink is the staging medium that sets the speed, grey is the shared
+  operators and structure.</desc>
+  <defs><marker id="ah-mvs" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="550" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Same 3-stage pipeline: MapReduce vs Spark</text>
+  <text x="550" y="58" text-anchor="middle" font-size="14" fill="#6B7280">MapReduce writes to HDFS between every stage; Spark keeps RDDs in memory.</text>
+
+  <!-- MapReduce panel -->
+  <rect x="24" y="80" width="504" height="270" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="276" y="108" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">MapReduce · 3 jobs, 3 disk writes</text>
+
+  <g data-step="1"><rect x="44" y="128" width="170" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="129" y="146" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Job 1: Filter</text>
+  <text x="129" y="163" text-anchor="middle" font-size="14" fill="#6B7280">genre = pop</text>
+  <line x1="216" y1="150" x2="244" y2="150" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mvs)"/>
+  <rect x="248" y="128" width="96" height="44" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="296" y="155" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">HDFS</text>
+
+  </g><g data-step="2"><rect x="44" y="186" width="170" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="129" y="204" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Job 2: Group + count</text>
+  <text x="129" y="221" text-anchor="middle" font-size="14" fill="#6B7280">by user</text>
+  <line x1="216" y1="208" x2="244" y2="208" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mvs)"/>
+  <rect x="248" y="186" width="96" height="44" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="296" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">HDFS</text>
+
+  </g><g data-step="3"><rect x="44" y="244" width="170" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="129" y="262" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Job 3: Sort</text>
+  <text x="129" y="279" text-anchor="middle" font-size="14" fill="#6B7280">top by count</text>
+  <line x1="216" y1="266" x2="244" y2="266" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mvs)"/>
+  <rect x="248" y="244" width="96" height="44" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="296" y="271" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">HDFS</text>
+
+  </g><g data-step="4"><rect x="372" y="184" width="136" height="84" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="440" y="208" text-anchor="middle" font-size="14" fill="#6B7280">Total time</text>
+  <text x="440" y="238" text-anchor="middle" font-size="26" font-weight="700" fill="#0E0E10">~3 min</text>
+  <text x="440" y="256" text-anchor="middle" font-size="14" fill="#6B7280">3 disk writes</text>
+
+  <!-- divider -->
+  </g><line x1="550" y1="92" x2="550" y2="338" stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- Spark panel -->
+  <rect x="572" y="80" width="504" height="270" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="824" y="108" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Spark · 1 pipeline, 0 disk writes</text>
+
+  <g data-step="5"><rect x="592" y="138" width="96" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="640" y="164" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">textFile()</text>
+  <line x1="690" y1="159" x2="716" y2="159" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mvs)"/>
+  <rect x="720" y="138" width="96" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="768" y="164" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">filter()</text>
+  <line x1="818" y1="159" x2="844" y2="159" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mvs)"/>
+  <rect x="848" y="138" width="96" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="896" y="164" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">reduceByKey()</text>
+  <line x1="946" y1="159" x2="972" y2="159" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mvs)"/>
+  <rect x="976" y="138" width="96" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="1024" y="164" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">sortBy()</text>
+
+  </g><g data-step="6"><rect x="592" y="200" width="220" height="44" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="2"/>
+  <text x="702" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">RDDs flow through RAM</text>
+  <text x="702" y="237" text-anchor="middle" font-size="14" fill="#3F3F46">no stage hits disk</text>
+
+  <rect x="592" y="258" width="120" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="652" y="284" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">collect()</text>
+  <text x="595" y="326" font-size="14" fill="#6B7280">collect() is the action that triggers the lazy pipeline</text>
+
+  <rect x="888" y="200" width="172" height="84" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="974" y="224" text-anchor="middle" font-size="14" fill="#6B7280">Total time</text>
+  <text x="974" y="254" text-anchor="middle" font-size="26" font-weight="700" fill="#0E0E10">~2 sec</text>
+  <text x="974" y="272" text-anchor="middle" font-size="14" fill="#6B7280">RDDs in RAM</text>
+
+  </g><text x="550" y="378" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the staging medium that sets the speed&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the shared operators and structure</tspan></text>
+</svg>

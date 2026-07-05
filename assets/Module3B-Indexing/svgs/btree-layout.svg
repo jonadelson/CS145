@@ -1,0 +1,159 @@
+<svg viewBox="0 0 1200 568" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="btree-layout-t btree-layout-d">
+  <title id="btree-layout-t">B+Tree layout on Songs.release_date_since_1970</title>
+  <desc id="btree-layout-d">B+Tree layout on Songs.release_date_since_1970. Data pages on the left hold the rows. The tree on the right has a root node, three internal nodes, and a row of leaf nodes. Leaves store (key, data-page pointer) pairs in sorted order; neighbouring leaves are linked left-to-right so a range scan can walk across them without returning to the root. Color key: green is the index and data pages on disk (persistent), violet is the lookup trace for key 12890.</desc>
+    <defs>
+        <marker id="ar-bt" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <polygon points="0 0, 10 3, 0 6" fill="#6B7280"/>
+        </marker>
+        <marker id="ar-bt-data" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <polygon points="0 0, 10 3, 0 6" fill="#7C3AED"/>
+        </marker>
+    </defs>
+
+    <text x="600" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#0E0E10">B+Tree on Songs.release_date_since_1970</text>
+    <text x="600" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-style="italic" fill="#6B7280">root · internal nodes · leaves sorted and linked for sequential range scans</text>
+
+    <g data-step="1">
+    <text x="130" y="84" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#3F3F46">Data pages</text>
+    <text x="130" y="100" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">hold the rows themselves</text>
+
+    <rect x="40" y="112" width="235" height="68" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="40" y="112" width="235" height="6" rx="6" fill="#059669"/>
+    <text x="52" y="130" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Page 0</text>
+    <text x="52" y="148" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">1: Evermore (4821)</text>
+    <text x="52" y="162" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">2: Willow (4953)</text>
+    <text x="52" y="176" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3: Shape of You (3187)</text>
+
+    <rect x="40" y="192" width="235" height="68" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="40" y="192" width="235" height="6" rx="6" fill="#059669"/>
+    <text x="52" y="210" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Page 1</text>
+    <text x="52" y="228" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">4: Photograph (3245)</text>
+    <text x="52" y="242" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">5: Shivers (3367)</text>
+    <text x="52" y="256" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">6: Yesterday (1523)</text>
+
+    <rect x="40" y="272" width="235" height="68" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="40" y="272" width="235" height="6" rx="6" fill="#059669"/>
+    <text x="52" y="290" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Page 2</text>
+    <text x="52" y="308" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">7: Yellow Submarine (1587)</text>
+    <text x="52" y="322" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">8: Hey Jude (1612)</text>
+    <text x="52" y="336" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">9: Bad Blood (1899)</text>
+
+    <rect x="40" y="352" width="235" height="82" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="40" y="352" width="235" height="6" rx="6" fill="#059669"/>
+    <text x="52" y="370" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Page 3</text>
+    <text x="52" y="388" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">10: Flowers (11234)</text>
+    <text x="52" y="402" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">11: Unholy (11567)</text>
+    <text x="52" y="416" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">12: As It Was (12890)</text>
+    <text x="52" y="430" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13: Heat Waves (13456)</text>
+
+    <rect x="40" y="446" width="235" height="68" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="40" y="446" width="235" height="6" rx="6" fill="#059669"/>
+    <text x="52" y="464" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Page 4</text>
+    <text x="52" y="482" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">15: Blinding Lights (13980)</text>
+    <text x="52" y="496" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">16: Good 4 U (14456)</text>
+    <text x="52" y="510" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">17: Drivers License (14789)</text>
+
+    </g>
+    <g data-step="2">
+    <text x="780" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#3F3F46">B+Tree index</text>
+
+    <rect x="680" y="112" width="200" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="680" y="112" width="200" height="6" rx="6" fill="#059669"/>
+    <text x="780" y="132" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Root</text>
+    <text x="710" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">5000</text>
+    <text x="780" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">15000</text>
+    <text x="850" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">25000</text>
+
+    </g>
+    <g data-step="3">
+    <line x1="695" y1="166" x2="510" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ar-bt)"/>
+    <text x="590" y="192" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#6B7280">&lt; 5000</text>
+
+    <line class="trace" x1="745" y1="166" x2="780" y2="210" stroke="#7C3AED" stroke-width="3" marker-end="url(#ar-bt-data)"/>
+    <text x="758" y="190" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#7C3AED">5000–14999</text>
+
+    <line x1="815" y1="166" x2="1050" y2="210" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ar-bt)"/>
+    <text x="932" y="192" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#6B7280">15000–24999</text>
+
+    <rect x="420" y="218" width="180" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="420" y="218" width="180" height="6" rx="6" fill="#059669"/>
+    <text x="510" y="238" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Internal</text>
+    <text x="445" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">1900</text>
+    <text x="510" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3000</text>
+    <text x="575" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">4000</text>
+
+    <rect x="690" y="218" width="180" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="690" y="218" width="180" height="6" rx="6" fill="#059669"/>
+    <text x="780" y="238" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Internal</text>
+    <text x="715" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">11234</text>
+    <text x="780" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">13789</text>
+    <text x="850" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">14456</text>
+
+    <rect x="960" y="218" width="180" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="960" y="218" width="180" height="6" rx="6" fill="#059669"/>
+    <text x="1050" y="238" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Internal</text>
+    <text x="985" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">17000</text>
+    <text x="1050" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">20000</text>
+    <text x="1120" y="260" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">22000</text>
+
+    </g>
+    <g data-step="4">
+    <line x1="432" y1="272" x2="340" y2="320" stroke="#6B7280" stroke-width="1" marker-end="url(#ar-bt)"/>
+    <line x1="542" y1="272" x2="480" y2="320" stroke="#6B7280" stroke-width="1" marker-end="url(#ar-bt)"/>
+    <line class="trace" x1="747" y1="272" x2="760" y2="320" stroke="#7C3AED" stroke-width="3" marker-end="url(#ar-bt-data)"/>
+    <line x1="815" y1="272" x2="920" y2="320" stroke="#6B7280" stroke-width="1" marker-end="url(#ar-bt)"/>
+    <line x1="860" y1="272" x2="1070" y2="320" stroke="#6B7280" stroke-width="1" marker-end="url(#ar-bt)"/>
+
+    <text x="690" y="316" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">Leaf nodes · (key, data-page pointer), sorted</text>
+
+    <rect x="280" y="328" width="120" height="80" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="280" y="328" width="120" height="6" rx="6" fill="#059669"/>
+    <text x="340" y="346" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Leaf · &lt; 1900</text>
+    <text x="290" y="364" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">1523 → Pg 1</text>
+    <text x="290" y="378" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">1587 → Pg 2</text>
+    <text x="290" y="392" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">1612 → Pg 2</text>
+
+    <rect x="420" y="328" width="120" height="80" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="420" y="328" width="120" height="6" rx="6" fill="#059669"/>
+    <text x="480" y="346" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Leaf · 3000–3999</text>
+    <text x="430" y="364" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3187 → Pg 0</text>
+    <text x="430" y="378" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3245 → Pg 1</text>
+    <text x="430" y="392" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3367 → Pg 1</text>
+
+    <rect x="560" y="328" width="120" height="80" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="620" y="346" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">Leaf</text>
+    <text x="620" y="380" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">…</text>
+
+    <rect x="700" y="328" width="140" height="80" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="700" y="328" width="140" height="6" rx="6" fill="#059669"/>
+    <text x="770" y="346" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Leaf · 11234–13788</text>
+    <text x="710" y="364" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">11234 → Pg 3</text>
+    <text x="710" y="378" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">12890 → Pg 3</text>
+    <text x="710" y="392" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13456 → Pg 3</text>
+
+    <rect x="850" y="328" width="140" height="80" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="850" y="328" width="140" height="6" rx="6" fill="#059669"/>
+    <text x="920" y="346" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Leaf · 13789–14455</text>
+    <text x="860" y="364" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13789 → Pg 3</text>
+    <text x="860" y="378" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13980 → Pg 4</text>
+
+    <rect x="1000" y="328" width="140" height="80" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="1000" y="328" width="140" height="6" rx="6" fill="#059669"/>
+    <text x="1070" y="346" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Leaf · ≥ 14456</text>
+    <text x="1010" y="364" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">14456 → Pg 4</text>
+    <text x="1010" y="378" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">14789 → Pg 4</text>
+
+    <line x1="400" y1="368" x2="420" y2="368" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ar-bt)"/>
+    <line x1="540" y1="368" x2="560" y2="368" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ar-bt)"/>
+    <line x1="680" y1="368" x2="700" y2="368" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ar-bt)"/>
+    <line x1="840" y1="368" x2="850" y2="368" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ar-bt)"/>
+    <line x1="990" y1="368" x2="1000" y2="368" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ar-bt)"/>
+    <text x="690" y="430" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">← leaves linked for sequential scans →</text>
+
+    </g>
+    <g data-step="5">
+    <line class="trace" x1="700" y1="378" x2="280" y2="412" stroke="#7C3AED" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ar-bt-data)"/>
+    <text x="490" y="396" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#7C3AED">leaf points to its data page</text>
+    </g>
+    <text x="600" y="548" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = index and data pages on disk, persistent&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the lookup trace for key 12890</tspan></text>
+</svg>

@@ -1,0 +1,258 @@
+{
+  "module": "Module6-Data-Systems",
+  "title": "Patterns of Big Data Systems",
+  "cards": [
+    {
+      "id": "m6-c01",
+      "front": "What are Module 6's three problems of real data systems?",
+      "back": "<strong>Scale</strong> (data outgrows one machine, spread it across a cluster), <strong>Architecture</strong> (structure — relational/JSONB/vector, one stack or many — dictates capability), and <strong>Trust</strong> (data is a liability: keep attackers out, keep people anonymous).",
+      "page": "Module6-Data-Systems/section1a-intro",
+      "tags": ["architecture", "overview"]
+    },
+    {
+      "id": "m6-c02",
+      "front": "What database setup should a typical startup launch with, and why?",
+      "back": "One managed single-node PostgreSQL (RDS/Cloud SQL/Azure). It gives ACID guarantees out of the gate, and the real early risk is corrupting your first users' data, not running out of scale — 95% of apps never exceed a single node.",
+      "page": "Module6-Data-Systems/db-design-startup",
+      "tags": ["startup", "postgres"]
+    },
+    {
+      "id": "m6-c03",
+      "front": "When a single Postgres instance strains under load, what is the first scaling move (before sharding)?",
+      "back": "Add <strong>read replicas</strong>: copies of the database that serve reads while the single primary keeps taking every write. Most apps read far more than they write, so this carries you well past 100K daily users.",
+      "page": "Module6-Data-Systems/db-design-startup",
+      "tags": ["replication", "scaling"]
+    },
+    {
+      "id": "m6-c04",
+      "front": "What is replica lag, and what is the \"read-your-writes\" exception?",
+      "back": "Replication is asynchronous, so a replica can miss a write that just committed on the primary. Usually fine (stale follower count) — but when a user must see their own just-saved edit, route that specific read back to the primary.",
+      "page": "Module6-Data-Systems/db-design-startup",
+      "tags": ["replication", "consistency"]
+    },
+    {
+      "id": "m6-c05",
+      "front": "Name companies that scaled to huge outcomes on plain SQL databases.",
+      "back": "Instagram ($1B exit) and WhatsApp (900M users) on PostgreSQL; Notion still on Postgres + replicas; Stack Overflow serves 1.3B pageviews/month on 4 SQL Servers.",
+      "page": "Module6-Data-Systems/db-design-startup",
+      "tags": ["startup", "case-studies"]
+    },
+    {
+      "id": "m6-c06",
+      "front": "Why use a JSONB column in Postgres instead of standing up a NoSQL document store?",
+      "back": "JSONB gives a flexible document schema <em>plus</em> ACID transactions and joins in the same engine — one node carries an MVP well past the point most teams think they need MongoDB.",
+      "page": "Module6-Data-Systems/sql-beyond-tables",
+      "tags": ["jsonb", "postgres"]
+    },
+    {
+      "id": "m6-c07",
+      "front": "How does SQL handle a \"find users within 5 km\" query?",
+      "back": "With a geo function as an ordinary WHERE predicate: <code>WHERE ST_DWITHIN(u.location, ST_GEOGPOINT(lon, lat), 5000)</code>. The engine handles the spherical geometry; the query shape stays SELECT/FROM/WHERE.",
+      "page": "Module6-Data-Systems/sql-beyond-tables",
+      "tags": ["geo", "sql-functions"]
+    },
+    {
+      "id": "m6-c08",
+      "front": "What is the difference between a UDF and a UDAF?",
+      "back": "A UDF (user-defined function, e.g. <code>viralScore</code>) runs per row; a UDAF runs over a group for custom aggregations like a weighted average. Define once, call like a built-in in any query.",
+      "page": "Module6-Data-Systems/sql-beyond-tables",
+      "tags": ["udf", "sql-functions"]
+    },
+    {
+      "id": "m6-c09",
+      "front": "How has SQL absorbed new data types each decade?",
+      "back": "By adding functions, not a new language: dates/binary (90s), XML/spatial (2000s), JSON/arrays (2010s), vectors/geo/LLM calls (2020s). The SELECT/FROM/WHERE shape never changed.",
+      "page": "Module6-Data-Systems/sql-beyond-tables",
+      "tags": ["sql", "history"]
+    },
+    {
+      "id": "m6-c10",
+      "front": "What are the three systems in a big-tech data stack?",
+      "back": "<strong>OLTP</strong> for user-facing writes (sub-100 ms, e.g. Postgres), <strong>OLAP</strong> for analytics over billions of rows (e.g. BigQuery), and an <strong>ETL/CDC</strong> pipeline that moves data from the first to the second.",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "tags": ["oltp", "olap", "architecture"]
+    },
+    {
+      "id": "m6-c11",
+      "front": "Why not run heavy analytics on the live OLTP database? (Hint: it's not locks.)",
+      "back": "MVCC means the scan takes no blocking row locks. The real issue is resource contention: the scan saturates CPU and disk I/O, pollutes the cache by evicting hot pages, and holds a snapshot open that stalls VACUUM so the database bloats.",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "tags": ["oltp", "olap", "mvcc"]
+    },
+    {
+      "id": "m6-c12",
+      "front": "Why does an OLAP warehouse scan 5 TB in seconds when one Postgres node would take hours?",
+      "back": "Parallelism. One machine scanning 1 TB at 5 GB/s takes 200 s; 100 machines each scanning 10 GB take 2 s. Same total work, 100x faster.",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "tags": ["olap", "parallelism"]
+    },
+    {
+      "id": "m6-c13",
+      "front": "ETL vs ELT — what's the difference?",
+      "back": "ETL (Extract, Transform, Load) cleans data <em>before</em> loading, in daily batches (Spark + Airflow). ELT loads raw data into the lake first and transforms later (dbt), so analytics teams reshape data on demand.",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "tags": ["etl", "pipelines"]
+    },
+    {
+      "id": "m6-c14",
+      "front": "What is Change Data Capture (CDC) and why does it beat periodic batch pulls?",
+      "back": "CDC tails the database's write-ahead log and publishes each committed change as an event (via Kafka). It adds almost no load to the primary, drops latency from hours to seconds, and propagates deletes — which a batch SELECT can never see.",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "tags": ["cdc", "kafka", "wal"]
+    },
+    {
+      "id": "m6-c15",
+      "front": "Trace the complete big-tech data flow from user click to dashboard.",
+      "back": "Users → API → PostgreSQL (OLTP handles clicks) → Kafka (carries events reliably) → Spark (ETL transforms) → BigQuery (OLAP answers \"what's trending?\") → Dashboards.",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "tags": ["architecture", "pipelines"]
+    },
+    {
+      "id": "m6-c16",
+      "front": "How has the SQL vs NoSQL choice \"flipped twice\"?",
+      "back": "First flip: data outgrew one machine, so teams dropped SQL's ACID for NoSQL's horizontal scale. Second flip: distributed SQL plus JSONB/vector columns gave the scale back without giving up SQL, so most workloads returned (e.g. Pinterest leaving HBase, Spanner becoming a SQL system).",
+      "page": "Module6-Data-Systems/case-study-nosql",
+      "tags": ["nosql", "history"]
+    },
+    {
+      "id": "m6-c17",
+      "front": "What is the \"one table, three worlds\" pattern in modern SQL?",
+      "back": "One row combines standard columns (user_id, name — the 80%), a JSONB column (flexible preferences, add a field with no migration — the \"NoSQL\" part), and a vector column (AI embedding taste profile — the \"AI\" part).",
+      "page": "Module6-Data-Systems/case-study-nosql",
+      "tags": ["jsonb", "vectors", "sql"]
+    },
+    {
+      "id": "m6-c18",
+      "front": "In the 2026 view, when does an ultra-specialized database genuinely win over modern SQL?",
+      "back": "Two narrow cases: key-value stores for sub-millisecond lookups (e.g. Spotify lyrics), and graph databases when relationships like \"friend of a friend\" matter more than the data itself. Otherwise, start with SQL.",
+      "page": "Module6-Data-Systems/case-study-nosql",
+      "tags": ["nosql", "specialization"]
+    },
+    {
+      "id": "m6-c19",
+      "front": "What is the data model of a key-value store?",
+      "back": "An opaque key maps straight to a blob — no schema, joins, or constraints. Lookup by key is one fast hop; anything richer (integrity, relationships) is the application's job.",
+      "page": "Module6-Data-Systems/case-study-keyvalue",
+      "tags": ["key-value"]
+    },
+    {
+      "id": "m6-c20",
+      "front": "How does Spotify store huge media files while keeping lookups fast?",
+      "back": "The file sits in a distributed file system like S3, and a key-value store acts as the index: <code>key = song_id, value = S3-location</code>. Structured facts (who played what, when) stay in SQL.",
+      "page": "Module6-Data-Systems/case-study-keyvalue",
+      "tags": ["key-value", "blobs"]
+    },
+    {
+      "id": "m6-c21",
+      "front": "In Cassandra, what do the partition key and clustering columns each control?",
+      "back": "The partition key is hashed to decide <em>which node</em> stores the rows (all rows sharing it live together); clustering columns decide the <em>physical sort order within</em> that partition, so rows are stored ready to read in order.",
+      "page": "Module6-Data-Systems/case-study-keyvalue",
+      "tags": ["cassandra", "wide-column"]
+    },
+    {
+      "id": "m6-c22",
+      "front": "Why is \"this user's 20 most recent plays\" a cheap query in a wide-column store like Cassandra?",
+      "back": "With <code>PRIMARY KEY ((user_id), played_at)</code> clustered DESC, all of one user's plays live in a single partition sorted newest-first — one node reads the first 20 rows and stops. No scatter-gather, no global sort.",
+      "page": "Module6-Data-Systems/case-study-keyvalue",
+      "tags": ["cassandra", "data-modeling"]
+    },
+    {
+      "id": "m6-c23",
+      "front": "SQL vs key-value store: compare querying and integrity.",
+      "back": "SQL: rich querying (joins, aggregations, filters) and high integrity (constraints, transactions). Key-value: given a key, return the value — flexible schema but low integrity; the app must handle it.",
+      "page": "Module6-Data-Systems/case-study-keyvalue",
+      "tags": ["key-value", "tradeoffs"]
+    },
+    {
+      "id": "m6-c24",
+      "front": "What is the core assumption of Zero Trust security?",
+      "back": "Every layer — network, users, admins, code, backups — is already compromised, so the system verifies every request instead of trusting any boundary. One unverified path to the PII is a breach.",
+      "page": "Module6-Data-Systems/data-security",
+      "tags": ["zero-trust", "security"]
+    },
+    {
+      "id": "m6-c25",
+      "front": "What actually caused the 2017-2024 mega-breaches (Equifax, National Public Data, Change Healthcare, Snowflake)?",
+      "back": "Nothing exotic: an unpatched library (Equifax), plaintext DB passwords in an exposed file, a remote portal with no MFA, and stolen credentials on accounts without MFA. Each was one trusted surface that should have been verified.",
+      "page": "Module6-Data-Systems/data-security",
+      "tags": ["security", "breaches"]
+    },
+    {
+      "id": "m6-c26",
+      "front": "How do parameterized queries stop SQL injection?",
+      "back": "The input is sent separately from the query text and bound as one literal value, so <code>Robert'; DROP TABLE users; --</code> is just a weird name to search for, not code to run. Never build queries by string concatenation.",
+      "page": "Module6-Data-Systems/data-security",
+      "tags": ["sql-injection", "security"]
+    },
+    {
+      "id": "m6-c27",
+      "front": "What is the 3-2-1 backup rule, and what extra property defends against ransomware?",
+      "back": "Keep 3 copies of the data, on 2 storage types, with 1 offsite — and test restores. Backups must also be <strong>immutable</strong> so ransomware can't encrypt or delete them.",
+      "page": "Module6-Data-Systems/data-security",
+      "tags": ["backups", "security"]
+    },
+    {
+      "id": "m6-c28",
+      "front": "What is a quasi-identifier and a linkage attack?",
+      "back": "Quasi-identifiers are rare combinations of non-name attributes (movie + rating + date; DOB + gender + ZIP). A linkage attack joins \"anonymized\" data to public data on those attributes to re-identify people — how Netflix ratings were matched to IMDB reviews.",
+      "page": "Module6-Data-Systems/data-privacy",
+      "tags": ["privacy", "linkage-attack"]
+    },
+    {
+      "id": "m6-c29",
+      "front": "How unique is your data? (three course statistics)",
+      "back": "About 8 movie ratings with dates: ~99% unique. DOB + gender + ZIP: identifies 87% of Americans. Just 4 locations: 95% unique. Your data is a fingerprint even without your name.",
+      "page": "Module6-Data-Systems/data-privacy",
+      "tags": ["privacy", "re-identification"]
+    },
+    {
+      "id": "m6-c30",
+      "front": "What does epsilon (ε) control in differential privacy?",
+      "back": "The privacy budget: lower ε means more noise and more privacy. ε=10 (±1-2% noise) suits internal analytics; ε=1.0 research datasets; ε=0.1 (±100%) public release. Calibrated noise keeps aggregate trends accurate while no single person changes the answer much.",
+      "page": "Module6-Data-Systems/data-privacy",
+      "tags": ["differential-privacy", "epsilon"]
+    },
+    {
+      "id": "m6-c31",
+      "front": "How does the k-anonymity pattern look in SQL?",
+      "back": "Generalize attributes, then require a minimum group size: <code>SELECT age_group, zip_prefix, COUNT(*) FROM users GROUP BY age_group, zip_prefix HAVING COUNT(*) &gt;= 5;</code> — no released group describes fewer than k people.",
+      "page": "Module6-Data-Systems/data-privacy",
+      "tags": ["k-anonymity", "privacy"]
+    },
+    {
+      "id": "m6-c32",
+      "front": "Name the three key data-privacy regulations and one key requirement of each.",
+      "back": "GDPR (EU citizens): data stays in the EU or adequate countries, fines up to 4% of revenue. CCPA (California): right to delete personal data, $7,500/violation. HIPAA (healthcare): protect electronic health records, $2M + criminal charges.",
+      "page": "Module6-Data-Systems/data-privacy",
+      "tags": ["privacy", "regulation"]
+    },
+    {
+      "id": "m6-c33",
+      "front": "In the COVID mobility reports, how could an attacker re-identify \"Bob\" from anonymized data, and what stopped it?",
+      "back": "Knowing Bob was off work one day, a single testing-center visit that day in the data would pinpoint him if unique. Google added differential-privacy noise to location counts (100 might publish as 98 or 103), so no individual stands out while trends stay accurate.",
+      "page": "Module6-Data-Systems/case-study-privacy",
+      "tags": ["differential-privacy", "case-studies"]
+    },
+    {
+      "id": "m6-c34",
+      "front": "Why did the industry flip from ETL to ELT in the 2020s?",
+      "back": "Storage got dirt cheap (BigQuery under $10/TB/month), and raw data is your most valuable asset: land it in a cheap bucket first, transform with SQL later, and if cleaning logic has a bug, just re-run from the raw source. Store first, ask questions later.",
+      "page": "Module6-Data-Systems/sql-trends",
+      "tags": ["elt", "economics"]
+    },
+    {
+      "id": "m6-c35",
+      "front": "Why split storage from compute (the Apache Iceberg / data lake model)?",
+      "back": "Coupled clusters bill always-on CPU/RAM 24/7 just to hold files. Decoupled: raw data sits in cheap object storage (S3) that scales for pennies, and expensive compute spins up only for the minutes a query runs — each scales independently.",
+      "page": "Module6-Data-Systems/sql-trends",
+      "tags": ["storage-compute", "economics"]
+    },
+    {
+      "id": "m6-c36",
+      "front": "What is the \"ORM scale wall\"?",
+      "back": "ORMs (e.g. SQLAlchemy) turn objects into rows with no SQL, which wins at startup speed — but at scale the hidden details fire redundant queries and can cause silent failures that corrupt data. Learn raw SQL first, then choose where an ORM still pays.",
+      "page": "Module6-Data-Systems/sql-trends",
+      "tags": ["orm", "tradeoffs"]
+    }
+  ]
+}

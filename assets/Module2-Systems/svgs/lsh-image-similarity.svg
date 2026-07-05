@@ -1,0 +1,80 @@
+<svg viewBox="0 0 1200 588" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="lsh-image-similarity-t lsh-image-similarity-d">
+  <title id="lsh-image-similarity-t">LSH: similar items hash to the same bucket</title>
+  <desc id="lsh-image-similarity-d">Four items become feature vectors, then k random hyperplanes turn each vector into a sign-bit code, then a bucket. Cat 1 and Cat 2 are similar so both get code 1011 and bucket 11 (orange, the focus pair); Dog gets bucket 9 and Car bucket 4 (grey). A query for items similar to Cat scans only bucket 11. Color key: orange is the similar pair in focus, grey is the other items.</desc>
+  <text x="600" y="40" text-anchor="middle" style="font-size: 24px; font-weight: 700; fill: #0E0E10;">LSH: similar items land in the same bucket</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size: 14px; fill: #6B7280;">k random hyperplanes turn each vector into a sign-bit code, then a bucket</text>
+
+  <!-- STEP 1: the items -->
+  <g data-step="1">
+  <text x="70" y="100" style="font-size: 15px; font-weight: 700; fill: #0E0E10;">Item</text>
+  <rect x="70" y="116" width="210" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="70" y="116" width="6" height="74" rx="3" fill="#EA580C"/>
+  <text x="92" y="160" style="font-size: 16px; font-weight: 700; fill: #EA580C;">Cat 1</text>
+  <rect x="70" y="206" width="210" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="70" y="206" width="6" height="74" rx="3" fill="#EA580C"/>
+  <text x="92" y="250" style="font-size: 16px; font-weight: 700; fill: #EA580C;">Cat 2</text>
+  <rect x="70" y="296" width="210" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="70" y="296" width="6" height="74" rx="3" fill="#6B7280"/>
+  <text x="92" y="340" style="font-size: 16px; font-weight: 700; fill: #3F3F46;">Dog</text>
+  <rect x="70" y="386" width="210" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="70" y="386" width="6" height="74" rx="3" fill="#6B7280"/>
+  <text x="92" y="430" style="font-size: 16px; font-weight: 700; fill: #3F3F46;">Car</text>
+  </g>
+
+  <!-- STEP 2: each item becomes a feature vector -->
+  <g data-step="2">
+  <text x="300" y="100" style="font-size: 15px; font-weight: 700; fill: #0E0E10;">Feature vector</text>
+  <text x="288" y="158" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="288" y="248" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="288" y="338" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="288" y="428" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <rect x="300" y="116" width="300" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="318" y="160" font-family="JetBrains Mono, monospace" style="font-size: 14px; fill: #3F3F46;">[0.8, 0.7, 0.9, ...]</text>
+  <rect x="300" y="206" width="300" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="318" y="250" font-family="JetBrains Mono, monospace" style="font-size: 14px; fill: #3F3F46;">[0.7, 0.8, 0.8, ...]</text>
+  <rect x="300" y="296" width="300" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="318" y="340" font-family="JetBrains Mono, monospace" style="font-size: 14px; fill: #3F3F46;">[0.3, 0.9, 0.2, ...]</text>
+  <rect x="300" y="386" width="300" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="318" y="430" font-family="JetBrains Mono, monospace" style="font-size: 14px; fill: #3F3F46;">[0.1, 0.0, 0.5, ...]</text>
+  </g>
+
+  <!-- STEP 3: the vector becomes a short code -->
+  <g data-step="3">
+  <text x="630" y="100" style="font-size: 15px; font-weight: 700; fill: #0E0E10;">k-bit LSH code</text>
+  <text x="608" y="158" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="608" y="248" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="608" y="338" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="608" y="428" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <rect x="630" y="116" width="200" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="730" y="160" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">1011</text>
+  <rect x="630" y="206" width="200" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="730" y="250" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">1011</text>
+  <rect x="630" y="296" width="200" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="730" y="340" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">1001</text>
+  <rect x="630" y="386" width="200" height="74" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="730" y="430" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">0100</text>
+  </g>
+
+  <!-- STEP 4: the code picks a bucket; the two cats share bucket 11 -->
+  <g data-step="4">
+  <text x="860" y="100" style="font-size: 15px; font-weight: 700; fill: #0E0E10;">Bucket</text>
+  <text x="838" y="158" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="838" y="248" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="838" y="338" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <text x="838" y="428" style="font-size: 16px; fill: #6B7280;">&#8594;</text>
+  <rect x="860" y="116" width="260" height="74" fill="#FFFFFF" stroke="#EA580C" stroke-width="2" rx="8"/>
+  <rect x="860" y="116" width="260" height="6" rx="3" fill="#EA580C"/>
+  <text x="990" y="160" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #EA580C;">Bucket 11</text>
+  <rect x="860" y="206" width="260" height="74" fill="#FFFFFF" stroke="#EA580C" stroke-width="2" rx="8"/>
+  <rect x="860" y="206" width="260" height="6" rx="3" fill="#EA580C"/>
+  <text x="990" y="250" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #EA580C;">Bucket 11</text>
+  <rect x="860" y="296" width="260" height="74" fill="#FFFFFF" stroke="#6B7280" stroke-width="1" rx="8"/>
+  <text x="990" y="340" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #3F3F46;">Bucket 9</text>
+  <rect x="860" y="386" width="260" height="74" fill="#FFFFFF" stroke="#6B7280" stroke-width="1" rx="8"/>
+  <text x="990" y="430" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #3F3F46;">Bucket 4</text>
+  </g>
+
+  <rect x="70" y="482" width="1050" height="48" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <text x="92" y="512" style="font-size: 14px;"><tspan fill="#0E0E10" font-weight="700">Query &#8220;find items similar to Cat&#8221;:</tspan><tspan fill="#3F3F46">&#160; scan only bucket 11 &#8594; find Cat 2; never compare against Dog or Car</tspan></text>
+  <text x="600" y="560" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = the similar pair in focus&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the other items</tspan></text>
+</svg>

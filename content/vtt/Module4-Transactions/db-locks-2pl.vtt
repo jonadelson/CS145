@@ -1,0 +1,106 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.947
+A lock protects one row.
+
+00:00:05.947 --> 00:00:09.895
+But a transaction holds many locks across its life.
+
+00:00:09.895 --> 00:00:13.842
+Release one early, and another transaction slips into the gap and reads work you might still undo.
+
+00:00:13.842 --> 00:00:17.790
+The rule that prevents that is two-phase locking.
+
+00:00:17.790 --> 00:00:21.623
+Locks are the primitive.
+
+00:00:21.623 --> 00:00:25.457
+The protocol for when to acquire and release them is two-phase locking.
+
+00:00:25.457 --> 00:00:29.290
+The rule is two sentences.
+
+00:00:29.290 --> 00:00:33.123
+Growing phase, you may acquire locks, but release none.
+
+00:00:33.123 --> 00:00:36.957
+Shrinking phase, you may release locks, but acquire none.
+
+00:00:36.957 --> 00:00:40.790
+The first release flips growing to shrinking, and you can never acquire again.
+
+00:00:40.790 --> 00:00:44.624
+The chart plots the number of locks held against time.
+
+00:00:44.624 --> 00:00:48.457
+Up the staircase through the growing phase, lock by lock.
+
+00:00:48.457 --> 00:00:52.290
+Hold at the peak, everything the transaction will ever need.
+
+00:00:52.290 --> 00:00:56.124
+Then down through the shrinking phase, one release at a time.
+
+00:00:56.124 --> 00:00:59.957
+That single rule earns the conflict-serializability we proved, with no schedule to check.
+
+00:00:59.957 --> 00:01:04.880
+Strict two-phase locking, S 2 PL, takes the rule one step further.
+
+00:01:04.880 --> 00:01:09.802
+Release no locks at all during execution.
+
+00:01:09.802 --> 00:01:14.725
+The growing phase climbs as before, but the shrinking phase is a single drop at the very end, when the transaction commits.
+
+00:01:14.725 --> 00:01:19.647
+Reed the chart the same way, number of locks on the y axis, time on the x.
+
+00:01:19.647 --> 00:01:24.570
+Locks rise, then plateau through the body of the transaction, then fall to zero in one step at COMMIT.
+
+00:01:24.570 --> 00:01:29.492
+Why the stricter version?
+
+00:01:29.492 --> 00:01:34.415
+Because of a problem that only shows up if you release locks early.
+
+00:01:34.415 --> 00:01:37.677
+That problem is the cascading abort.
+
+00:01:37.677 --> 00:01:40.940
+Under regular two-phase locking, T1 writes a row and unlocks early.
+
+00:01:40.940 --> 00:01:44.202
+T2 reeds that uncommitted value and builds on it.
+
+00:01:44.202 --> 00:01:47.465
+Then T1 aborts.
+
+00:01:47.465 --> 00:01:50.727
+T2 has to abort too, because it trusted work that never happened.
+
+00:01:50.727 --> 00:01:53.989
+One abort cascades into another.
+
+00:01:53.989 --> 00:01:57.252
+Strict 2 PL prevents this by construction.
+
+00:01:57.252 --> 00:02:00.514
+Nobody reeds your work until you have committed it.
+
+00:02:00.514 --> 00:02:03.793
+Two-phase locking earns the conflict-serializability we proved, just by the rule.
+
+00:02:03.793 --> 00:02:07.071
+Strict 2 PL ships in Postgres and Oracle.
+
+00:02:07.071 --> 00:02:10.350
+But locks add one new risk.
+
+00:02:10.350 --> 00:02:13.628
+Two transactions each waiting on the other forever.
+
+00:02:13.628 --> 00:02:16.907
+Next, microschedules and deadlock.

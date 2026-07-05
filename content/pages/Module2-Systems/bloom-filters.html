@@ -1,0 +1,90 @@
+<h1>Bloom Filters</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A Bloom filter is a bit array hashed by k functions. It answers "definitely not in the set" or "probably in the set" in constant time, using about 10 bits per item (far less than a hash set), with no false negatives.</p>
+<p><strong>Intuition.</strong> A Bloom filter over <code>Listens.song_id</code> fits in a few KB at this scale. Before reading any page, ask the filter "is song X here?" If it says no, skip the page. If it says maybe, do the real read. That skips the page read for almost every true miss.</p>
+</div>
+<h2>Space-efficient probabilistic data structure</h2>
+<p><strong>Tells you "definitely not in set" or "maybe in set".</strong></p>
+<hr />
+<h2>Visual: How Bloom Filters Work</h2>
+<p><a id="bloom-figure"></a></p>
+<p><img src="assets/Module2-Systems/svgs/bloom-filter.svg" alt="A 16-bit array; bits 3, 7, 9, 11, and 14 are set (orange), the rest are unset (white). INSERT &quot;alice&quot; hashes to bits 3, 7, 14 and sets them. LOOKUP &quot;bob&quot; hashes to bits 3, 9, 2; bit 2 is 0, so &quot;bob&quot; is definitely not in the set. Color key: orange is a set bit, grey is an unset bit, green is a guaranteed answer." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A Bloom filter is a 16-bit array plus <code>k = 3</code> hash functions. INSERT "alice" hashes to bits 3, 7, and 14 and sets them (orange), alongside bits 9 and 11 already set by earlier inserts the figure does not show. LOOKUP "bob" hashes to bits 3, 9, and 2; <code>bit[2] = 0</code> guarantees "bob" is not in the set (green). That asymmetry is the whole point: any 0 bit means definitely not in the set, while all 1s means only probably in, so false positives are possible but false negatives never are.</p>
+<p>The false-positive rate is <code>p &#8776; (1 &#8722; e<sup>&#8722;kn/m</sup>)<sup>k</sup></code>, minimized at <code>k = (m/n) &#183; ln 2</code>. At about 10 bits per item with optimal <code>k &#8776; 7</code> the rate is about 1%, so a billion-item filter needs only ~1.25 GB of bits, versus tens of GB for an equivalent in-memory hash set. That space saving, at the cost of a small false-positive rate, is why Bloom filters guard expensive lookups.</p>
+</div>
+<hr />
+<h2>Problem-Solving Applications</h2>
+<p>For detailed examples of how Bloom filters solve real-world problems at scale, see the <a href="#/page/Module2-Systems/data-structures-problem-solving">Data Structures Problem Solving</a> guide, which covers:</p>
+<ul>
+<li>
+<p><strong>CDN Cache Optimization (Cloudflare)</strong>: How Cloudflare uses Bloom Filters to prevent "One-Hit Wonder" files (assets requested only once) from ever being written to their SSD caching layer. This intercepts billions of useless IO write operations, preventing physical hardware degradation of their global SSDs (tying back to our Storage Hierarchy constraints).</p>
+</li>
+<li>
+<p><strong>Web Crawler Efficiency</strong>: How Google and Bing prevent duplicate page crawling</p>
+</li>
+<li>
+<p><strong>Real-time Username Validation</strong>: How social platforms provide instant availability feedback</p>
+</li>
+</ul>
+<hr />
+<h2>Optional</h2>
+<div class="v5-callout v5-callout--info">
+<pre style="font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;">
+<strong style="color: #6B7280;">// Bloom Filter - 20 lines that save 10x space</strong>
+class BloomFilter:
+    bits = BitArray(size=m)      <em style="color: #6b7280;">// m bits, all 0</em>
+    k = 3                         <em style="color: #6b7280;">// number of hash functions</em>
+
+    Add(item):
+        for i in 0..k-1:
+            index = hash_i(item) % m
+            bits[index] = 1
+
+    Contains(item):
+        for i in 0..k-1:
+            index = hash_i(item) % m
+            if bits[index] == 0:
+                return False      <em style="color: #6b7280;">// Definitely not in set</em>
+        return True               <em style="color: #6b7280;">// Maybe in set</em>
+
+<strong style="color: #6B7280;">// Optimal parameters (math magic)</strong>
+m = -n * ln(p) / (ln(2)^2)      <em style="color: #6b7280;">// bits needed</em>
+k = m/n * ln(2)                  <em style="color: #6b7280;">// hash functions</em>
+
+Example: 1M items, 1% false positive
+→ m = 9.6M bits = 1.2MB
+→ k = 7 hash functions
+</pre>
+</div>
+<hr />
+<h2>The Trade-off</h2>
+<table>
+<thead>
+<tr>
+<th>Space per item</th>
+<th>False positive rate</th>
+<th>Hash functions (k)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4 bits</td>
+<td>15%</td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>10 bits</strong></td>
+<td><strong>1%</strong></td>
+<td><strong>7</strong></td>
+</tr>
+<tr>
+<td>14 bits</td>
+<td>0.1%</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule of thumb</strong>: 10 bits per item = 1% false positives = sweet spot</p>
+<hr />
+<p><strong>System Design Note</strong>: Bloom filters are the standard solution for "have we seen this?" queries at scale. For more worked examples, see the <a href="#/page/Module2-Systems/data-structures-problem-solving">Data Structures Problem Solving</a> guide. <a href="#/page/Module2-Systems/case-study-bloomfilters">Case Study 2.2</a> puts this at planet scale: how Chrome Safe Browsing ships one Bloom filter to 3 billion devices.</p>

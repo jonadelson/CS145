@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 354" role="img" aria-labelledby="ms-t ms-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="ms-t">MacroSchedule.Run()</title>
+  <desc id="ms-d">A MacroSchedule shown as a table of Transaction, Action, Variable, Step, and Value, one row per operation in step order. Consecutive actions of one transaction are bracketed as a block on the left, so a serial schedule reads as one block per transaction. Color key: blue is a read, orange is a write.</desc>
+  <text x="150" y="34" font-size="17" font-weight="700" fill="#0E0E10">Start values: { A = 10,  B = 22 }</text>
+  <text x="150" y="74" font-size="14" font-family="ui-monospace,monospace" fill="#6B7280">MacroSchedule.Run()</text>
+  <text x="212" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Transaction</text>
+  <text x="336" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Action</text>
+  <text x="460" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Variable</text>
+  <text x="584" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Step</text>
+  <text x="708" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Value</text>
+  <line x1="150" y1="104" x2="770" y2="104" stroke="#D4D7DC"/>
+  <text x="150" y="332" font-size="17" font-weight="700" fill="#0E0E10">End values: { A = 9,  B = 20 }</text>
+  <path d="M 144 92 L 138 92 L 138 152 L 144 152" fill="none" stroke="#3F3F46" stroke-width="1.5"/>
+  <text x="130" y="127" text-anchor="end" font-size="14" font-weight="700" fill="#3F3F46">T1</text>
+  <path d="M 144 152 L 138 152 L 138 242 L 144 242" fill="none" stroke="#3F3F46" stroke-width="1.5"/>
+  <text x="130" y="202" text-anchor="end" font-size="14" font-weight="700" fill="#3F3F46">T2</text>
+  <path d="M 144 242 L 138 242 L 138 302 L 144 302" fill="none" stroke="#3F3F46" stroke-width="1.5"/>
+  <text x="130" y="277" text-anchor="end" font-size="14" font-weight="700" fill="#3F3F46">T3</text>
+  <g data-step="1">
+    <text x="212" y="114" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">T1</text>
+    <text x="336" y="114" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="460" y="114" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">A</text>
+    <text x="584" y="114" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">1</text>
+    <text x="708" y="114" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">10</text>
+    </g>
+  <g data-step="2">
+    <rect x="150" y="122" width="620" height="30" fill="#F7F8FA"/>
+    <text x="212" y="144" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">T1</text>
+    <text x="336" y="144" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="460" y="144" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">A</text>
+    <text x="584" y="144" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">2</text>
+    <text x="708" y="144" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">9</text>
+    </g>
+  <g data-step="3">
+    <text x="212" y="174" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">T2</text>
+    <text x="336" y="174" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="460" y="174" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">A</text>
+    <text x="584" y="174" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">3</text>
+    <text x="708" y="174" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">9</text>
+    </g>
+  <g data-step="4">
+    <rect x="150" y="182" width="620" height="30" fill="#F7F8FA"/>
+    <text x="212" y="204" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">T2</text>
+    <text x="336" y="204" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="460" y="204" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">B</text>
+    <text x="584" y="204" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">4</text>
+    <text x="708" y="204" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">22</text>
+    </g>
+  <g data-step="5">
+    <text x="212" y="234" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">T2</text>
+    <text x="336" y="234" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="460" y="234" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">B</text>
+    <text x="584" y="234" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">5</text>
+    <text x="708" y="234" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">21</text>
+    </g>
+  <g data-step="6">
+    <rect x="150" y="242" width="620" height="30" fill="#F7F8FA"/>
+    <text x="212" y="264" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">T3</text>
+    <text x="336" y="264" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="460" y="264" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">B</text>
+    <text x="584" y="264" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">6</text>
+    <text x="708" y="264" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">21</text>
+    </g>
+  <g data-step="7">
+    <text x="212" y="294" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">T3</text>
+    <text x="336" y="294" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="460" y="294" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">B</text>
+    <text x="584" y="294" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">7</text>
+    <text x="708" y="294" text-anchor="middle" font-size="14" font-weight="400" fill="#0E0E10">20</text>
+    </g>
+</svg>

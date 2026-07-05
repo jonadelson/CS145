@@ -1,0 +1,118 @@
+{
+  "module": "Module4B-Crash-Recovery",
+  "title": "Crash Recovery",
+  "cards": [
+    {
+      "id": "m4b-c01",
+      "front": "What is the version problem?",
+      "back": "You need to know what was true at any past moment (disputes, audits, regulators), but you cannot keep full database copies when thousands of transactions change the data every second. The fix: log each change and replay to any version.",
+      "page": "Module4B-Crash-Recovery/recovery-intuition",
+      "tags": ["logging", "versions"]
+    },
+    {
+      "id": "m4b-c02",
+      "front": "How do Google Docs and Git both solve the version problem?",
+      "back": "They don't copy, and they reach any version. Docs logs each edit and replays from a nearby snapshot; Git commits share unchanged files instead of recopying. Replaying forward is redo; stepping back is undo.",
+      "page": "Module4B-Crash-Recovery/recovery-intuition",
+      "tags": ["logging", "redo", "undo"]
+    },
+    {
+      "id": "m4b-c03",
+      "front": "What three writes make up one database update, and when does each happen?",
+      "back": "1. Append the diff (old value, new value) to the log — durable now. 2. Update the value in a page in the RAM buffer — now, but volatile. 3. Flush the 64 MB page to disk — later, deferred.",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "tags": ["wal", "buffer"]
+    },
+    {
+      "id": "m4b-c04",
+      "front": "What does one WAL row contain?",
+      "back": "About 40 bytes: a header (log position, type, length), the transaction id, the location, and both the old value and the new value. COMMIT or ABORT records mark where a transaction ends. The log is append-only and never overwritten.",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "tags": ["wal", "logging"]
+    },
+    {
+      "id": "m4b-c05",
+      "front": "Why does each WAL row store both the old and the new value?",
+      "back": "The new value lets recovery redo the change (replay forward); the old value lets it undo the change (roll back). One log therefore supports any past version, abort handling, and crash recovery.",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "tags": ["wal", "redo", "undo"]
+    },
+    {
+      "id": "m4b-c06",
+      "front": "Why is the WAL cheap to write?",
+      "back": "Two reasons: rows are tiny (~40 B vs a 64 MB page) and appends are sequential to one growing file rather than random I/O. A 64 KB WAL page flushes in ~13 &micro;s vs ~13 ms for a data page (~1,000x less); NVRAM makes a row durable in ~100 ns.",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "tags": ["wal", "performance"]
+    },
+    {
+      "id": "m4b-c07",
+      "front": "State the write-ahead rule and why the order matters.",
+      "back": "The log record must be durable before the data page it describes reaches disk. Log-first means a crash leaves the change re-applyable from the log; data-first can leave data changed with no record of why, which recovery cannot fix.",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "tags": ["wal", "durability"]
+    },
+    {
+      "id": "m4b-c08",
+      "front": "How does undo abort a transaction?",
+      "back": "It walks the transaction's log rows backward, newest write first, writing each old value back to the data page. Each reversal is appended to the log as a W-abort row, then an abort record closes the transaction. This delivers atomicity.",
+      "page": "Module4B-Crash-Recovery/recovery-wal",
+      "tags": ["undo", "atomicity"]
+    },
+    {
+      "id": "m4b-c09",
+      "front": "What is the ARIES logged-undo idea?",
+      "back": "Undo writes its own steps to the log as it runs (W-abort rows), so the log records the full rollback, not just the forward writes. ARIES is IBM's algorithm; its repeat-history version also drives post-crash recovery.",
+      "page": "Module4B-Crash-Recovery/recovery-wal",
+      "tags": ["aries", "undo"]
+    },
+    {
+      "id": "m4b-c10",
+      "front": "The hard case for undo: uncommitted data already on disk. Why is it still easy?",
+      "back": "A long transaction's pages may flush before it commits (RAM can't hold everything). No old page copy is kept, but none is needed: the log row already holds the old value, so undo writes it back, flushed page or not.",
+      "page": "Module4B-Crash-Recovery/recovery-wal",
+      "tags": ["undo", "buffer"]
+    },
+    {
+      "id": "m4b-c11",
+      "front": "What two messes does a crash leave on disk, and which ACID property does each threaten?",
+      "back": "Committed work that never flushed is missing — durability at risk. Uncommitted work that did flush is present — atomicity at risk. Recovery fixes both from the WAL, the sole surviving source of truth (RAM is gone).",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "tags": ["recovery", "acid"]
+    },
+    {
+      "id": "m4b-c12",
+      "front": "Describe recovery's two passes over the log.",
+      "back": "REPLAY (down/forward): re-apply every logged row, committed or not, W-abort rows included, rebuilding the exact state at the crash. UNDO (up/backward): reverse every transaction that never committed, newest writes first.",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "tags": ["recovery", "aries"]
+    },
+    {
+      "id": "m4b-c13",
+      "front": "Why does recovery replay everything before undoing anything?",
+      "back": "After a crash you can't tell which data pages reached disk, so there is no consistent state to roll back from. Replay rebuilds the exact crash state as a known starting point; undoing against half-written pages would be undefined.",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "tags": ["recovery", "redo"]
+    },
+    {
+      "id": "m4b-c14",
+      "front": "How does recovery know which transactions to undo, without a separate analysis pass?",
+      "back": "As the forward pass reads the log it marks each transaction committed when it meets its COMMIT record; by the crash point it knows exactly which never committed. What gets undone depends on commit status, not position in the log.",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "tags": ["recovery", "commit"]
+    },
+    {
+      "id": "m4b-c15",
+      "front": "What is checkpointing?",
+      "back": "Periodically flushing all dirty pages to disk so replay can start from the last checkpoint instead of the start of the log. Trade-off: checkpoint overhead at runtime vs recovery speed. It's the one case needing a quick scan to rebuild the live-transaction table.",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "tags": ["checkpoint", "recovery"]
+    },
+    {
+      "id": "m4b-c16",
+      "front": "What does recovery cost?",
+      "back": "Time (minutes to hours for large databases), I/O (reading the WAL since the last checkpoint), availability (the database is offline during recovery), and implementation complexity.",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "tags": ["recovery", "performance"]
+    }
+  ]
+}

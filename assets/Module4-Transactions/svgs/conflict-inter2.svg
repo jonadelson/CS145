@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 710" role="img" aria-labelledby="cf-t cf-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="cf-t">Conflict analysis</title>
+  <desc id="cf-d">Conflict-serializability analysis: a table of conflicting actions (Txn 1, Txn 2, Variable, and the step in each), then a conflict graph with one node per transaction and a directed edge per conflict, and a verdict. A cycle (its two edges in red and orange, each matching its source rows) means the schedule is not conflict-serializable; an acyclic graph is serializable and equivalent to the serial order shown.</desc>
+  
+  <text x="90" y="34" font-size="17" font-weight="700" fill="#0E0E10">Conflicting Actions</text>
+  <text x="164" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Txn 1</text>
+  <text x="312" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Txn 2</text>
+  <text x="460" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Variable</text>
+  <text x="608" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Step (Txn 1)</text>
+  <text x="756" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Step (Txn 2)</text>
+  <line x1="90" y1="72" x2="830" y2="72" stroke="#D4D7DC"/>
+  <text x="90" y="290" font-size="17" font-weight="700" fill="#0E0E10">Conflict Graph</text>
+  <g data-step="1">
+    <text x="164" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="312" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">T1</text>
+    <text x="460" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">A</text>
+    <text x="608" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">2</text>
+    <text x="756" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">3</text>
+    <rect x="90" y="113" width="740" height="27" fill="#F7F8FA"/>
+    <text x="164" y="132" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="312" y="132" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="460" y="132" text-anchor="middle" font-size="14" fill="#0E0E10">B</text>
+    <text x="608" y="132" text-anchor="middle" font-size="14" fill="#0E0E10">4</text>
+    <text x="756" y="132" text-anchor="middle" font-size="14" fill="#0E0E10">7</text>
+    <text x="164" y="159" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="312" y="159" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="460" y="159" text-anchor="middle" font-size="14" fill="#0E0E10">B</text>
+    <text x="608" y="159" text-anchor="middle" font-size="14" fill="#0E0E10">5</text>
+    <text x="756" y="159" text-anchor="middle" font-size="14" fill="#0E0E10">6</text>
+    <rect x="90" y="167" width="740" height="27" fill="#F7F8FA"/>
+    <text x="164" y="186" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="312" y="186" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="460" y="186" text-anchor="middle" font-size="14" fill="#0E0E10">B</text>
+    <text x="608" y="186" text-anchor="middle" font-size="14" fill="#0E0E10">5</text>
+    <text x="756" y="186" text-anchor="middle" font-size="14" fill="#0E0E10">7</text>
+    <text x="164" y="213" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="312" y="213" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="460" y="213" text-anchor="middle" font-size="14" fill="#0E0E10">B</text>
+    <text x="608" y="213" text-anchor="middle" font-size="14" fill="#0E0E10">6</text>
+    <text x="756" y="213" text-anchor="middle" font-size="14" fill="#0E0E10">9</text>
+    <rect x="90" y="221" width="740" height="27" fill="#F7F8FA"/>
+    <text x="164" y="240" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="312" y="240" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="460" y="240" text-anchor="middle" font-size="14" fill="#0E0E10">B</text>
+    <text x="608" y="240" text-anchor="middle" font-size="14" fill="#0E0E10">7</text>
+    <text x="756" y="240" text-anchor="middle" font-size="14" fill="#0E0E10">9</text>
+    <circle cx="460" cy="326" r="34" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.5"/>
+    <text x="460" y="332" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">T1</text>
+    <circle cx="573" cy="521" r="34" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.5"/>
+    <text x="573" y="527" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">T2</text>
+    <circle cx="347" cy="521" r="34" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.5"/>
+    <text x="347" y="527" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">T3</text>
+    </g>
+  <g data-step="2">
+    <rect x="90" y="86" width="740" height="27" fill="#ECF1FE"/>
+    <rect x="90" y="86" width="4" height="27" fill="#2563EB"/>
+    <text x="164" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">T2</text>
+    <text x="312" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">T1</text>
+    <text x="460" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">A</text>
+    <text x="608" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">2</text>
+    <text x="756" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">3</text>
+    <path d="M560,487 Q532,414 485,356" fill="none" stroke="#2563EB" stroke-width="2"/>
+        <polygon points="484.6,356.3 496.8,361.8 487.5,369.4" fill="#2563EB"/>
+    <text x="558" y="400" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#2563EB">A-(#2,#3)</text>
+    </g>
+  <g data-step="3">
+    <rect x="90" y="113" width="740" height="27" fill="#FCEBEA"/>
+    <rect x="90" y="113" width="4" height="27" fill="#DC2626"/>
+    <text x="164" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">T2</text>
+    <text x="312" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">T3</text>
+    <text x="460" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">B</text>
+    <text x="608" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">4</text>
+    <text x="756" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">7</text>
+    <rect x="90" y="140" width="740" height="27" fill="#FCEBEA"/>
+    <rect x="90" y="140" width="4" height="27" fill="#DC2626"/>
+    <text x="164" y="159" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">T2</text>
+    <text x="312" y="159" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">T3</text>
+    <text x="460" y="159" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">B</text>
+    <text x="608" y="159" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">5</text>
+    <text x="756" y="159" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">6</text>
+    <rect x="90" y="167" width="740" height="27" fill="#FCEBEA"/>
+    <rect x="90" y="167" width="4" height="27" fill="#DC2626"/>
+    <text x="164" y="186" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">T2</text>
+    <text x="312" y="186" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">T3</text>
+    <text x="460" y="186" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">B</text>
+    <text x="608" y="186" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">5</text>
+    <text x="756" y="186" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">7</text>
+    <path d="M540,506 Q460,469 383,505" fill="none" stroke="#DC2626" stroke-width="2.4"/>
+        <polygon points="382.8,504.6 391.2,494.2 396.2,505.1" fill="#DC2626"/>
+    <text x="460" y="409" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">B-(#4,#7)</text>
+    <text x="460" y="429" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">B-(#5,#6)</text>
+    <text x="460" y="449" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">B-(#5,#7)</text>
+    </g>
+  <g data-step="4">
+    <rect x="90" y="194" width="740" height="27" fill="#FCEBEA"/>
+    <rect x="90" y="194" width="4" height="27" fill="#EA580C"/>
+    <text x="164" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">T3</text>
+    <text x="312" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">T2</text>
+    <text x="460" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">B</text>
+    <text x="608" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">6</text>
+    <text x="756" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">9</text>
+    <rect x="90" y="221" width="740" height="27" fill="#FCEBEA"/>
+    <rect x="90" y="221" width="4" height="27" fill="#EA580C"/>
+    <text x="164" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">T3</text>
+    <text x="312" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">T2</text>
+    <text x="460" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">B</text>
+    <text x="608" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">7</text>
+    <text x="756" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">9</text>
+    <path d="M380,536 Q460,573 537,537" fill="none" stroke="#EA580C" stroke-width="2.4"/>
+        <polygon points="537.2,537.4 528.8,547.8 523.8,536.9" fill="#EA580C"/>
+    <text x="460" y="598" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#EA580C">B-(#6,#9)</text>
+    <text x="460" y="618" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#EA580C">B-(#7,#9)</text>
+    </g>
+  <g data-step="5">
+    <rect x="90" y="654" width="740" height="34" rx="8" fill="#FCEBEA" stroke="#DC2626"/>
+    <rect x="90" y="654" width="4" height="34" rx="2" fill="#DC2626"/>
+    <text x="108" y="676" font-size="15" font-weight="700" fill="#DC2626">Cycle T2 &#8594; T3 &#8594; T2.  So NOT conflict-serializable.</text>
+    </g>
+</svg>

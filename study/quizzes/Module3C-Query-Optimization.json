@@ -1,0 +1,231 @@
+{
+  "module": "Module3C-Query-Optimization",
+  "title": "Query Optimization",
+  "questions": [
+    {
+      "id": "m3c-q01",
+      "category": "Query Optimizer",
+      "page": "Module3C-Query-Optimization/query-optimizer",
+      "difficulty": "intro",
+      "question": "What is the job of a cost-based query optimizer?",
+      "options": [
+        "Rewrite the user's SQL into more efficient SQL before execution",
+        "Enumerate candidate join orders and access paths, estimate each plan's IO cost from statistics, and execute the cheapest one",
+        "Cache the results of previous queries so repeats are free",
+        "Choose which indexes to build based on the query workload"
+      ],
+      "correct": 1,
+      "explanation": "The optimizer turns declarative SQL into a physical plan by costing alternatives — join order, join algorithm, scan vs index — with table statistics, then runs only the winner; a 100× speedup over the naive ordering is normal. It picks among <em>existing</em> access paths; building indexes is a separate design decision."
+    },
+    {
+      "id": "m3c-q02",
+      "category": "Query Optimizer",
+      "page": "Module3C-Query-Optimization/query-optimizer",
+      "difficulty": "core",
+      "question": "Trying all join orders for an n-table query is n! plans — infeasible. How do optimizers make the search tractable?",
+      "options": [
+        "They always join tables in the order they appear in the FROM clause",
+        "They sample a few hundred random orders and keep the best",
+        "Dynamic programming: compute the cheapest sub-plan for each subset of tables once and reuse it, collapsing n! work to about 2ⁿ",
+        "They delegate ordering to the storage engine at runtime"
+      ],
+      "correct": 2,
+      "explanation": "The key insight is that the best plan for a subset of tables doesn't depend on how the rest will be joined, so each subset is solved once and memoized — 2ⁿ subsets instead of n! orderings. FROM-clause order is exactly the naive behavior optimizers exist to avoid."
+    },
+    {
+      "id": "m3c-q03",
+      "category": "Query Optimizer",
+      "page": "Module3C-Query-Optimization/query-optimizer",
+      "difficulty": "core",
+      "question": "A production query suddenly takes hours. <code>pg_class.reltuples</code> claims Listens has 1,000 rows, but it actually has a billion. What happened, and what is the standard fix?",
+      "options": [
+        "Statistics are stale, so the optimizer picked a plan tuned for tiny data; run <code>ANALYZE</code> to refresh them",
+        "The table hit PostgreSQL's row limit; the fix is partitioning",
+        "The index on Listens is corrupted; the fix is <code>REINDEX</code>",
+        "The buffer pool is undersized; the fix is more RAM"
+      ],
+      "correct": 0,
+      "explanation": "Cost estimates are only as good as the statistics behind them: believing Listens is tiny, the optimizer chooses small-data plans (e.g. nested loops) that are catastrophic at a billion rows. <code>ANALYZE</code> re-gathers stats — most slow queries in the world come down to stale stats, not bad SQL."
+    },
+    {
+      "id": "m3c-q04",
+      "category": "Selectivity & Statistics",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "difficulty": "intro",
+      "question": "What is the selectivity of a predicate?",
+      "options": [
+        "The number of rows in the output after filtering",
+        "The number of distinct values in the filtered column",
+        "The fraction of input rows that pass the filter, between 0.0 and 1.0",
+        "The fraction of pages the query must read from disk"
+      ],
+      "correct": 2,
+      "explanation": "Selectivity is a fraction (e.g. <code>user_id = 123</code> → 0.0001, <code>rating IS NOT NULL</code> → 0.95); cardinality is the resulting row <em>count</em>, computed as Output = Input × Selectivity. Confusing the two is the classic slip — one is a ratio, the other a number of rows."
+    },
+    {
+      "id": "m3c-q05",
+      "category": "Selectivity & Statistics",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "difficulty": "core",
+      "question": "A query has two ANDed predicates with selectivities S₁ = 0.1 and S₂ = 0.01. Assuming independence, what selectivity should the planner use, and which access method does the result suggest?",
+      "options": [
+        "0.11 — medium selectivity, so a bitmap scan",
+        "0.001 — very low selectivity (0.1%), so use an index",
+        "0.1 — take the larger predicate, so a sequential scan",
+        "0.055 — average the two, so a bitmap scan"
+      ],
+      "correct": 1,
+      "explanation": "AND multiplies: 0.1 × 0.01 = 0.001, well under the ~1% threshold where an index lookup beats scanning. Adding (0.11) is roughly the OR formula's first term (OR is S₁ + S₂ − S₁×S₂); high-selectivity predicates (&gt;10%) are the ones that favor sequential scans."
+    },
+    {
+      "id": "m3c-q06",
+      "category": "Selectivity & Statistics",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "difficulty": "core",
+      "question": "On heavily skewed data, why does a height-balanced histogram give better selectivity estimates than an equi-width one?",
+      "options": [
+        "It stores every distinct value exactly, eliminating estimation error",
+        "It uses wavelets to model multi-dimensional distributions",
+        "Height-balanced histograms are recomputed on every query, so they never go stale",
+        "Equi-width slices the value range evenly, so one bucket swallows nearly all rows; height-balanced gives every bucket 1/B of the rows, so bucket ranges shrink automatically where data is dense"
+      ],
+      "correct": 3,
+      "explanation": "With equal-width buckets, a hot region lands in one overloaded bucket and any selectivity read off it is wildly wrong. Equal-height buckets adapt their boundaries to density, keeping estimates accurate exactly where skew hurts. Wavelet histograms are a third, separate kind; no histogram stores every value."
+    },
+    {
+      "id": "m3c-q07",
+      "category": "Selectivity & Statistics",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "difficulty": "stretch",
+      "question": "The stats collector needs an unbiased uniform sample of k rows from an N-row table too big to shuffle, in one streaming pass. Reservoir sampling keeps the first k rows, then swaps row i in with probability k/i. What guarantee does this give?",
+      "options": [
+        "Every row ends up in the sample with equal probability k/N, using O(k) memory and no second pass",
+        "The sample always contains the k most frequent values",
+        "The sample is biased toward later rows, which are usually fresher",
+        "It guarantees each distinct value appears at least once"
+      ],
+      "correct": 0,
+      "explanation": "Reservoir sampling is exact: the swap probability k/i precisely balances early and late rows so all N have identical inclusion probability. Alternatives trade this exactness for speed — block sampling reads whole pages (biased when rows cluster on disk) and progressive sampling grows until variance is low."
+    },
+    {
+      "id": "m3c-q08",
+      "category": "Comparing Query Plans",
+      "page": "Module3C-Query-Optimization/io-cost-summary",
+      "difficulty": "stretch",
+      "question": "Joining Recommendations and Listens on <code>(song_id, user_id)</code>, then <code>GROUP BY song_id</code>: why does the sort-merge-join plan get the grouping almost for free, while the hash-partition-join plan pays an extra <code>HP(3)</code> step?",
+      "options": [
+        "SMJ deduplicates the join output, so there are fewer rows to group",
+        "SMJ's output is sorted on the join keys and <code>song_id</code> is a prefix of that order, so groups are already contiguous; HPJ's output is partitioned on BOTH keys, so it must be re-partitioned on <code>song_id</code> alone before grouping",
+        "HPJ produces its output in random order, so it must be fully sorted before grouping",
+        "SMJ runs the GROUP BY inside the merge phase at zero cost"
+      ],
+      "correct": 1,
+      "explanation": "Order is the asset: rows sorted by <code>(song_id, user_id)</code> have all of each song's rows adjacent, so grouping is a single read-and-write pass. HPJ's partitions split on the composite key don't align with grouping on <code>song_id</code> alone — the same song's rows can sit in different partitions — hence the repartition. It's a repartition (2N-ish), not a full sort, and grouping still costs a read/write pass in both plans."
+    },
+    {
+      "id": "m3c-q09",
+      "category": "Comparing Query Plans",
+      "page": "Module3C-Query-Optimization/io-cost-summary",
+      "difficulty": "core",
+      "question": "Both candidate plans for the recommendation query end with the same <code>BigSort(4)</code> for <code>ORDER BY count DESC</code>. Why can neither plan skip it?",
+      "options": [
+        "The SQL standard requires a physical sort for every ORDER BY",
+        "Only Plan 2 needs it; Plan 1's output is already sorted by count",
+        "BigSort also performs the aggregation, so removing it would drop the COUNT",
+        "Grouping leaves rows ordered (or partitioned) by <code>song_id</code>, not by the computed count, so a final sort on count is unavoidable"
+      ],
+      "correct": 3,
+      "explanation": "The count for each song isn't known until grouping finishes, and no earlier operator could have arranged rows by a value that didn't exist yet. So both totals share the final BigSort — the plans differ only in the join term and Plan 2's extra repartition, and the comparison is pure arithmetic: plug in table sizes and pick the smaller number."
+    },
+    {
+      "id": "m3c-q10",
+      "category": "Reading EXPLAIN",
+      "page": "Module3C-Query-Optimization/postgres-explain",
+      "difficulty": "core",
+      "question": "In PostgreSQL EXPLAIN output, how do you read the plan tree, and what does <code>cost=0.42..1234.56</code> on an operator mean?",
+      "options": [
+        "Top-down; the two numbers are best-case and worst-case cost",
+        "Bottom-up; the numbers are IO cost and CPU cost respectively",
+        "Bottom-up (leaves scan first, results bubble to the root); the numbers are startup cost before the first row and total cost for all rows",
+        "Top-down; the numbers are estimated and actual runtime in milliseconds"
+      ],
+      "correct": 2,
+      "explanation": "EXPLAIN is read bottom-up: Seq Scans feed a Hash Join, which feeds HashAggregate, Sort, Limit. <code>cost=startup..total</code> is the optimizer's own unit-cost estimate (not milliseconds, not a best/worst range), and <code>rows=</code> is the estimated row count flowing out of the step."
+    },
+    {
+      "id": "m3c-q11",
+      "category": "Reading EXPLAIN",
+      "page": "Module3C-Query-Optimization/postgres-explain",
+      "difficulty": "stretch",
+      "question": "PostgreSQL used <code>HashAggregate</code> for <code>GROUP BY title, artist</code> instead of sorting. When is that a win, and what happens if the assumption breaks?",
+      "options": [
+        "It wins when the input is pre-sorted; otherwise it silently returns unsorted groups",
+        "It wins when the number of groups fits in an in-memory hash table (cost ~C_r·P(input), no sort); if not, it spills to disk and falls back to a partition-based (HPJ-style) approach",
+        "It always wins, because hashing is asymptotically cheaper than sorting",
+        "It wins only when an index exists on the grouped columns"
+      ],
+      "correct": 1,
+      "explanation": "HashAggregate builds a hash table keyed by group and accumulates counts in one read pass — no BigSort needed — which beats sort-based grouping whenever one-row-per-group output fits in RAM. Our simplified IO model assumes grouping requires sorting, so this is the most common real-optimizer trick to know; the fallback on overflow is partitioning, not failure."
+    },
+    {
+      "id": "m3c-q12",
+      "category": "Distributed Query Planning",
+      "page": "Module3C-Query-Optimization/distributed-query",
+      "difficulty": "core",
+      "question": "You must join a 10 MB dim_artists table with a 1 PB fact table spread over 1,000 nodes. Which shuffle strategy minimizes network cost?",
+      "options": [
+        "Broadcast shuffle — send the tiny table to every node, so the petabyte table never moves",
+        "Hash shuffle — redistribute both tables by <code>artist_id</code> so matching keys co-locate",
+        "Co-located join — the tables are already partitioned correctly by definition",
+        "Round-robin shuffle — spread both tables evenly to balance load"
+      ],
+      "correct": 0,
+      "explanation": "Broadcast costs small-table-size × #nodes (10 MB × 1,000 = 10 GB), vastly cheaper than hash-shuffling both tables (~total size of both, i.e. a petabyte over the network). Co-located (zero shuffle) is best but only applies when the tables were pre-partitioned on the same key — not a choice you get to make at query time."
+    },
+    {
+      "id": "m3c-q13",
+      "category": "Distributed Query Planning",
+      "page": "Module3C-Query-Optimization/distributed-query",
+      "difficulty": "stretch",
+      "question": "A GROUP BY over 1,000 nodes uses two-phase reaggregation: each node first groups its own data locally, then partial results are shuffled by the grouping key and merged. What problem does the local pre-aggregation phase solve?",
+      "options": [
+        "It guarantees deterministic ordering of the final results",
+        "It prevents any single node from running out of RAM during the join",
+        "Without it, billions of tiny raw records would flood the network; pre-aggregating shrinks the data ~1,000× (1M listen rows per node → 1K artist totals) before transfer",
+        "It hides node failures, since partial aggregates can be recomputed"
+      ],
+      "correct": 2,
+      "explanation": "The network is the scarce resource: shipping every raw row to a coordinator would move billions of minuscule records, so each node collapses its slice to per-group partials first, and the global merge over partials preserves exactness. The point is network volume, not ordering or fault tolerance."
+    },
+    {
+      "id": "m3c-q14",
+      "category": "Spotify End-to-End",
+      "page": "Module3C-Query-Optimization/spotify-architecture-end-to-end",
+      "difficulty": "core",
+      "question": "In Spotify's end-to-end pipeline, the play-button click lands in an LSM store, but the CEO's dashboard reads a columnar warehouse. Why can't one storage format serve both ends?",
+      "options": [
+        "Licensing: OLTP and OLAP engines come from different vendors",
+        "LSM stores cannot be replicated, so analytics must copy the data anyway",
+        "Columnar files cannot store timestamps, which OLTP requires",
+        "The write path needs append-only, no-random-IO ingestion (~8 ms, 100K writes/sec/node), while the scan path needs compressed columns where a query reads 3 of 20 columns over a petabyte — opposite optimizations, bridged by the nightly ETL"
+      ],
+      "correct": 3,
+      "explanation": "Act 1 optimizes for writes (LSM MemTable append), Act 3 for scans (columnar star schema with broadcast joins), and Act 2 is the 3-hour Spark ETL — hash partition, BigSort, broadcast join, write Parquet — that converts one format into the other. No single structure wins everywhere; each stage uses the one built for its workload."
+    },
+    {
+      "id": "m3c-q15",
+      "category": "Module 3 Capstone",
+      "page": "Module3C-Query-Optimization/problem-solving-modular-systems",
+      "difficulty": "intro",
+      "question": "During a live song drop, 50,000 users generate a surge of concurrent play-count updates and a standard B+Tree chokes. Per the capstone's toolbox approach, which structure should absorb the surge?",
+      "options": [
+        "A hash index on <code>song_id</code> for O(1) updates",
+        "A clustered B+Tree on <code>(song_id, timestamp)</code>",
+        "An LSM tree, keeping partial counts in a MemTable and flushing sequentially to SSTables",
+        "H3 geo-hashing to spread the writes across cells"
+      ],
+      "correct": 2,
+      "explanation": "The bottleneck is random write overhead, and LSM trees convert random writes into sequential flushes — ideal for high-bandwidth telemetry. A hash index still performs a disk write per update, and H3 solves geographic bucketing, not write throughput; the capstone skill is matching each workload to the structure built for it."
+    }
+  ]
+}

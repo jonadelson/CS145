@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1210 702" role="img" aria-labelledby="lk-t lk-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="lk-t">Deadlock: 2 transactions, circular wait</title>
+  <desc id="lk-d">A lock schedule timeline with each transaction on its own row and time on the X-axis (Req and Get as up-arrows, read/write start and end as boxes), the per-transaction locks, and a WaitsFor graph. A red cycle in the WaitsFor graph is a deadlock.</desc>
+  
+  <text x="110" y="40" font-size="17" font-weight="700" fill="#0E0E10">Deadlock: 2 transactions, circular wait</text>
+  <text x="88" y="278" text-anchor="end" font-size="15" font-weight="700" fill="#3F3F46">T1</text>
+  <text x="88" y="160" text-anchor="end" font-size="15" font-weight="700" fill="#3F3F46">T2</text>
+  <line x1="110" y1="332" x2="1090" y2="332" stroke="#D4D7DC"/>
+  <text x="110" y="352" text-anchor="middle" font-size="13" fill="#6B7280">0</text>
+  <text x="168" y="352" text-anchor="middle" font-size="13" fill="#6B7280">1</text>
+  <text x="225" y="352" text-anchor="middle" font-size="13" fill="#6B7280">2</text>
+  <text x="283" y="352" text-anchor="middle" font-size="13" fill="#6B7280">3</text>
+  <text x="341" y="352" text-anchor="middle" font-size="13" fill="#6B7280">4</text>
+  <text x="398" y="352" text-anchor="middle" font-size="13" fill="#6B7280">5</text>
+  <text x="456" y="352" text-anchor="middle" font-size="13" fill="#6B7280">6</text>
+  <text x="514" y="352" text-anchor="middle" font-size="13" fill="#6B7280">7</text>
+  <text x="571" y="352" text-anchor="middle" font-size="13" fill="#6B7280">8</text>
+  <text x="629" y="352" text-anchor="middle" font-size="13" fill="#6B7280">9</text>
+  <text x="686" y="352" text-anchor="middle" font-size="13" fill="#6B7280">10</text>
+  <text x="744" y="352" text-anchor="middle" font-size="13" fill="#6B7280">11</text>
+  <text x="802" y="352" text-anchor="middle" font-size="13" fill="#6B7280">12</text>
+  <text x="859" y="352" text-anchor="middle" font-size="13" fill="#6B7280">13</text>
+  <text x="917" y="352" text-anchor="middle" font-size="13" fill="#6B7280">14</text>
+  <text x="975" y="352" text-anchor="middle" font-size="13" fill="#6B7280">15</text>
+  <text x="1032" y="352" text-anchor="middle" font-size="13" fill="#6B7280">16</text>
+  <text x="1090" y="352" text-anchor="middle" font-size="13" fill="#6B7280">17</text>
+  <text x="600" y="374" text-anchor="middle" font-size="13" fill="#6B7280">Time Units</text>
+  <g data-step="1">
+    <line x1="168" y1="273" x2="168" y2="233" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="168,233 168,247 153,240" fill="#16A34A"/>
+    <text x="168" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Req(A)</text>
+    <text x="168" y="295" text-anchor="middle" font-size="13" fill="#6B7280">1</text>
+    <line x1="225" y1="273" x2="225" y2="233" stroke="#DC2626" stroke-width="2.5"/>
+    <polygon points="225,233 225,247 210,240" fill="#DC2626"/>
+    <text x="225" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Get(A)</text>
+    <text x="225" y="295" text-anchor="middle" font-size="13" fill="#6B7280">2</text>
+    <rect x="270" y="247" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="283" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Rs(A)</text>
+    <text x="283" y="295" text-anchor="middle" font-size="13" fill="#6B7280">3</text>
+    <rect x="558" y="247" width="26" height="26" rx="3" fill="#ECF1FE" stroke="#2563EB"/>
+    <text x="571" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Re(A)</text>
+    <text x="571" y="295" text-anchor="middle" font-size="13" fill="#6B7280">8</text>
+    <rect x="616" y="247" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="629" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Ws(A)</text>
+    <text x="629" y="295" text-anchor="middle" font-size="13" fill="#6B7280">9</text>
+    <rect x="904" y="247" width="26" height="26" rx="3" fill="#FDEBE0" stroke="#EA580C"/>
+    <text x="917" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">We(A)</text>
+    <text x="917" y="295" text-anchor="middle" font-size="13" fill="#6B7280">14</text>
+    <line x1="975" y1="273" x2="975" y2="233" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="975,233 975,247 960,240" fill="#16A34A"/>
+    <text x="975" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Req(B)</text>
+    <text x="975" y="295" text-anchor="middle" font-size="13" fill="#6B7280">15</text>
+    <line x1="341" y1="155" x2="341" y2="115" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="341,115 341,129 326,122" fill="#16A34A"/>
+    <text x="341" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Req(B)</text>
+    <text x="341" y="177" text-anchor="middle" font-size="13" fill="#6B7280">4</text>
+    <line x1="398" y1="155" x2="398" y2="115" stroke="#DC2626" stroke-width="2.5"/>
+    <polygon points="398,115 398,129 383,122" fill="#DC2626"/>
+    <text x="398" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Get(B)</text>
+    <text x="398" y="177" text-anchor="middle" font-size="13" fill="#6B7280">5</text>
+    <rect x="443" y="129" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="456" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Rs(B)</text>
+    <text x="456" y="177" text-anchor="middle" font-size="13" fill="#6B7280">6</text>
+    <rect x="731" y="129" width="26" height="26" rx="3" fill="#ECF1FE" stroke="#2563EB"/>
+    <text x="744" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Re(B)</text>
+    <text x="744" y="177" text-anchor="middle" font-size="13" fill="#6B7280">11</text>
+    <rect x="789" y="129" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="802" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Ws(B)</text>
+    <text x="802" y="177" text-anchor="middle" font-size="13" fill="#6B7280">12</text>
+    <line x1="1032" y1="155" x2="1032" y2="115" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="1032,115 1032,129 1017,122" fill="#16A34A"/>
+    <text x="1032" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Req(A)</text>
+    <text x="1032" y="177" text-anchor="middle" font-size="13" fill="#6B7280">16</text>
+    </g>
+  <g data-step="2">
+    <text x="110" y="402" font-size="16" font-weight="700" fill="#0E0E10">Per-Transaction Locks</text>
+    <text x="110" y="432" font-size="15" font-weight="700" font-family="ui-monospace,monospace" fill="#3F3F46">T1</text>
+    <text x="140" y="456" font-size="14" font-family="ui-monospace,monospace" fill="#6B7280">A: {"Req": 1, "Get": 2}</text>
+    <text x="140" y="478" font-size="14" font-family="ui-monospace,monospace" fill="#6B7280">B: {"Req": 15}</text>
+    </g>
+  <g data-step="3">
+    <text x="110" y="508" font-size="15" font-weight="700" font-family="ui-monospace,monospace" fill="#3F3F46">T2</text>
+    <text x="140" y="532" font-size="14" font-family="ui-monospace,monospace" fill="#6B7280">A: {"Req": 16}</text>
+    <text x="140" y="554" font-size="14" font-family="ui-monospace,monospace" fill="#6B7280">B: {"Req": 4, "Get": 5}</text>
+    </g>
+  <g data-step="4">
+    <text x="750" y="402" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">WaitsFor Graph</text>
+    <circle cx="635" cy="512" r="36" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.5"/>
+    <text x="635" y="518" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">T1</text>
+    <circle cx="865" cy="512" r="36" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.5"/>
+    <text x="865" y="518" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">T2</text>
+    </g>
+  <g data-step="5">
+    <text x="140" y="478" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">B: {"Req": 15}</text>
+    <text x="140" y="554" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">B: {"Req": 4, "Get": 5}</text>
+    <rect x="398" y="127" width="634" height="42" rx="4" fill="#DC2626" opacity="0.15"/>
+    <rect x="398" y="166" width="634" height="3.5" fill="#DC2626"/>
+    <text x="715" y="195" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">T2 holds B</text>
+    <rect x="975" y="245" width="58" height="42" rx="4" fill="none" stroke="#DC2626" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="1004" y="313" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">T1 waits</text>
+    <path d="M672,502 Q750,482 825,502" fill="none" stroke="#DC2626" stroke-width="2.4"/>
+        <polygon points="825.3,501.7 812.2,504.4 815.2,492.8" fill="#DC2626"/>
+    <text x="750" y="468" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">B (15, _)</text>
+    </g>
+  <g data-step="6">
+    <text x="140" y="478" font-size="14" font-family="ui-monospace,monospace" fill="#6B7280">B: {"Req": 15}</text>
+    <text x="140" y="554" font-size="14" font-family="ui-monospace,monospace" fill="#6B7280">B: {"Req": 4, "Get": 5}</text>
+    <text x="140" y="532" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">A: {"Req": 16}</text>
+    <text x="140" y="456" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">A: {"Req": 1, "Get": 2}</text>
+    <rect x="225" y="245" width="807" height="42" rx="4" fill="#DC2626" opacity="0.15"/>
+    <rect x="225" y="284" width="807" height="3.5" fill="#DC2626"/>
+    <text x="629" y="313" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">T1 holds A</text>
+    <rect x="1032" y="127" width="0" height="42" rx="4" fill="none" stroke="#DC2626" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="1032" y="195" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">T2 waits</text>
+    <path d="M830,527 Q750,560 673,528" fill="none" stroke="#DC2626" stroke-width="2.4"/>
+        <polygon points="672.8,527.8 686.2,526.9 681.6,538.0" fill="#DC2626"/>
+    <text x="750" y="584" text-anchor="middle" font-size="14" font-family="ui-monospace,monospace" fill="#DC2626">A (16, _)</text>
+    </g>
+  <g data-step="7">
+    <rect x="110" y="646" width="980" height="38" rx="9" fill="#FCEBEA" stroke="#DC2626"/>
+    <rect x="110" y="646" width="4" height="38" rx="2" fill="#DC2626"/>
+    <text x="128" y="671" font-size="16" font-weight="700" fill="#DC2626">WaitsFor cycle T2 &#8596; T1. DEADLOCK: neither transaction can proceed.</text>
+    </g>
+</svg>

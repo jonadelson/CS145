@@ -1,0 +1,78 @@
+<svg viewBox="0 0 1140 470" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="na-t na-d">
+  <title id="na-t">Run them free: three ways the same data goes wrong</title>
+  <desc id="na-d">Three side-by-side failure panels, each a tiny two-column schedule of T1 and T2
+  reading and writing one row with no coordination, time running top to bottom. Left, the lost update:
+  both read 100, both write 101, so the count lands on 101 instead of 102. Middle, the dirty read: T1
+  writes 150, T2 reads it, then T1 aborts, so T2 acted on a value that never committed. Right, the
+  stale read: T1 reads 20, T2 writes 30 and commits, T1 reads again and sees 30, disagreeing with
+  itself inside one transaction. Each panel names its conflict type: write-write, write-read,
+  read-write. Color key: red is the corrupted result each race produces, grey is the trace.</desc>
+
+  <text x="570" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Run them free: three ways the same data goes wrong</text>
+  <text x="570" y="60" text-anchor="middle" font-size="16" fill="#3F3F46">No coordination is fast, but two transactions on one row leave a result no one-at-a-time order could.</text>
+
+  <!-- PANEL 1: lost update -->
+  <g data-step="1">
+    <rect x="40" y="95" width="320" height="310" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="95" width="320" height="5" rx="2.5" fill="#DC2626"/>
+    <text x="62" y="128" font-size="16" font-weight="700" fill="#DC2626">Lost update</text>
+    <text x="62" y="148" font-size="13" fill="#6B7280" font-family="JetBrains Mono, monospace">write &#8211; write conflict</text>
+    <line x1="40" y1="160" x2="360" y2="160" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="62" y="186" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">play_count = 100</text>
+    <text x="92" y="214" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T1</text>
+    <text x="238" y="214" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T2</text>
+    <line x1="210" y1="202" x2="210" y2="340" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="74" y="242" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">read &#8594; 100</text>
+    <text x="222" y="270" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">read &#8594; 100</text>
+    <text x="74" y="298" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">write 101</text>
+    <text x="222" y="326" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">write 101</text>
+    <line x1="40" y1="346" x2="360" y2="346" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="62" y="374" font-size="13.5" font-weight="700" fill="#DC2626">lands on 101, not 102</text>
+    <text x="62" y="394" font-size="12.5" fill="#6B7280">one play silently vanishes</text>
+  </g>
+
+  <!-- PANEL 2: dirty read -->
+  <g data-step="2">
+    <rect x="410" y="95" width="320" height="310" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="410" y="95" width="320" height="5" rx="2.5" fill="#DC2626"/>
+    <text x="432" y="128" font-size="16" font-weight="700" fill="#DC2626">Dirty read</text>
+    <text x="432" y="148" font-size="13" fill="#6B7280" font-family="JetBrains Mono, monospace">write &#8211; read conflict</text>
+    <line x1="410" y1="160" x2="730" y2="160" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="432" y="186" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">balance = 100</text>
+    <text x="462" y="214" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T1</text>
+    <text x="608" y="214" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T2</text>
+    <line x1="580" y1="202" x2="580" y2="340" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="444" y="242" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">write 150</text>
+    <text x="592" y="270" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">read &#8594; 150</text>
+    <text x="444" y="298" font-size="13.5" font-weight="700" fill="#DC2626" font-family="JetBrains Mono, monospace">ABORT</text>
+    <text x="592" y="326" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">acts on 150</text>
+    <line x1="410" y1="346" x2="730" y2="346" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="432" y="374" font-size="13.5" font-weight="700" fill="#DC2626">T2 used 150</text>
+    <text x="432" y="394" font-size="12.5" fill="#6B7280">a value that never committed</text>
+  </g>
+
+  <!-- PANEL 3: stale read -->
+  <g data-step="3">
+    <rect x="780" y="95" width="320" height="310" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="780" y="95" width="320" height="5" rx="2.5" fill="#DC2626"/>
+    <text x="802" y="128" font-size="16" font-weight="700" fill="#DC2626">Stale read</text>
+    <text x="802" y="148" font-size="13" fill="#6B7280" font-family="JetBrains Mono, monospace">read &#8211; write conflict</text>
+    <line x1="780" y1="160" x2="1100" y2="160" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="802" y="186" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">price = 20</text>
+    <text x="832" y="214" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T1</text>
+    <text x="978" y="214" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T2</text>
+    <line x1="950" y1="202" x2="950" y2="340" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="814" y="242" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">read &#8594; 20</text>
+    <text x="962" y="270" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">write 30</text>
+    <text x="962" y="298" font-size="13.5" fill="#3F3F46" font-family="JetBrains Mono, monospace">commit</text>
+    <text x="814" y="326" font-size="13.5" font-weight="700" fill="#DC2626" font-family="JetBrains Mono, monospace">read &#8594; 30</text>
+    <line x1="780" y1="346" x2="1100" y2="346" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="802" y="374" font-size="13.5" font-weight="700" fill="#DC2626">T1 saw 20, then 30</text>
+    <text x="802" y="394" font-size="12.5" fill="#6B7280">two reads disagree in one txn</text>
+  </g>
+
+  <!-- color key -->
+  <text x="570" y="447" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the corrupted result each race leaves&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the trace and the conflict type</tspan></text>
+</svg>

@@ -1,0 +1,151 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.972
+You write a SQL query.
+
+00:00:04.972 --> 00:00:07.944
+It joins three tables.
+
+00:00:07.944 --> 00:00:10.916
+Milliseconds later you have your answer.
+
+00:00:10.916 --> 00:00:13.889
+But in between, a tiny program did something profound.
+
+00:00:13.889 --> 00:00:16.861
+It looked at every way to run your query, estimated the cost of each, and picked the cheapest.
+
+00:00:16.861 --> 00:00:19.833
+That program is the query optimizer.
+
+00:00:19.833 --> 00:00:22.805
+Watch what it does.
+
+00:00:22.805 --> 00:00:26.104
+Five stages, left to right.
+
+00:00:26.104 --> 00:00:29.403
+Stage one.
+
+00:00:29.403 --> 00:00:32.703
+SQL is declarative.
+
+00:00:32.703 --> 00:00:36.002
+It states the result, not the procedure.
+
+00:00:36.002 --> 00:00:39.301
+It says what, not how.
+
+00:00:39.301 --> 00:00:42.600
+Stage two, parsing and binding.
+
+00:00:42.600 --> 00:00:45.899
+The text becomes a tree, table and column names resolve against the catalog, and the query is now valid.
+
+00:00:45.899 --> 00:00:49.198
+Stage three, the logical plan.
+
+00:00:49.198 --> 00:00:52.498
+This is relational algebra, and every rewrite preserves the answer.
+
+00:00:52.498 --> 00:00:55.797
+Push filters down before joins.
+
+00:00:55.797 --> 00:00:59.096
+Drop unused columns early.
+
+00:00:59.096 --> 00:01:02.395
+Flatten subqueries.
+
+00:01:02.395 --> 00:01:05.694
+The result is now pinned.
+
+00:01:05.694 --> 00:01:08.993
+Every plan after this returns the same tuples, so only running time can still change.
+
+00:01:08.993 --> 00:01:12.293
+Stage four, the physical plan, where speed is decided.
+
+00:01:12.293 --> 00:01:15.592
+It picks a join order, a join algorithm, and an access path.
+
+00:01:15.592 --> 00:01:18.891
+Join orders explode.
+
+00:01:18.891 --> 00:01:22.190
+Three tables give six orders, ten tables give three point six million.
+
+00:01:22.190 --> 00:01:25.489
+So it uses dynamic programming.
+
+00:01:25.489 --> 00:01:28.788
+Compute the cheapest sub-plan for each subset of tables once, then reuse it.
+
+00:01:28.788 --> 00:01:32.088
+N factorial work collapses to about two to the N.
+
+00:01:32.088 --> 00:01:35.387
+Each candidate is costed from table statistics.
+
+00:01:35.387 --> 00:01:38.686
+Stage five, execute.
+
+00:01:38.686 --> 00:01:41.985
+Only the winner executes, routinely a hundred times faster than the naive ordering.
+
+00:01:41.985 --> 00:01:45.822
+The optimizer does not think in SQL.
+
+00:01:45.822 --> 00:01:49.658
+It thinks in lego blocks.
+
+00:01:49.658 --> 00:01:53.495
+Four families.
+
+00:01:53.495 --> 00:01:57.331
+Access methods, how to fetch rows.
+
+00:01:57.331 --> 00:02:01.168
+Sequential scan for more than ten percent of rows, index scan for under one percent, bitmap scan in between.
+
+00:02:01.168 --> 00:02:05.005
+Partition and sort, how to break big into small.
+
+00:02:05.005 --> 00:02:08.841
+Hash partition, or BigSort.
+
+00:02:08.841 --> 00:02:12.678
+Aggregation, how to collapse to one row per group.
+
+00:02:12.678 --> 00:02:16.515
+Hash aggregate, or sort aggregate.
+
+00:02:16.515 --> 00:02:20.351
+Join algorithms, how to combine two tables.
+
+00:02:20.351 --> 00:02:24.188
+Hash join, sort-merge join, or block nested loop.
+
+00:02:24.188 --> 00:02:28.024
+Any physical plan is just one choice from each family wired together.
+
+00:02:28.024 --> 00:02:31.861
+Each block is a primitive you already studied on its own page, so plan selection is really a cost comparison across these combinations.
+
+00:02:31.861 --> 00:02:38.045
+The optimizer is one of the most sophisticated pieces of software you will use without ever seeing it.
+
+00:02:38.045 --> 00:02:44.229
+You write declarative SQL, it figures out the rest.
+
+00:02:44.229 --> 00:02:50.413
+When it gets the plan wrong, the cause is almost always bad statistics.
+
+00:02:50.413 --> 00:02:56.598
+It thinks Listens has a thousand rows when it really has a billion, picks a plan tuned for small data, and the query takes hours.
+
+00:02:56.598 --> 00:03:02.782
+The fix in production is to run analyze, which refreshes the statistics.
+
+00:03:02.782 --> 00:03:08.966
+Most slow queries in the world come down to stale stats, not bad SQL, and statistics are exactly what we cover next.

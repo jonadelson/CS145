@@ -1,0 +1,55 @@
+<svg viewBox="0 0 1180 360" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="lss-t lss-d">
+  <title id="lss-t">From a blind guess to a query that runs</title>
+  <desc id="lss-d">An English question goes to an LLM, which takes one of two
+  paths. Blind (grey): it emits SQL in one shot with no feedback, so it may
+  crash, be empty, or be wrong. With a database through a tool like MCP or a CLI
+  (blue): it writes, runs, reads the error, and fixes, repeating until a guess
+  becomes a query that runs. The output is a query that runs, though running is
+  not yet right. Color key: blue is the run loop, grey is the one-shot with no
+  feedback.</desc>
+  <defs><marker id="ah-lss" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="590" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">From a blind guess to a query that runs</text>
+  <text x="590" y="56" text-anchor="middle" font-size="16" fill="#3F3F46">One blind attempt, or a loop that runs and corrects itself.</text>
+
+  <!-- English question -->
+  <rect x="40" y="150" width="150" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="115" y="182" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">English question</text>
+  <text x="115" y="203" text-anchor="middle" font-size="14" fill="#6B7280">"active users?"</text>
+  <line x1="190" y1="186" x2="230" y2="186" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-lss)"/>
+
+  <!-- LLM -->
+  <rect x="234" y="150" width="110" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="289" y="192" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">LLM</text>
+
+  <!-- branches -->
+  <line x1="344" y1="170" x2="428" y2="134" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-lss)"/>
+  <line x1="344" y1="202" x2="428" y2="256" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-lss)"/>
+
+  <!-- Blind path (grey) -->
+  <rect x="432" y="92" width="330" height="80" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="432" y="92" width="330" height="6" rx="3" fill="#9AA0AA"/>
+  <text x="597" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#6B7280">One shot, blind</text>
+  <text x="597" y="144" text-anchor="middle" font-size="14" fill="#3F3F46">no feedback, so it ships whatever it wrote</text>
+  <text x="597" y="164" text-anchor="middle" font-size="14" fill="#3F3F46">may crash, be empty, or be wrong</text>
+
+  <!-- Run loop (blue) -->
+  <rect x="432" y="214" width="330" height="110" rx="8" fill="#FFFFFF" stroke="#60A5FA" stroke-width="2"/>
+  <rect x="432" y="214" width="330" height="6" rx="3" fill="#60A5FA"/>
+  <text x="597" y="242" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">With a database (MCP or a CLI)</text>
+  <text x="597" y="266" text-anchor="middle" font-size="14" fill="#3F3F46">write &#8594; run &#8594; read the error &#8594; fix</text>
+  <text x="597" y="286" text-anchor="middle" font-size="14" fill="#3F3F46">and repeat</text>
+  <text x="597" y="308" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">a guess becomes a query that runs</text>
+
+  <!-- output -->
+  <line x1="762" y1="269" x2="800" y2="269" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-lss)"/>
+  <rect x="802" y="233" width="170" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="887" y="265" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">A query that runs</text>
+  <text x="887" y="287" text-anchor="middle" font-size="14" fill="#6B7280">running is not yet right</text>
+
+  <!-- Color key -->
+  <text x="590" y="346" text-anchor="middle" font-size="14"><tspan fill="#60A5FA" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = the run loop&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the one-shot, no feedback</tspan></text>
+</svg>

@@ -1,0 +1,48 @@
+<h1>Case Study 3.4: The Engineering of "Spotify Wrapped"</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Spotify Wrapped pre-aggregates each user's full year of listening into a small per-user record overnight, so that the December 1 traffic spike reads from indexed rollups instead of scanning a year of raw plays.</p>
+<p><strong>Intuition.</strong> When 700 million users hit "show my Wrapped" on December 1, you cannot scan a year of 365 billion play events in real time. Instead, every night a batch job aggregates each user's listens into a single row keyed by <code>user_id</code>, indexed for instant lookup.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 3.4</span>
+<span>Reading Time: 7 mins</span></p>
+</div>
+<p><a id="wrapped-hero"></a>
+<img src="assets/Module3B-Indexing/svgs/wrapped-indexing-hero.svg" alt="A year of scattered raw listens (grey) becomes a clustered Listens table read sequentially by an overnight batch job, which writes one precomputed Wrapped row per user (green) that the December card fetches with a single hash-index lookup on user_id." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Wrapped is fast because the expensive work happens once, overnight, against the right index. Raw plays stored chronologically (grey) scatter each user's listens across the disk; clustering Listens by (user_id, listen_time) puts your whole year on one page, so the nightly batch reads it in a single sequential pass and writes one tiny summary row per user (green). On December 1 the card is then a single hash-index lookup on user_id.</p>
+</div>
+<h2>Two Phases: Batch and Online</h2>
+<p>Spotify Wrapped runs in two phases. The <strong>batch phase</strong> runs overnight and aggregates a year of play events into per-user summaries. The <strong>online phase</strong> serves those summaries to 700 million clients when the feature launches. The two phases have completely different access patterns, and they need different indexes.</p>
+<hr />
+<h2>Phase 1: Offline Aggregation</h2>
+<p>Before December, Spotify walks the Listens table to tally each user's top tracks. Say you logged 1,000 listens this year. How quickly can the system find and process them?</p>
+<h3>Option A: Unclustered Storage</h3>
+<p>The table is stored chronologically, as songs were played. Even with an index on <code>user_id</code>, the engine has to retrieve your 1,000 plays from 1,000 different pages scattered across disk. That's 1,000 random seeks, and calculating Wrapped for everyone this way would take weeks.</p>
+<h3>Option B: Clustered Storage</h3>
+<p>Spotify reorders the trillion-row Listens table by <code>(user_id, listen_time)</code>, creating a <strong>clustered index</strong> on those columns (see <a href="#/page/Module3B-Indexing/io-indexes">clustered vs unclustered</a> for the mechanism).</p>
+<p>Now your 1,000 plays sit together on the same 64 MB page (or a small handful of neighbouring pages). The engine does a sequential scan: it reads your page, finds your data, and the next few records are guaranteed to also be yours. The same B+Tree index is also useful for date-specific lookups like "what did I play on July 12 at 9 PM," since the B+Tree gets you to the right spot and the clustering keeps nearby data nearby.</p>
+<hr />
+<h2>Phase 2: Online Delivery</h2>
+<p>Once summaries are computed, they're stored in a Wrapped table. Two different access patterns show up, and they each want a different index.</p>
+<h3>The Wrapped Card: Hash Index on <code>user_id</code></h3>
+<p>When you tap your Wrapped card, the system fetches your precomputed summary. A hash index on <code>user_id</code> gives the O(1) lookup that millions of simultaneous taps need.</p>
+<h3>Recently Played: B+Tree on a Clustered Table</h3>
+<p>Some users drill deeper and want their full "Recently Played" history from the raw Listens table. A hash index can't handle a range scan like "show all songs I played in December." The B+Tree on the clustered Listens table can: it finds the start of December quickly, and because the data is clustered, the scroll across leaves reads contiguous pages.</p>
+<hr />
+<h2>The Clustering Tradeoff: One Dimension at a Time</h2>
+<p>Clustering is <a href="#/page/Module3B-Indexing/io-indexes">one dimension only</a>, so Spotify must choose what Listens is physically sorted for:</p>
+<ul>
+<li>
+<p>Clustering by <code>(user_id, listen_time)</code> makes Wrapped fast and personal-history deep-dives fast.</p>
+</li>
+<li>
+<p>Clustering by <code>(artist_id, user_id)</code> would make "Top 10 Fans of Taylor Swift" fast instead, but Wrapped becomes unclustered (and therefore slow).</p>
+</li>
+</ul>
+<p>At Spotify's scale, the answer is to keep <strong>multiple physical copies</strong> of Listens, each clustered differently for a different feature. Storage is cheap; disk seeks at query time are not.</p>
+<hr />
+<p><strong>Takeaway:</strong> Wrapped is instant because the expensive aggregation runs overnight and the online path is a tiny lookup on a <code>user_id</code>-clustered table, the index chosen to match the dominant access pattern (clustering turns 1,000 random IOs into one).</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/case-study-query-disaster">Putting It All Together: The $550,000 Query →</a></strong> Four optimizations (indexes, columnar storage, compression, page size) stacked on a single query take it from $550K a year to under $400.</p>

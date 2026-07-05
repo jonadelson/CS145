@@ -1,0 +1,100 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.732
+Spotify wants the average rating per genre across a hundred billion listens.
+
+00:00:07.732 --> 00:00:13.464
+On the row storage you just saw, that reads every byte of every row and takes hours.
+
+00:00:13.464 --> 00:00:19.196
+BigQuery answers it in seconds, and the whole trick is in this picture.
+
+00:00:19.196 --> 00:00:24.928
+First, the table is stored by column, so the query reads only the rating and genre columns and skips the other eighteen.
+
+00:00:24.928 --> 00:00:30.660
+Next, that scan splits across thousands of workers that exist only while the query runs.
+
+00:00:30.660 --> 00:00:36.392
+Finally, their partial answers bubble up to a root that combines them into the final number.
+
+00:00:36.392 --> 00:00:42.124
+Read only the columns you touch, on machines you rent by the second.
+
+00:00:42.124 --> 00:00:45.979
+Where did this come from.
+
+00:00:45.979 --> 00:00:49.833
+In two thousand five, a Google engineer named Andrey Gubarev needed answers from the web crawl.
+
+00:00:49.833 --> 00:00:53.688
+The queries ran for hours, eating into his foosball time.
+
+00:00:53.688 --> 00:00:57.542
+So he dug into why they were slow.
+
+00:00:57.542 --> 00:01:01.397
+That investigation became Dremel, and Dremel shipped to the world as BigQuery.
+
+00:01:01.397 --> 00:01:06.772
+The slow part was the layout.
+
+00:01:06.772 --> 00:01:12.148
+Each web page was one row, and most of that row was the raw page content, megabytes per record.
+
+00:01:12.148 --> 00:01:17.523
+Ask a simple question, like trends by date, and row storage still drags the whole page off disk just to read a few bytes of date.
+
+00:01:17.523 --> 00:01:22.899
+Across billions of pages, that is hours of wasted reading.
+
+00:01:22.899 --> 00:01:26.816
+Dremel flipped the layout.
+
+00:01:26.816 --> 00:01:30.732
+Instead of keeping each row together, keep each column together.
+
+00:01:30.732 --> 00:01:34.648
+All the dates in one file, all the bodies in another.
+
+00:01:34.648 --> 00:01:38.565
+Now a query by date opens only the date file and never touches the body.
+
+00:01:38.565 --> 00:01:42.481
+A column of similar values also compresses by another order of magnitude, because genres and ratings repeat.
+
+00:01:42.481 --> 00:01:46.398
+Hours became seconds.
+
+00:01:46.398 --> 00:01:51.209
+Put real numbers on it.
+
+00:01:51.209 --> 00:01:56.020
+The table is one terabyte, twenty columns, and the query needs just two, rating and genre.
+
+00:01:56.020 --> 00:02:00.832
+Row storage reads the whole terabyte in over ten minutes.
+
+00:02:00.832 --> 00:02:05.643
+BigQuery reads about fifty gigabytes, compressed and spread across a hundred workers, in fifteen seconds.
+
+00:02:05.643 --> 00:02:10.454
+Twenty times less data off disk, forty times faster.
+
+00:02:10.454 --> 00:02:14.951
+That same pattern, columns plus compression plus distribution, now powers Redshift, Snowflake, Parquet, and ClickHouse.
+
+00:02:14.951 --> 00:02:19.448
+The lesson is that BigQuery is the workload opposite of Postgres.
+
+00:02:19.448 --> 00:02:23.945
+Row storage wins when you grab one whole record.
+
+00:02:23.945 --> 00:02:28.442
+Column storage wins when you scan a few fields across billions of rows.
+
+00:02:28.442 --> 00:02:32.939
+Pick the layout that matches your queries.
+
+00:02:32.939 --> 00:02:37.436
+Next, when you need both at once, hybrid storage.

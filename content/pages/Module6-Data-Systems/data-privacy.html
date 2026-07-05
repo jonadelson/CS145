@@ -1,0 +1,164 @@
+<h1>Data Privacy: The Netflix Challenge</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> "Anonymized" data is rarely anonymous. Stripping names leaves <strong>quasi-identifiers</strong>, rare combinations of attributes that a <em>linkage attack</em> can join against public data to re-identify people. The fix is mathematical: k-anonymity and differential privacy trade a little accuracy for a real privacy guarantee.</p>
+<p><strong>Intuition.</strong> Netflix released 100M "anonymized" ratings for a $1M prize in 2006. Researchers joined them to public IMDB reviews on shared (movie, rating, date) pairs and re-identified users in 2007. About 8 ratings with dates make you roughly 99% unique, so the names were never the only identifier.</p>
+</div>
+<hr />
+<h2>Anonymous Is Not Private</h2>
+<p>Netflix had three options for the prize dataset: release it with names (an obvious breach), keep it private (safe, but no competition), or release it with random IDs in place of names. They chose the random IDs and assumed that broke the link to real people. It did not.</p>
+<p><a id="linkage-attack-fig"></a></p>
+<p><img src="assets/Module6-Data-Systems/svgs/linkage-attack.svg" alt="Anonymized Netflix rows (user A7X9B2 rated Shrek and Matrix on specific dates) joined to public IMDB reviews carrying the same movie/rating/date pairs under the name Alice Smith, yielding the re-identification A7X9B2 = Alice Smith." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Each dataset looks safe alone, but the join breaks anonymity. A user's rare ratings (which movie, what score, on what date) are a fingerprint; the same person leaves some of those reviews publicly on IMDB under their real name. Joining the two on (movie, rating, date) matches the anonymous ID to the real person, exposing their entire viewing history. Removing names does nothing when the remaining attributes are this unique.</p>
+</div>
+<hr />
+<h2>Privacy Attacks</h2>
+<table>
+<thead>
+<tr>
+<th>Attack</th>
+<th>How it works</th>
+<th>Example</th>
+<th>Prevention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Linkage</strong></td>
+<td>Join anonymous data with public data</td>
+<td>Netflix + IMDB</td>
+<td>Do not release individual records</td>
+</tr>
+<tr>
+<td><strong>Inference</strong></td>
+<td>Unique attribute combinations</td>
+<td>DOB + gender + ZIP = 87% unique</td>
+<td>Generalize attributes</td>
+</tr>
+<tr>
+<td><strong>Location</strong></td>
+<td>Unique movement patterns</td>
+<td>4 locations = 95% unique</td>
+<td>Aggregate or add noise</td>
+</tr>
+<tr>
+<td><strong>Temporal</strong></td>
+<td>Timing patterns reveal identity</td>
+<td>login and activity times</td>
+<td>Round timestamps</td>
+</tr>
+</tbody>
+</table>
+<h2>Legal Requirements</h2>
+<table>
+<thead>
+<tr>
+<th>Regulation</th>
+<th>Scope</th>
+<th>Key requirement</th>
+<th>Penalty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GDPR</strong></td>
+<td>EU citizens</td>
+<td>Data stays in the EU or adequate countries</td>
+<td>Up to 4% of revenue</td>
+</tr>
+<tr>
+<td><strong>CCPA</strong></td>
+<td>California</td>
+<td>Right to delete personal data</td>
+<td>$7,500 per violation</td>
+</tr>
+<tr>
+<td><strong>HIPAA</strong></td>
+<td>Healthcare</td>
+<td>Protect electronic health records (ePHI)</td>
+<td>$2M + criminal charges</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Defense Methods</h2>
+<p><strong>Synthetic data.</strong> Generate fake records that match the statistical shape of the real data without containing any real individual. Good for development, testing, and early ML.</p>
+<p><strong>Differential privacy.</strong> Add calibrated noise to query results so no single person changes the answer much, while aggregate trends stay accurate. The privacy budget <code>epsilon</code> sets the trade-off: lower means more noise and more privacy.</p>
+<table>
+<thead>
+<tr>
+<th>Epsilon (ε)</th>
+<th>Privacy</th>
+<th>Noise</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>10</strong></td>
+<td>Low</td>
+<td>±1-2%</td>
+<td>Internal analytics</td>
+</tr>
+<tr>
+<td><strong>1.0</strong></td>
+<td>Balanced</td>
+<td>±10%</td>
+<td>Research datasets</td>
+</tr>
+<tr>
+<td><strong>0.1</strong></td>
+<td>High</td>
+<td>±100%</td>
+<td>Public release</td>
+</tr>
+<tr>
+<td><strong>0.01</strong></td>
+<td>Maximum</td>
+<td>±1000%</td>
+<td>Highly sensitive</td>
+</tr>
+</tbody>
+</table>
+<pre><code><span class="sql-comment">-- BigQuery differential privacy</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">WITH</span> DIFFERENTIAL_PRIVACY
+  OPTIONS(
+    epsilon <span class="sql-operator">=</span> <span class="sql-number">1.0</span>,              <span class="sql-comment">-- privacy budget (lower = more private)</span>
+    delta <span class="sql-operator">=</span> 1e-<span class="sql-number">5</span>,               <span class="sql-comment">-- probability bound</span>
+    max_groups_contributed <span class="sql-operator">=</span> <span class="sql-number">1</span>  <span class="sql-comment">-- limit each user's contribution</span>
+  )
+  diagnosis,
+  <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> noisy_count
+<span class="sql-keyword">FROM</span> medical_records
+<span class="sql-keyword">GROUP BY</span> diagnosis;
+
+<span class="sql-comment">-- k-anonymity: generalize, then require a minimum group size</span>
+<span class="sql-keyword">SELECT</span>
+  age_group,   <span class="sql-comment">-- not exact age</span>
+  zip_prefix,  <span class="sql-comment">-- first 3 digits only</span>
+  <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> <span class="sql-keyword">COUNT</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">users</span>
+<span class="sql-keyword">GROUP BY</span> age_group, zip_prefix
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) &gt;<span class="sql-operator">=</span> <span class="sql-number">5</span>;
+</code></pre>
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>Your data is a fingerprint.</strong> About 8 movie ratings can uniquely identify you.</p>
+</li>
+<li>
+<p><strong>Anonymous is not private.</strong> Public data sources enable re-identification.</p>
+</li>
+<li>
+<p><strong>Combinations matter.</strong> DOB + gender + ZIP identifies 87% of Americans.</p>
+</li>
+<li>
+<p><strong>Math protects privacy.</strong> Differential privacy gives a provable guarantee.</p>
+</li>
+<li>
+<p><strong>It is always a trade-off.</strong> More privacy means less accuracy; the epsilon budget makes the choice explicit.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/case-study-privacy">Case Study: Differential Privacy →</a></strong> See the math in the field: how Google published COVID mobility reports useful to public health without exposing any individual.</p>

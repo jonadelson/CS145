@@ -1,0 +1,306 @@
+{
+  "module": "Module3B-Indexing",
+  "title": "Indexing",
+  "questions": [
+    {
+      "id": "m3b-q01",
+      "category": "Index Fundamentals",
+      "page": "Module3B-Indexing/index-fundamentals",
+      "difficulty": "intro",
+      "question": "What does an index actually store, and why is it so much smaller than the table it indexes?",
+      "options": [
+        "A compressed copy of every row, shrunk by dictionary encoding",
+        "Only <code>(search_key, page#)</code> pairs of 8–20 bytes each, versus whole rows that can be megabytes",
+        "The first row of every page, so lookups can binary-search the table",
+        "A bitmap with one bit per row indicating whether the row matches recent queries"
+      ],
+      "correct": 1,
+      "explanation": "An index maps keys to the pages where matching rows live — tiny pointers, not data. In the course example, 1M Songs rows take 10 TB (160,000 pages) but the artist index is ~20 MB (one page), which is why <code>WHERE artist = 'Beatles'</code> drops from 160,000 IOs to 2."
+    },
+    {
+      "id": "m3b-q02",
+      "category": "Index Fundamentals",
+      "page": "Module3B-Indexing/index-fundamentals",
+      "difficulty": "core",
+      "question": "Which column is the WORST candidate for an index?",
+      "options": [
+        "<code>email</code> on a Users table, queried on every login",
+        "A foreign key column that joins walk constantly",
+        "A boolean <code>is_active</code> flag on a huge table where half the rows are true",
+        "<code>user_id</code>, a high-selectivity primary key"
+      ],
+      "correct": 2,
+      "explanation": "A low-selectivity boolean points at half the table, so the index barely narrows anything while still costing storage and slowing every write. High-selectivity columns (email, user_id) and constantly-joined foreign keys are exactly where indexes pay off."
+    },
+    {
+      "id": "m3b-q03",
+      "category": "Hash Indexes",
+      "page": "Module3B-Indexing/hash-indexes",
+      "difficulty": "intro",
+      "question": "A hash index on <code>user_id</code> answers <code>WHERE user_id = 42</code> in O(1) IOs. Why does the same index give NO help for <code>WHERE user_id BETWEEN 100 AND 200</code>?",
+      "options": [
+        "Hash indexes can only store integer keys, and ranges require strings",
+        "It does help, but only if the range spans fewer than one bucket's worth of keys",
+        "Range queries overflow the hash buckets, forcing a rebuild",
+        "The hash function scatters neighbouring keys to random buckets, so there is no order to scan through"
+      ],
+      "correct": 3,
+      "explanation": "Hashing deliberately destroys key order — 100 and 101 land in unrelated buckets — so any predicate needing ordered keys (ranges, <code>ORDER BY</code>, prefix <code>LIKE 'A%'</code>) gets no help at all. That's the fundamental trade for O(1) equality; reach for a B+Tree instead."
+    },
+    {
+      "id": "m3b-q04",
+      "category": "Hash Indexes",
+      "page": "Module3B-Indexing/hash-indexes",
+      "difficulty": "core",
+      "question": "In the hash index on <code>People.name</code>, looking up unique key \"Alice\" costs 2 IOs but duplicate key \"Dan\" costs 4. What causes the difference?",
+      "options": [
+        "Dan appears on multiple data pages (0, 1, 4), and the index entry fans out to one read per page holding him",
+        "Dan's entries collided with another key, so the lookup chains through extra buckets",
+        "Duplicate keys force the index to rehash with a second hash function",
+        "The name \"Dan\" hashes to a bucket that spilled to disk"
+      ],
+      "correct": 0,
+      "explanation": "When a key has duplicates, its index entry lists every data page containing it, and the database reads each in turn — one index IO plus three data-page IOs for Dan. This fan-out is the only hash-index cost that scales with anything other than table size; it's about duplicates, not hash collisions."
+    },
+    {
+      "id": "m3b-q05",
+      "category": "B+Tree Indexes",
+      "page": "Module3B-Indexing/btree-indexes",
+      "difficulty": "core",
+      "question": "Why does a B+Tree point lookup take roughly the same number of IOs (3–4) whether the table has a million or a billion rows?",
+      "options": [
+        "The root and internal nodes are always pinned in RAM, so only leaves cost IO",
+        "B+Trees rebalance nightly so hot keys migrate toward the root",
+        "Fanout is huge (thousands of children per node), so height = ⌈log_fanout(N)⌉ stays at ~3 levels even for a billion keys",
+        "The tree caches the last lookup's path and most lookups repeat"
+      ],
+      "correct": 2,
+      "explanation": "Each level costs one IO, and with fanout ~1,000 a billion keys fit in three levels (plus one IO for the data page). It's the arithmetic of log base fanout — not caching or pinning — that makes lookups feel constant-time as tables grow."
+    },
+    {
+      "id": "m3b-q06",
+      "category": "B+Tree Indexes",
+      "page": "Module3B-Indexing/btree-indexes",
+      "difficulty": "stretch",
+      "question": "A trillion-key B+Tree with 1 KB search keys needs 7 IOs per lookup on 64 KB pages but only 3 IOs on 64 MB pages. What explains the improvement?",
+      "options": [
+        "Bigger pages hold more <code>(key, pointer)</code> pairs, so fanout jumps from 63 to ~65,000 and the tree gets much shallower",
+        "64 MB pages are read from RAM instead of disk",
+        "Large pages store the data rows inside the leaves, skipping the final data-page IO",
+        "The 64 MB tree compresses its keys, so more of the tree fits per IO at equal fanout"
+      ],
+      "correct": 0,
+      "explanation": "Fanout = ⌊page size / (key size + pointer size)⌋, so a 1,000× bigger page means ~1,000× more children per node and height ⌈log_fanout(N)⌉ collapses from 7 to 3. The structure is identical — only the arithmetic changes; the tradeoff is more memory per node."
+    },
+    {
+      "id": "m3b-q07",
+      "category": "B+Tree Indexes",
+      "page": "Module3B-Indexing/btree-indexes",
+      "difficulty": "core",
+      "question": "You have a B+Tree index on <code>name</code>. Which query can the index actually accelerate?",
+      "options": [
+        "<code>WHERE LOWER(name) = 'alice'</code>",
+        "<code>WHERE name LIKE '%son'</code>",
+        "<code>WHERE name LIKE 'Ali%'</code>",
+        "<code>WHERE name != 'Bob'</code>"
+      ],
+      "correct": 2,
+      "explanation": "Prefix matching maps to a contiguous key range in the sorted leaves, so the tree can descend to 'Ali' and scan forward. A function on the column (the index is on <code>name</code>, not <code>LOWER(name)</code>), a suffix match, and <code>!=</code> all fail to narrow the search space, forcing a scan."
+    },
+    {
+      "id": "m3b-q08",
+      "category": "SSTables",
+      "page": "Module3B-Indexing/sstables",
+      "difficulty": "intro",
+      "question": "What is an SSTable?",
+      "options": [
+        "An in-memory sorted buffer that absorbs writes before they reach disk",
+        "A B+Tree variant whose leaves are string-compressed",
+        "An immutable on-disk file of key-value pairs sorted by key, written once and never modified",
+        "A mutable append-only log where keys arrive in insertion order"
+      ],
+      "correct": 2,
+      "explanation": "An SSTable (Sorted String Table) is written in one sequential flush and never changed afterward — updates create newer SSTables, and compaction later merges files. The in-memory buffer is the MemTable, a different component; an SSTable is sorted by key, not insertion order."
+    },
+    {
+      "id": "m3b-q09",
+      "category": "SSTables",
+      "page": "Module3B-Indexing/sstables",
+      "difficulty": "core",
+      "question": "Reading a key from an SSTable consults, in order: bloom filter, sparse index, data block. What does the bloom filter contribute?",
+      "options": [
+        "It answers \"might this key be here?\" in O(1), so a definite miss skips the file with no disk read",
+        "It returns the exact block offset for the key",
+        "It deduplicates versions of the key across multiple SSTables",
+        "It verifies the block's checksum before the read"
+      ],
+      "correct": 0,
+      "explanation": "The bloom filter (held in RAM) can say \"definitely not present\" and save a wasted disk read — crucial when many SSTables coexist and most don't hold the key. Finding the block offset is the sparse index's job; the filter only rules files out (with occasional false positives)."
+    },
+    {
+      "id": "m3b-q10",
+      "category": "LSM Trees",
+      "page": "Module3B-Indexing/lsm-indexes",
+      "difficulty": "core",
+      "question": "How does an LSM tree sustain ~1 million writes per second when a B+Tree on the same hardware cannot?",
+      "options": [
+        "It shards the B+Tree across many disks so random writes parallelize",
+        "It keeps the entire dataset in RAM and never touches disk",
+        "It compresses each write so more updates fit per IO",
+        "Every write is an append to the in-RAM MemTable; flushes are single sequential writes and compaction is a streaming merge, so no write ever does a random seek"
+      ],
+      "correct": 3,
+      "explanation": "A B+Tree pays a random disk write (descend, load leaf, rewrite) per update, saturating the disk controller. The LSM path is append-only at every tier — RAM append, sequential flush to an immutable SSTable, streaming compaction — turning random writes into sequential IO. Data does reach disk; it just gets there sequentially."
+    },
+    {
+      "id": "m3b-q11",
+      "category": "LSM Trees",
+      "page": "Module3B-Indexing/lsm-indexes",
+      "difficulty": "stretch",
+      "question": "In an LSM store, song S75's play count fragments are: MemTable <code>+2</code>, three Level-0 SSTables <code>+10, +5, +3</code>, and a compacted Level-1 file <code>5,420</code>. What does a read of S75's total return, and how?",
+      "options": [
+        "5,420 — reads always return the compacted authoritative value",
+        "5,440 — merge-on-read walks every tier that might hold the key and applies the merge function (here SUM) across all fragments",
+        "20 — only un-compacted fragments count until the next compaction",
+        "5,438 — the MemTable is volatile so its +2 is excluded until flushed"
+      ],
+      "correct": 1,
+      "explanation": "The \"current state\" of a key isn't stored anywhere; it's computed at read time by combining fragments from the MemTable and every relevant SSTable: 2 + (10+5+3) + 5,420 = 5,440. Bloom filters let the reader skip tiers that can't hold the key, and the merge function is configurable (SUM for counters, newest-wins for profiles)."
+    },
+    {
+      "id": "m3b-q12",
+      "category": "Spotify Activity (LSM)",
+      "page": "Module3B-Indexing/case-study-lsm-spotify",
+      "difficulty": "core",
+      "question": "SSTables are immutable, so how does Spotify handle you UN-liking a song that was recorded in an SSTable weeks ago?",
+      "options": [
+        "It rewrites that SSTable in place, removing the Like entry",
+        "Unlikes are queued in RAM until the original SSTable expires",
+        "It marks the whole SSTable as stale and rebuilds it from the MemTable",
+        "It writes a tombstone marker; reads that hit the tombstone first return \"not found,\" and the next compaction drops both the tombstone and the old entry"
+      ],
+      "correct": 3,
+      "explanation": "You can't erase from an immutable file, so deletes are recorded as new data: a tombstone shadows the older Like on every read (newest-first traversal), and compaction later matches tombstone against entry and drops both permanently. Rewriting files in place is exactly what LSM's design forbids."
+    },
+    {
+      "id": "m3b-q13",
+      "category": "Index IO Costs",
+      "page": "Module3B-Indexing/io-indexes",
+      "difficulty": "core",
+      "question": "The same range query <code>WHERE rating &gt;= 4</code> matches 4 rows. Why is it far cheaper on a table clustered by <code>rating</code> than on an unclustered one?",
+      "options": [
+        "Clustered tables keep all data in RAM; unclustered tables live on disk",
+        "Clustered indexes use hashing, which is O(1) per row",
+        "Clustering sorts the data physically by the key, so matches pack into contiguous pages read sequentially, and the index can be sparse (one entry per page) instead of dense (one per row)",
+        "Unclustered tables must lock every page during the scan"
+      ],
+      "correct": 2,
+      "explanation": "On a clustered table the 4 matches sit on ~2 adjacent pages (2 sequential reads); unclustered, they scatter in insert order, costing one random IO per matching row plus a dense index. Clustering is about physical sort order on disk, not memory residency or locking."
+    },
+    {
+      "id": "m3b-q14",
+      "category": "Index IO Costs",
+      "page": "Module3B-Indexing/io-indexes",
+      "difficulty": "stretch",
+      "question": "Hash is O(1) and B+Tree is O(log N), yet the course argues Big-O is the wrong basis for choosing between them. Why?",
+      "options": [
+        "B+Trees are O(1) too once the root is cached",
+        "With huge fanout, O(log N) collapses to ~3 page reads vs the hash's 1 — a small constant gap — so the decisive difference is that the B+Tree supports range scans and the hash cannot",
+        "Hash indexes degrade to O(N) on any table with duplicates, so O(1) is a lie",
+        "Big-O only applies to in-memory structures, not disk-based ones"
+      ],
+      "correct": 1,
+      "explanation": "⌈log_fanout(N)⌉ with fanout in the thousands is 3 levels even at a billion rows, so the real fight is 1 IO vs ~3 IOs — negligible. What actually differs in kind is capability: sorted leaves give ranges, <code>ORDER BY</code>, and prefixes, which hashing structurally can't. Duplicates add fan-out cost but don't make hash O(N)."
+    },
+    {
+      "id": "m3b-q15",
+      "category": "Spotify Search",
+      "page": "Module3B-Indexing/case-study-spotify-search",
+      "difficulty": "core",
+      "question": "Spotify's inverted index stores its term dictionary in a B+Tree rather than a hash index. What user-facing feature does that choice enable?",
+      "options": [
+        "Ranking results by popularity",
+        "Exact-match lookup of a full song title",
+        "Query expansion to synonyms like \"joyful\" for \"happy\"",
+        "Prefix search and autocomplete — \"Craz\" finds \"Crazy\" because neighbouring terms sit together in sorted order"
+      ],
+      "correct": 3,
+      "explanation": "Users type prefixes before finishing words; a B+Tree keeps terms sorted so 'Craz' can range-scan to completions, while a hash would scatter neighbouring terms to random buckets and couldn't autocomplete. Exact match works fine on either; ranking and query expansion are separate layers on top of the index."
+    },
+    {
+      "id": "m3b-q16",
+      "category": "Spotify Wrapped",
+      "page": "Module3B-Indexing/case-study-wrapped-indexing",
+      "difficulty": "core",
+      "question": "For Wrapped's nightly batch, Spotify clusters Listens by <code>(user_id, listen_time)</code>. Why does an index on <code>user_id</code> alone NOT solve the problem on unclustered (chronological) storage?",
+      "options": [
+        "The index would be too large to fit on disk",
+        "Indexes can't be built on composite access patterns",
+        "The index finds your 1,000 plays, but they're scattered across ~1,000 different pages, so fetching them costs ~1,000 random seeks per user",
+        "Unclustered indexes go stale overnight and would miss the newest plays"
+      ],
+      "correct": 2,
+      "explanation": "An index locates rows but doesn't move them: on chronologically-stored data, one user's year of plays spreads across the disk, so retrieval is one random IO per play — weeks of work across 700M users. Clustering physically co-locates each user's rows on one page (or a few), turning the fetch into a short sequential scan."
+    },
+    {
+      "id": "m3b-q17",
+      "category": "Spotify Wrapped",
+      "page": "Module3B-Indexing/case-study-wrapped-indexing",
+      "difficulty": "stretch",
+      "question": "Listens is clustered by <code>(user_id, listen_time)</code>, which makes Wrapped fast. Now \"Top 10 Fans of Taylor Swift\" (by <code>artist_id</code>) needs to be fast too. What does Spotify do, and why?",
+      "options": [
+        "Re-cluster the single table by <code>(artist_id, user_id)</code>, since newer clusterings override older ones",
+        "Cluster the table on both key sets simultaneously",
+        "Add an unclustered hash index on <code>artist_id</code>, which performs identically to clustering",
+        "Keep multiple physical copies of Listens, each clustered differently — storage is cheap, query-time disk seeks are not"
+      ],
+      "correct": 3,
+      "explanation": "A table's physical sort order can only go one way, so clustering is one dimension at a time; re-clustering for artists would make Wrapped unclustered and slow. At Spotify's scale the answer is duplicate copies, each sorted for a different dominant access pattern — an unclustered index on <code>artist_id</code> would still pay a random seek per matching row."
+    },
+    {
+      "id": "m3b-q18",
+      "category": "Index Problem Solving",
+      "page": "Module3B-Indexing/index-problem-solving",
+      "difficulty": "core",
+      "question": "Spotify logs 1 million song plays per second. Which index structure fits this workload best?",
+      "options": [
+        "A clustered B+Tree on <code>(song_id, timestamp)</code> so plays stay sorted",
+        "An LSM tree — writes append to RAM at effectively 0 IOs and flush sequentially, absorbing a load that would need ~4M random IOPS on a B+Tree",
+        "A hash index on <code>play_id</code> for O(1) inserts",
+        "A bloom filter, since most plays are duplicates"
+      ],
+      "correct": 1,
+      "explanation": "Write-heavy event streams are LSM's home turf: appends buffer in the MemTable and reach disk in batched sequential flushes. A B+Tree (clustered or not) pays a random disk write per insert, and a hash index still updates a bucket on disk per write; a bloom filter answers existence questions, it doesn't store events."
+    },
+    {
+      "id": "m3b-q19",
+      "category": "$550k Query Disaster",
+      "page": "Module3B-Indexing/case-study-query-disaster",
+      "difficulty": "stretch",
+      "question": "In the $550K query disaster, an index gave 90×, columnar storage 9×, and compression 2× — compounding to ~1,400× rather than adding to ~101×. Why do the three wins multiply?",
+      "options": [
+        "Cloud pricing discounts compound with each optimization tier",
+        "Each optimization attacks an independent kind of waste — rows scanned, columns read, bytes stored — so each factor applies to what remains after the previous one",
+        "The optimizer re-plans after each change, doubling the gains",
+        "They don't truly multiply; the 1,400× figure includes buying faster disks"
+      ],
+      "correct": 1,
+      "explanation": "The B+Tree on <code>listen_time</code> prunes to the 1% of pages in range, columnar then reads only the 4 needed columns of those rows, and compression shrinks those columns' bytes — orthogonal dimensions of waste, so the savings stack as a product (49,200 IOs down to ~35). If they attacked the same waste, the second fix would find little left to save."
+    },
+    {
+      "id": "m3b-q20",
+      "category": "$550k Query Disaster",
+      "page": "Module3B-Indexing/case-study-query-disaster",
+      "difficulty": "core",
+      "question": "Baseline for the weekly trending query: Songs = 400 pages, Listens = 16,000 pages, B = 20. Why is HPJ (49,200 IOs) still called \"wasteful\" even though it beats BNLJ (320,400 IOs)?",
+      "options": [
+        "The query only needs ~1% of Listens (one week's 150 pages), yet HPJ scans the entire 1 TB table to find it",
+        "HPJ writes partition files, and writes cost 10× reads on this hardware",
+        "HPJ suffers hash skew on the popular songs",
+        "BNLJ would actually be cheaper if Listens were the outer table"
+      ],
+      "correct": 0,
+      "explanation": "HPJ is the right generic algorithm for two big tables — 3 × (400 + 16,000) = 49,200 IOs — but the workload is a narrow date filter, so 99% of that scan is wasted. A B+Tree on <code>listen_time</code> jumps straight to the week: ~400 + 4 + 150 ≈ 554 IOs, a 90× win before columnar and compression even enter."
+    }
+  ]
+}

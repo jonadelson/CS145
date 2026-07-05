@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 460" role="img" aria-labelledby="pe-t pe-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="pe-t">PostgreSQL EXPLAIN output for the popular-songs query</title>
+  <desc id="pe-d">PostgreSQL's actual EXPLAIN output for the popular-songs query, reproduced verbatim from the course colab (Limit cost 55.21 to 55.24). Ten plan lines read bottom-up: a Seq Scan on songs feeds a Hash, a Seq Scan on listens probes the Hash Join on song_id, a HashAggregate groups by title and artist, a Sort orders by count descending, and a Limit takes the top ten. Each operator line shows the operator name in green and the optimizer's own cost=startup..total, rows, and width estimate in grey. Color key: green is the operator PostgreSQL chose, grey is its cost estimate and the plan tree structure.</desc>
+  <text x="520" y="42" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">PostgreSQL EXPLAIN: the popular-songs plan</text>
+  <text x="520" y="68" text-anchor="middle" font-size="15" fill="#6B7280">the optimizer's real plan, read bottom-up (leaves first)</text>
+  <!-- read-bottom-up rail (static) -->
+  <line x1="20" y1="414" x2="20" y2="92" stroke="#D4D7DC" stroke-width="2"/>
+  <polygon points="20,86 15,96 25,96" fill="#6B7280"/>
+  <text x="20" y="432" text-anchor="middle" font-size="11" fill="#6B7280">read</text>
+  <g data-step="1">
+    <text x="60" y="401" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[01]</text>
+    <text x="320" y="401" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280">-&gt;  </tspan><tspan fill="#059669" font-weight="700">Seq Scan on songs  </tspan><tspan fill="#6B7280">(cost=0.00..11.10 rows=110 width=440)</tspan></text>
+  </g>
+  <g data-step="2">
+    <text x="60" y="335" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[03]</text>
+    <text x="268" y="335" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280">-&gt;  </tspan><tspan fill="#059669" font-weight="700">Seq Scan on listens  </tspan><tspan fill="#6B7280">(cost=0.00..24.50 rows=1450 width=4)</tspan></text>
+    <text x="60" y="368" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[02]</text>
+    <text x="268" y="368" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280">-&gt;  </tspan><tspan fill="#059669" font-weight="700">Hash  </tspan><tspan fill="#6B7280">(cost=11.10..11.10 rows=110 width=440)</tspan></text>
+  </g>
+  <g data-step="3">
+    <text x="60" y="269" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[05]</text>
+    <text x="216" y="269" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280">-&gt;  </tspan><tspan fill="#059669" font-weight="700">Hash Join  </tspan><tspan fill="#6B7280">(cost=12.47..40.86 rows=1450 width=440)</tspan></text>
+    <text x="60" y="302" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[04]</text>
+    <text x="268" y="302" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280" font-style="italic">Hash Cond: (listens.song_id = songs.song_id)</tspan></text>
+  </g>
+  <g data-step="4">
+    <text x="60" y="203" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[07]</text>
+    <text x="165" y="203" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280">-&gt;  </tspan><tspan fill="#059669" font-weight="700">HashAggregate  </tspan><tspan fill="#6B7280">(cost=51.73..52.83 rows=110 width=444)</tspan></text>
+    <text x="60" y="236" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[06]</text>
+    <text x="216" y="236" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280" font-style="italic">Group Key: songs.title, songs.artist</tspan></text>
+  </g>
+  <g data-step="5">
+    <text x="60" y="104" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[10]</text>
+    <text x="96" y="104" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#059669" font-weight="700">Limit  </tspan><tspan fill="#6B7280">(cost=55.21..55.24 rows=10 width=444)</tspan></text>
+    <text x="60" y="137" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[09]</text>
+    <text x="113" y="137" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280">-&gt;  </tspan><tspan fill="#059669" font-weight="700">Sort  </tspan><tspan fill="#6B7280">(cost=55.21..55.49 rows=110 width=444)</tspan></text>
+    <text x="60" y="170" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[08]</text>
+    <text x="165" y="170" font-family="JetBrains Mono, monospace" font-size="15" xml:space="preserve"><tspan fill="#6B7280" font-style="italic">Sort Key: (count(listens.song_id)) DESC</tspan></text>
+  </g>
+  <text x="60" y="458" font-family="JetBrains Mono, monospace" font-size="15" fill="#6B7280">[NN]</text>
+  <text x="96" y="458" font-size="13" fill="#6B7280"><tspan fill="#059669" font-weight="700">green</tspan> = the operator PostgreSQL chose&#160;&#160;&#183;&#160;&#160;grey = its cost=startup..total / rows estimate&#160;&#160;&#183;&#160;&#160;read bottom-up</text>
+</svg>

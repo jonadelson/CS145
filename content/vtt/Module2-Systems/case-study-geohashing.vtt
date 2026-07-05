@@ -1,0 +1,142 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.901
+It is the lunch rush.
+
+00:00:05.901 --> 00:00:09.802
+A food delivery app gets an order, and needs every driver within two kilometers.
+
+00:00:09.802 --> 00:00:13.703
+The dumb way measures the distance to all ten million driver locations.
+
+00:00:13.703 --> 00:00:17.604
+A full table scan, ten million reads, on every order.
+
+00:00:17.604 --> 00:00:21.505
+At peak, that one query melts the database.
+
+00:00:21.505 --> 00:00:26.130
+The fix is to group by location.
+
+00:00:26.130 --> 00:00:30.756
+Chop the map into a grid, code each cell, store orders by it.
+
+00:00:30.756 --> 00:00:35.381
+Nearby orders share a code, so find nearby becomes find the same code.
+
+00:00:35.381 --> 00:00:40.007
+The obvious shape is a square, the classic geo hash.
+
+00:00:40.007 --> 00:00:44.632
+It groups points fine, but a radius query reads the cell plus its ring of neighbors, and a square's ring is uneven.
+
+00:00:44.632 --> 00:00:47.986
+Here is the problem with squares.
+
+00:00:47.986 --> 00:00:51.340
+A square has eight neighbors, but at two distances.
+
+00:00:51.340 --> 00:00:54.694
+The four edges are one cell away.
+
+00:00:54.694 --> 00:00:58.048
+The four corners are farther, by a factor of root two.
+
+00:00:58.048 --> 00:01:01.402
+So the ring you read is lopsided.
+
+00:01:01.402 --> 00:01:04.756
+A hexagon fixes it.
+
+00:01:04.756 --> 00:01:08.110
+Its six neighbors are all exactly the same distance away.
+
+00:01:08.110 --> 00:01:11.464
+One distance, an even ring in every direction.
+
+00:01:11.464 --> 00:01:14.818
+That is why Uber and Google grid the world in hexagons, a system called H three.
+
+00:01:14.818 --> 00:01:18.719
+First, the four places on this map.
+
+00:01:18.719 --> 00:01:22.620
+SF Mission, up north in the city.
+
+00:01:22.620 --> 00:01:26.521
+And three Stanford buildings, NVidia, Packard, and Gates, clustered tightly together to the south.
+
+00:01:26.521 --> 00:01:30.422
+Three close, one far.
+
+00:01:30.422 --> 00:01:35.633
+Now their actual H3 codes.
+
+00:01:35.633 --> 00:01:40.843
+At resolution eight, zoomed out, the three campus buildings get the identical code, one shared cell.
+
+00:01:40.843 --> 00:01:46.054
+SF Mission, twenty-nine miles away, gets a different one.
+
+00:01:46.054 --> 00:01:51.264
+Zoom in to resolution twelve, and the three campus codes split into separate cells, differing at the end, while SF stays different.
+
+00:01:51.264 --> 00:01:56.475
+Nearby points share a cell, far ones never do.
+
+00:01:56.475 --> 00:02:00.020
+So here is the scheme.
+
+00:02:00.020 --> 00:02:03.565
+Step one, the hash.
+
+00:02:03.565 --> 00:02:07.109
+Start with the orders, ten million of them, each just a latitude and longitude.
+
+00:02:07.109 --> 00:02:10.654
+Then lay H3's hexagons over the map.
+
+00:02:10.654 --> 00:02:14.199
+Now every order falls in one hexagon, and takes its hexagon's code.
+
+00:02:14.199 --> 00:02:17.744
+Orders nearby land in the same hexagon, so they share the same code.
+
+00:02:17.744 --> 00:02:21.500
+Step two, the lookup.
+
+00:02:21.500 --> 00:02:25.256
+A driver asks for orders within two kilometers.
+
+00:02:25.256 --> 00:02:29.012
+Hash the location, and you get one cell, one lookup.
+
+00:02:29.012 --> 00:02:32.768
+But the radius crosses cell borders, so you also read the six neighbors around it.
+
+00:02:32.768 --> 00:02:36.523
+That is seven cells, on up to seven different pages, so up to seven reads.
+
+00:02:36.523 --> 00:02:40.279
+Here is the part to get right.
+
+00:02:40.279 --> 00:02:44.035
+It is not one read.
+
+00:02:44.035 --> 00:02:47.791
+It is seven, and seven is constant, whether there are ten thousand orders or ten million.
+
+00:02:47.791 --> 00:02:53.522
+Geo-hashing turns a two-dimensional coordinate into a one-dimensional key, so find within two kilometers becomes a handful of cell lookups, not distance math over millions of rows.
+
+00:02:53.522 --> 00:02:59.252
+That count stays around seven, whatever the order count, and hexagons keep the ring even.
+
+00:02:59.252 --> 00:03:04.983
+It is an exact spatial hash.
+
+00:03:04.983 --> 00:03:10.713
+Next we bend the idea: a hash that makes similar things collide on purpose, to search by similarity.
+
+00:03:10.713 --> 00:03:16.444
+That is LSH.

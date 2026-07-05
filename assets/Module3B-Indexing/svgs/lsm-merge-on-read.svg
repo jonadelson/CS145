@@ -1,0 +1,66 @@
+<svg viewBox="0 0 1000 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lsm-merge-on-read-t lsm-merge-on-read-d">
+  <title id="lsm-merge-on-read-t">Merge-on-read for LSM: a user query for total plays of song S_75 gets +2 from the MemTable, +18 from the three Level-0 SSTables, and 5,420 from the compacted Level-1+ SSTable, summed to 5,440 total plays</title>
+  <desc id="lsm-merge-on-read-d">Merge-on-read for LSM: a user query for total plays of song S_75 gets +2 from the MemTable, +18 from the three Level-0 SSTables, and 5,420 from the compacted Level-1+ SSTable, summed to 5,440 total plays. Color key: red strip is the MemTable in RAM (volatile), green strip is SSTables on disk (persistent), violet is the S_75 contributions and the summed answer.</desc>
+    <defs>
+        <marker id="ar-mr" markerWidth="12" markerHeight="12" refX="11" refY="4" orient="auto">
+            <polygon points="0 0, 12 4, 0 8" fill="#6B7280"/>
+        </marker>
+    </defs>
+
+    <text x="500" y="30" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#0E0E10">Merge-on-read · total plays for S<tspan baseline-shift="sub" font-size="0.72em">75</tspan></text>
+    <text x="500" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">the "state" isn't stored; it's computed by walking every tier</text>
+
+    <!-- step 1: the query fans out to every tier -->
+    <g data-step="1">
+    <rect x="40" y="90" width="240" height="120" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2.5"/>
+    <text x="160" y="114" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Query</text>
+    <text x="160" y="148" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">GET plays</text>
+    <text x="160" y="168" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">WHERE song = 'S<tspan baseline-shift="sub" font-size="0.72em">75</tspan>'</text>
+    <text x="160" y="195" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">user doesn't know about tiers</text>
+    <line x1="290" y1="120" x2="340" y2="120" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-mr)"/>
+    <line x1="290" y1="150" x2="340" y2="199" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-mr)"/>
+    <line x1="290" y1="180" x2="340" y2="278" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-mr)"/>
+    </g>
+
+    <!-- step 2: MemTable contributes +2 -->
+    <g data-step="2">
+    <rect x="350" y="90" width="420" height="60" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="350" y="90" width="420" height="6" rx="6" fill="#DC2626"/>
+    <text x="365" y="114" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#DC2626">1 · MemTable (live) · RAM</text>
+    <text x="365" y="136" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">one value from the live in-RAM buffer</text>
+    <text x="750" y="128" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#7C3AED">+2</text>
+    </g>
+
+    <!-- step 3: Level-0 SSTables contribute +18 -->
+    <g data-step="3">
+    <rect x="350" y="158" width="420" height="82" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="350" y="158" width="420" height="6" rx="6" fill="#059669"/>
+    <text x="365" y="182" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">2 · Level-0 SSTables (1:00 · 1:15 · 1:30) · disk</text>
+    <text x="365" y="204" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">sum matching entries across all three files</text>
+    <text x="365" y="224" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">+10 · +5 · +3</text>
+    <text x="750" y="212" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#7C3AED">+18</text>
+    </g>
+
+    <!-- step 4: Level-1+ SSTable contributes +5,420 -->
+    <g data-step="4">
+    <rect x="350" y="248" width="420" height="60" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="350" y="248" width="420" height="6" rx="6" fill="#059669"/>
+    <text x="365" y="272" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">3 · Level-1+ SSTable (compacted history) · disk</text>
+    <text x="365" y="294" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">single entry in the merged file</text>
+    <text x="750" y="286" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#7C3AED">+5,420</text>
+    </g>
+
+    <!-- step 5: sum the tiers into the answer -->
+    <g data-step="5">
+    <line x1="790" y1="199" x2="840" y2="199" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ar-mr)"/>
+    <text x="815" y="189" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0E0E10">Σ</text>
+    <rect x="850" y="138" width="130" height="124" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2.5"/>
+    <text x="915" y="164" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">result</text>
+    <text x="915" y="204" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="24" font-weight="700" fill="#7C3AED">5,440</text>
+    <text x="915" y="226" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">total plays</text>
+    <text x="915" y="246" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">@ 1:44 PM</text>
+    <text x="500" y="362" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0E0E10">State = merge( MemTable · Level 0 · Level 1+ )</text>
+    </g>
+
+    <text x="500" y="398" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red strip</tspan><tspan fill="#3F3F46"> = MemTable in RAM, volatile&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green strip</tspan><tspan fill="#3F3F46"> = SSTables on disk, persistent&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = S<tspan baseline-shift="sub" font-size="0.72em">75</tspan> contributions, summed</tspan></text>
+</svg>

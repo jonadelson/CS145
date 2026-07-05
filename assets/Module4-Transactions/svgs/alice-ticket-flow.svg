@@ -1,0 +1,53 @@
+<svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="atf-t atf-d">
+  <title id="atf-t">Alice's ticket purchase: three steps, all or nothing</title>
+  <desc id="atf-d">Alice's purchase is one transaction wrapping three steps:
+  check inventory, verify the card, complete the sale. Top row, the happy path:
+  all three succeed and the transaction commits. Bottom row, a failure: the card
+  declines at step two, so the whole transaction rolls back and nothing happened,
+  no seats reserved against a declined card. Color key: green is a committed step,
+  grey struck-through is a step undone by rollback, pink is the decline.</desc>
+  <defs><marker id="ah-atf" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="480" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Alice's purchase: three steps, all or nothing</text>
+  <text x="480" y="58" text-anchor="middle" font-size="14" fill="#6B7280">One transaction wraps the steps. Every step commits together, or every step rolls back.</text>
+
+  <!-- Happy path: all commit -->
+  <g data-step="1">
+    <text x="70" y="112" font-size="13" font-weight="700" fill="#16A34A" letter-spacing="0.5">BEGIN</text>
+    <rect x="150" y="92" width="180" height="48" rx="6" fill="#E1F4EC" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="240" y="113" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Check inventory</text>
+    <text x="240" y="130" text-anchor="middle" font-size="12.5" fill="#16A34A">seats available ✓</text>
+    <line x1="332" y1="116" x2="356" y2="116" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-atf)"/>
+    <rect x="358" y="92" width="180" height="48" rx="6" fill="#E1F4EC" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="448" y="113" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Verify card</text>
+    <text x="448" y="130" text-anchor="middle" font-size="12.5" fill="#16A34A">authorized ✓</text>
+    <line x1="540" y1="116" x2="564" y2="116" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-atf)"/>
+    <rect x="566" y="92" width="180" height="48" rx="6" fill="#E1F4EC" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="656" y="113" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Complete sale</text>
+    <text x="656" y="130" text-anchor="middle" font-size="12.5" fill="#16A34A">recorded ✓</text>
+    <text x="800" y="112" font-size="13" font-weight="700" fill="#16A34A" letter-spacing="0.5">COMMIT</text>
+    <text x="830" y="170" text-anchor="middle" font-size="13" fill="#3F3F46">Alice gets her tickets.</text>
+  </g>
+
+  <!-- Failure path: rollback -->
+  <g data-step="2">
+    <text x="70" y="280" font-size="13" font-weight="700" fill="#6B7280" letter-spacing="0.5">BEGIN</text>
+    <rect x="150" y="260" width="180" height="48" rx="6" fill="#F4F4F6" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="240" y="281" text-anchor="middle" font-size="14" font-weight="700" fill="#9AA0AA" text-decoration="line-through">Check inventory</text>
+    <text x="240" y="298" text-anchor="middle" font-size="12.5" fill="#9AA0AA">undone</text>
+    <line x1="332" y1="284" x2="356" y2="284" stroke="#D4D7DC" stroke-width="2" marker-end="url(#ah-atf)"/>
+    <rect x="358" y="260" width="180" height="48" rx="6" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="448" y="281" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">Verify card ✗</text>
+    <text x="448" y="298" text-anchor="middle" font-size="12.5" fill="#DC2626">declined</text>
+    <rect x="566" y="260" width="180" height="48" rx="6" fill="#F4F4F6" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="656" y="281" text-anchor="middle" font-size="14" font-weight="700" fill="#9AA0AA" text-decoration="line-through">Complete sale</text>
+    <text x="656" y="298" text-anchor="middle" font-size="12.5" fill="#9AA0AA">never runs</text>
+    <text x="800" y="280" font-size="13" font-weight="700" fill="#DC2626" letter-spacing="0.5">ROLLBACK</text>
+    <text x="830" y="338" text-anchor="middle" font-size="13" fill="#3F3F46">Nothing happened.</text>
+  </g>
+
+  <text x="480" y="392" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Atomicity&#160;&#160;</tspan><tspan fill="#3F3F46">all three steps commit as one unit, or a single failure rolls every one of them back.</tspan></text>
+</svg>

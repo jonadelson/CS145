@@ -1,0 +1,172 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.762
+Spotify ingests a million listen events per second.
+
+00:00:05.762 --> 00:00:09.523
+AB-plus tree cannot keep up, because every insert is a random disk seek.
+
+00:00:09.523 --> 00:00:13.285
+The LSM tree, Log Structured Merge, has one trick.
+
+00:00:13.285 --> 00:00:17.046
+Turn random writes into sequential ones.
+
+00:00:17.046 --> 00:00:20.808
+Buffer in RAM, flush in order, never seek.
+
+00:00:20.808 --> 00:00:24.471
+Watch the write path over one afternoon.
+
+00:00:24.471 --> 00:00:28.135
+Every play is a triple.
+
+00:00:28.135 --> 00:00:31.798
+Key, value, timestamp.
+
+00:00:31.798 --> 00:00:35.461
+S underscore one zero two, plus one, thirteen forty-two.
+
+00:00:35.461 --> 00:00:39.124
+No record is ever rewritten in place.
+
+00:00:39.124 --> 00:00:42.788
+Each play just appends a new fragment.
+
+00:00:42.788 --> 00:00:46.451
+First, the MemTable.
+
+00:00:46.451 --> 00:00:50.114
+Tens of thousands of plays per second land in this in-RAM buffer, fast, no seek.
+
+00:00:50.114 --> 00:00:53.778
+When it fills, the engine does a flush.
+
+00:00:53.778 --> 00:00:57.441
+It writes the sorted buffer to disk as one immutable Level-zero SS Table, one sequential append.
+
+00:00:57.441 --> 00:01:01.104
+One PM, flush.
+
+00:01:01.104 --> 00:01:04.768
+One fifteen, flush.
+
+00:01:04.768 --> 00:01:08.431
+One thirty, flush.
+
+00:01:08.431 --> 00:01:12.094
+The files pile up.
+
+00:01:12.094 --> 00:01:15.757
+So near the top of the hour, a background thread fires a compact.
+
+00:01:15.757 --> 00:01:19.421
+It k-way merges those Level-zero files into one larger Level-one file, dropping obsolete versions on the way.
+
+00:01:19.421 --> 00:01:23.084
+Through all of this, no write ever does a random seek, and that is how an LSM tree sustains a million writes per second on commodity disks.
+
+00:01:23.084 --> 00:01:26.915
+So where is the value of a key?
+
+00:01:26.915 --> 00:01:30.747
+Nowhere.
+
+00:01:30.747 --> 00:01:34.578
+It is not stored.
+
+00:01:34.578 --> 00:01:38.409
+It is computed at reed time by combining fragments from every tier.
+
+00:01:38.409 --> 00:01:42.240
+Watch a query.
+
+00:01:42.240 --> 00:01:46.072
+GET plays for song S underscore seventy-five at one forty-four PM.
+
+00:01:46.072 --> 00:01:49.903
+The user knows nothing about tiers.
+
+00:01:49.903 --> 00:01:53.734
+First the live in-RAM MemTable, two plays from the last minute.
+
+00:01:53.734 --> 00:01:57.566
+Then the three Level-zero SS Tables flushed at one, one fifteen, and one thirty, holding plus ten, plus five, plus three.
+
+00:01:57.566 --> 00:02:01.397
+Eighteen more.
+
+00:02:01.397 --> 00:02:05.228
+Then the compacted Level-one file, the history from earlier today, five thousand four hundred twenty.
+
+00:02:05.228 --> 00:02:09.059
+Sum the tiers.
+
+00:02:09.059 --> 00:02:12.891
+Two plus eighteen plus five thousand four hundred twenty.
+
+00:02:12.891 --> 00:02:16.722
+Five thousand four hundred forty.
+
+00:02:16.722 --> 00:02:20.553
+That is the answer, merged on reed.
+
+00:02:20.553 --> 00:02:24.384
+A naive reed would touch every SS Table, hundreds of files.
+
+00:02:24.384 --> 00:02:28.216
+But each one carries a bloom filter, so any tier that cannot hold the key is skipped with no disk reed.
+
+00:02:28.216 --> 00:02:32.047
+A cold key lives in one SS Table and costs one reed.
+
+00:02:32.047 --> 00:02:35.019
+Here is the power of the design.
+
+00:02:35.019 --> 00:02:37.991
+The write pipeline never changes.
+
+00:02:37.991 --> 00:02:40.964
+The merge function is the only thing that does.
+
+00:02:40.964 --> 00:02:43.936
+Counter sums the fragments, for play counts.
+
+00:02:43.936 --> 00:02:46.908
+Latest-wins picks the newest timestamp, for profile edits and caches.
+
+00:02:46.908 --> 00:02:52.221
+Two more.
+
+00:02:52.221 --> 00:02:57.534
+Statistical keeps a partial sum and a partial count, so each shard computes a piece with no coordination and the merge combines them.
+
+00:02:57.534 --> 00:03:02.846
+TTL, time to live, keeps only fragments inside a window, so old session data ages out for free.
+
+00:03:02.846 --> 00:03:08.159
+Same pipeline every time.
+
+00:03:08.159 --> 00:03:13.472
+The LSM tree stores events, not finished state, and the merge turns those events into whatever the application wants.
+
+00:03:13.472 --> 00:03:17.605
+LSM in three lines.
+
+00:03:17.605 --> 00:03:21.738
+Sequential writes only, buffer in RAM and flush sorted.
+
+00:03:21.738 --> 00:03:25.871
+The value of a key is computed at reed time, not stored.
+
+00:03:25.871 --> 00:03:30.005
+The merge function picks the semantics.
+
+00:03:30.005 --> 00:03:34.138
+Flush is in-memory sort, compaction is sort-merge, the same primitives from the storage module.
+
+00:03:34.138 --> 00:03:38.271
+Bigtable, Cassandra, DynamoDB, RocksDB all run on this.
+
+00:03:38.271 --> 00:03:42.404
+Next, all four indexes side by side, and how to pick.

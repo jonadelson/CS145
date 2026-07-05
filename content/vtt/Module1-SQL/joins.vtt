@@ -1,0 +1,211 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.745
+Who listened to what?
+
+00:00:06.745 --> 00:00:11.489
+The answer is split across two tables.
+
+00:00:11.489 --> 00:00:16.234
+Listens records every play, but the listener is just a user-ID; the name lives in Users.
+
+00:00:16.234 --> 00:00:20.979
+So a join builds a new table: the Listens rows, with each user's name added as a column.
+
+00:00:20.979 --> 00:00:25.723
+Match on that user-ID, and the inner join returns nine rows, every play now carrying a name.
+
+00:00:25.723 --> 00:00:30.468
+Pluto never listened, so he has no match, and the inner join drops him.
+
+00:00:30.468 --> 00:00:37.553
+The default join is INNER.
+
+00:00:37.553 --> 00:00:44.639
+Two new keywords matter: JOIN names the second table, and ON gives the matching condition.
+
+00:00:44.639 --> 00:00:51.724
+The query reads: SELECT user fields and listen fields, FROM Users u, INNER JOIN Listens l, ON u dot user-ID equals l dot user-ID.
+
+00:00:51.724 --> 00:00:58.810
+Run it, and you get the nine rows from the picture, each name beside its play.
+
+00:00:58.810 --> 00:01:05.895
+It is a double for-loop: for every user, for every listen of theirs, emit one row.
+
+00:01:05.895 --> 00:01:12.981
+And just like any query, you can sort the output: ORDER BY user-ID and listen-ID lines the joined rows up by user, then by listen-ID within each user.
+
+00:01:12.981 --> 00:01:20.066
+Inner joins also chain: to reach another table, add another JOIN and ON.
+
+00:01:20.066 --> 00:01:25.267
+The song is just a song-ID in Listens.
+
+00:01:25.267 --> 00:01:30.469
+Its title and artist live in the Songs table.
+
+00:01:30.469 --> 00:01:35.670
+A second join pulls them in: Users to Listens, then Listens to Songs, each with its own ON clause.
+
+00:01:35.670 --> 00:01:40.871
+Now one row carries the user's name, the song's title and artist, and the rating, information that was split across three tables.
+
+00:01:40.871 --> 00:01:46.072
+SELECT names and titles, WHERE rating above four.
+
+00:01:46.072 --> 00:01:51.274
+Five rows: Daffy with Willow at four point nine, Mickey with Evermore at four point five, and so on.
+
+00:01:51.274 --> 00:01:56.475
+Same skeleton, one more table, from two tables to three.
+
+00:01:56.475 --> 00:02:00.655
+Now the outer joins, which keep the unmatched rows.
+
+00:02:00.655 --> 00:02:04.834
+Change one word: INNER becomes LEFT.
+
+00:02:04.834 --> 00:02:09.014
+A left join keeps every row of the left table, joined on the same user-ID.
+
+00:02:09.014 --> 00:02:13.193
+The nine matched rows are still here.
+
+00:02:13.193 --> 00:02:17.373
+Then watch the bottom: a new row slides in.
+
+00:02:17.373 --> 00:02:21.552
+Pluto, the user who matched nothing, kept by the left join, his listen columns NULL-filled.
+
+00:02:21.552 --> 00:02:25.732
+One keyword, and the row the inner join dropped is back.
+
+00:02:25.732 --> 00:02:29.094
+Right join is the mirror: it keeps every row of the right table.
+
+00:02:29.094 --> 00:02:32.456
+Flip the right table to Songs.
+
+00:02:32.456 --> 00:02:35.818
+Ten songs, but only five were ever played.
+
+00:02:35.818 --> 00:02:39.180
+A right join keeps all ten.
+
+00:02:39.180 --> 00:02:42.542
+How many rows come back?
+
+00:02:42.542 --> 00:02:45.904
+Fourteen.
+
+00:02:45.904 --> 00:02:49.266
+The nine played-song rows, and the five songs nobody played, joined in as NULL.
+
+00:02:49.266 --> 00:02:52.628
+Same arrows, same shape; the unmatched rows just live on the right now.
+
+00:02:52.628 --> 00:02:58.712
+FULL OUTER JOIN gives you both: every row from either side, matched where possible, NULL-padded where not.
+
+00:02:58.712 --> 00:03:04.795
+So it keeps the unmatched users and the unmatched songs at once.
+
+00:03:04.795 --> 00:03:10.879
+INNER and LEFT cover most needs; RIGHT and FULL are the tools for finding orphans on the other side.
+
+00:03:10.879 --> 00:03:14.526
+A foreign key collapses one of the outer joins into a plain inner join.
+
+00:03:14.526 --> 00:03:18.174
+Listens points at Users, so every listen has a real user.
+
+00:03:18.174 --> 00:03:21.821
+The only exception is Pluto, a user with no listens.
+
+00:03:21.821 --> 00:03:25.468
+So take Users JOIN Listens.
+
+00:03:25.468 --> 00:03:29.116
+A right join keeps every listen, but every listen already has a user, so right join equals the inner join.
+
+00:03:29.116 --> 00:03:32.763
+Only a left join, keeping Users, adds Pluto.
+
+00:03:32.763 --> 00:03:36.410
+Now flip it.
+
+00:03:36.410 --> 00:03:40.057
+Listens JOIN Users.
+
+00:03:40.057 --> 00:03:43.705
+A left join keeps every listen, again all matched, so left join equals the inner join.
+
+00:03:43.705 --> 00:03:47.352
+Only a right join adds Pluto.
+
+00:03:47.352 --> 00:03:50.999
+So the rule is simple.
+
+00:03:50.999 --> 00:03:54.647
+Keep the Listens side, and the outer join is just inner.
+
+00:03:54.647 --> 00:03:58.294
+Keep the Users side, and Pluto appears.
+
+00:03:58.294 --> 00:04:01.324
+Two classic mistakes.
+
+00:04:01.324 --> 00:04:04.354
+First, forget the ON clause.
+
+00:04:04.354 --> 00:04:07.384
+Then every user pairs with every listen.
+
+00:04:07.384 --> 00:04:10.413
+Four users, nine listens.
+
+00:04:10.413 --> 00:04:13.443
+How many rows come back?
+
+00:04:13.443 --> 00:04:16.473
+Thirty-six.
+
+00:04:16.473 --> 00:04:19.503
+Only nine match, where the user owns the listen.
+
+00:04:19.503 --> 00:04:22.533
+The other twenty-seven are meaningless.
+
+00:04:22.533 --> 00:04:25.563
+The fix is one clause: ON user-ID equals user-ID.
+
+00:04:25.563 --> 00:04:28.592
+The second mistake is the wrong join type.
+
+00:04:28.592 --> 00:04:31.622
+You write INNER expecting all your users, and the ones with no listens vanish.
+
+00:04:31.622 --> 00:04:34.652
+Your active users report silently drops half your customers.
+
+00:04:34.652 --> 00:04:37.682
+The fix is one word: INNER to LEFT.
+
+00:04:37.682 --> 00:04:41.227
+Joins are the workhorse of SQL.
+
+00:04:41.227 --> 00:04:44.772
+Most queries longer than two lines have one.
+
+00:04:44.772 --> 00:04:48.317
+The type of join you pick decides the fate of unmatched rows.
+
+00:04:48.317 --> 00:04:51.861
+Match them, drop them, keep them on one side, keep them on both.
+
+00:04:51.861 --> 00:04:55.406
+Pick wrong and your data is silently gone.
+
+00:04:55.406 --> 00:04:58.951
+Pick right and the database does the work for you.

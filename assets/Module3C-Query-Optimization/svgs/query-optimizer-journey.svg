@@ -1,0 +1,92 @@
+<svg viewBox="0 0 1240 410" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="qoj-t qoj-d">
+  <title id="qoj-t">How a SQL query becomes the cheapest execution plan</title>
+  <desc id="qoj-d">One left-to-right pipeline of five stages. Stage 1: SQL is
+  declarative, it states the result, not the procedure. Stage 2: parse and
+  bind turn the text into a validated tree, resolving names and types against
+  the catalog. Stage 3: the logical plan applies equivalence-preserving
+  relational-algebra rewrites (predicate pushdown, projection pruning,
+  subquery flattening); this defines the result, every rewrite returns the
+  same rows. Stage 4, the focal stage: the physical-plan search picks a join
+  order, join algorithm, and access path, using dynamic programming that
+  computes the best sub-plan for each subset of tables once and reuses it, so
+  it never enumerates all n factorial orders, and costs each from table
+  statistics; this is where speed is decided. Stage 5: the chosen operator
+  tree executes, routinely about 100 times faster than the naive ordering.
+  Because the logical plan and every plan the search considers are
+  result-equivalent, only speed varies, never the answer. Color key: mint is
+  the physical-plan cost search where speed is decided; grey is the
+  parse, rewrite, and execute scaffolding.</desc>
+  <defs><marker id="ah-qoj" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="620" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">From SQL to the cheapest plan</text>
+  <text x="620" y="58" text-anchor="middle" font-size="16" fill="#3F3F46">The logical plan defines the answer; every plan after it is equivalent, so only speed varies</text>
+
+  <!-- 1 SQL -->
+  <g data-step="1">
+  <rect x="16" y="80" width="224" height="256" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="16" y="80" width="224" height="6" rx="3" fill="#6B7280"/>
+  <text x="128" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">1 · SQL (declarative)</text>
+  <text x="128" y="140" text-anchor="middle" font-size="14" fill="#3F3F46">SELECT … FROM Users</text>
+  <text x="128" y="162" text-anchor="middle" font-size="14" fill="#3F3F46">JOIN Listens JOIN Songs</text>
+  <text x="128" y="184" text-anchor="middle" font-size="14" fill="#3F3F46">WHERE … GROUP BY …</text>
+  <text x="128" y="318" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">says what, not how</text>
+  </g>
+
+  <!-- 2 Parse + bind -->
+  <g data-step="2">
+  <line x1="242" y1="205" x2="266" y2="205" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ah-qoj)"/>
+  <rect x="268" y="80" width="224" height="256" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="268" y="80" width="224" height="6" rx="3" fill="#6B7280"/>
+  <text x="380" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">2 · Parse + bind</text>
+  <text x="380" y="140" text-anchor="middle" font-size="14" fill="#3F3F46">text &#8594; AST (parse tree)</text>
+  <text x="380" y="162" text-anchor="middle" font-size="14" fill="#3F3F46">resolve table / column</text>
+  <text x="380" y="184" text-anchor="middle" font-size="14" fill="#3F3F46">names &amp; types vs catalog</text>
+  <text x="380" y="318" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">syntactically valid</text>
+  </g>
+
+  <!-- 3 Logical plan -->
+  <g data-step="3">
+  <line x1="494" y1="205" x2="518" y2="205" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ah-qoj)"/>
+  <rect x="520" y="80" width="224" height="256" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="520" y="80" width="224" height="6" rx="3" fill="#6B7280"/>
+  <text x="632" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">3 · Logical plan</text>
+  <text x="632" y="140" text-anchor="middle" font-size="14" fill="#3F3F46">algebra: &#963; &#960; &#8904; &#947;</text>
+  <text x="632" y="162" text-anchor="middle" font-size="14" fill="#3F3F46">equivalence-preserving</text>
+  <text x="632" y="184" text-anchor="middle" font-size="14" fill="#3F3F46">rewrites: predicate</text>
+  <text x="632" y="206" text-anchor="middle" font-size="14" fill="#3F3F46">pushdown, prune cols,</text>
+  <text x="632" y="228" text-anchor="middle" font-size="14" fill="#3F3F46">flatten subqueries</text>
+  <text x="632" y="318" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">defines the result</text>
+  </g>
+
+  <!-- 4 Physical plan: cost search (mint) -->
+  <g data-step="4">
+  <line x1="746" y1="205" x2="770" y2="205" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ah-qoj)"/>
+  <rect x="772" y="80" width="224" height="256" rx="8" fill="#E1F4EC" stroke="#6EE7B7" stroke-width="2"/>
+  <rect x="772" y="80" width="224" height="6" rx="3" fill="#6EE7B7"/>
+  <text x="884" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">4 · Physical: cost search</text>
+  <text x="884" y="140" text-anchor="middle" font-size="14" fill="#3F3F46">pick join order, algorithm,</text>
+  <text x="884" y="162" text-anchor="middle" font-size="14" fill="#3F3F46">access path. Orders blow</text>
+  <text x="884" y="184" text-anchor="middle" font-size="14" fill="#3F3F46">up: 3!=6 … 10!=3.6M</text>
+  <text x="884" y="206" text-anchor="middle" font-size="14" fill="#3F3F46">dynamic programming:</text>
+  <text x="884" y="228" text-anchor="middle" font-size="14" fill="#3F3F46">best sub-plan per table</text>
+  <text x="884" y="250" text-anchor="middle" font-size="14" fill="#3F3F46">subset, reused (n! &#8594; ~2&#8319;);</text>
+  <text x="884" y="272" text-anchor="middle" font-size="14" fill="#3F3F46">cost each from stats</text>
+  <text x="884" y="318" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">same result, just faster</text>
+  </g>
+
+  <!-- 5 Execute -->
+  <g data-step="5">
+  <line x1="998" y1="205" x2="1022" y2="205" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ah-qoj)"/>
+  <rect x="1024" y="80" width="200" height="256" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="1024" y="80" width="200" height="6" rx="3" fill="#6B7280"/>
+  <text x="1124" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">5 · Execute</text>
+  <text x="1124" y="140" text-anchor="middle" font-size="14" fill="#3F3F46">run the chosen</text>
+  <text x="1124" y="162" text-anchor="middle" font-size="14" fill="#3F3F46">operator tree</text>
+  <text x="1124" y="318" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">~100&#215; vs naive</text>
+  </g>
+
+  <text x="620" y="392" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#6EE7B7" font-weight="700">mint</tspan><tspan fill="#3F3F46"> = the physical-plan cost search, where speed is decided&#160;&#160;&#183;&#160;&#160;grey = parse / rewrite / execute scaffolding</tspan></text>
+</svg>

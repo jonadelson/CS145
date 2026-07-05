@@ -1,0 +1,52 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:09.755
+How does Google store the entire internet, on drives that fail every day, and still search it in milliseconds?
+
+00:00:09.755 --> 00:00:17.511
+A distributed file system: split each file into chunks, replicate each across cheap servers, and give clients one namespace.
+
+00:00:17.511 --> 00:00:25.053
+All four share the same chunks-and-replicas substrate; what evolved is how the metadata is coordinated.
+
+00:00:25.053 --> 00:00:32.595
+GFS, two thousand three: a single master holds all the metadata, the bottleneck every later system attacks.
+
+00:00:32.595 --> 00:00:40.136
+HDFS, two thousand six: the same design, open-sourced.
+
+00:00:40.136 --> 00:00:47.678
+S3, also two thousand six: no master at all, leaderless metadata, elastic, and strongly consistent since twenty twenty.
+
+00:00:47.678 --> 00:00:55.220
+Colossus, twenty-ten on: Google shards the metadata across many servers, breaking the bottleneck.
+
+00:00:55.220 --> 00:01:01.025
+Colossus also drops three-way replication for something cheaper: Reed-Solomon erasure coding.
+
+00:01:01.025 --> 00:01:06.830
+Take six data blocks, compute three parity blocks from them, and store all nine.
+
+00:01:06.830 --> 00:01:12.635
+Lose any three, and the math rebuilds them from the six that survive.
+
+00:01:12.635 --> 00:01:18.440
+That tolerates three failures at fifty percent overhead, where three full copies cost two hundred percent.
+
+00:01:18.440 --> 00:01:24.322
+Side by side, the four differ on one axis: master versus leaderless, and the consistency and scale that follow.
+
+00:01:24.322 --> 00:01:30.205
+Strong consistency for transactional state; eventual consistency for blob storage at planet scale.
+
+00:01:30.205 --> 00:01:36.087
+Pick the one that fits your access pattern.
+
+00:01:36.087 --> 00:01:41.490
+Distributed file systems are the foundation under almost every cloud system you use.
+
+00:01:41.490 --> 00:01:46.892
+Photos in iCloud, videos on YouTube, logs in DataDog, all the same chunks-with-replication pattern.
+
+00:01:46.892 --> 00:01:52.295
+The variations are which consistency, leadership, and scaling you need.

@@ -1,0 +1,194 @@
+<h1>IO Cost &amp; Trade-offs: Choosing Your Index</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Picking an index is a sequence of three questions. Match the workload to a structure. Decide whether the data is sorted by that key. Then read off the IO cost.</p>
+<p><strong>Intuition.</strong> Hash wins equality. B+Tree wins range scans. LSM (built on SSTables) wins sustained write throughput. Inverted indexes win full-text. Whether the table is <em>physically sorted</em> by the key (clustered vs unclustered) sets the constant in front of those costs.</p>
+</div>
+<p>This page is structured around three questions. Each maps to one section.</p>
+<ol>
+<li>
+<p><strong>How do I choose an index?</strong> → Pick the right structure for the workload.</p>
+</li>
+<li>
+<p><strong>What if the data is sorted?</strong> → A sorted dictionary needs a much smaller index than an unsorted one. That's clustering.</p>
+</li>
+<li>
+<p><strong>What is the cost?</strong> → IO chart per access pattern, plus what <code>O(log N)</code> actually means in practice.</p>
+</li>
+</ol>
+<hr />
+<h2>Q1. How do I choose an index?</h2>
+<p>Three structures cover almost every relational workload. Match the column to the kind of query that's hot:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Hash index</strong></th>
+<th><strong>B+Tree</strong></th>
+<th><strong>LSM (on SSTables)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lookup</td>
+<td>O(1) equality, hash to bucket, read the entry</td>
+<td>O(log N) any key, descend root → internal → leaf</td>
+<td>Walks tiers (MemTable → L0 → L1+), Bloom-skipped</td>
+</tr>
+<tr>
+<td>Range / <code>ORDER BY</code></td>
+<td>None, hash scrambles neighbours</td>
+<td>Native, leaves are linked left-to-right</td>
+<td>Native, merged view across tiers</td>
+</tr>
+<tr>
+<td>Write cost</td>
+<td>Update one bucket (split on overflow)</td>
+<td>Random write + occasional rebalance</td>
+<td>Append to RAM, sequential flush, background compaction</td>
+</tr>
+<tr>
+<td>Typical use</td>
+<td>Primary keys, caches</td>
+<td>General-purpose OLTP</td>
+<td>Counters, events, write-heavy analytics</td>
+</tr>
+<tr>
+<td>Production examples</td>
+<td>Redis, Memcached</td>
+<td>PostgreSQL, MySQL InnoDB</td>
+<td>Bigtable, Cassandra, DynamoDB, RocksDB</td>
+</tr>
+</tbody>
+</table>
+<p>For full-text search across many documents, the right structure is an <strong>inverted index</strong> (term dictionary plus postings lists). Used heavily in the Spotify case studies later in the module.</p>
+<hr />
+<h2>Q2. What if the data is sorted?</h2>
+<p>Sorted data lets the index scale with <strong>N</strong> (pages), not <strong>n</strong> (rows). The intuition is a dictionary.</p>
+<p>Two dictionaries with the same content (<strong>n = 171,476 words</strong> spread over <strong>N = 1,000 pages</strong>). The only difference: one is sorted, the other isn't.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Webster's: sorted dictionary</th>
+<th>RandomWebster's: unsorted dictionary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Word order</td>
+<td>Alphabetical, from "aardvark" to "zyzzyva"</td>
+<td>Scattered randomly across pages</td>
+</tr>
+<tr>
+<td>Index density</td>
+<td>Sparse: one entry per page (first word + page number)</td>
+<td>Dense: one entry per word</td>
+</tr>
+<tr>
+<td>Lookup</td>
+<td>Find "coffee" with one index lookup ("clutch-coffin to page 217"), jump there, scan a few rows</td>
+<td>"coffee" is on page 847, "coffeehouse" on page 12: every word needs its own pointer</td>
+</tr>
+<tr>
+<td>Index size</td>
+<td>~1,000 entries (N pages)</td>
+<td>~171,476 entries (n words, 170x larger)</td>
+</tr>
+</tbody>
+</table>
+<p>The same idea applied to a database table is <strong>clustering</strong>.</p>
+<p><a id="clustered-vs-unclustered"></a></p>
+<p><img src="assets/Module3B-Indexing/svgs/clustered-vs-unclustered.svg" alt="The same range query, every rating of 4 or 5, over the same four matching rows. On a clustered table sorted by rating the matches sit in two contiguous green pages (two sequential reads, a sparse index); on an unclustered table in insert order the same matches scatter across all four pages (four random reads, a dense index). Green marks an in-range row and a page that gets read." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same query, every rating of 4 or 5, hitting the same four rows. On a <strong>clustered</strong> table the data is sorted by rating, so those matches pack into two contiguous pages: two sequential reads, and the index only needs one entry per page (sparse). On an <strong>unclustered</strong> table the rows sit in insert order, so the same four matches scatter across all four pages: one random read per matching row, and the index needs one entry per row (dense). Sorting is what shrinks both the reads and the index. Green marks an in-range row and a page that gets read.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Clustered index</th>
+<th>Unclustered index</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Physical layout</td>
+<td>Table data is physically sorted by the index key</td>
+<td>Table data is in insert order, not sorted by the index key</td>
+</tr>
+<tr>
+<td>Index density</td>
+<td>Sparse (one entry per page)</td>
+<td>Dense (one entry per row)</td>
+</tr>
+<tr>
+<td>Range scans</td>
+<td>Sequential reads: find the first page, walk forward</td>
+<td>One IO per matching row, jumping around the table</td>
+</tr>
+<tr>
+<td>Bottom line</td>
+<td>Best for the access pattern you scan most</td>
+<td>All non-primary indexes are usually unclustered</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A table can only be clustered on one set of columns at a time</strong>, because the physical sort order can only go one way. Every other index on the same table is unclustered. Production systems sometimes keep multiple copies of the same table, each clustered differently, when several access patterns need to be fast.</p>
+<hr />
+<h2>Q3. What is the cost?</h2>
+<p>Pull the structural choice (Q1) and the clustered/unclustered choice (Q2) together, and you get the IO cost for any access pattern.</p>
+<p><img src="assets/Module3B-Indexing/images/indexcosts.png" alt="Chart comparing IO cost across index types for equality lookups, range scans, inserts and updates: hash and B+Tree are both fast on equality, clustered B+Tree wins range scans, LSM wins inserts and updates." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> IO cost across the three structures and the four access patterns, with clustered versus unclustered setting the constant. Equality lookups are cheap on both hash and B+Tree (1 to 4 IOs) and clustering does not help, since the lookup hits a single row. Range scans are where it matters: a clustered B+Tree walks guaranteed-contiguous pages, an unclustered B+Tree pays one IO per matching row, and hash cannot range-scan at all. Inserts and updates favor LSM (append to RAM), while a B+Tree pays for occasional rebalancing and a hash for the bucket update and a possible split.</p>
+</div>
+<h3>What "O(log N)" actually means</h3>
+<p><a id="o-log-n-detail"></a></p>
+<p>The Big-O hides a lot. A B+Tree's <code>O(log N)</code> is <code>⌈log_fanout(N)⌉</code>, and <strong>fanout is large</strong>, so the asymptotic claim collapses to a constant in practice: roughly <strong>3 to 4 page reads</strong> per point lookup, regardless of table size. (See the <a href="#/page/Module3B-Indexing/btree-indexes">fanout table on the B+Tree page</a> for the exact arithmetic across page sizes from 64 KB to 64 MB.)</p>
+<table>
+<thead>
+<tr>
+<th>Fanout</th>
+<th>Table size</th>
+<th>Tree levels</th>
+<th>Reads per point lookup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1,000</td>
+<td>1 billion rows</td>
+<td>3 levels</td>
+<td>3</td>
+</tr>
+<tr>
+<td>65,000</td>
+<td>1 trillion rows</td>
+<td>3 levels</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Hash <code>O(1)</code></td>
+<td>any</td>
+<td>1 bucket</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>When you compare hash (<code>O(1)</code>) against B+Tree (<code>O(log N)</code>), the real difference is small (1 vs 3 page reads). The <em>useful</em> difference is whether the index supports range scans. The Big-O is asymptotic shorthand, not a recipe for choice.</p>
+<h3>What drives LSM cost: SSTable counts, not Big-O</h3>
+<p>LSM costs don't fit cleanly on the asymptotic chart, because they aren't a function of the table size. They're a function of <strong>how many SSTables are sitting at each level</strong> at the moment you read or write.</p>
+<ul>
+<li>
+<p><strong>Reads</strong>: walk the MemTable, then every Level-0 SSTable that might contain the key, then the Level-1+ file. The cost is the count of SSTables touched (Bloom-filter-skipped where possible). For a counter, that means summing fragments from each tier. For a latest-wins value, it means returning the first match.</p>
+</li>
+<li>
+<p><strong>Writes</strong>: the MemTable buffers writes in RAM. When it fills, sorting it produces one SSTable. That sort is the same in-memory operation as the <a href="#/page/Module3-nanoDB/big-sort">big sort algorithm</a>. When compaction merges several Level-0 files into one Level-1+ file, that's a <a href="#/page/Module3-nanoDB/sort-merge-join">sort-merge</a> across already-sorted runs. No new algorithm. Same primitives, applied to LSM's tier structure.</p>
+</li>
+</ul>
+<p>So when you reason about LSM cost, count SSTables and remember which operation is doing the work: in-memory sort for a flush, sort-merge for a compaction.</p>
+<blockquote>
+<p><strong>See also.</strong> The <a href="#/page/Module3-nanoDB/big-sort">big sort</a> page walks through how a runs-and-merge sort actually streams through memory and disk, and the <a href="#/page/Module3-nanoDB/sort-merge-join">sort-merge join</a> page works the merge step end-to-end. The LSM compaction loop is the same algorithm, with SSTables as the input runs.</p>
+</blockquote>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/index-problem-solving">Index Problem Solving →</a></strong> Ten concrete scenarios that ask which index type to use and why.</p>

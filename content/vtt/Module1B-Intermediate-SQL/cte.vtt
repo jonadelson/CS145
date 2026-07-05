@@ -1,0 +1,115 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.967
+You have written a query with a subquery, then nested another subquery inside it, then a third inside that.
+
+00:00:05.967 --> 00:00:09.935
+You squint at it, trying to figure out which closing paren goes with which open.
+
+00:00:09.935 --> 00:00:13.902
+SQL has a syntax that pulls those nested chunks out and gives each one a name.
+
+00:00:13.902 --> 00:00:17.869
+The CTE.
+
+00:00:17.869 --> 00:00:21.836
+Common Table Expression.
+
+00:00:21.836 --> 00:00:25.804
+WITH name AS, then the inner query, then the outer query references it by name.
+
+00:00:25.804 --> 00:00:29.771
+No nesting.
+
+00:00:29.771 --> 00:00:34.938
+Three reasons databases promote CTEs as a first-class feature.
+
+00:00:34.938 --> 00:00:40.104
+They make queries readable, since each step is a named block.
+
+00:00:40.104 --> 00:00:45.270
+They let the optimizer reason about each block separately.
+
+00:00:45.270 --> 00:00:50.437
+And they enable recursion: a CTE can reference itself, which is how you walk hierarchies, like an org chart or a graph of dependencies.
+
+00:00:50.437 --> 00:00:54.407
+Look at the same query in two forms, side by side.
+
+00:00:54.407 --> 00:00:58.378
+The subquery version has nested parentheses, easy to lose your place.
+
+00:00:58.378 --> 00:01:02.349
+The CTE version reads top to bottom, like a recipe.
+
+00:01:02.349 --> 00:01:06.319
+Same result, same performance, much easier to debug.
+
+00:01:06.319 --> 00:01:10.782
+Let's read one CTE top to bottom.
+
+00:01:10.782 --> 00:01:15.246
+Step one: WITH HighRatedSongs AS, open paren.
+
+00:01:15.246 --> 00:01:19.709
+WITH names a result, and AS introduces its query.
+
+00:01:19.709 --> 00:01:24.173
+Inside: select song id and its average rating, from Listens, group by song, and keep only songs averaging above four.
+
+00:01:24.173 --> 00:01:28.636
+Close paren.
+
+00:01:28.636 --> 00:01:33.100
+Step two: now the outer query reads that result by name, like a table.
+
+00:01:33.100 --> 00:01:37.563
+Select title and average, from HighRatedSongs, join Songs to get the titles.
+
+00:01:37.563 --> 00:01:42.027
+That is the whole shape.
+
+00:01:42.027 --> 00:01:46.490
+Define a named result up top with WITH and AS, then use it below.
+
+00:01:46.490 --> 00:01:51.985
+Same idea, chained.
+
+00:01:51.985 --> 00:01:57.481
+Read it top to bottom again.
+
+00:01:57.481 --> 00:02:02.976
+Step one: WITH UserListenCounts, the first block, counts every user's listens.
+
+00:02:02.976 --> 00:02:08.471
+Step two: a comma, then UserHighRatings, a second block that averages only their four-plus ratings.
+
+00:02:08.471 --> 00:02:13.967
+Step three: the final query joins both blocks back to Users with left joins, so even Pluto, with no listens, still shows up, with nulls.
+
+00:02:13.967 --> 00:02:19.462
+Three named blocks, each one testable on its own.
+
+00:02:19.462 --> 00:02:24.164
+One more thing, about performance.
+
+00:02:24.164 --> 00:02:28.866
+ACTE names a result you can reference several times, instead of repeating a subquery.
+
+00:02:28.866 --> 00:02:33.568
+When that result joins back on source columns, index those columns to keep the join fast.
+
+00:02:33.568 --> 00:02:38.270
+And here is the subtle part: does the engine compute the CTE once, or re-run it?
+
+00:02:38.270 --> 00:02:42.972
+It depends.
+
+00:02:42.972 --> 00:02:47.674
+Materialized keeps it as a reused temp result, which helps when the CTE is expensive.
+
+00:02:47.674 --> 00:02:52.376
+Without that, modern engines often inline it, and that lets them push your filters in.
+
+00:02:52.376 --> 00:02:57.078
+So a CTE is readable, reusable, and you decide how it runs.

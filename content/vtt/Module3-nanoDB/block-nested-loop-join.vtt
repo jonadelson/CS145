@@ -1,0 +1,145 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.706
+Joining two tables is the most common thing a database does.
+
+00:00:06.706 --> 00:00:11.412
+The textbook way is a double for loop, and it dies on real data because it reeds the inner table once per outer row.
+
+00:00:11.412 --> 00:00:16.118
+Here is the disk-aware fix.
+
+00:00:16.118 --> 00:00:19.654
+Start on disk.
+
+00:00:19.654 --> 00:00:23.190
+The smaller table R is one page.
+
+00:00:23.190 --> 00:00:26.726
+The bigger table S is four pages, reed in order.
+
+00:00:26.726 --> 00:00:30.262
+The whole trick is on the right.
+
+00:00:30.262 --> 00:00:33.798
+Load R into RAM once and keep it there for the entire join.
+
+00:00:33.798 --> 00:00:37.334
+Then stream S past one page at a time.
+
+00:00:37.334 --> 00:00:40.870
+Each S page drops into a single slot, gets probed against the R block, then is thrown away for the next one.
+
+00:00:40.870 --> 00:00:44.407
+Evaluate the join predicate on every pair.
+
+00:00:44.407 --> 00:00:47.943
+Emit the matches.
+
+00:00:47.943 --> 00:00:51.479
+Four S pages, two matches each, eight joined rows.
+
+00:00:51.479 --> 00:00:55.015
+R is reed once, S is reed once.
+
+00:00:55.015 --> 00:00:58.551
+P of R plus P of S, plus OUT.
+
+00:00:58.551 --> 00:01:02.087
+That best case only holds when R fits in B pages.
+
+00:01:02.087 --> 00:01:05.623
+If R is bigger, each block of R triggers another full scan of S, so always put the smaller table outer.
+
+00:01:05.623 --> 00:01:08.549
+And in code, just two loops.
+
+00:01:08.549 --> 00:01:11.474
+Hold a block of R in RAM, scan all of S against it, and emit the matches.
+
+00:01:11.474 --> 00:01:14.400
+Any predicate works.
+
+00:01:14.400 --> 00:01:17.051
+Now put numbers on it.
+
+00:01:17.051 --> 00:01:19.703
+Find all listens for each song.
+
+00:01:19.703 --> 00:01:22.354
+P of Songs is one hundred pages.
+
+00:01:22.354 --> 00:01:25.005
+P of Listens is ten thousand.
+
+00:01:25.005 --> 00:01:27.656
+Buffer of ten.
+
+00:01:27.656 --> 00:01:30.308
+Reed Songs once, one hundred I Os.
+
+00:01:30.308 --> 00:01:32.959
+That is ten blocks.
+
+00:01:32.959 --> 00:01:35.610
+Scan Listens once per block, one hundred thousand I Os.
+
+00:01:35.610 --> 00:01:38.261
+Roughly one hundred thousand reeds, plus OUT.
+
+00:01:38.261 --> 00:01:40.913
+A row-by-row loop would scan Listens millions of times.
+
+00:01:40.913 --> 00:01:43.564
+Buffering alone makes it orders of magnitude cheaper.
+
+00:01:43.564 --> 00:01:47.697
+Block nested loop has a superpower.
+
+00:01:47.697 --> 00:01:51.830
+It handles any join condition.
+
+00:01:51.830 --> 00:01:55.963
+Equality, range, similarity, distance.
+
+00:01:55.963 --> 00:02:00.097
+The double loop evaluates whatever predicate you hand it, so it will happily join on distance of audio vector less than zero point two.
+
+00:02:00.097 --> 00:02:04.230
+Every other join algorithm only does equality.
+
+00:02:04.230 --> 00:02:08.363
+When the join is not an equality, this is often the only option.
+
+00:02:08.363 --> 00:02:11.468
+So when does it win.
+
+00:02:11.468 --> 00:02:14.573
+Non-equality joins, always.
+
+00:02:14.573 --> 00:02:17.678
+One table small, reed it once and scan the big one a few times.
+
+00:02:17.678 --> 00:02:20.782
+Big buffer, few blocks, few scans.
+
+00:02:20.782 --> 00:02:23.887
+No indexes anywhere.
+
+00:02:23.887 --> 00:02:26.992
+Avoid it when both tables are huge and the join is a simple equality.
+
+00:02:26.992 --> 00:02:30.097
+Then the inner scan dominates and the cost goes quadratic.
+
+00:02:30.097 --> 00:02:34.172
+Block nested loop is the workhorse for small-times-big joins and for any non-equality predicate.
+
+00:02:34.172 --> 00:02:38.247
+But for a simple equality on two huge tables, the rescan kills you.
+
+00:02:38.247 --> 00:02:42.322
+Hash partitioning turns that quadratic cost linear.
+
+00:02:42.322 --> 00:02:46.397
+Hash partition join next.

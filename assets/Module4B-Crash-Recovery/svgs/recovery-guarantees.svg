@@ -1,0 +1,51 @@
+<svg viewBox="0 0 1040 400" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="rg-t rg-d"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="rg-t">Recovery restores two ACID guarantees across a crash: durability from the replay, atomicity from the undo pass, both resting on the write-ahead rule</title>
+  <desc id="rg-d">Two of the ACID guarantees fall out of the two passes. Durability, the D icon in violet, comes from the replay: committed work is replayed and never undone, so it survives any failure. Atomicity, the A icon in blue, comes from the undo pass: a transaction is all or nothing, so unfinished work is reversed across a crash. Both rest on the write-ahead rule at the base: the log reaches the disk before the data page, so the log is always enough to finish the story. Color key: violet = durability from replay, blue = atomicity from undo, grey = the write-ahead rule both rest on.</desc>
+
+  <defs>
+    <marker id="ah-rg" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">Recovery restores durability and atomicity across a crash</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">The replay gives durability, the undo pass gives atomicity. Both rest on the write-ahead rule.</text>
+
+  <!-- ===== STEP 1: Durability from REPLAY ===== -->
+  <g data-step="1">
+  <rect x="40" y="92" width="460" height="160" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="40" y="92" width="460" height="6" rx="3" fill="#7C3AED"/>
+  <circle cx="80" cy="130" r="18" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+  <text x="80" y="136" font-size="18" font-weight="700" fill="#7C3AED" text-anchor="middle">D</text>
+  <text x="112" y="128" font-size="18" font-weight="700" fill="#7C3AED">Durability &#183; from replay</text>
+  <text x="112" y="150" font-size="13.5" fill="#6B7280">once you see COMMIT, the work lasts</text>
+  <text x="64" y="190" font-size="14.5" fill="#3F3F46">The replay redoes every row, and</text>
+  <text x="64" y="212" font-size="14.5" fill="#3F3F46">committed work is never undone,</text>
+  <text x="64" y="234" font-size="14.5" fill="#3F3F46">so it survives any failure.</text>
+  </g>
+
+  <!-- ===== STEP 2: Atomicity from UNDO ===== -->
+  <g data-step="2">
+  <rect x="540" y="92" width="460" height="160" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+  <rect x="540" y="92" width="460" height="6" rx="3" fill="#2563EB"/>
+  <circle cx="580" cy="130" r="18" fill="#ECF1FE" stroke="#2563EB" stroke-width="2"/>
+  <text x="580" y="136" font-size="18" font-weight="700" fill="#2563EB" text-anchor="middle">A</text>
+  <text x="612" y="128" font-size="18" font-weight="700" fill="#2563EB">Atomicity &#183; from undo</text>
+  <text x="612" y="150" font-size="13.5" fill="#6B7280">a transaction is all or nothing</text>
+  <text x="564" y="190" font-size="14.5" fill="#3F3F46">The backward pass reverses every</text>
+  <text x="564" y="212" font-size="14.5" fill="#3F3F46">transaction that never committed,</text>
+  <text x="564" y="234" font-size="14.5" fill="#3F3F46">so no half-done work survives the crash.</text>
+  </g>
+
+  <!-- ===== STEP 3: write-ahead rule base ===== -->
+  <g data-step="3">
+  <line x1="270" y1="252" x2="270" y2="296" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-rg)"/>
+  <line x1="770" y1="252" x2="770" y2="296" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-rg)"/>
+  <rect x="40" y="300" width="960" height="76" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="40" y="300" width="960" height="6" rx="3" fill="#0E0E10"/>
+  <text x="64" y="334" font-size="17" font-weight="700" fill="#0E0E10">&#8857; The write-ahead rule makes both hold</text>
+  <text x="64" y="362" font-size="14.5" fill="#3F3F46">The log reaches disk before the data, so the log is always enough to finish the story.</text>
+  </g>
+
+  <text x="40" y="396" font-size="13" fill="#6B7280" xml:space="preserve"><tspan>Color key   </tspan><tspan fill="#7C3AED">violet = durability from replay</tspan><tspan>   &#183;   </tspan><tspan fill="#2563EB">blue = atomicity from undo</tspan><tspan>   &#183;   </tspan><tspan>grey = the write-ahead rule both rest on</tspan></text>
+</svg>

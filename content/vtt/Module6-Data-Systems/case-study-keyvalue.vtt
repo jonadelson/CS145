@@ -1,0 +1,55 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.808
+Spotify keeps who-played-what in SQL.
+
+00:00:05.808 --> 00:00:09.616
+But a song's lyrics or audio file is a blob.
+
+00:00:09.616 --> 00:00:13.424
+Cramming it into SQL columns is like stuffing a video into a spreadsheet cell.
+
+00:00:13.424 --> 00:00:16.768
+So a blob goes in a key-value store.
+
+00:00:16.768 --> 00:00:20.111
+The simplest database there is.
+
+00:00:20.111 --> 00:00:23.455
+Give it a key, get a value back.
+
+00:00:23.455 --> 00:00:26.798
+No schema, no joins, no constraints.
+
+00:00:26.798 --> 00:00:30.142
+You trade SQL's rich queries for one thing done fast: lookup by key.
+
+00:00:30.142 --> 00:00:33.374
+Mickey's twenty most recent plays.
+
+00:00:33.374 --> 00:00:36.606
+In SQL, without the right index, you scan and sort a shared table.
+
+00:00:36.606 --> 00:00:39.838
+In a wide-column store?
+
+00:00:39.838 --> 00:00:43.069
+Just one partition.
+
+00:00:43.069 --> 00:00:46.301
+Key by user, sort by time, and the rows sit in order already.
+
+00:00:46.301 --> 00:00:49.533
+Read the first twenty, stop.
+
+00:00:49.533 --> 00:00:52.765
+Modeling the access pattern into the key is the whole game.
+
+00:00:52.765 --> 00:00:56.558
+So key-value trades query power for raw speed on the lookups that matter, when you model the key around the read.
+
+00:00:56.558 --> 00:01:00.350
+Next, the cost of getting any of this data wrong.
+
+00:01:00.350 --> 00:01:04.143
+Security.

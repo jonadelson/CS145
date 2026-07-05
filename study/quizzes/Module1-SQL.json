@@ -1,0 +1,306 @@
+{
+  "module": "Module1-SQL",
+  "title": "SQL Basics",
+  "questions": [
+    {
+      "id": "m1-q01",
+      "category": "SELECT-FROM-WHERE",
+      "page": "Module1-SQL/select-from-where",
+      "difficulty": "intro",
+      "question": "You write a query in the order SELECT, FROM, WHERE. In what order does the database actually execute those clauses?",
+      "options": [
+        "SELECT → FROM → WHERE, exactly as written",
+        "WHERE → FROM → SELECT, filters always run first",
+        "FROM → WHERE → SELECT, the reverse of how you write it",
+        "FROM → SELECT → WHERE, columns are chosen before rows are filtered"
+      ],
+      "correct": 2,
+      "explanation": "The engine must load the table (FROM) and keep the surviving rows (WHERE) before it can decide what columns to return (SELECT) — the FloWS order. Reading it as written (SELECT first) is the classic beginner mistake the course warns against."
+    },
+    {
+      "id": "m1-q02",
+      "category": "SELECT-FROM-WHERE",
+      "page": "Module1-SQL/select-from-where",
+      "difficulty": "core",
+      "question": "What happens when you run <code>SELECT rating * 2 AS double_rating FROM Listens WHERE double_rating &gt; 8</code>?",
+      "options": [
+        "It works: aliases are visible everywhere in the query",
+        "It fails: WHERE runs before SELECT, so the alias does not exist yet when the filter is evaluated",
+        "It silently returns all rows, ignoring the filter",
+        "It works only if you also add ORDER BY double_rating"
+      ],
+      "correct": 1,
+      "explanation": "SELECT runs last, so an alias it creates is not available to WHERE, which runs earlier. The fix is to repeat the expression: <code>WHERE rating * 2 &gt; 8</code> works because the expression itself already exists at WHERE time."
+    },
+    {
+      "id": "m1-q03",
+      "category": "SELECT-FROM-WHERE",
+      "page": "Module1-SQL/select-from-where",
+      "difficulty": "stretch",
+      "question": "Listen 9 has <code>user_id = 3</code> and <code>rating = NULL</code>. How do these two filters treat that row?<br><code>WHERE user_id = 3 AND rating &gt; 4.0</code> vs <code>WHERE user_id = 3 OR rating &gt; 4.0</code>",
+      "options": [
+        "Both keep it: user_id = 3 is TRUE in both",
+        "Both drop it: any filter touching a NULL drops the row",
+        "AND keeps it, OR drops it",
+        "AND drops it (TRUE AND UNKNOWN = UNKNOWN), OR keeps it (TRUE OR UNKNOWN = TRUE)"
+      ],
+      "correct": 3,
+      "explanation": "rating &gt; 4.0 on a NULL is UNKNOWN. AND needs both sides TRUE, so TRUE AND UNKNOWN stays UNKNOWN and WHERE drops the row; OR is satisfied by one TRUE, so TRUE OR UNKNOWN is TRUE and the row survives. The tempting 'both drop it' answer forgets that a TRUE dominates an OR."
+    },
+    {
+      "id": "m1-q04",
+      "category": "NULLs",
+      "page": "Module1-SQL/nulls",
+      "difficulty": "intro",
+      "question": "The Listens table has one row with a NULL rating. What does <code>SELECT * FROM Listens WHERE rating = NULL</code> return?",
+      "options": [
+        "Zero rows: rating = NULL evaluates to UNKNOWN on every row, and WHERE keeps only TRUE",
+        "The one row whose rating is NULL",
+        "Every row, because NULL matches anything",
+        "A syntax error: you cannot write = NULL in SQL"
+      ],
+      "correct": 0,
+      "explanation": "Any comparison with NULL — even NULL = NULL — evaluates to UNKNOWN, so no row passes. The query is syntactically legal but semantically useless; only <code>rating IS NULL</code> returns a definite TRUE for the missing-rating row."
+    },
+    {
+      "id": "m1-q05",
+      "category": "NULLs",
+      "page": "Module1-SQL/nulls",
+      "difficulty": "core",
+      "question": "Listens has 9 rows, one with a NULL rating. What do <code>COUNT(*)</code> and <code>COUNT(rating)</code> return, and what does AVG(rating) divide by?",
+      "options": [
+        "9 and 9; AVG divides by 9",
+        "8 and 8; NULL rows are invisible to all aggregates",
+        "9 and 8; AVG divides by 8 because it skips the NULL",
+        "9 and 8; AVG divides by 9, treating the NULL as 0"
+      ],
+      "correct": 2,
+      "explanation": "COUNT(*) counts every row (9); COUNT(rating), SUM, AVG, MIN, and MAX all skip NULLs, so COUNT(rating) is 8 and AVG divides the sum by 8. Treating NULL as 0 is the trap — SQL ignores the value entirely rather than substituting zero."
+    },
+    {
+      "id": "m1-q06",
+      "category": "NULLs",
+      "page": "Module1-SQL/nulls",
+      "difficulty": "stretch",
+      "question": "You want every listen that is NOT rated above 4.0, including unrated listens. Why does <code>WHERE NOT (rating &gt; 4.0)</code> fail, and what is the fix?",
+      "options": [
+        "It fails only on ties at exactly 4.0; fix with &gt;=",
+        "NOT of UNKNOWN is still UNKNOWN, so NULL rows are dropped; fix: <code>WHERE rating &lt;= 4.0 OR rating IS NULL</code>",
+        "NOT flips UNKNOWN to TRUE, so it returns too many rows; fix: remove the NOT",
+        "It is fine as written: NOT (rating &gt; 4.0) already includes NULL ratings"
+      ],
+      "correct": 1,
+      "explanation": "On a NULL rating, rating &gt; 4.0 is UNKNOWN, and NOT UNKNOWN is still UNKNOWN, so WHERE drops the row. If you want the unrated listens too, you must ask for them explicitly with an <code>OR rating IS NULL</code> branch."
+    },
+    {
+      "id": "m1-q07",
+      "category": "Spotify Database",
+      "page": "Module1-SQL/spotify-db",
+      "difficulty": "core",
+      "question": "In the Spotify schema, Listens declares <code>FOREIGN KEY (user_id) REFERENCES users(user_id)</code>. What does this constraint guarantee?",
+      "options": [
+        "Every listen's user_id points at a row that actually exists in Users — no listen can reference a nonexistent user",
+        "Every user must have at least one listen",
+        "user_id values are unique within Listens",
+        "user_id in Listens can never be queried without a JOIN"
+      ],
+      "correct": 0,
+      "explanation": "A foreign key ties a column to the primary key of another table, so a listen can never reference a user that does not exist. It says nothing in the other direction — Pluto exists in Users with zero listens, which is perfectly legal."
+    },
+    {
+      "id": "m1-q08",
+      "category": "Intro & Key Problems",
+      "page": "Module1-SQL/section1-intro",
+      "difficulty": "intro",
+      "question": "SQL is described as 'declarative'. What does that mean in practice?",
+      "options": [
+        "You must declare every variable before using it",
+        "Queries always run in the order the clauses are written",
+        "SQL cannot express loops, so it is less powerful than Python",
+        "You state WHAT data you want; the query planner decides HOW to compute it (scans, join order, execution steps)"
+      ],
+      "correct": 3,
+      "explanation": "Declarative logic means you describe the result, not the procedure — the planner picks scans and join orders for you. With hand-written loops you would re-implement filtering, joining, and aggregation and tune execution yourself."
+    },
+    {
+      "id": "m1-q09",
+      "category": "GROUP BY",
+      "page": "Module1-SQL/groupby",
+      "difficulty": "core",
+      "question": "Why is this query unsafe?<br><pre><code>SELECT user_id, song_id, COUNT(*)\nFROM Listens\nGROUP BY user_id;</code></pre>",
+      "options": [
+        "COUNT(*) cannot be combined with other columns in SELECT",
+        "GROUP BY requires an ORDER BY to be deterministic",
+        "song_id is in SELECT but not in GROUP BY: each user's group holds many song_ids, so the value is ambiguous — the database errors or silently guesses",
+        "You must always group by the table's primary key"
+      ],
+      "correct": 2,
+      "explanation": "Grouping by user_id collapses each user to one row, but Mickey's group contains three different songs — the database cannot pick which song_id to show. The fix is to add song_id to GROUP BY so every output column resolves to exactly one value per group."
+    },
+    {
+      "id": "m1-q10",
+      "category": "GROUP BY",
+      "page": "Module1-SQL/groupby",
+      "difficulty": "core",
+      "question": "Running <code>SELECT rating, COUNT(*) FROM Listens GROUP BY rating</code> on a table with one NULL rating — what happens to the NULL row?",
+      "options": [
+        "All NULLs collapse into one group of their own, so NULL appears as a group with its count",
+        "The NULL row is dropped, just as WHERE would drop it",
+        "Each NULL forms its own separate group because NULL = NULL is not TRUE",
+        "The query errors: you cannot group on a nullable column"
+      ],
+      "correct": 0,
+      "explanation": "GROUP BY (like DISTINCT) treats all NULLs as one group, even though NULL = NULL evaluates to NULL in comparisons. The 'dropped like WHERE' answer confuses grouping with filtering — GROUP BY keeps and buckets every row it receives."
+    },
+    {
+      "id": "m1-q11",
+      "category": "HAVING",
+      "page": "Module1-SQL/having",
+      "difficulty": "intro",
+      "question": "What is the fundamental difference between WHERE and HAVING?",
+      "options": [
+        "WHERE is for text columns, HAVING is for numeric columns",
+        "WHERE filters individual rows before grouping; HAVING filters whole groups after GROUP BY, so it can test aggregates like AVG or COUNT",
+        "HAVING is just a faster synonym for WHERE",
+        "WHERE runs after HAVING in the execution pipeline"
+      ],
+      "correct": 1,
+      "explanation": "WHERE runs before groups exist, so it cannot see aggregates; HAVING runs after GROUP BY, testing each group's aggregate and dropping the group whole. That is why 'users averaging above 4.0' needs HAVING — no single row holds an average."
+    },
+    {
+      "id": "m1-q12",
+      "category": "HAVING",
+      "page": "Module1-SQL/having",
+      "difficulty": "stretch",
+      "question": "Trace this on the 9-row Listens table (Daffy's rows: 2.9, 4.9, NULL):<br><pre><code>SELECT user_id, COUNT(*)\nFROM Listens\nWHERE rating &gt; 3.5\nGROUP BY user_id\nHAVING COUNT(*) &gt;= 2;</code></pre>Which users survive?",
+      "options": [
+        "Users 1, 2, and 3: everyone has at least two listens",
+        "Only user 2: the others lose rows to WHERE",
+        "No one: HAVING cannot follow a WHERE clause",
+        "Users 1 and 2: WHERE strips Daffy's 2.9 and NULL rows, leaving him one row, and his group fails COUNT(*) &gt;= 2"
+      ],
+      "correct": 3,
+      "explanation": "WHERE runs first, cutting 9 rows to 7 (2.9 fails; NULL is UNKNOWN, also removed). Groups form as user 1: 3 rows, user 2: 3 rows, user 3: 1 row, and HAVING then drops user 3's one-row group. Counting Daffy's original three listens ignores that WHERE filters before grouping."
+    },
+    {
+      "id": "m1-q13",
+      "category": "HAVING",
+      "page": "Module1-SQL/having",
+      "difficulty": "core",
+      "question": "Why does this fail?<br><pre><code>SELECT user_id, AVG(rating) AS avg_r\nFROM Listens\nGROUP BY user_id\nHAVING avg_r &gt; 4.0;</code></pre>",
+      "options": [
+        "HAVING runs before SELECT, so the alias avg_r does not exist yet — repeat the aggregate: <code>HAVING AVG(rating) &gt; 4.0</code>",
+        "HAVING cannot use aggregate functions at all",
+        "avg_r must be declared in the GROUP BY clause first",
+        "AVG cannot be aliased; only COUNT can"
+      ],
+      "correct": 0,
+      "explanation": "The pipeline is FROM → WHERE → GROUP BY → HAVING → SELECT: aliases are created by SELECT, which runs after HAVING. HAVING is exactly where aggregates belong — you just have to write the expression itself, not the alias."
+    },
+    {
+      "id": "m1-q14",
+      "category": "Sets and Multisets",
+      "page": "Module1-SQL/sets",
+      "difficulty": "intro",
+      "question": "What is the difference between UNION and UNION ALL?",
+      "options": [
+        "UNION combines rows; UNION ALL combines whole tables",
+        "UNION ALL also includes NULL rows; UNION drops them",
+        "UNION removes duplicate rows from the combined result; UNION ALL keeps every row, duplicates included",
+        "They are identical; ALL is just older syntax"
+      ],
+      "correct": 2,
+      "explanation": "UNION produces a true set (each row once), while UNION ALL preserves the multiset — a row appearing in both inputs appears twice. UNION ALL is also faster because it skips the deduplication sort; neither operator treats NULL rows specially."
+    },
+    {
+      "id": "m1-q15",
+      "category": "Sets and Multisets",
+      "page": "Module1-SQL/sets",
+      "difficulty": "core",
+      "question": "Which query shape finds songs that have NEVER been listened to?",
+      "options": [
+        "All songs INTERSECT listened songs",
+        "All songs EXCEPT listened songs — rows in the first result that are not in the second",
+        "Listened songs EXCEPT all songs",
+        "All songs UNION listened songs"
+      ],
+      "correct": 1,
+      "explanation": "EXCEPT is set difference: A minus B, keeping rows from the first query that are absent from the second. INTERSECT would find songs that HAVE been played, and reversing the operands (option 3) yields an empty set since every listened song is a song."
+    },
+    {
+      "id": "m1-q16",
+      "category": "JOINs",
+      "page": "Module1-SQL/joins",
+      "difficulty": "core",
+      "question": "Users has 4 rows (Pluto has no listens); Listens has 9 rows. Compare <code>Users INNER JOIN Listens ON user_id</code> with the same query as a LEFT JOIN (Users on the left).",
+      "options": [
+        "INNER: 4 rows, LEFT: 9 rows",
+        "Both return 9 rows: LEFT JOIN only matters when the right table has extra rows",
+        "INNER: 13 rows, LEFT: 36 rows",
+        "INNER: 9 rows (Pluto dropped); LEFT: 10 rows (Pluto kept once, his listen columns NULL-filled)"
+      ],
+      "correct": 3,
+      "explanation": "A join emits one row per matching pair — Mickey's 3 listens become 3 rows, giving 9 matched rows. INNER keeps only matches, so Pluto vanishes; LEFT keeps every left-table row, adding Pluto as a tenth row padded with NULLs."
+    },
+    {
+      "id": "m1-q17",
+      "category": "JOINs",
+      "page": "Module1-SQL/joins",
+      "difficulty": "stretch",
+      "question": "You join Users (4 rows) and Listens (9 rows) but forget the ON clause entirely. What do you get?",
+      "options": [
+        "36 rows: a cartesian product pairing every user with every listen, which is usually a mistake",
+        "9 rows: the database infers the join key from the foreign key",
+        "An error: SQL refuses to join without a condition",
+        "13 rows: the two tables stacked on top of each other"
+      ],
+      "correct": 0,
+      "explanation": "With no ON predicate, every possible pair is emitted: 4 × 9 = 36 rows. The database does not fall back to the foreign key — the FK constrains data integrity, not join behavior — so the multiplication happens silently, which is why a missing ON is a classic bug."
+    },
+    {
+      "id": "m1-q18",
+      "category": "Subqueries: Basic",
+      "page": "Module1-SQL/subqueries-basic",
+      "difficulty": "core",
+      "question": "Daffy's ratings are {2.9, 4.9, NULL}. What does this return?<br><pre><code>SELECT listen_id, rating FROM Listens\nWHERE rating NOT IN (\n  SELECT rating FROM Listens WHERE user_id = 3\n);</code></pre>",
+      "options": [
+        "Every listen not rated 2.9 or 4.9",
+        "Every listen, since NULL matches nothing",
+        "Zero rows: the NULL in the list makes every NOT IN test UNKNOWN, silently collapsing the result",
+        "An error: NOT IN lists cannot contain NULL"
+      ],
+      "correct": 2,
+      "explanation": "NOT IN expands to <code>rating != 2.9 AND rating != 4.9 AND rating != NULL</code>; the last comparison is always UNKNOWN, so no row ever reaches TRUE. Filter the NULL out of the subquery (<code>AND rating IS NOT NULL</code>) or use the NULL-safe NOT EXISTS instead."
+    },
+    {
+      "id": "m1-q19",
+      "category": "Subqueries: Basic",
+      "page": "Module1-SQL/subqueries-basic",
+      "difficulty": "core",
+      "question": "To check whether ANY listen has rating &gt; 4.5, why is <code>WHERE EXISTS (SELECT 1 FROM Listens WHERE rating &gt; 4.5)</code> preferred over comparing <code>(SELECT COUNT(*) ...) &gt; 0</code>?",
+      "options": [
+        "EXISTS also counts NULL rows; COUNT does not",
+        "EXISTS stops scanning at the first matching row, while COUNT(*) must tally every matching row before comparing to 0",
+        "COUNT(*) is wrong: it can return negative numbers",
+        "EXISTS caches its result; COUNT re-runs on every row"
+      ],
+      "correct": 1,
+      "explanation": "EXISTS returns TRUE as soon as any row matches (in the course trace, 4 of 9 rows checked), whereas the COUNT version scans all 9 rows to compute a number you only compare with 0. Both give the same answer — the difference is purely wasted work."
+    },
+    {
+      "id": "m1-q20",
+      "category": "Subqueries: Correlated",
+      "page": "Module1-SQL/subqueries-correlated",
+      "difficulty": "stretch",
+      "question": "'Find listens rated above that user's own average.' Why does this need a correlated subquery rather than a regular scalar subquery, and what is the performance concern?",
+      "options": [
+        "It needs a regular subquery; averages are always global",
+        "Correlated subqueries are needed only when the inner table differs from the outer table",
+        "A regular subquery would be slower because it runs once per row",
+        "The comparison value changes per row (each user's own average), so the inner query must re-run per outer row — the N+1 problem: 1 + N executions for N outer rows"
+      ],
+      "correct": 3,
+      "explanation": "A regular subquery computes one global number once; 'their own average' depends on which user the row belongs to, so the inner query references the outer row and re-runs per row. That is the N+1 anti-pattern — though modern optimizers often rewrite it as a single join or windowed aggregate."
+    }
+  ]
+}

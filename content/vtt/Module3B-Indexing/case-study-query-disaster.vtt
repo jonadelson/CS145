@@ -1,0 +1,133 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.931
+Somewhere in a cloud billing dashboard, one query is quietly burning fifteen hundred dollars a day.
+
+00:00:04.931 --> 00:00:07.863
+A weekly trending genres report.
+
+00:00:07.863 --> 00:00:10.795
+It runs a hundred times a day, nine hours a run.
+
+00:00:10.795 --> 00:00:13.726
+By year end it has spent about five hundred fifty thousand dollars.
+
+00:00:13.726 --> 00:00:16.657
+Half a million, for one report.
+
+00:00:16.657 --> 00:00:19.589
+Nothing is broken.
+
+00:00:19.589 --> 00:00:22.521
+The answer is correct every time.
+
+00:00:22.521 --> 00:00:25.452
+So where does the money go.
+
+00:00:25.452 --> 00:00:29.081
+Before you optimize, you measure.
+
+00:00:29.081 --> 00:00:32.711
+So we lay out the physical schema.
+
+00:00:32.711 --> 00:00:36.340
+The report joins two tables.
+
+00:00:36.340 --> 00:00:39.970
+Songs is four hundred pages, about twenty five gigabytes.
+
+00:00:39.970 --> 00:00:43.599
+Listens is sixteen thousand pages, the full terabyte, ten billion rows.
+
+00:00:43.599 --> 00:00:47.229
+The naive plan is a Hash Partition Join across the whole thing.
+
+00:00:47.229 --> 00:00:50.858
+Three passes over both tables, about forty nine thousand reads every run.
+
+00:00:50.858 --> 00:00:54.488
+And here is the cruel part.
+
+00:00:54.488 --> 00:00:58.117
+This week's window, October twenty first through twenty seventh, lives in just a hundred and fifty of those pages.
+
+00:00:58.117 --> 00:01:01.747
+One percent.
+
+00:01:01.747 --> 00:01:05.376
+The buffer pool holds twenty pages at a time.
+
+00:01:05.376 --> 00:01:09.006
+A hundred and fifty pages we want, sixteen thousand pages we read.
+
+00:01:09.006 --> 00:01:12.635
+The whole story is in that ratio.
+
+00:01:12.635 --> 00:01:17.003
+Now watch the bill come down in stages.
+
+00:01:17.003 --> 00:01:21.371
+Stage one, the red baseline.
+
+00:01:21.371 --> 00:01:25.739
+The Hash Partition Join scans all of it, every column, forty nine thousand reads, five hundred fifty thousand dollars a year.
+
+00:01:25.739 --> 00:01:30.107
+The disaster.
+
+00:01:30.107 --> 00:01:34.475
+Stage two, add a B plus tree index on listen time.
+
+00:01:34.475 --> 00:01:38.843
+The index jumps straight to this week and skips the rest, so you scan fewer rows.
+
+00:01:38.843 --> 00:01:43.211
+Ninety times cheaper, five hundred fifty four reads.
+
+00:01:43.211 --> 00:01:47.579
+Stage three, switch to columnar storage.
+
+00:01:47.579 --> 00:01:51.947
+Each column lives in its own pages, so you read only the four columns the query touches and ignore the rest.
+
+00:01:51.947 --> 00:01:56.314
+Fewer columns read, nine times cheaper again.
+
+00:01:56.314 --> 00:02:00.682
+Stage four, compress those columns.
+
+00:02:00.682 --> 00:02:05.050
+Dictionary encoding for the genres, bit packing for the ratings, run length encoding for the sorted user IDs.
+
+00:02:05.050 --> 00:02:09.418
+Fewer bytes stored, twice cheaper, and the bar turns green at about four hundred dollars a year.
+
+00:02:09.418 --> 00:02:13.786
+Each win attacks a different kind of waste, so they stack.
+
+00:02:13.786 --> 00:02:18.154
+The index cut rows, columnar cut columns, compression cut bytes.
+
+00:02:18.154 --> 00:02:22.522
+Three orthogonal fixes, so they multiply instead of add.
+
+00:02:22.522 --> 00:02:26.890
+Ninety plus nine plus two would be a hundred and one times.
+
+00:02:26.890 --> 00:02:31.258
+Ninety times nine times two is roughly fourteen hundred times overall.
+
+00:02:31.258 --> 00:02:36.979
+One unindexed weekly report can cost half a million dollars a year.
+
+00:02:36.979 --> 00:02:42.701
+An index, a columnar layout, and compression each attack a separate kind of waste, so stacking them multiplies the savings instead of adding them.
+
+00:02:42.701 --> 00:02:48.422
+The same query, the same answer, fourteen hundred times cheaper.
+
+00:02:48.422 --> 00:02:54.144
+When you find a query that costs too much, do not hunt for one magic fix.
+
+00:02:54.144 --> 00:02:59.865
+Find the independent kinds of waste, and remove them one at a time.

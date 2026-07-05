@@ -1,0 +1,199 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.145
+Picture a table of ten at a busy restaurant.
+
+00:00:05.145 --> 00:00:08.289
+The kitchen could finish your whole order before touching anyone else's.
+
+00:00:08.289 --> 00:00:11.434
+Burger, fries, a drink, then on to the next diner.
+
+00:00:11.434 --> 00:00:14.579
+Correct, but painfully slow.
+
+00:00:14.579 --> 00:00:17.723
+No kitchen works that way.
+
+00:00:17.723 --> 00:00:20.868
+It interleaves.
+
+00:00:20.868 --> 00:00:24.012
+Your burger fires while your friend's fries cook and the drinks pour, ten orders moving at once.
+
+00:00:24.012 --> 00:00:27.157
+Much faster, on one condition.
+
+00:00:27.157 --> 00:00:30.302
+Your burger reaches you, not your friend.
+
+00:00:30.302 --> 00:00:33.446
+A database faces the very same choice with concurrent transactions.
+
+00:00:33.446 --> 00:00:36.591
+The two simplest options are the extremes.
+
+00:00:36.591 --> 00:00:39.736
+Run one at a time, or let everything run free.
+
+00:00:39.736 --> 00:00:42.880
+Both fail.
+
+00:00:42.880 --> 00:00:46.025
+Let us see how, and what the fix looks like.
+
+00:00:46.025 --> 00:00:49.209
+Start with Naive way 1.
+
+00:00:49.209 --> 00:00:52.392
+Run each transaction start to finish, then the next.
+
+00:00:52.392 --> 00:00:55.576
+Nothing interleaves, so nothing corrupts.
+
+00:00:55.576 --> 00:00:58.760
+But it is slow.
+
+00:00:58.760 --> 00:01:01.943
+A transaction spends most of its life waiting on a single IO.
+
+00:01:01.943 --> 00:01:05.127
+Picture a short stretch of time.
+
+00:01:05.127 --> 00:01:08.311
+At reed start, the processor stalls.
+
+00:01:08.311 --> 00:01:11.494
+At reed end, the IO is done.
+
+00:01:11.494 --> 00:01:14.678
+The gap between them is the IO lag, and through all of it the processor sits idle, doing nothing.
+
+00:01:14.678 --> 00:01:18.912
+Now scale that to a queue on a single server.
+
+00:01:18.912 --> 00:01:23.146
+T1 runs, then waits on its IO.
+
+00:01:23.146 --> 00:01:27.379
+Next, T2 hits a long IO, and because no one else may run in that gap, the server just sits there.
+
+00:01:27.379 --> 00:01:31.613
+T3 and T4 are next in line.
+
+00:01:31.613 --> 00:01:35.847
+They stay blocked behind T2's wait, far longer than their own work needs.
+
+00:01:35.847 --> 00:01:40.081
+Every idle gap is pure waste, and one slow transaction stalls the whole line.
+
+00:01:40.081 --> 00:01:43.986
+Now Naive way 2.
+
+00:01:43.986 --> 00:01:47.892
+Drop all coordination and let everything run.
+
+00:01:47.892 --> 00:01:51.797
+On different rows, fine.
+
+00:01:51.797 --> 00:01:55.703
+On the same row, three ways to corrupt it, and no error is ever raised.
+
+00:01:55.703 --> 00:01:59.608
+First, a lost update.
+
+00:01:59.608 --> 00:02:03.513
+Two fans play the same song at once, so the play count should climb by two, from one hundred to one hundred and two.
+
+00:02:03.513 --> 00:02:07.419
+But both transactions read the same one hundred, and both write one hundred and one.
+
+00:02:07.419 --> 00:02:11.324
+The second write lands right on top of the first.
+
+00:02:11.324 --> 00:02:15.229
+The play count ends at one hundred and one, not one hundred and two.
+
+00:02:15.229 --> 00:02:19.135
+One play silently vanishes.
+
+00:02:19.135 --> 00:02:23.040
+Second, a dirty read.
+
+00:02:23.040 --> 00:02:26.946
+One transaction reads another's uncommitted write, then the writer aborts, so the reader trusted a value that never existed.
+
+00:02:26.946 --> 00:02:30.851
+Third, a stale read.
+
+00:02:30.851 --> 00:02:34.756
+One transaction, on its own, should see a stable world.
+
+00:02:34.756 --> 00:02:38.662
+Read the same row twice and you should get the same value both times.
+
+00:02:38.662 --> 00:02:42.567
+That is what isolation promises.
+
+00:02:42.567 --> 00:02:46.472
+But here a committed write slips in between the two reads.
+
+00:02:46.472 --> 00:02:50.378
+The first read sees twenty, the second sees thirty.
+
+00:02:50.378 --> 00:02:54.283
+The transaction now disagrees with itself, on a row it only read.
+
+00:02:54.283 --> 00:02:58.189
+That is the read breaking down.
+
+00:02:58.189 --> 00:03:02.094
+Every transaction reports success, and the database holds a number no one-at-a-time run could produce.
+
+00:03:02.094 --> 00:03:05.329
+So neither extreme is usable.
+
+00:03:05.329 --> 00:03:08.565
+Put them on one axis, safety on the left, performance on the right.
+
+00:03:08.565 --> 00:03:11.800
+Serial, Naive 1, sits at the safe end.
+
+00:03:11.800 --> 00:03:15.035
+Always correct, no throughput.
+
+00:03:15.035 --> 00:03:18.271
+No coordination, Naive 2, sits at the fast end.
+
+00:03:18.271 --> 00:03:21.506
+Maximum speed, corrupted data.
+
+00:03:21.506 --> 00:03:24.741
+The fix is concurrency control, the sweet spot in the middle.
+
+00:03:24.741 --> 00:03:27.977
+Interleave only the swaps whose order does not matter.
+
+00:03:27.977 --> 00:03:31.212
+Serial-correct, at concurrent speed.
+
+00:03:31.212 --> 00:03:34.954
+So both naive ways are dead ends.
+
+00:03:34.954 --> 00:03:38.695
+Serial is correct but wastes the machine.
+
+00:03:38.695 --> 00:03:42.437
+Free-for-all is fast but corrupts the data.
+
+00:03:42.437 --> 00:03:46.179
+Every real database lives in the middle, interleaving only what is safe.
+
+00:03:46.179 --> 00:03:49.921
+That leaves two questions.
+
+00:03:49.921 --> 00:03:53.662
+What makes an interleaving correct, and how does an engine deliver it without serializing everything.
+
+00:03:53.662 --> 00:03:57.404
+The next page builds the tool the answer rests on, a graph you read for cycles.

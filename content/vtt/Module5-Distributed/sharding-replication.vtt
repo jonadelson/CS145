@@ -1,0 +1,67 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.543
+Outgrow one machine, and you have two responses: sharding and replication.
+
+00:00:04.543 --> 00:00:07.085
+They sound alike.
+
+00:00:07.085 --> 00:00:09.627
+They solve different problems.
+
+00:00:09.627 --> 00:00:12.170
+Here is the difference.
+
+00:00:12.170 --> 00:00:17.176
+Sharding splits the ten-terabyte table into ten shards, about one terabyte each, one per node, so capacity scales past any single machine.
+
+00:00:17.176 --> 00:00:22.182
+Each row lives on exactly one shard.
+
+00:00:22.182 --> 00:00:27.189
+Replication is the other axis.
+
+00:00:27.189 --> 00:00:32.195
+It keeps three copies of a shard on three machines, so any one can die and the data survives.
+
+00:00:32.195 --> 00:00:37.201
+Sharding buys capacity; replication buys availability.
+
+00:00:37.201 --> 00:00:40.526
+In production you run both.
+
+00:00:40.526 --> 00:00:43.851
+Spotify's ten-terabyte table is sharded ten ways for capacity.
+
+00:00:43.851 --> 00:00:47.176
+Then each shard is replicated three times on different racks.
+
+00:00:47.176 --> 00:00:50.501
+So a user's shard sits on three machines, and a read hits any one of them.
+
+00:00:50.501 --> 00:00:53.826
+A dead machine loses nothing.
+
+00:00:53.826 --> 00:00:58.284
+Why both?
+
+00:00:58.284 --> 00:01:02.742
+Sharding without replication: when one machine dies, its shard goes offline, and one in ten users is locked out.
+
+00:01:02.742 --> 00:01:07.201
+Replication without sharding: every machine holds the whole ten terabytes, which never fits on a one-terabyte disk.
+
+00:01:07.201 --> 00:01:11.659
+You need both.
+
+00:01:11.659 --> 00:01:16.315
+So: sharding for capacity, replication for availability, both in production.
+
+00:01:16.315 --> 00:01:20.970
+The real design questions are which sharding key, how many replicas, and where to place them.
+
+00:01:20.970 --> 00:01:25.626
+But now a transaction that touches two shards has to commit on both, or neither.
+
+00:01:25.626 --> 00:01:30.281
+That is next.

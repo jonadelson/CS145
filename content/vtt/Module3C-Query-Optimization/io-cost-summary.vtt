@@ -1,0 +1,205 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.836
+Two query plans can return the exact same answer and cost wildly different amounts of IO.
+
+00:00:05.836 --> 00:00:09.672
+The optimizer's job is to find the cheap one.
+
+00:00:09.672 --> 00:00:13.508
+So let us walk through two plans for one query, goal by goal, and watch where the cost comes from.
+
+00:00:13.508 --> 00:00:17.344
+The method never changes.
+
+00:00:17.344 --> 00:00:21.180
+Add up the cost of every step.
+
+00:00:21.180 --> 00:00:24.751
+The query finds highly recommended songs.
+
+00:00:24.751 --> 00:00:28.321
+Join the Recommendations table to Listens on the pair user i d and song i d, so a match means the user actually listened to a song that was recommended to them.
+
+00:00:28.321 --> 00:00:31.892
+Then group by song i d to count the recommendations, and order by that count, highest first.
+
+00:00:31.892 --> 00:00:35.463
+So three goals, in any plan.
+
+00:00:35.463 --> 00:00:39.033
+Join the two tables.
+
+00:00:39.033 --> 00:00:42.604
+Group by song i d.
+
+00:00:42.604 --> 00:00:46.175
+Sort by the count.
+
+00:00:46.175 --> 00:00:49.745
+Every plan has to hit all three.
+
+00:00:49.745 --> 00:00:53.316
+What changes is the algorithm at each step.
+
+00:00:53.316 --> 00:00:56.467
+Plan one.
+
+00:00:56.467 --> 00:00:59.619
+Goal one, the join.
+
+00:00:59.619 --> 00:01:02.770
+A sort merge join over Recommendations and Listens.
+
+00:01:02.770 --> 00:01:05.921
+To merge, it sorts both tables on the join keys, song i d and user i d, so the joined rows come out already sorted on both.
+
+00:01:05.921 --> 00:01:09.072
+That sorted result is table three.
+
+00:01:09.072 --> 00:01:12.224
+Hold on to that order.
+
+00:01:12.224 --> 00:01:15.375
+It is about to pay off.
+
+00:01:15.375 --> 00:01:18.128
+Goal two.
+
+00:01:18.128 --> 00:01:20.882
+Group by song i d to count the recommendations.
+
+00:01:20.882 --> 00:01:23.635
+And here is the payoff.
+
+00:01:23.635 --> 00:01:26.388
+Song i d is the first key in that sort order, so every song's rows already sit together.
+
+00:01:26.388 --> 00:01:29.141
+Scan once and count.
+
+00:01:29.141 --> 00:01:31.895
+No extra sort.
+
+00:01:31.895 --> 00:01:34.648
+That gives table four, each song i d with its count.
+
+00:01:34.648 --> 00:01:37.519
+Goal three.
+
+00:01:37.519 --> 00:01:40.391
+Order by that count.
+
+00:01:40.391 --> 00:01:43.262
+One final Big Sort on the count column, and plan one is done.
+
+00:01:43.262 --> 00:01:46.134
+The sorted join back at goal one is what made the grouping free.
+
+00:01:46.134 --> 00:01:49.005
+So plan one only ever sorts twice.
+
+00:01:49.005 --> 00:01:51.877
+Once inside the join, once here at the end.
+
+00:01:51.877 --> 00:01:55.002
+Plan two.
+
+00:01:55.002 --> 00:01:58.126
+Same query, different join.
+
+00:01:58.126 --> 00:02:01.251
+Goal one is a hash partition join.
+
+00:02:01.251 --> 00:02:04.376
+Hash both tables on song i d and user i d into partitions, four of them here, then join the matching ones.
+
+00:02:04.376 --> 00:02:07.501
+The join itself is often cheaper than sorting.
+
+00:02:07.501 --> 00:02:10.625
+But look at table three.
+
+00:02:10.625 --> 00:02:13.750
+It is split on both keys together.
+
+00:02:13.750 --> 00:02:17.380
+Goal two is where plan two pays.
+
+00:02:17.380 --> 00:02:21.010
+Group by needs song i d alone, but table three is partitioned on the pair.
+
+00:02:21.010 --> 00:02:24.640
+So before grouping, it has to re-partition table three on song i d by itself.
+
+00:02:24.640 --> 00:02:28.270
+Call that table three b.
+
+00:02:28.270 --> 00:02:31.900
+That extra hash partition is a step plan one never ran.
+
+00:02:31.900 --> 00:02:35.530
+Then scan and count into table four.
+
+00:02:35.530 --> 00:02:39.466
+Goal three is identical to plan one.
+
+00:02:39.466 --> 00:02:43.401
+One final Big Sort on the count.
+
+00:02:43.401 --> 00:02:47.337
+So plan two tied plan one at the join and at the sort, but paid one extra re-partition in the middle.
+
+00:02:47.337 --> 00:02:51.273
+That single step is the whole difference between them.
+
+00:02:51.273 --> 00:02:54.784
+So which plan wins?
+
+00:02:54.784 --> 00:02:58.295
+You do not argue about it, you add it up.
+
+00:02:58.295 --> 00:03:01.806
+Both totals are built from the same pieces.
+
+00:03:01.806 --> 00:03:05.317
+They share the final Big Sort and the write of table four.
+
+00:03:05.317 --> 00:03:08.827
+The only difference is the join, plus that one extra re-partition plan two pays.
+
+00:03:08.827 --> 00:03:12.338
+So plug in the real table sizes, total both, and take the smaller number.
+
+00:03:12.338 --> 00:03:15.849
+That is all a cost based optimizer does.
+
+00:03:15.849 --> 00:03:19.360
+It estimates the IO of every plan from formulas like these, and keeps the cheapest.
+
+00:03:19.360 --> 00:03:22.871
+The trade off is just intuition for which term wins.
+
+00:03:22.871 --> 00:03:26.382
+The math is what settles it.
+
+00:03:26.382 --> 00:03:30.654
+The cost of a plan is the sum of its steps, nothing more.
+
+00:03:30.654 --> 00:03:34.927
+Same answer, different total, and the whole difference here is one re-partition.
+
+00:03:34.927 --> 00:03:39.199
+The deciding question is whether the join leaves its output in an order the next step can reuse.
+
+00:03:39.199 --> 00:03:43.472
+When it does, the group by is free.
+
+00:03:43.472 --> 00:03:47.744
+When it does not, you pay to reshape it.
+
+00:03:47.744 --> 00:03:52.017
+So far we costed these plans ourselves.
+
+00:03:52.017 --> 00:03:56.289
+Next, we read what a real optimizer chose, with the Postgres explain command.

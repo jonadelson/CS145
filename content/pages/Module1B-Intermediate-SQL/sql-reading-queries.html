@@ -1,0 +1,52 @@
+<h1>SQL Problem Solving: Reading Complex Queries</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Read a query in execution order, not written order: <code>FROM</code>, then <code>WHERE</code>, then <code>GROUP BY</code>, then <code>HAVING</code>, then <code>SELECT</code>, then <code>ORDER BY</code>. Each clause hands its rows to the next.</p>
+<p><strong>Intuition.</strong> To see what a six-clause query returns, trace it one clause at a time over the Listens rows, watching the row set shrink and reshape at each step.</p>
+</div>
+<h2>Example 1: Finding Top Genres Per User</h2>
+<pre><code><span class="sql-comment">-- Goal: For each user, find genres they have 2+ songs in.</span>
+<span class="sql-comment">-- Read in execution order: FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</span>
+
+<span class="sql-keyword">SELECT</span> user_id, genre,                    <span class="sql-comment">-- Step 5: project columns</span>
+       <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)    <span class="sql-keyword">AS</span> song_count,
+       <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l                            <span class="sql-comment">-- Step 1a: read Listens</span>
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Songs</span>   s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id   <span class="sql-comment">-- Step 1b: join Songs</span>
+<span class="sql-keyword">WHERE</span> genre <span class="sql-keyword">IS</span> <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>                   <span class="sql-comment">-- Step 2: drop NULL genres</span>
+<span class="sql-keyword">GROUP BY</span> user_id, genre                   <span class="sql-comment">-- Step 3: form groups</span>
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) &gt;<span class="sql-operator">=</span> <span class="sql-number">2</span>                      <span class="sql-comment">-- Step 4: keep 2+ songs</span>
+<span class="sql-keyword">ORDER BY</span> user_id, avg_rating DESC;        <span class="sql-comment">-- Step 6: sort output</span>
+</code></pre>
+<h3>The Mental Model</h3>
+<p><a id="trace-1"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/reading-trace-1.svg" alt="Example 1 traced on one page. FROM and JOIN give 9 rows, each play with its genre. GROUP BY collapses them to 6 user-genre groups with counts. HAVING COUNT(*) >= 2 strikes the three groups with a count of 1, leaving three pairs: Mickey-Pop, Minnie-Classic, Daffy-Pop." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"&gt;</p>
+<h2>Example 2: Finding Power Users</h2>
+<div style="background: #F7F8FA; padding: 2rem; border-radius: 12px; margin: 2rem 0;">
+<h4 style="color: #0E0E10; margin: 0 0 1rem 0;">The Query</h4>
+<pre><code><span class="sql-comment">-- Goal: Find the top-half users by average rating.</span>
+<span class="sql-comment">-- Three layers: per-user metrics (CTE 1), percentile rank (CTE 2), final filter.</span>
+
+<span class="sql-keyword">WITH</span> user_stats <span class="sql-keyword">AS</span> (                                <span class="sql-comment">-- CTE 1: per-user metrics</span>
+<span class="sql-keyword">SELECT</span> user_id,
+       <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)    <span class="sql-keyword">AS</span> listen_count,
+       <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+),
+ranked_users <span class="sql-keyword">AS</span> (                                   <span class="sql-comment">-- CTE 2: percentile rank</span>
+<span class="sql-keyword">SELECT</span> user_id, listen_count, avg_rating,
+       PERCENT_RANK() <span class="sql-keyword">OVER</span> (<span class="sql-keyword">ORDER BY</span> avg_rating DESC) <span class="sql-keyword">AS</span> rating_rank
+<span class="sql-keyword">FROM</span> user_stats
+)
+<span class="sql-keyword">SELECT</span> u.name,                                      <span class="sql-comment">-- final layer: name + filter</span>
+     r.listen_count,
+     r.avg_rating
+<span class="sql-keyword">FROM</span> ranked_users r
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Users</span> u <span class="sql-keyword">ON</span> r.user_id <span class="sql-operator">=</span> u.user_id
+<span class="sql-keyword">WHERE</span> r.rating_rank &lt; <span class="sql-number">0.5</span>                           <span class="sql-comment">-- top half</span>
+<span class="sql-keyword">ORDER BY</span> r.avg_rating DESC;
+</code></pre>
+</div>
+<h3>How to Read This Query</h3>
+<p><a id="trace-2"></a></p>
+<p>&lt;img src="assets/Module1B-Intermediate-SQL/svgs/reading-trace-2.svg" alt="Example 2 traced on one page. CTE 1 builds per-user metrics (count and average rating). CTE 2 adds a percentile rank over average rating descending. The outer WHERE rating_rank &lt; 0.5 strikes Mickey (0.5) and Daffy (1.0), leaving only Minnie at rank 0.0, average 4.4." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"&gt;</p>

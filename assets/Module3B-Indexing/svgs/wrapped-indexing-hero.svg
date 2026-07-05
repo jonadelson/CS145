@@ -1,0 +1,89 @@
+<svg viewBox="0 0 1100 426" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="wi-t wi-d">
+  <title id="wi-t">How indexing makes Spotify Wrapped instant</title>
+  <desc id="wi-d">A year of raw listen events on the left is scattered across the disk, so a per-user roll-up by full scan is a thousand random seeks (grey). Clustering the Listens table by (user_id, listen_time) puts each user's plays on one page, so the overnight batch job reads them sequentially and writes one Wrapped summary row per user (green). On December 1 the online card is a single hash-index lookup on user_id into that precomputed table. Color key: green is the clustered index path and the precomputed Wrapped rows, grey is the scattered raw scan that clustering replaces.</desc>
+  <defs>
+    <marker id="wi-ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="550" y="36" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">How indexing makes Spotify Wrapped instant</text>
+  <text x="550" y="62" text-anchor="middle" font-size="16" fill="#3F3F46">Clustering turns a year of scattered plays into one sequential scan, then the December card is a single lookup.</text>
+
+  <!-- STEP 1: raw scattered listens -->
+  <g data-step="1">
+    <text x="170" y="100" text-anchor="middle" font-size="17" font-weight="700" fill="#6B7280">A year of raw listens</text>
+    <text x="170" y="120" text-anchor="middle" font-size="14" font-style="italic" fill="#6B7280">stored chronologically, your plays scattered</text>
+
+    <rect x="60" y="138" width="220" height="234" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="60" y="138" width="220" height="6" rx="3" fill="#D4D7DC"/>
+
+    <rect x="78" y="162" width="184" height="22" rx="4" fill="#E7EAEE"/><text x="88" y="178" font-size="13" fill="#6B7280">Pg 12  user 3 · 09:14</text>
+    <rect x="78" y="190" width="184" height="22" rx="4" fill="#E1F4EC"/><text x="88" y="206" font-size="13" font-weight="700" fill="#059669">Pg 47  user 7 · you</text>
+    <rect x="78" y="218" width="184" height="22" rx="4" fill="#E7EAEE"/><text x="88" y="234" font-size="13" fill="#6B7280">Pg 88  user 1 · 11:02</text>
+    <rect x="78" y="246" width="184" height="22" rx="4" fill="#E1F4EC"/><text x="88" y="262" font-size="13" font-weight="700" fill="#059669">Pg 213 user 7 · you</text>
+    <rect x="78" y="274" width="184" height="22" rx="4" fill="#E7EAEE"/><text x="88" y="290" font-size="13" fill="#6B7280">Pg 250 user 4 · 22:30</text>
+    <rect x="78" y="302" width="184" height="22" rx="4" fill="#E1F4EC"/><text x="88" y="318" font-size="13" font-weight="700" fill="#059669">Pg 901 user 7 · you</text>
+    <text x="170" y="348" text-anchor="middle" font-size="13" font-style="italic" fill="#6B7280">1,000 plays = 1,000 random seeks</text>
+  </g>
+
+  <!-- STEP 2: clustered index / overnight batch -->
+  <g data-step="2">
+    <line x1="284" y1="255" x2="332" y2="255" stroke="#6B7280" stroke-width="2" marker-end="url(#wi-ah)"/>
+    <text x="308" y="244" text-anchor="middle" font-size="13" fill="#6B7280">cluster by</text>
+    <text x="308" y="277" text-anchor="middle" font-size="11" fill="#6B7280">(user, time)</text>
+
+    <text x="455" y="100" text-anchor="middle" font-size="17" font-weight="700" fill="#059669">Clustered Listens + nightly batch</text>
+    <text x="455" y="120" text-anchor="middle" font-size="14" font-style="italic" fill="#6B7280">your plays now sit on one page, read in order</text>
+
+    <rect x="345" y="138" width="220" height="234" rx="8" fill="#E1F4EC" stroke="#34D399" stroke-width="2"/>
+    <rect x="345" y="138" width="220" height="6" rx="3" fill="#34D399"/>
+
+    <rect x="363" y="162" width="184" height="22" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/><text x="373" y="178" font-size="13" font-weight="700" fill="#059669">Pg 5  user 7 · 02:11</text>
+    <rect x="363" y="190" width="184" height="22" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/><text x="373" y="206" font-size="13" font-weight="700" fill="#059669">Pg 5  user 7 · 07:48</text>
+    <rect x="363" y="218" width="184" height="22" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/><text x="373" y="234" font-size="13" font-weight="700" fill="#059669">Pg 5  user 7 · 18:30</text>
+    <rect x="363" y="246" width="184" height="22" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/><text x="373" y="262" font-size="13" font-weight="700" fill="#059669">Pg 5  user 7 · 21:05</text>
+    <text x="455" y="294" text-anchor="middle" font-size="13" fill="#3F3F46">one sequential scan per user</text>
+    <text x="455" y="316" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">→ tally top tracks, minutes</text>
+    <text x="455" y="348" text-anchor="middle" font-size="13" font-style="italic" fill="#6B7280">runs overnight, before Dec 1</text>
+  </g>
+
+  <!-- STEP 3: precomputed Wrapped table -->
+  <g data-step="3">
+    <line x1="569" y1="255" x2="617" y2="255" stroke="#6B7280" stroke-width="2" marker-end="url(#wi-ah)"/>
+    <text x="593" y="244" text-anchor="middle" font-size="13" fill="#6B7280">write</text>
+    <text x="593" y="277" text-anchor="middle" font-size="11" fill="#6B7280">summary</text>
+
+    <text x="745" y="100" text-anchor="middle" font-size="17" font-weight="700" fill="#059669">Wrapped table</text>
+    <text x="745" y="120" text-anchor="middle" font-size="14" font-style="italic" fill="#6B7280">one row per user, keyed on user_id</text>
+
+    <rect x="630" y="138" width="230" height="234" rx="8" fill="#FFFFFF" stroke="#34D399" stroke-width="2"/>
+    <rect x="630" y="138" width="230" height="6" rx="3" fill="#34D399"/>
+    <text x="745" y="162" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">user_id → summary</text>
+
+    <rect x="648" y="176" width="194" height="22" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/><text x="658" y="192" font-size="13" fill="#3F3F46">user 1 → {top 5, 8.1k min}</text>
+    <rect x="648" y="204" width="194" height="22" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/><text x="658" y="220" font-size="13" fill="#3F3F46">user 3 → {top 5, 2.4k min}</text>
+    <rect x="648" y="232" width="194" height="22" rx="4" fill="#E1F4EC" stroke="#34D399" stroke-width="1.5"/><text x="658" y="248" font-size="13" font-weight="700" fill="#059669">user 7 → {top 5, 41k min}</text>
+    <rect x="648" y="260" width="194" height="22" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/><text x="658" y="276" font-size="13" fill="#3F3F46">user 4 → {top 5, 5.7k min}</text>
+    <text x="745" y="306" text-anchor="middle" font-size="13" fill="#3F3F46">700M tiny rows, not a year of plays</text>
+    <text x="745" y="330" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">hash index on user_id → O(1)</text>
+    <text x="745" y="354" text-anchor="middle" font-size="13" font-style="italic" fill="#6B7280">the online lookup target</text>
+  </g>
+
+  <!-- STEP 4: Dec 1 card -->
+  <g data-step="4">
+    <line x1="864" y1="255" x2="912" y2="255" stroke="#6B7280" stroke-width="2" marker-end="url(#wi-ah)"/>
+    <text x="888" y="244" text-anchor="middle" font-size="13" fill="#6B7280">tap</text>
+    <text x="888" y="277" text-anchor="middle" font-size="11" fill="#6B7280">user 7</text>
+
+    <rect x="925" y="170" width="150" height="170" rx="12" fill="#FFFFFF" stroke="#34D399" stroke-width="2"/>
+    <rect x="925" y="170" width="150" height="6" rx="3" fill="#34D399"/>
+    <text x="1000" y="200" text-anchor="middle" font-size="14" font-weight="700" fill="#059669">Your Wrapped</text>
+    <text x="1000" y="228" text-anchor="middle" font-size="13" fill="#3F3F46">Top artist: …</text>
+    <text x="1000" y="252" text-anchor="middle" font-size="13" fill="#3F3F46">41,000 minutes</text>
+    <text x="1000" y="276" text-anchor="middle" font-size="13" fill="#3F3F46">Top 0.5% listener</text>
+    <text x="1000" y="312" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">1 lookup, instant</text>
+    <text x="1000" y="332" text-anchor="middle" font-size="12" font-style="italic" fill="#6B7280">Dec 1, 700M clients</text>
+  </g>
+
+  <!-- color key (static frame) -->
+  <text x="550" y="404" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the clustered index path and the precomputed Wrapped rows&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the scattered raw scan that clustering replaces</tspan></text>
+</svg>

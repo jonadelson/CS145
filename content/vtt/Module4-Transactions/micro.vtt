@@ -1,0 +1,241 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.402
+The lock manager has three jobs.
+
+00:00:05.402 --> 00:00:08.803
+You saw the first, grant or queue.
+
+00:00:08.803 --> 00:00:12.205
+Now the other two.
+
+00:00:12.205 --> 00:00:15.607
+The order it grants locks in is the microschedule, and that order decides both the speedup and the deadlock.
+
+00:00:15.607 --> 00:00:19.017
+Every transaction asks it for a lock.
+
+00:00:19.017 --> 00:00:22.427
+T1 wants row A.
+
+00:00:22.427 --> 00:00:25.837
+T2 wants row A.
+
+00:00:25.837 --> 00:00:29.247
+T3 wants row B.
+
+00:00:29.247 --> 00:00:32.657
+Each request goes to one component, the lock manager.
+
+00:00:32.657 --> 00:00:36.067
+The lock manager keeps the lock table.
+
+00:00:36.067 --> 00:00:39.477
+It records who holds each row and who is queued behind them.
+
+00:00:39.477 --> 00:00:42.887
+Row A is held by T1, with T2 and T3 waiting.
+
+00:00:42.887 --> 00:00:46.297
+Row B is free, so it goes to T3.
+
+00:00:46.297 --> 00:00:49.707
+From that table it does three jobs.
+
+00:00:49.707 --> 00:00:53.117
+First, it grants or queues each request by checking compatibility.
+
+00:00:53.117 --> 00:00:56.527
+Second, the order it grants locks is the microschedule, the time-ordered record of who runs when.
+
+00:00:56.527 --> 00:00:59.937
+Third, it watches the WaitsFor graph, the running record of who is waiting on whom.
+
+00:00:59.937 --> 00:01:03.347
+Those three jobs are the rest of this page.
+
+00:01:03.347 --> 00:01:10.847
+The lock manager sees each transaction as atomic steps: request a lock, get it granted, read and write while holding it, then unlock.
+
+00:01:10.847 --> 00:01:18.347
+Lay every transaction's steps on one timeline, and you see who waits on whom.
+
+00:01:18.347 --> 00:01:20.814
+A read or a write takes time.
+
+00:01:20.814 --> 00:01:23.281
+It starts, waits on the disk, then finishes.
+
+00:01:23.281 --> 00:01:25.748
+Watch one read on a row.
+
+00:01:25.748 --> 00:01:28.215
+Read-start here.
+
+00:01:28.215 --> 00:01:30.683
+Then a gap while the disk works.
+
+00:01:30.683 --> 00:01:33.150
+Read-end later.
+
+00:01:33.150 --> 00:01:35.617
+During that gap, the transaction is idle.
+
+00:01:35.617 --> 00:01:38.084
+Interleaving fills the gap with another transaction's work.
+
+00:01:38.084 --> 00:01:41.537
+The simplest schedule the lock manager can grant runs T2 first, then T1, then T3, one at a time, no overlap.
+
+00:01:41.537 --> 00:01:44.991
+Follow T2, the first to run.
+
+00:01:44.991 --> 00:01:48.444
+T2 requests the lock on A.
+
+00:01:48.444 --> 00:01:51.898
+The lock is granted, so T2 holds A.
+
+00:01:51.898 --> 00:01:55.351
+Read start: T2 reads the value.
+
+00:01:55.351 --> 00:01:58.805
+Read end.
+
+00:01:58.805 --> 00:02:02.258
+Then T2 unlocks A.
+
+00:02:02.258 --> 00:02:05.712
+Now T1 runs the same way, taking A next and adding a write between its read and its unlock.
+
+00:02:05.712 --> 00:02:09.165
+Then T3 runs last, on B and then A.
+
+00:02:09.165 --> 00:02:12.619
+End to end, forty-nine time units.
+
+00:02:12.619 --> 00:02:16.072
+That is the serial baseline the interleaved schedules have to beat.
+
+00:02:16.072 --> 00:02:22.458
+When transactions interleave, some have to wait, blocked on a lock another holds.
+
+00:02:22.458 --> 00:02:28.843
+The lock manager draws that as a graph: one node per transaction, an arrow from each waiter to the holder it needs.
+
+00:02:28.843 --> 00:02:32.752
+Now the lock manager interleaves the same three transactions.
+
+00:02:32.752 --> 00:02:36.660
+Completion drops from forty-nine units to thirty-one.
+
+00:02:36.660 --> 00:02:40.569
+The lock records track each lock: who requested it, who holds it, who is blocked.
+
+00:02:40.569 --> 00:02:44.478
+T1 requested A early, but had to wait.
+
+00:02:44.478 --> 00:02:48.386
+T2 got A first, and held it.
+
+00:02:48.386 --> 00:02:52.295
+T3 took B, then reached for A.
+
+00:02:52.295 --> 00:02:56.204
+Now turn those records into a graph: one node per transaction.
+
+00:02:56.204 --> 00:03:00.112
+An edge runs from a blocked transaction to the one holding the lock it wants.
+
+00:03:00.112 --> 00:03:04.021
+On the timeline, T1 held A until twenty-three, so T3 waited on T1.
+
+00:03:04.021 --> 00:03:07.930
+And T2 held A until ten, so T1, in turn, waited on T2.
+
+00:03:07.930 --> 00:03:11.838
+The result is a chain, not a cycle.
+
+00:03:11.838 --> 00:03:15.747
+Every transaction reaches the front and finishes.
+
+00:03:15.747 --> 00:03:19.261
+Interleaving is not automatically fast.
+
+00:03:19.261 --> 00:03:22.775
+Here is a different valid schedule of the same transactions.
+
+00:03:22.775 --> 00:03:26.289
+Same operations, different lock-acquisition order.
+
+00:03:26.289 --> 00:03:29.803
+This one finishes in forty-five units, barely better than serial.
+
+00:03:29.803 --> 00:03:33.317
+The waits are longer and the overlap is worse.
+
+00:03:33.317 --> 00:03:36.831
+The order the lock manager grants in matters as much as the decision to interleave.
+
+00:03:36.831 --> 00:03:39.738
+Until now the WaitsFor graph has been a chain, and everyone eventually moved.
+
+00:03:39.738 --> 00:03:42.645
+Here it closes.
+
+00:03:42.645 --> 00:03:45.552
+T1 holds the lock on A and asks for B.
+
+00:03:45.552 --> 00:03:48.459
+T2 holds B and asks for A.
+
+00:03:48.459 --> 00:03:51.367
+T1 waits for T2, T2 waits for T1.
+
+00:03:51.367 --> 00:03:54.274
+The two arrows form a cycle.
+
+00:03:54.274 --> 00:03:57.181
+Neither can move, neither will ever release, and the system is stuck.
+
+00:03:57.181 --> 00:04:00.088
+That cycle has a name.
+
+00:04:00.088 --> 00:04:02.995
+A deadlock, drawn in red.
+
+00:04:02.995 --> 00:04:05.902
+The lock manager breaks it by aborting a victim.
+
+00:04:05.902 --> 00:04:10.137
+So when is interleaving worth the risk?
+
+00:04:10.137 --> 00:04:14.373
+Almost always.
+
+00:04:14.373 --> 00:04:18.608
+The bigger the disk wait and the more transactions in flight, the bigger the win.
+
+00:04:18.608 --> 00:04:22.844
+With one hundred transactions and a long IO lag, the lock manager finishes about twenty-four times faster than serial.
+
+00:04:22.844 --> 00:04:27.079
+You manage the deadlock risk because the speedup is enormous.
+
+00:04:27.079 --> 00:04:29.896
+The lock manager grants locks, and the order is the microschedule.
+
+00:04:29.896 --> 00:04:32.714
+The WaitsFor graph asks one thing.
+
+00:04:32.714 --> 00:04:35.531
+Is there a cycle?
+
+00:04:35.531 --> 00:04:38.348
+A cycle is a deadlock, broken by aborting a victim.
+
+00:04:38.348 --> 00:04:41.166
+Next, a strategy where readers never wait.
+
+00:04:41.166 --> 00:04:43.983
+MVCC.

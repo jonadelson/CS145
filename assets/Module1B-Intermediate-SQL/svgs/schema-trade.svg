@@ -1,0 +1,27 @@
+<svg viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="trade-t trade-d">
+  <title id="trade-t">Normalize first. Denormalize only when forced.</title>
+  <desc id="trade-d">Two panels. Left, green, Normalized: each fact once, no anomalies, recombine with a JOIN; the cost is a join at read time. Right, amber, Denormalized: copy facts back together for fast reads with no join, accepting the risk that the copies drift apart; used for read-heavy analytics at scale. Color key: green is the safe default, amber is the deliberate exception you take only when a measured read cost forces it.</desc>
+
+  <text x="550" y="38" font-size="24" font-weight="700" fill="#0E0E10" text-anchor="middle">Normalize first. Denormalize only when forced.</text>
+  <text x="550" y="62" font-size="14" fill="#6B7280" text-anchor="middle">Same data, two layouts, opposite trade-offs.</text>
+
+  <!-- Normalized -->
+  <rect x="60" y="86" width="460" height="150" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+  <rect x="60" y="86" width="460" height="5" rx="2.5" fill="#059669"/>
+  <text x="84" y="116" font-size="16" font-weight="700" fill="#059669">Normalized (the default)</text>
+  <text x="84" y="146" font-size="13" fill="#3F3F46">Each fact stored once. No update, insert,</text>
+  <text x="84" y="166" font-size="13" fill="#3F3F46">or delete anomalies.</text>
+  <text x="84" y="196" font-size="13" font-weight="700" fill="#0E0E10">Cost: you JOIN to recombine at read time.</text>
+  <text x="84" y="220" font-size="12" fill="#6B7280" font-style="italic">safe by default; correctness first</text>
+
+  <!-- Denormalized -->
+  <rect x="580" y="86" width="460" height="150" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+  <rect x="580" y="86" width="460" height="5" rx="2.5" fill="#d97706"/>
+  <text x="604" y="116" font-size="16" font-weight="700" fill="#D97706">Denormalized (the exception)</text>
+  <text x="604" y="146" font-size="13" fill="#3F3F46">Copy facts back together so a read needs</text>
+  <text x="604" y="166" font-size="13" fill="#3F3F46">no join. Faster reads.</text>
+  <text x="604" y="196" font-size="13" font-weight="700" fill="#0E0E10">Cost: the copies can drift apart.</text>
+  <text x="604" y="220" font-size="12" fill="#6B7280" font-style="italic">used for read-heavy analytics at scale</text>
+
+  <text x="550" y="270" font-size="13" text-anchor="middle"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the safe default &#183; </tspan><tspan fill="#D97706" font-weight="700">amber</tspan><tspan fill="#3F3F46"> = the deliberate exception, taken only when a measured read cost forces it.</tspan></text>
+</svg>

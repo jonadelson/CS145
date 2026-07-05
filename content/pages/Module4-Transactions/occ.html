@@ -1,0 +1,17 @@
+<h1>Optimistic Concurrency Control</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Optimistic concurrency control (OCC) runs transactions with <strong>no locks</strong>. Each moves through three phases: a <strong>read</strong> phase that computes on a private copy, a <strong>validate</strong> phase at commit that checks whether any row it read was written by a transaction that committed since it started, and a <strong>write</strong> phase that applies the changes if validation passed. A failed validation <strong>aborts and retries</strong>. OCC bets conflicts are rare, so most transactions sail straight through.</p>
+<p><strong>Intuition.</strong> Mickey and Minnie both edit the same playlist at once. Neither waits. Both do their work on private copies; at commit Mickey validates first and commits. Minnie then finds the row she read has changed, throws her work away, and redoes it on the new value. No one ever blocked, but Minnie paid by running twice.</p>
+</div>
+<p>Locking is pessimistic: it assumes a clash and blocks to prevent one. MVCC keeps versions so readers never wait. OCC takes the third path: assume the best, run free, and pay only when a clash happens.</p>
+<p><a id="occ-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/occ.svg" alt="Two transactions run with no locks. Each has a read phase on a private copy, a validate phase at commit, and a write phase. T1 validates clean and commits (green). T2 ran over the same window but at validate finds a row it read was written by T1, fails (red), aborts, and reruns its read phase. The validate check: did any row I read get written by a transaction that committed since I started?" style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Both transactions run lock-free and check only at commit. T1 validates clean and commits (green); T2 finds a row it read was written by T1, so it fails validation (red), aborts, and reruns. Under two-phase locking T2 would have waited; here the cost of never waiting is redoing the work on a clash.</p>
+</div>
+<h2>When it wins, when it loses</h2>
+<p>OCC's whole bet is that the validate check usually passes. When <strong>contention is low</strong> (transactions rarely touch the same rows), almost nothing aborts and OCC runs at lock-free speed with none of locking's blocking or bookkeeping. When <strong>contention is high</strong>, the same rows clash again and again; transactions abort and retry, burning work, and a hot row can starve. That is exactly where pessimistic locking, which waits instead of redoing, pulls ahead.</p>
+<p>So the three strategies split cleanly by where the cost lands: <strong>2PL</strong> pays by waiting, <strong>OCC</strong> pays by redoing, and <strong>MVCC</strong> sidesteps the reader-writer wait entirely by keeping versions.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4-Transactions/connecting-together">Connecting It All Together →</a></strong> Three strategies, one correctness standard. The last page assembles them into a single transaction system.</p>

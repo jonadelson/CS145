@@ -1,0 +1,66 @@
+<svg viewBox="0 0 1000 446" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="index-size-comparison-t index-size-comparison-d">
+  <title id="index-size-comparison-t">Table size vs index size: on the left the Songs table is a 10 TB file of 160,000 pages storing whole rows</title>
+  <desc id="index-size-comparison-d">Table size vs index size: on the left the Songs table is a 10 TB file of 160,000 pages storing whole rows. On the right the artist index is a 20 MB file of one page storing only (artist, page#) pointers. Size bars beneath show 10 TB vs 20 MB at the same horizontal scale. Both the table and the index live on disk and are shown green; the size difference is carried by the bar widths, not by colour. Color key: green is on-disk storage; the 10 TB table bar versus the 20 MB index sliver shows the roughly 500,000x size difference.</desc>
+    <defs>
+        <marker id="ar-idxsize" markerWidth="14" markerHeight="14" refX="12" refY="5" orient="auto">
+            <polygon points="0 0, 14 5, 0 10" fill="#6B7280"/>
+        </marker>
+    </defs>
+
+    <text x="500" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#0E0E10">Same data, two footprints</text>
+    <text x="500" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">rows on disk vs. (key, page#) pointers</text>
+
+    <g data-step="1">
+    <rect x="60" y="80" width="380" height="230" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="60" y="80" width="380" height="6" rx="10" fill="#059669"/>
+    <text x="80" y="108" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Songs table</text>
+    <text x="420" y="108" text-anchor="end" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">10 TB · 160,000 pages</text>
+
+    <rect x="80" y="122" width="340" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="90" y="142" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">1 · Hey Jude · Beatles · 1968</text>
+
+    <rect x="80" y="160" width="340" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="90" y="180" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">2 · Bohemian Rhapsody · Queen · 1975</text>
+
+    <rect x="80" y="198" width="340" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="90" y="218" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">3 · Shake It Off · Taylor Swift · 2014</text>
+
+    <text x="250" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">… 999,997 more rows (~10 MB each)</text>
+    <text x="250" y="292" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#6B7280">holds the rows themselves</text>
+    </g>
+
+    <g data-step="2">
+    <line x1="450" y1="195" x2="550" y2="195" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ar-idxsize)"/>
+    <text x="500" y="183" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0E0E10">500,000× smaller</text>
+    <text x="500" y="213" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">rows → pointers</text>
+
+    <rect x="560" y="80" width="380" height="230" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="560" y="80" width="380" height="6" rx="10" fill="#059669"/>
+    <text x="580" y="108" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">Artist index</text>
+    <text x="920" y="108" text-anchor="end" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">20 MB · 1 page</text>
+
+    <rect x="580" y="122" width="340" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="590" y="142" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">Beatles       → Page 47</text>
+
+    <rect x="580" y="160" width="340" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="590" y="180" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">Queen         → Page 23</text>
+
+    <rect x="580" y="198" width="340" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="590" y="218" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">Taylor Swift  → Page 12</text>
+
+    <text x="750" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">… 999,997 more entries (~20 B each)</text>
+    <text x="750" y="292" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#6B7280">holds (key, page#) pointers</text>
+    </g>
+
+    <g data-step="3">
+    <text x="60" y="344" text-anchor="start" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#6B7280">relative size on disk (same horizontal scale)</text>
+
+    <rect x="60" y="358" width="380" height="14" rx="2" fill="#059669" stroke="#059669" stroke-width="1.5"/>
+    <text x="64" y="391" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#059669">10 TB</text>
+
+    <rect x="560" y="358" width="0.76" height="14" rx="1" fill="#059669" stroke="#059669" stroke-width="1.5"/>
+    <text x="572" y="369" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#059669">20 MB</text>
+    <text x="572" y="391" text-anchor="start" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">(barely visible at this scale, which is the point)</text>
+    </g>
+    <text x="500" y="430" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = both on disk&#160;&#160;&#183;&#160;&#160;the 10 TB bar vs the 20 MB sliver shows the ~500,000&#215; size difference</tspan></text>
+</svg>

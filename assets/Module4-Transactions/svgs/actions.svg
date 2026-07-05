@@ -1,0 +1,31 @@
+<svg viewBox="0 0 760 196" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="act-t act-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="act-t">Actions: a transaction's reads and writes</title>
+  <desc id="act-d">A transaction is a sequence of actions, each one a read or write of a single row, written like T1.R(A) for transaction T1 reading row A. T1 reads A, writes A, then reads B. Blue boxes are reads, orange boxes are writes. Correctness tracks only the order of these actions, not the values they compute.</desc>
+
+  <text x="380" y="30" text-anchor="middle" font-size="22" font-weight="700" fill="#0E0E10">Actions: a transaction's reads and writes</text>
+  <text x="380" y="53" text-anchor="middle" font-size="13.5" fill="#6B7280">Each action reads or writes one row. A transaction is a sequence of them.</text>
+
+  <rect x="270" y="70" width="18" height="14" rx="3" fill="#ECF1FE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="294" y="82" font-size="12.5" fill="#3F3F46">read</text>
+  <rect x="356" y="70" width="18" height="14" rx="3" fill="#FDEBE0" stroke="#EA580C" stroke-width="1.5"/>
+  <text x="380" y="82" font-size="12.5" fill="#3F3F46">write</text>
+
+  <defs><marker id="ah-act" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <g data-step="1">
+    <rect x="214" y="108" width="92" height="38" rx="6" fill="#ECF1FE" stroke="#2563EB" stroke-width="2"/>
+    <text x="260" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T1.R(A)</text>
+  </g>
+  <g data-step="2">
+    <line x1="308" y1="127" x2="334" y2="127" stroke="#6B7280" stroke-width="1.8" marker-end="url(#ah-act)"/>
+    <rect x="336" y="108" width="92" height="38" rx="6" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+    <text x="382" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T1.W(A)</text>
+  </g>
+  <g data-step="3">
+    <line x1="430" y1="127" x2="456" y2="127" stroke="#6B7280" stroke-width="1.8" marker-end="url(#ah-act)"/>
+    <rect x="458" y="108" width="92" height="38" rx="6" fill="#ECF1FE" stroke="#2563EB" stroke-width="2"/>
+    <text x="504" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">T1.R(B)</text>
+  </g>
+
+  <text x="380" y="184" text-anchor="middle" font-size="13" fill="#3F3F46">Correctness tracks only the order of these actions, not the values they compute (A-=1, B*=10).</text>
+</svg>

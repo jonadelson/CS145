@@ -1,0 +1,82 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.151
+A team ships semantic search.
+
+00:00:05.151 --> 00:00:08.303
+On a laptop, a hundred thousand documents, it is instant, and the demo lands.
+
+00:00:08.303 --> 00:00:11.454
+Then production.
+
+00:00:11.454 --> 00:00:14.605
+Ten million documents, embeddings at float thirty-two.
+
+00:00:14.605 --> 00:00:17.756
+That is sixty gigabytes that has to sit in memory for search to stay fast.
+
+00:00:17.756 --> 00:00:20.908
+It will not fit on the box.
+
+00:00:20.908 --> 00:00:24.059
+To ship it at all, you have to compress the index.
+
+00:00:24.059 --> 00:00:28.773
+Here is the real obstacle.
+
+00:00:28.773 --> 00:00:33.486
+An embedding's information is lopsided.
+
+00:00:33.486 --> 00:00:38.200
+The Bay Area runs north-south, and most of the variation runs that way, so a coarse grid resolves north-south but barely splits east-west.
+
+00:00:38.200 --> 00:00:42.914
+San Francisco and Berkeley differ east-west, so they fall into one cell, even though they are genuinely apart.
+
+00:00:42.914 --> 00:00:47.627
+TurboQuant turns the grid by a random angle.
+
+00:00:47.627 --> 00:00:52.341
+The points do not move and no distance changes.
+
+00:00:52.341 --> 00:00:57.055
+But the turned grid now falls between them, so San Francisco and Berkeley land in different cells.
+
+00:00:57.055 --> 00:01:01.769
+Now, this map is just two dimensions, for intuition.
+
+00:01:01.769 --> 00:01:06.482
+Real embeddings have hundreds of dimensions, and the spin turns all of them at once.
+
+00:01:06.482 --> 00:01:11.196
+In high dimensions, that spreading is reliable, not luck.
+
+00:01:11.196 --> 00:01:15.645
+Now compression is the easy part.
+
+00:01:15.645 --> 00:01:20.094
+With the information spread evenly, you just drop precision from each number.
+
+00:01:20.094 --> 00:01:24.543
+Keep fewer digits, then fewer bits, down to a couple of bits each.
+
+00:01:24.543 --> 00:01:28.992
+Every step halves the size and barely moves the distances, because no single coordinate carries the whole answer.
+
+00:01:28.992 --> 00:01:33.441
+That is the eight to thirty-two times shrink.
+
+00:01:33.441 --> 00:01:38.809
+This is the cutting edge: TurboQuant, out of Google Research, published at ICLR two thousand twenty-six.
+
+00:01:38.809 --> 00:01:44.178
+The order is the trick.
+
+00:01:44.178 --> 00:01:49.546
+Spin first, then round.
+
+00:01:49.546 --> 00:01:54.915
+The spin spreads the information evenly, so a few bits per coordinate hold up on any data, with no codebook to train.
+
+00:01:54.915 --> 00:02:00.283
+The same data-free randomness that powered LSH, now spreading the information instead of bucketing it.

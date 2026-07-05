@@ -1,0 +1,64 @@
+<svg viewBox="0 0 1200 384" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="integer-hashing-t integer-hashing-d">
+  <title id="integer-hashing-t">Integer hashing with h(x) = x % 10</title>
+  <desc id="integer-hashing-d">Inputs 42, 157, 1042, 89 are hashed by x mod 10 into ten buckets. 42 and 1042 both land in bucket 2, a collision (shown in orange); 157 lands in bucket 7 and 89 in bucket 9. Color key: orange is the colliding bucket in focus, grey is the other buckets.</desc>
+  <text x="600" y="40" text-anchor="middle" style="font-size: 24px; font-weight: 700; fill: #0E0E10;">Integer hashing: h(x) = x % 10</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size: 14px; fill: #6B7280;">Same modulo, different inputs, same bucket = a collision</text>
+  <text x="70" y="104" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">Input &#8594; h(x)</text>
+
+  <!-- the empty bucket grid (static stage) -->
+  <text x="430" y="104" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">Buckets [0&#8211;9]</text>
+  <rect x="430" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="461" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">0</text>
+  <rect x="500" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="531" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">1</text>
+  <rect x="570" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="601" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">2</text>
+  <rect x="640" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="671" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">3</text>
+  <rect x="710" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="741" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">4</text>
+  <rect x="780" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="811" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">5</text>
+  <rect x="850" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="881" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">6</text>
+  <rect x="920" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="951" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">7</text>
+  <rect x="990" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="1021" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">8</text>
+  <rect x="1060" y="120" width="62" height="210" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="1091" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #6B7280;">9</text>
+  <!-- 89 is not narrated; it sits in the frame from the start -->
+  <rect x="70" y="252" width="300" height="34" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="86" y="274" font-family="JetBrains Mono, monospace" style="font-size: 15px; fill: #3F3F46;">89 % 10 = 9</text>
+  <rect x="1067" y="164" width="48" height="30" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="1091" y="184" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 13px; fill: #0E0E10;">89</text>
+
+  <!-- STEP 1: 42 lands in bucket 2 -->
+  <g data-step="1">
+  <rect x="70" y="120" width="300" height="34" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="86" y="142" font-family="JetBrains Mono, monospace" style="font-size: 15px; fill: #3F3F46;">42 % 10 = 2</text>
+  <rect x="577" y="164" width="48" height="30" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="601" y="184" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 13px; fill: #0E0E10;">42</text>
+  </g>
+
+  <!-- STEP 2: 157 lands in bucket 7 -->
+  <g data-step="2">
+  <rect x="70" y="164" width="300" height="34" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="86" y="186" font-family="JetBrains Mono, monospace" style="font-size: 15px; fill: #3F3F46;">157 % 10 = 7</text>
+  <rect x="927" y="164" width="48" height="30" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="951" y="184" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 13px; fill: #0E0E10;">157</text>
+  </g>
+
+  <!-- STEP 3: 1042 lands in bucket 2 too, a collision -->
+  <g data-step="3">
+  <rect x="70" y="208" width="300" height="34" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+  <text x="86" y="230" font-family="JetBrains Mono, monospace" style="font-size: 15px; fill: #3F3F46;">1042 % 10 = 2</text>
+  <rect x="570" y="120" width="62" height="210" fill="none" stroke="#EA580C" stroke-width="2" rx="6"/>
+  <rect x="570" y="120" width="62" height="6" rx="3" fill="#EA580C"/>
+  <text x="601" y="144" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #EA580C;">2</text>
+  <rect x="577" y="202" width="48" height="30" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="601" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" style="font-size: 13px; fill: #0E0E10;">1042</text>
+  </g>
+
+  <text x="600" y="358" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = the colliding bucket&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = other buckets</tspan></text>
+</svg>

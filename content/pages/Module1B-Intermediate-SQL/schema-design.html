@@ -1,0 +1,37 @@
+<h1>Schema Design: One Fact, One Place</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Schema design decides which tables hold which columns. One rule does most of the work: store each fact once, in one place.</p>
+<p><strong>Intuition.</strong> Put everything in one wide table and a user's email rides along on every listen. The day Mickey changes his email, you have to fix it in every row, and you will miss one. Split the repeated facts into their own tables so each lives once. That split is normalization, and it is why the Spotify schema you have used since day one is three tables, not one.</p>
+</div>
+<h2>The problem: one big table repeats itself</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/schema-wide.svg" style="width:100%;height:auto;display:block;" alt="Left: a single wide table holding listen_id, name, email, title, artist, and rating. Mickey's email is copied on all three of his rows (highlighted amber), and the artist Taylor Swift is copied on row after row (highlighted amber). Right: three red cards naming the anomalies this repetition causes. Update: Mickey changes his email, so you must fix every Mickey row and will miss one. Insert: a brand-new song nobody has played has no listen row to live on. Delete: removing Mickey's last listen deletes his email too. Color key: amber marks a fact copied many times; red marks the three anomalies that repetition causes."></p>
+</div>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Repetition is the root problem. Because Mickey's email and the artist of each song are copied onto every listen, three kinds of bug become possible. An <strong>update</strong> has to touch many rows and can leave them disagreeing. An <strong>insert</strong> cannot record a song until someone plays it. A <strong>delete</strong> can erase a fact that happened to live in only one row. These are the update, insert, and delete anomalies.</p>
+</div>
+<h2>The fix: give each fact one home</h2>
+<p>Pull the repeated facts out into their own tables. A user's email lives once in Users. A song's artist lives once in Songs. Listens keeps only the events, and points at the other two by key.</p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/schema-norm.svg" style="width:100%;height:auto;display:block;" alt="Three tables. Users holds user_id, name, and email, with a note that Mickey's email lives here once. Songs holds song_id, title, artist, and genre, with a note that Taylor Swift lives here once. Listens at the bottom holds listen_id, user_id, song_id, and rating, and two arrows run from its user_id to Users and from its song_id to Songs, the foreign keys. Color key: green is the normalized design; the arrows are foreign keys that point at the one place each fact lives."></p>
+</div>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> This split is <strong>normalization</strong>. The strict, formal version has a name, Boyce-Codd Normal Form (BCNF), but the intuition is the whole point: no fact is stored twice, so nothing can drift out of sync. Change Mickey's email in one row of Users and every query sees the new one. A foreign key, like `Listens.user_id`, is just a pointer to the single home of a fact.</p>
+</div>
+<p><a id="why-join"></a>
+Splitting the table is exactly why you <code>JOIN</code>. A query recombines the facts you separated, so every join you wrote in Module 1 was putting a normalized schema back together to answer one question. Normalization and joins are two halves of one design: pull facts apart to store them safely, join them back to use them.</p>
+<h2>The trade-off: normalize first, denormalize only when forced</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/schema-trade.svg" style="width:100%;height:auto;display:block;" alt="Two panels. Left, green, Normalized: each fact once, no anomalies, recombine with a JOIN; the cost is a join at read time. Right, amber, Denormalized: copy facts back together for fast reads with no join, accepting the risk that the copies drift apart; used for read-heavy analytics at scale. Color key: green is the safe default, amber is the deliberate exception you take only when a measured read cost forces it."></p>
+</div>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Normalization buys correctness and pays with joins. Denormalization buys read speed and pays with the risk that copies of the same fact disagree. Default to normalized; reach for denormalization only when a real, measured read cost forces it. You will meet denormalization again at scale in <a href="#/page/Module5-Distributed/sharding-replication">Module 5</a>, where copying data on purpose is how a system serves millions of reads.</p>
+</div>
+<p><a id="the-rule"></a>
+So the three-table Spotify schema was a design choice all along: one fact, one place, recombined by joins. Keep the rule in your head every time you sketch a table. If a column repeats the same value down the rows, it probably belongs in a table of its own.</p>

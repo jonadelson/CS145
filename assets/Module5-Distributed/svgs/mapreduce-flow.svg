@@ -1,0 +1,93 @@
+<svg viewBox="0 0 900 392" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="mr-t mr-d">
+  <title id="mr-t">MapReduce: top songs across 100 billion plays</title>
+  <desc id="mr-d">Left to right: 100 billion log lines in HDFS feed 1,000
+  grey mappers that each emit (song_id, 1). The pink shuffle hash-partitions
+  pairs by hash(song_id) % R so the same key always reaches the same
+  reducer; this stage is network-bound and writes to disk. 100 grey
+  reducers each sum the 1s for their slice of song IDs, producing about
+  50 million per-song counts. Color key: pink is the shuffle, the hidden
+  core; grey is the input, mappers, reducers, and output.</desc>
+  <defs><marker id="ah-mr" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">MapReduce: top songs across 100B plays</text>
+  <text x="450" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Map emits pairs, the shuffle routes them by key, reduce sums per key.</text>
+
+  <!-- INPUT -->
+  <g data-step="1">
+    <text x="90" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#6B7280">INPUT</text>
+    <rect x="40" y="100" width="100" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="90" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Chunk 1</text>
+    <text x="90" y="135" text-anchor="middle" font-size="14" fill="#6B7280">~100M lines</text>
+    <rect x="40" y="172" width="100" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="90" y="190" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Chunk 2</text>
+    <text x="90" y="207" text-anchor="middle" font-size="14" fill="#6B7280">~100M lines</text>
+    <rect x="40" y="244" width="100" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="90" y="262" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Chunk 3</text>
+    <text x="90" y="279" text-anchor="middle" font-size="14" fill="#6B7280">~100M lines</text>
+    <text x="90" y="318" text-anchor="middle" font-size="14" fill="#6B7280">100B lines in HDFS</text>
+  </g>
+
+  <!-- MAP -->
+  <g data-step="2">
+    <text x="290" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">MAP</text>
+    <line x1="142" y1="122" x2="226" y2="122" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mr)"/>
+    <line x1="142" y1="194" x2="226" y2="194" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mr)"/>
+    <line x1="142" y1="266" x2="226" y2="266" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mr)"/>
+    <rect x="230" y="100" width="130" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="295" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Mapper 1</text>
+    <text x="295" y="135" text-anchor="middle" font-size="14" fill="#6B7280">emit(song_id, 1)</text>
+    <rect x="230" y="172" width="130" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="295" y="190" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Mapper 2</text>
+    <text x="295" y="207" text-anchor="middle" font-size="14" fill="#6B7280">emit(song_id, 1)</text>
+    <rect x="230" y="244" width="130" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="295" y="262" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Mapper 3</text>
+    <text x="295" y="279" text-anchor="middle" font-size="14" fill="#6B7280">emit(song_id, 1)</text>
+    <text x="295" y="318" text-anchor="middle" font-size="14" fill="#6B7280">1,000 mappers</text>
+  </g>
+
+  <!-- SHUFFLE -->
+  <g data-step="3">
+    <text x="495" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">SHUFFLE</text>
+    <path d="M 362 122 L 606 188" stroke="#DB2777" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 362 122 L 606 260" stroke="#DB2777" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 362 194 L 606 188" stroke="#DB2777" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 362 194 L 606 260" stroke="#DB2777" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 362 266 L 606 188" stroke="#DB2777" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 362 266 L 606 260" stroke="#DB2777" stroke-width="1.5" opacity="0.7"/>
+    <rect x="416" y="158" width="158" height="44" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="2"/>
+    <text x="495" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">hash(song_id) % R</text>
+    <text x="495" y="193" text-anchor="middle" font-size="14" fill="#3F3F46">routes pairs by key</text>
+    <text x="495" y="318" text-anchor="middle" font-size="14" fill="#DB2777">network-bound, to disk</text>
+  </g>
+
+  <!-- REDUCE -->
+  <g data-step="4">
+    <text x="675" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">REDUCE</text>
+    <rect x="610" y="166" width="130" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="675" y="184" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Reducer A</text>
+    <text x="675" y="201" text-anchor="middle" font-size="14" fill="#6B7280">~500K songs</text>
+    <rect x="610" y="238" width="130" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="675" y="256" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Reducer B</text>
+    <text x="675" y="273" text-anchor="middle" font-size="14" fill="#6B7280">~500K songs</text>
+    <text x="675" y="318" text-anchor="middle" font-size="14" fill="#6B7280">100 reducers</text>
+  </g>
+
+  <!-- OUTPUT -->
+  <g data-step="5">
+    <text x="845" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#6B7280">OUTPUT</text>
+    <line x1="742" y1="188" x2="772" y2="188" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mr)"/>
+    <line x1="742" y1="260" x2="772" y2="260" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-mr)"/>
+    <rect x="776" y="166" width="120" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="836" y="184" text-anchor="middle" font-size="14" fill="#3F3F46">(song_42, 9.1M)</text>
+    <text x="836" y="201" text-anchor="middle" font-size="14" fill="#3F3F46">(song_99, 8.4M)</text>
+    <rect x="776" y="238" width="120" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="836" y="256" text-anchor="middle" font-size="14" fill="#3F3F46">(song_27M, 7.7M)</text>
+    <text x="836" y="273" text-anchor="middle" font-size="14" fill="#3F3F46">…</text>
+    <text x="845" y="318" text-anchor="middle" font-size="14" fill="#6B7280">~50M counts</text>
+  </g>
+
+  <text x="450" y="362" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the shuffle, the hidden core&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the input, mappers, reducers, and output</tspan></text>
+</svg>

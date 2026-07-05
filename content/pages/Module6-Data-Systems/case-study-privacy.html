@@ -1,0 +1,90 @@
+<h1>Case Study: Google COVID Reports (Differential Privacy)</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Removing names does not make data anonymous: a few quasi-identifiers, like a sensitive place visited on a known day, can re-identify a person. Privacy is engineered with math (k-anonymity, differential privacy), not by deleting columns.</p>
+<p><strong>Intuition.</strong> During COVID, Google published mobility reports (visits to hospitals and testing centers) to help public health. Even "anonymized," a single testing-center visit on a day a known colleague was off work could pinpoint them. Google added differential-privacy noise so the trends stayed useful while no individual stood out.</p>
+</div>
+<div class="case-study-meta">
+<p><span>Reading Time: 8 mins</span></p>
+</div>
+<p><em>This is a lens on the intersection of data and policy, not an endorsement of Google's methods.</em></p>
+<p>During the COVID-19 pandemic, tech giants like Google and Apple rolled out anonymized mobility reports to assist public health authorities in tracking movement trends. These reports shed light on visits to sensitive spots like hospitals or testing centers. </p>
+<p>Even anonymized, the data carried the risk of <strong>re-identification attacks</strong>. Google tackled this with three key strategies:</p>
+<ol>
+<li>
+<p><strong>Informed Consent</strong>: Clear opt-in/opt-out options.</p>
+</li>
+<li>
+<p><strong>Data Security</strong>: Tight control over raw data.</p>
+</li>
+<li>
+<p><strong>Aggregation and Anonymization</strong>: Advanced mathematics to obscure individual identities.</p>
+</li>
+</ol>
+<hr />
+<p><a id="bob-example"></a></p>
+<h3>Re-identification Attacks: The "Bob" Example</h3>
+<p>Imagine an attacker curious about whether Bob, a colleague, visited a COVID-19 testing center.</p>
+<ul>
+<li>
+<p>The attacker knows Bob was off work one day.</p>
+</li>
+<li>
+<p>A single visit to a nearby testing center on that day appears in the "anonymized" dataset.</p>
+</li>
+<li>
+<p>If unique, the attacker has pinpointed Bob.</p>
+</li>
+</ul>
+<p>This breach of privacy underscores the need for caution when handling data that can be "triangulated" to an individual.</p>
+<hr />
+<h3>How Google Protected the Reports</h3>
+<p>The <a href="#/page/Module6-Data-Systems/data-privacy">previous page</a> covers k-anonymity and differential privacy in general. For the mobility reports Google leaned on <strong>differential privacy</strong>: by adding calibrated noise to the location counts, it published useful movement trends without exposing any individual. (Zero-knowledge training, learning on encrypted data without ever seeing raw values, is a newer option for the same goal.)</p>
+<hr />
+<h3>Example: Generating Mobility Reports in SQL</h3>
+<p>In a standard setup, you'd generate a clean report with a query on a <code>user_location_activity</code> table:</p>
+<pre><code><span class="sql-comment">-- Count visits per location</span>
+<span class="sql-keyword">SELECT</span> 
+    location_id, 
+    location_type, 
+    <span class="sql-keyword">COUNT</span>(user_id) <span class="sql-keyword">AS</span> visit_count
+<span class="sql-keyword">FROM</span> user_location_activity
+<span class="sql-keyword">WHERE</span> activity_date <span class="sql-keyword">BETWEEN</span> <span class="sql-string">'2020-03-01'</span> <span class="sql-keyword">AND</span> <span class="sql-string">'2020-03-31'</span>
+<span class="sql-keyword">GROUP BY</span> location_id, location_type;
+</code></pre>
+<h4>Adding Privacy with "Noise"</h4>
+<p>To safeguard privacy, use tools like Google's <strong>PYDP</strong> (Python Differential Privacy). Instead of an "Exact" count, it delivers a "Noisy" count:</p>
+<pre><code class="language-python"># Conceptual PYDP logic
+import pydp as dp
+
+# Raw result from SQL: 100 visits
+raw_count = 100 
+epsilon = 1.0 # The &quot;Privacy Budget&quot;
+
+# Add Laplacian noise
+noisy_count = dp.add_noise(raw_count, epsilon) 
+# Results might be 98, 103, 101...
+</code></pre>
+<p><em>Note: Each execution yields slightly different results due to random noise, yet the aggregate trend across locations remains accurate.</em></p>
+<hr />
+<h3>Core Ethical Principles for Data Apps</h3>
+<ol>
+<li>
+<p><strong>Privacy and Anonymity</strong>: Use Differential Privacy for aggregate statistics.</p>
+</li>
+<li>
+<p><strong>Informed Consent</strong>: Ensure terms are clear and offer detailed opt-out options.</p>
+</li>
+<li>
+<p><strong>Bias Awareness</strong>: Monitor algorithms to prevent unfair demographic targeting.</p>
+</li>
+<li>
+<p><strong>Security and Breaches</strong>: Strip PII and apply strong encryption before data exits your servers.</p>
+</li>
+<li>
+<p><strong>Legal Compliance</strong>: Follow <strong>GDPR</strong> (Europe), <strong>CCPA</strong> (California), and <strong>HIPAA</strong> (Health data).</p>
+</li>
+</ol>
+<p><strong>Takeaway</strong>: Privacy is more than deleting names. It is using math, like differential privacy, so no individual stands out.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/sql-trends">Modern Big Data Economics →</a></strong> A short, optional look at what all this scale actually costs, and the industry trends shaping how teams pay for it.</p>

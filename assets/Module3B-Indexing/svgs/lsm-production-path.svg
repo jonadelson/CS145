@@ -1,0 +1,71 @@
+<svg viewBox="0 0 1000 568" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lsm-production-path-t lsm-production-path-d">
+  <title id="lsm-production-path-t">LSM write path at 1:44 PM</title>
+  <desc id="lsm-production-path-d">LSM write path at 1:44 PM. Top lane: incoming plays land in the live MemTable in RAM. Middle lane: every 15 minutes the MemTable is flushed as a Level-0 SSTable on disk; the 1:00, 1:15, and 1:30 files are already there. Bottom lane: every hour compaction merges Level-0 files into one larger Level-1+ SSTable. Song S_75 has +2 plays in the MemTable, +18 across the Level-0 flushes, and 5,420 in the compacted history. Color key: red strip is the MemTable in RAM (volatile), green strip is SSTables on disk (persistent), violet follows song S_75 across the tiers.</desc>
+    <defs>
+        <marker id="ar-lsm" markerWidth="12" markerHeight="12" refX="11" refY="4" orient="auto">
+            <polygon points="0 0, 12 4, 0 8" fill="#6B7280"/>
+        </marker>
+    </defs>
+
+    <text x="500" y="30" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#0E0E10">LSM write path · snapshot at 1:44 PM</text>
+    <text x="500" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-style="italic" fill="#6B7280">RAM on top · disk below · time flows downward</text>
+
+    <!-- step 1: MemTable in RAM -->
+    <g data-step="1">
+    <text x="20" y="100" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">LIVE</text>
+    <text x="20" y="114" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">(RAM)</text>
+    <line x1="500" y1="70" x2="500" y2="100" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-lsm)"/>
+    <text x="560" y="90" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#DC2626">incoming plays</text>
+    <rect x="180" y="108" width="700" height="60" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="180" y="108" width="700" height="6" rx="8" fill="#DC2626"/>
+    <text x="530" y="132" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#DC2626">MemTable (live at 1:44 PM) · RAM</text>
+    <text x="530" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">S<tspan baseline-shift="sub" font-size="0.72em">12</tspan>:1 · S<tspan baseline-shift="sub" font-size="0.72em">44</tspan>:2 · <tspan fill="#7C3AED" font-weight="700">S<tspan baseline-shift="sub" font-size="0.72em">75</tspan>:+2</tspan> · S<tspan baseline-shift="sub" font-size="0.72em">99</tspan>:1 · S<tspan baseline-shift="sub" font-size="0.72em">102</tspan>:+1 · S<tspan baseline-shift="sub" font-size="0.72em">201</tspan>:5 …</text>
+    </g>
+
+    <!-- step 2: flush to Level-0 SSTables -->
+    <g data-step="2">
+    <line x1="100" y1="180" x2="980" y2="180" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="20" y="240" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">FLUSH</text>
+    <text x="20" y="254" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">every 15m</text>
+    <line x1="500" y1="168" x2="500" y2="200" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-lsm)"/>
+    <text x="560" y="188" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">flush</text>
+    <text x="180" y="220" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#059669">Level-0 SSTables · one per flush · disk</text>
+    <rect x="180" y="232" width="220" height="90" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="180" y="232" width="220" height="6" rx="6" fill="#059669"/>
+    <text x="195" y="254" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">1:30 PM.db</text>
+    <text x="195" y="276" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">… S<tspan baseline-shift="sub" font-size="0.72em">55</tspan>:1</text>
+    <text x="195" y="294" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#7C3AED">S<tspan baseline-shift="sub" font-size="0.72em">75</tspan>:+10</text>
+    <text x="195" y="312" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">S<tspan baseline-shift="sub" font-size="0.72em">88</tspan>:2 …</text>
+    <rect x="420" y="232" width="220" height="90" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="420" y="232" width="220" height="6" rx="6" fill="#059669"/>
+    <text x="435" y="254" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">1:15 PM.db</text>
+    <text x="435" y="276" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">… S<tspan baseline-shift="sub" font-size="0.72em">12</tspan>:5</text>
+    <text x="435" y="294" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">S<tspan baseline-shift="sub" font-size="0.72em">102</tspan>:+5</text>
+    <text x="435" y="312" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">S<tspan baseline-shift="sub" font-size="0.72em">111</tspan>:1 …</text>
+    <rect x="660" y="232" width="220" height="90" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="660" y="232" width="220" height="6" rx="6" fill="#059669"/>
+    <text x="675" y="254" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">1:00 PM.db</text>
+    <text x="675" y="276" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">… S<tspan baseline-shift="sub" font-size="0.72em">22</tspan>:4</text>
+    <text x="675" y="294" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#7C3AED">S<tspan baseline-shift="sub" font-size="0.72em">75</tspan>:+8</text>
+    <text x="675" y="312" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">S<tspan baseline-shift="sub" font-size="0.72em">99</tspan>:2 …</text>
+    </g>
+
+    <!-- step 3: compact to Level-1+ SSTable -->
+    <g data-step="3">
+    <line x1="100" y1="360" x2="980" y2="360" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="20" y="410" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">COMPACT</text>
+    <text x="20" y="424" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">hourly</text>
+    <line x1="500" y1="330" x2="500" y2="380" stroke="#6B7280" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ar-lsm)"/>
+    <text x="560" y="360" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">compact · k-way merge</text>
+    <text x="180" y="400" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#059669">Level-1+ SSTable · history, de-duplicated · disk</text>
+    <rect x="180" y="412" width="700" height="90" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="180" y="412" width="700" height="6" rx="8" fill="#059669"/>
+    <text x="530" y="436" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#059669">merged_before_1:00_PM.db</text>
+    <text x="530" y="462" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">… S<tspan baseline-shift="sub" font-size="0.72em">50</tspan>:110 · S<tspan baseline-shift="sub" font-size="0.72em">62</tspan>:45 ·</text>
+    <text x="530" y="482" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#7C3AED">S<tspan baseline-shift="sub" font-size="0.72em">75</tspan> : 5,420 plays</text>
+    <text x="730" y="462" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">· S<tspan baseline-shift="sub" font-size="0.72em">88</tspan>:12 …</text>
+    <text x="500" y="520" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">S<tspan baseline-shift="sub" font-size="0.72em">75</tspan>'s real total is smeared across all three tiers · merge-on-read sums them</text>
+    </g>
+
+    <text x="500" y="552" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red strip</tspan><tspan fill="#3F3F46"> = MemTable in RAM, volatile&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green strip</tspan><tspan fill="#3F3F46"> = SSTables on disk, persistent&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = song S<tspan baseline-shift="sub" font-size="0.72em">75</tspan> across tiers</tspan></text>
+</svg>

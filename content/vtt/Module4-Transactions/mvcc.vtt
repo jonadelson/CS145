@@ -1,0 +1,172 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.179
+Locking makes a reader wait for a writer.
+
+00:00:06.179 --> 00:00:10.359
+Multiversion concurrency control takes the other route: keep several versions of each row.
+
+00:00:10.359 --> 00:00:14.538
+A reader takes the version it is allowed to see, and never waits.
+
+00:00:14.538 --> 00:00:18.718
+Readers and writers stop blocking.
+
+00:00:18.718 --> 00:00:22.459
+Picture a team of ten engineers on one codebase.
+
+00:00:22.459 --> 00:00:26.199
+You would never lock the whole repository so only one of them can edit at a time.
+
+00:00:26.199 --> 00:00:29.940
+Git lets them all work at once, each on the version they pulled.
+
+00:00:29.940 --> 00:00:33.680
+A database can do the same.
+
+00:00:33.680 --> 00:00:37.421
+Watch one repository over time.
+
+00:00:37.421 --> 00:00:41.161
+It starts at version one, the base.
+
+00:00:41.161 --> 00:00:44.902
+Engineer B pulls early and gets version one.
+
+00:00:44.902 --> 00:00:48.642
+Then Engineer C commits a change, creating version two, the base plus the diff.
+
+00:00:48.642 --> 00:00:52.383
+Engineer D pulls afterward and gets version two.
+
+00:00:52.383 --> 00:00:56.123
+But B, who pulled before the commit, still holds version one.
+
+00:00:56.123 --> 00:00:59.864
+When you pulled decides what you see, and nobody waited on anybody.
+
+00:00:59.864 --> 00:01:03.920
+Two rules you already believe.
+
+00:01:03.920 --> 00:01:07.975
+First, read only committed values, never a write still in flight.
+
+00:01:07.975 --> 00:01:12.031
+Second, keep it compact: store only the diff between versions, the way git does.
+
+00:01:12.031 --> 00:01:16.616
+A snapshot is not a copy of the database.
+
+00:01:16.616 --> 00:01:21.201
+It is one number, a timestamp, taken the moment your transaction begins.
+
+00:01:21.201 --> 00:01:25.786
+Nothing is duplicated, nothing grows ten times larger.
+
+00:01:25.786 --> 00:01:30.371
+From that timestamp on, you read every value as it stood at that instant.
+
+00:01:30.371 --> 00:01:34.956
+Take one value V, committed at two o'clock.
+
+00:01:34.956 --> 00:01:39.540
+Minnie starts overwriting it at two forty-five, but does not commit the new value until three oh three.
+
+00:01:39.540 --> 00:01:44.125
+In that window the write is in flight.
+
+00:01:44.125 --> 00:01:48.710
+Pluto, with a snapshot of two fifty, reads the old value.
+
+00:01:48.710 --> 00:01:53.295
+Mickey, at three o'clock, also reads the old value, never the half-written one.
+
+00:01:53.295 --> 00:01:57.880
+Only a query whose snapshot lands after the commit, at three oh five, reads the new value.
+
+00:01:57.880 --> 00:02:02.465
+The write becomes visible at the commit, not when it starts.
+
+00:02:02.465 --> 00:02:06.286
+Those versions add up.
+
+00:02:06.286 --> 00:02:10.106
+Every update commits a new value and keeps the old one behind, each stamped with its commit time.
+
+00:02:10.106 --> 00:02:13.927
+Here, four versions deep, committed from two o'clock to three ten.
+
+00:02:13.927 --> 00:02:17.748
+MVCC must keep an old version while any running query still reads it.
+
+00:02:17.748 --> 00:02:21.569
+So look at the running queries.
+
+00:02:21.569 --> 00:02:25.389
+The one that opened at two fifty still reads v3, and newer queries read v4.
+
+00:02:25.389 --> 00:02:29.210
+Nobody is still reading v1 or v2, the oldest committed values.
+
+00:02:29.210 --> 00:02:33.031
+They are dead.
+
+00:02:33.031 --> 00:02:36.852
+Vacuum is the garbage collector.
+
+00:02:36.852 --> 00:02:40.672
+It discards those older values, greyed out here, and frees the space.
+
+00:02:40.672 --> 00:02:44.493
+Without it, versions would pile up forever.
+
+00:02:44.493 --> 00:02:49.114
+MVCC is the default in every database, but its default level is not quite serializable.
+
+00:02:49.114 --> 00:02:53.734
+Two snapshots can commit changes that together break, a gap called write skew, which serializable isolation closes.
+
+00:02:53.734 --> 00:02:58.355
+Readers never block.
+
+00:02:58.355 --> 00:03:02.976
+The only lock is writer to writer.
+
+00:03:02.976 --> 00:03:06.929
+Here is the payoff.
+
+00:03:06.929 --> 00:03:10.882
+Why not run the year-end analytics on the production database?
+
+00:03:10.882 --> 00:03:14.836
+It is not lock contention.
+
+00:03:14.836 --> 00:03:18.789
+MVCC fixed that.
+
+00:03:18.789 --> 00:03:22.742
+A ten-minute analytical scan saturates CPU and IO, pollutes the cache hot queries depend on, and pins vacuum for ten minutes while tables bloat.
+
+00:03:22.742 --> 00:03:26.696
+None of those is a lock.
+
+00:03:26.696 --> 00:03:30.649
+The fix is physical separation.
+
+00:03:30.649 --> 00:03:34.602
+Copy the data to a separate columnar warehouse, and keep the transactional database user-facing only.
+
+00:03:34.602 --> 00:03:38.354
+Multiversion concurrency control is the default in every modern database.
+
+00:03:38.354 --> 00:03:42.107
+Keep versions, read by snapshot, and readers and writers stop fighting.
+
+00:03:42.107 --> 00:03:45.859
+One model is left.
+
+00:03:45.859 --> 00:03:49.612
+Optimistic concurrency control bets clashes are rare and takes no locks.
+
+00:03:49.612 --> 00:03:53.364
+That is next.

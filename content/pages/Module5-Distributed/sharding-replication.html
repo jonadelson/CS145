@@ -1,0 +1,40 @@
+<h1>Sharding vs Replication</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> <em>Sharding</em> splits one logical dataset across many machines so the cluster can hold and serve more data than any single node can; <em>replication</em> keeps multiple copies of each shard on different machines so a single failure doesn't drop a slice of the data offline. Real systems do both.</p>
+<p><strong>Intuition.</strong> When Spotify's 10 TB Listens table outgrows one machine's disk, sharding by <code>user_id</code> splits it into disjoint slices across nodes (ten shards of about 1 TB here), and replication keeps 3 copies of each slice on 3 different machines, so any one disk failure is invisible and any user's data can be served from any of 3 places.</p>
+</div>
+<!-- Sharding vs Replication Visual -->
+<p><a id="sr-svg"></a></p>
+<div style="width: 100%; max-width: 900px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/sharding-replication.svg" alt="Sharding splits a 10 TB table into ten disjoint ~1 TB shards, one per node, to scale capacity; replication copies each shard onto three machines so any node can fail without data loss." style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Sharding and replication solve different problems and almost always run together. Sharding splits a 10 TB table into disjoint slices across machines, each row on exactly one shard, to scale capacity past one machine. Replication keeps two or three copies of the same data on different machines to survive single-machine failures and serve more reads. Production systems shard then replicate each slice, taking capacity from sharding and availability from replication, as Cassandra, sharded MongoDB clusters, and BigQuery's storage layer do.</p>
+</div>
+<h2>Production Synthesis</h2>
+<p>Sharding handles capacity; replication handles availability.</p>
+<p><a id="sr-production-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/sr-production.svg" alt="Spotify's 10 TB Listens is sharded ten ways for capacity, then one shard is fanned out to three replicas on different racks for safety, so a read can hit any of the three copies and a dead machine loses nothing." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> In production, both at once. Spotify's 10 TB Listens is sharded ten ways for capacity, then each shard is replicated three times on different racks. A user's shard lives on three machines, so a read can hit any of them and a dead machine loses nothing.</p>
+</div>
+<p><strong>Sharding hurdles:</strong> cross-shard queries • rebalancing • hotspots
+<strong>Replication limits:</strong> adds read throughput, not write capacity or storage.
+<strong>Replication's cost:</strong> three copies mean 200% storage overhead. <a href="#/page/Module5-Distributed/distributed-file-systems">Colossus</a> later cuts that to about 50% for the same durability.</p>
+<div class="v5-callout">
+<h4>Implementation reality</h4>
+<p>Sharding is the concept. Enforcing it across a cluster without losing track of which node holds which rows is the mechanism. Next: <strong>Hash Partitioning</strong> and <strong>Consistent Hashing</strong>, the math that makes modern sharding work.</p>
+</div>
+<hr />
+<h2>Common Confusions</h2>
+<p><a id="sr-failures-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/sr-failures.svg" alt="Two failure modes side by side: sharding without replication, where a dead machine takes its shard offline and locks out one in ten users; and replication without sharding, where every machine must hold the whole 10 TB, which does not fit on a 1 TB disk." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Why both are needed. Sharding without replication (left): when a machine dies its shard goes offline, locking out one in ten users. Replication without sharding (right): every machine must hold the whole 10 TB, which never fits on a 1 TB disk. Only running both closes both gaps.</p>
+</div>
+<p><strong>Q: Can replication help with scale?</strong><br />
+Replication boosts read scale, not write capacity or data size.</p>
+<p><strong>Q: Why not just replicate instead of sharding?</strong><br />
+Replication doesn't solve physical limits. A 10TB dataset won't fit on a 1TB drive, no matter how many copies you make. Sharding is essential for overcoming capacity constraints.</p>
+<p><strong>Q: How to choose?</strong><br />
+Data too big? → Shard. Need high availability? → Replicate. Both? → Implement both.</p>

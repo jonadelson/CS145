@@ -1,0 +1,59 @@
+<svg viewBox="0 0 1080 450" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="gitdiffs-t gitdiffs-d"
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"
+     font-family="Inter, sans-serif">
+  <title id="gitdiffs-t">A git commit is a snapshot that shares unchanged files, not a full copy. Move forward to redo, backward to undo.</title>
+  <desc id="gitdiffs-d">Three commits sit on a branch left to right. Each commit is a snapshot, but files that did not change are shared, not recopied, so a commit is never a full copy of the repository. You move to any commit to go forward, or revert one to go backward. Moving forward redoes committed work; moving backward undoes it. A database recovery log gives the same two moves. Color key: violet = the commits, each recording what changed with author and time; green = moving forward to redo; red = moving backward to undo.</desc>
+
+  <defs>
+    <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+  </defs>
+
+  <text x="540" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">A commit is a snapshot, not a full copy</text>
+  <text x="540" y="64" text-anchor="middle" font-size="14" fill="#3F3F46">Git stores which lines changed, when, and by whom. Replay the diffs to reach any state.</text>
+
+  <!-- branch line -->
+  <line x1="90" y1="180" x2="990" y2="180" stroke="#6B7280" stroke-width="1.5"/>
+  <polygon points="996,180 988,176 988,184" fill="#6B7280"/>
+  <text x="985" y="168" text-anchor="end" font-size="14" font-style="italic" fill="#6B7280">time</text>
+
+  <g data-step="1">
+    <circle cx="180" cy="180" r="9" fill="#7C3AED"/>
+    <rect x="100" y="200" width="180" height="92" rx="6" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <rect x="100" y="200" width="6" height="92" rx="3" fill="#7C3AED"/>
+    <text x="190" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">commit a1b2</text>
+    <text x="124" y="244" font-size="13" fill="#3F3F46" font-family="JetBrains Mono, monospace">+ schema.sql</text>
+    <text x="124" y="264" font-size="13" fill="#6B7280">by Mia, Mon</text>
+    <text x="124" y="283" font-size="13" fill="#6B7280">shares unchanged files</text>
+  </g>
+  <g data-step="2">
+    <circle cx="480" cy="180" r="9" fill="#7C3AED"/>
+    <rect x="400" y="200" width="180" height="92" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+    <rect x="400" y="200" width="6" height="92" rx="3" fill="#7C3AED"/>
+    <text x="490" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">commit c3d4</text>
+    <text x="424" y="244" font-size="13" fill="#3F3F46" font-family="JetBrains Mono, monospace">~ 4 lines</text>
+    <text x="424" y="264" font-size="13" fill="#6B7280">by Theo, Tue</text>
+    <text x="424" y="283" font-size="13" fill="#6B7280">shares unchanged files</text>
+  </g>
+  <g data-step="3">
+    <circle cx="780" cy="180" r="9" fill="#7C3AED"/>
+    <rect x="700" y="200" width="180" height="92" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+    <rect x="700" y="200" width="6" height="92" rx="3" fill="#7C3AED"/>
+    <text x="790" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">commit e5f6</text>
+    <text x="724" y="244" font-size="13" fill="#3F3F46" font-family="JetBrains Mono, monospace">- dead code</text>
+    <text x="724" y="264" font-size="13" fill="#6B7280">by Mia, Wed</text>
+    <text x="724" y="283" font-size="13" fill="#6B7280">shares unchanged files</text>
+  </g>
+
+  <!-- replay directions -->
+  <g data-step="4">
+    <line x1="180" y1="120" x2="780" y2="120" stroke="#16A34A" stroke-width="2.5" marker-end="url(#ah)"/>
+    <text x="480" y="110" text-anchor="middle" font-size="15" font-weight="700" fill="#16A34A">replay forward to REDO committed work</text>
+    <line x1="780" y1="332" x2="180" y2="332" stroke="#DC2626" stroke-width="2.5" marker-end="url(#ah)"/>
+    <text x="480" y="352" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">replay backward to UNDO it</text>
+  </g>
+
+  <text x="540" y="430" text-anchor="middle" font-size="14" fill="#3F3F46">Color key: <tspan fill="#7C3AED" font-weight="700">violet</tspan> = the commits, each a diff with author and time · <tspan fill="#16A34A" font-weight="700">green</tspan> = replay forward to redo · <tspan fill="#DC2626" font-weight="700">red</tspan> = replay backward to undo.</text>
+</svg>

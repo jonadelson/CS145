@@ -1,0 +1,85 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.820
+It is 2003.
+
+00:00:05.820 --> 00:00:09.639
+Google has a hundred billion log lines a day, and needs top searches, PageRank, and click rates.
+
+00:00:09.639 --> 00:00:13.459
+How do you write one program for ten thousand machines?
+
+00:00:13.459 --> 00:00:17.279
+Their answer ran data pipelines for two decades: MapReduce.
+
+00:00:17.279 --> 00:00:21.856
+Suppose Spotify wants the top songs of the year.
+
+00:00:21.856 --> 00:00:26.433
+Follow the whole pipeline left to right.
+
+00:00:26.433 --> 00:00:31.010
+Start with the input: a hundred billion play log lines sitting in HDFS, split into chunks.
+
+00:00:31.010 --> 00:00:35.587
+The map step runs a tiny function over every line and emits one pair, the song ID and the number one.
+
+00:00:35.587 --> 00:00:40.164
+That runs on a thousand mappers in parallel.
+
+00:00:40.164 --> 00:00:44.742
+Then the shuffle, the hidden core.
+
+00:00:44.742 --> 00:00:49.319
+How does every play of one song reach one reducer?
+
+00:00:49.319 --> 00:00:53.896
+It hash-partitions every pair by the song ID, so every play of the same song lands on the same reducer.
+
+00:00:53.896 --> 00:00:58.473
+Each reducer then sums the ones for its slice of songs.
+
+00:00:58.473 --> 00:01:03.050
+Out comes the output, about fifty million per-song counts.
+
+00:01:03.050 --> 00:01:07.627
+Sort them, take the top hundred, and you are done.
+
+00:01:07.627 --> 00:01:11.261
+The shuffle is where the wall clock goes.
+
+00:01:11.261 --> 00:01:14.895
+Routing every pair to its reducer moves the entire dataset across the network.
+
+00:01:14.895 --> 00:01:18.529
+Compute is cheap; this all-to-all movement is the expensive part.
+
+00:01:18.529 --> 00:01:22.163
+Tune the shuffle, tune the pipeline.
+
+00:01:22.163 --> 00:01:30.708
+Why did MapReduce win the decade?
+
+00:01:30.708 --> 00:01:39.253
+Four things: a simple surface, two functions and the framework does the rest; built-in fault tolerance, a dead worker does not kill the job; linear scaling; and commodity hardware beating supercomputers on price.
+
+00:01:39.253 --> 00:01:43.665
+By 2014 the industry moved past pure MapReduce.
+
+00:01:43.665 --> 00:01:48.076
+Iterative algorithms, machine learning needs many passes and MR hit disk between each.
+
+00:01:48.076 --> 00:01:52.488
+Interactive analytics, a scientist cannot wait ten minutes a query.
+
+00:01:52.488 --> 00:01:56.900
+Same cause: disk between stages.
+
+00:01:56.900 --> 00:02:01.776
+The deep lesson is decoupling: you wrote what to compute, the framework decided how.
+
+00:02:01.776 --> 00:02:06.653
+But disk between every stage left speed behind.
+
+00:02:06.653 --> 00:02:11.529
+Next, Spark keeps the data in memory and runs the same idea a hundred times faster.

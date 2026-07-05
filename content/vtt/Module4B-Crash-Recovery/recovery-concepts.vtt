@@ -1,0 +1,175 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.717
+The WAL is the write-ahead log.
+
+00:00:04.717 --> 00:00:07.434
+It records every change as an old value and a new value.
+
+00:00:07.434 --> 00:00:10.150
+Here is how it works.
+
+00:00:10.150 --> 00:00:12.867
+The next page is how recovery uses it.
+
+00:00:12.867 --> 00:00:16.076
+Every update is three writes, in order.
+
+00:00:16.076 --> 00:00:19.284
+Say value A is updated from nineteen to twenty-two point eight.
+
+00:00:19.284 --> 00:00:22.493
+First, it appends the change to the log, the old value and the new.
+
+00:00:22.493 --> 00:00:25.701
+Tiny, a few tens of bytes, durable at once.
+
+00:00:25.701 --> 00:00:28.910
+Then it updates A's page in the RAM buffer, in place.
+
+00:00:28.910 --> 00:00:32.118
+Fast, but volatile.
+
+00:00:32.118 --> 00:00:35.327
+Both happen now.
+
+00:00:35.327 --> 00:00:38.535
+Later, the whole sixty-four megabyte page flushes to disk.
+
+00:00:38.535 --> 00:00:41.744
+One write, start to end.
+
+00:00:41.744 --> 00:00:44.952
+The log is durable before the page ever reaches disk.
+
+00:00:44.952 --> 00:00:48.161
+That is write-ahead.
+
+00:00:48.161 --> 00:00:51.482
+Let's dig into the WAL rows.
+
+00:00:51.482 --> 00:00:54.802
+Each row is small.
+
+00:00:54.802 --> 00:00:58.123
+A header, the transaction, the location, and the old and new value.
+
+00:00:58.123 --> 00:01:01.443
+About forty bytes.
+
+00:01:01.443 --> 00:01:04.763
+Here, value A is updated nineteen to twenty-two point eight, then B, twenty-three to twenty-seven point six.
+
+00:01:04.763 --> 00:01:08.084
+Two rows.
+
+00:01:08.084 --> 00:01:11.404
+Then a commit record marks where the transaction ends.
+
+00:01:11.404 --> 00:01:14.725
+These are the rows the next page runs undo and redo against.
+
+00:01:14.725 --> 00:01:17.744
+Change Tracking asked for any past version.
+
+00:01:17.744 --> 00:01:20.762
+The log is the answer.
+
+00:01:20.762 --> 00:01:23.781
+Here is the log over time, every row an old value and a new value.
+
+00:01:23.781 --> 00:01:26.799
+Pick any past moment.
+
+00:01:26.799 --> 00:01:29.818
+Replay the rows up to there, and you have the exact state then.
+
+00:01:29.818 --> 00:01:32.836
+A twenty-two point eight, B twenty-seven point six.
+
+00:01:32.836 --> 00:01:35.855
+Forward, redo the new values.
+
+00:01:35.855 --> 00:01:38.873
+Back, undo the old ones.
+
+00:01:38.873 --> 00:01:41.892
+The log is the version history.
+
+00:01:41.892 --> 00:01:45.668
+A WAL row is cheap for two reasons.
+
+00:01:45.668 --> 00:01:49.443
+It is tiny, and it only appends.
+
+00:01:49.443 --> 00:01:53.219
+Compare them.
+
+00:01:53.219 --> 00:01:56.994
+Without the log, each change is a random write to its own sixty-four megabyte page.
+
+00:01:56.994 --> 00:02:00.770
+About thirteen milliseconds.
+
+00:02:00.770 --> 00:02:04.546
+With the log, every change is a forty byte row, appended right after the last.
+
+00:02:04.546 --> 00:02:08.321
+The WAL flushes in small sixty-four kilobyte pages, about thirteen microseconds each.
+
+00:02:08.321 --> 00:02:12.097
+A thousand times less.
+
+00:02:12.097 --> 00:02:15.872
+And with battery-backed non-volatile RAM, a row is durable at RAM speed, about a hundred nanoseconds.
+
+00:02:15.872 --> 00:02:19.648
+A hundred thousand times less than the page flush.
+
+00:02:19.648 --> 00:02:22.894
+Last question.
+
+00:02:22.894 --> 00:02:26.140
+Why must the log go first?
+
+00:02:26.140 --> 00:02:29.386
+The update and the flush happen at different times, so a crash can land between them.
+
+00:02:29.386 --> 00:02:32.632
+Suppose the data page lands first, and the server dies before the log row.
+
+00:02:32.632 --> 00:02:35.879
+The data changed, with no record of why.
+
+00:02:35.879 --> 00:02:39.125
+Unrecoverable.
+
+00:02:39.125 --> 00:02:42.371
+Now flip it, the way write-ahead demands.
+
+00:02:42.371 --> 00:02:45.617
+The log is on disk first.
+
+00:02:45.617 --> 00:02:48.863
+A crash before the data page moves still leaves the change in the log, ready to re-apply.
+
+00:02:48.863 --> 00:02:52.109
+Surviving a real crash is the next two pages.
+
+00:02:52.109 --> 00:02:55.019
+So one log gives you three things.
+
+00:02:55.019 --> 00:02:57.929
+Any past version, from the old and new in every row.
+
+00:02:57.929 --> 00:03:00.840
+Cheap writes, small and sequential.
+
+00:03:00.840 --> 00:03:03.750
+And a safe order, the log before the data.
+
+00:03:03.750 --> 00:03:06.660
+Its fourth payoff is surviving a crash.
+
+00:03:06.660 --> 00:03:09.570
+That is undo and redo, next.

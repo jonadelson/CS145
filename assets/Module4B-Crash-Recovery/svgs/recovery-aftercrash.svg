@@ -1,0 +1,58 @@
+<svg viewBox="0 0 1040 440" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="rac-t rac-d"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="rac-t">Just after the crash: RAM is gone and the disk is an inconsistent mix of flushed and unflushed work</title>
+  <desc id="rac-d">The instant after the crash. RAM is gone, every in-flight change with it. The disk survived but it is not consistent: it holds whatever was written before the power died. Some committed writes never flushed, so a committed value is missing. Some uncommitted writes did flush, so an uncommitted value is sitting on disk. The durable WAL is untouched and still holds the full history, which is how recovery sorts the mess out. Color key: red = RAM, now empty, green = the durable disk that is not yet consistent, violet = the durable, sequential WAL that survived and drives recovery.</desc>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">Just after the crash: the disk holds a half-written mix</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">RAM is gone. The disk is not consistent: some committed work missing, some uncommitted work present.</text>
+
+  <!-- ===== STEP 1: RAM gone ===== -->
+  <g data-step="1">
+  <rect x="40" y="92" width="300" height="300" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+  <rect x="40" y="92" width="300" height="6" rx="3" fill="#DC2626"/>
+  <text x="64" y="124" font-size="18" font-weight="700" fill="#DC2626">RAM &#183; gone</text>
+  <text x="190" y="252" font-size="20" font-weight="700" fill="#6B7280" text-anchor="middle">(empty)</text>
+  <text x="190" y="284" font-size="13.5" fill="#6B7280" text-anchor="middle">every in-flight change lost</text>
+  </g>
+
+  <!-- ===== STEP 2: inconsistent disk ===== -->
+  <g data-step="2">
+  <rect x="370" y="92" width="320" height="300" rx="10" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+  <rect x="370" y="92" width="320" height="6" rx="3" fill="#16A34A"/>
+  <text x="394" y="124" font-size="18" font-weight="700" fill="#16A34A">Disk &#183; not consistent</text>
+  <text x="394" y="148" font-size="13.5" fill="#6B7280">a half-written mix</text>
+  <!-- a flushed committed -->
+  <rect x="394" y="166" width="272" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="410" y="184" font-size="14" fill="#0E0E10" font-family="JetBrains Mono, monospace">A=12   <tspan fill="#16A34A" font-weight="700">flushed</tspan></text>
+  <text x="410" y="201" font-size="12.5" fill="#6B7280">committed (T1), did reach disk</text>
+  <!-- a committed NOT flushed -->
+  <rect x="394" y="216" width="272" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="410" y="234" font-size="14" fill="#0E0E10" font-family="JetBrains Mono, monospace">D=40   <tspan fill="#DC2626" font-weight="700">stale</tspan></text>
+  <text x="410" y="251" font-size="12.5" fill="#6B7280">committed (T4) write never flushed</text>
+  <!-- an uncommitted that DID flush -->
+  <rect x="394" y="266" width="272" height="42" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="410" y="284" font-size="14" fill="#0E0E10" font-family="JetBrains Mono, monospace">E=60   <tspan fill="#DC2626" font-weight="700">wrong</tspan></text>
+  <text x="410" y="301" font-size="12.5" fill="#6B7280">uncommitted (T5), but it flushed</text>
+  <text x="394" y="344" font-size="13.5" font-weight="700" fill="#DC2626">Committed work missing,</text>
+  <text x="394" y="366" font-size="13.5" font-weight="700" fill="#DC2626">uncommitted work present.</text>
+  </g>
+
+  <!-- ===== STEP 3: log survived ===== -->
+  <g data-step="3">
+  <rect x="720" y="92" width="280" height="300" rx="10" fill="#FFFFFF" stroke="#A78BFA" stroke-width="2"/>
+  <rect x="720" y="92" width="280" height="6" rx="3" fill="#A78BFA"/>
+  <text x="744" y="124" font-size="18" font-weight="700" fill="#7C3AED">WAL &#183; durable, sequential</text>
+  <text x="744" y="150" font-size="13.5" fill="#6B7280">full history, untouched</text>
+  <text x="744" y="184" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">A: 10&#8594;12</text>
+  <text x="744" y="208" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">C: 30&#8594;36</text>
+  <text x="744" y="232" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">D: 40&#8594;48</text>
+  <text x="744" y="256" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">C: 36&#8594;43.2</text>
+  <text x="744" y="280" font-size="13.5" fill="#0E0E10" font-family="JetBrains Mono, monospace">E: 50&#8594;60</text>
+  <text x="744" y="328" font-size="14" font-weight="700" fill="#7C3AED">old and new values,</text>
+  <text x="744" y="350" font-size="14" font-weight="700" fill="#7C3AED">enough to rebuild and</text>
+  <text x="744" y="372" font-size="14" font-weight="700" fill="#7C3AED">to undo.</text>
+  </g>
+
+  <text x="40" y="428" font-size="13" fill="#6B7280" xml:space="preserve"><tspan>Color key   </tspan><tspan fill="#DC2626">red = RAM, now empty</tspan><tspan>   &#183;   </tspan><tspan fill="#16A34A">green = the durable disk, some values wrong</tspan><tspan>   &#183;   </tspan><tspan fill="#7C3AED">violet = the durable, sequential log</tspan></text>
+</svg>

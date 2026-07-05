@@ -1,0 +1,64 @@
+<h1>Storage Layout: Row vs Columnar</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A storage layout is the on-disk arrangement of a table. Row-oriented stores all columns of one row together; column-oriented stores all values of one column together.</p>
+<p><strong>Intuition.</strong> Row-oriented Listens packs each listen (<code>listen_id, user_id, song_id, rating, listen_time</code>) as one chunk on disk. Column-oriented stores all the <code>user_id</code> values together, then all the <code>rating</code> values, then all the <code>listen_time</code> values. "Average rating across a billion listens" reads one column instead of every row.</p>
+</div>
+<p>Module 2 shrank each item so a too-big problem fit. This module is about the data that is still too big: how a table sits on disk, and how you scan, sort, and join it without ever holding it all in RAM.</p>
+<h2>How Tables Live on Disk</h2>
+<p>Two layers between your table and the operating system:</p>
+<div class="v5-callout">
+<ul>
+<li>
+<p><strong>OS Files.</strong> The OS's basic building blocks: unstructured bytes with no rules.</p>
+</li>
+<li>
+<p><strong>DbFiles.</strong> The database's tailored files, packed into fixed <strong>64 MB pages</strong>. Every table you query lives as a DbFile.</p>
+</li>
+<li>
+<p><strong>Why pages?</strong> When you query, the database hauls in whole 64 MB chunks, not piecemeal records. I/O devices are slow, so bulk operations (one 64 MB read vs. 2,000 separate 32 KB reads) keep cost in check.</p>
+</li>
+</ul>
+</div>
+<h2>Inside a 64 MB Page: The Storage Layout Question</h2>
+<p>Three options for how to lay out the bytes inside a page:</p>
+<ol>
+<li>
+<p><strong>Row storage.</strong> Pack all columns of one row together.</p>
+</li>
+<li>
+<p><strong>Columnar storage.</strong> Pack all values of one column together.</p>
+</li>
+<li>
+<p><strong>PAX (row-grouped columnar).</strong> Columns kept contiguous within row-groups. This is what Parquet does, covered below.</p>
+</li>
+</ol>
+<p>The first two are the fundamental contrast. Same data, two layouts, very different I/O for the same query:</p>
+<p><a id="row-vs-columnar"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/storage-row-vs-columnar.svg" alt="Same logical Listens table stored two ways: row-oriented packs whole rows together into pages; columnar puts each column in its own file." style="width:100%; max-width:980px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same logical <code>Listens</code> table in two physical layouts. The row-oriented file (left) packs whole rows per page, so reading row 5 returns all four columns in one read and a write is one append; the columnar files (right) give each column its own file, so <code>AVG(rating)</code> touches only the <code>rating</code> file and skips the other three. Which layout wins depends on the query: <code>SELECT AVG(rating)</code> favors columnar (row layout wastes about 75% of the I/O on this 4-column toy, far more on wide tables), while <code>SELECT * WHERE listen_id = 42</code> and inserts or updates favor row, since one record is one packed page rather than a seek-and-reassemble across four files.</p>
+</div>
+<h2>Row-Oriented: The Slotted Page</h2>
+<p>A 64 MB row-oriented page uses a <strong>slotted page</strong> design to handle variable-length rows and the fragmentation that updates create.</p>
+<p><a id="slotted-page"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/slotted-page.svg" alt="Slotted page layout: a single 64MB row-oriented page. Data records grow from the top down; the slot array grows from the bottom up; free space sits in the middle and shrinks as both grow toward each other." style="width:100%; max-width:800px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> A 64 MB slotted page packs variable-length rows from the top down and a fixed-size slot array from the bottom up, with free space shrinking in the middle as the two grow toward each other. Each slot is an <code>(offset, length)</code> pointer (<code>S0</code> to Row A, <code>S1</code> to Row B), so an update in place is free when the row keeps its size. If a row outgrows its footprint, the page moves it and repoints its slot, which keeps external references like <code>page_id, slot_id</code> stable.</p>
+</div>
+<h2>Columnar: Compression at Scale</h2>
+<p>Same idea inverted: a page holds many values for a <strong>single column</strong>. Sequential bytes are all the same type, and that's exactly what compression algorithms exploit aggressively.</p>
+<p>More data means better compression. A single column of Spotify's <code>Listens</code> barely compresses at nine rows, but at a hundred million rows the same column commonly shrinks 5:1 to 10:1, around 80 to 90% or more: popular songs repeat millions of times, active users have thousands of listens, timestamps run nearly sequential. Rows compress too, but far less, because the mix of types in one row defeats most encoders.</p>
+<div class="v5-callout">
+<p><strong>The scaling law:</strong> a column compresses better the more rows it has, because repetition only emerges at scale. That is why <strong>BigQuery, Snowflake, and Redshift</strong> scan petabytes efficiently: at that scale the columnar files compress heavily, so each byte read covers far more rows. The actual encodings (RLE, dictionary, delta, quantization) are the subject of the next page.</p>
+</div>
+<h2>Columnar Made Practical: Parquet</h2>
+<p>Pure columnar in its textbook form gives each column its own file. That wins the scan but loses everywhere else: one row becomes a seek per column, and a wide table partitioned many ways explodes into a hundred thousand tiny files, which object stores like S3 punish.</p>
+<p><strong>Parquet</strong> is the open-source columnar format that fixes this. It is a <strong>PAX</strong> layout: first slice the rows into <strong>row-groups</strong> (about 128 MB, roughly a million rows), then store each column contiguously <em>inside</em> the group as a <strong>column chunk</strong>, itself split into roughly 1 MB <strong>pages</strong> (Parquet's page is a finer unit than the 64 MB DbFile page above). One file holds the whole table, a row stays in one place, and a footer carries per-row-group min/max statistics, so a query reads the footer and skips the column data of groups that cannot match.</p>
+<p><a id="parquet-row-groups"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/parquet-row-groups.svg" alt="Pure columnar (grey) puts each column in its own file, so one row needs a seek per column and a wide table explodes into 100,000 files; one Parquet file (emerald) splits rows into row-groups with each column a contiguous chunk inside the group, plus a footer of min/max stats that lets a query skip whole row-groups." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Parquet is columnar made practical. Pure columnar (grey, left) stores one file per column, which is ideal for a scan but turns a single row into a seek per column and a wide partitioned table into roughly 100,000 tiny files. Parquet (emerald, right) keeps the columnar win, reading and compressing each column on its own, but packs the columns into row-groups inside one file: a row stays local, the file count collapses, and the row-group becomes the natural unit for writes and parallel scans. The footer's per-row-group min/max statistics let a predicate skip whole groups unread. The only cost is a sliver of compression, since an encoding run cannot span a row-group boundary, a small price for the gains in row access, file count, and write and parallelism simplicity.</p>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/case-study-bigquery-scaling">Case Study 3.1: BigQuery Scaling →</a></strong> The canonical columnar-analytics system that powers Google and is the blueprint for modern cloud data warehouses.</p>

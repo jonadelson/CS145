@@ -1,0 +1,76 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.935
+This section asks one question.
+
+00:00:04.935 --> 00:00:07.870
+When is concurrent execution correct?
+
+00:00:07.870 --> 00:00:10.805
+The test is a graph.
+
+00:00:10.805 --> 00:00:13.740
+You draw a directed graph from a schedule, and you check it for a cycle.
+
+00:00:13.740 --> 00:00:16.675
+So before the transactions, two graph ideas, quickly.
+
+00:00:16.675 --> 00:00:20.174
+A directed graph has no cycle when you follow the arrows and never return to a node you have already visited.
+
+00:00:20.174 --> 00:00:23.672
+That is the DAG on the left.
+
+00:00:23.672 --> 00:00:27.171
+It is cyclic when some path loops back on itself, the graph on the right.
+
+00:00:27.171 --> 00:00:30.669
+That one distinction is the whole test ahead.
+
+00:00:30.669 --> 00:00:34.168
+No cycle means safe.
+
+00:00:34.168 --> 00:00:37.666
+A cycle means trouble.
+
+00:00:37.666 --> 00:00:40.907
+Here is a DAG, a directed acyclic graph.
+
+00:00:40.907 --> 00:00:44.149
+A topological sort puts its nodes in an order where, for every edge A to B, A comes before B.
+
+00:00:44.149 --> 00:00:47.390
+Think of getting dressed.
+
+00:00:47.390 --> 00:00:50.632
+Socks before shoes.
+
+00:00:50.632 --> 00:00:53.873
+Pants before belt.
+
+00:00:53.873 --> 00:00:57.115
+If the rules also demanded shoes before socks, no order would work.
+
+00:00:57.115 --> 00:01:00.356
+That impossible case is a cycle.
+
+00:01:00.356 --> 00:01:03.598
+A graph with no cycle always has at least one valid order.
+
+00:01:03.598 --> 00:01:06.840
+This one has two, because B and C are independent.
+
+00:01:06.840 --> 00:01:10.081
+A graph with a cycle has none.
+
+00:01:10.081 --> 00:01:13.669
+That is the whole toolkit.
+
+00:01:13.669 --> 00:01:17.256
+No cycle, lay it in a line.
+
+00:01:17.256 --> 00:01:20.844
+A cycle, no line exists.
+
+00:01:20.844 --> 00:01:24.431
+Next, we build one of these graphs from a transaction schedule and read its cycles to decide when concurrent execution stays correct.

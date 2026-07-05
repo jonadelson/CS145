@@ -1,0 +1,69 @@
+<svg viewBox="0 0 1120 400" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="rsv-t rsv-d">
+  <title id="rsv-t">Reservoir sampling: a uniform sample in one streaming pass</title>
+  <desc id="rsv-d">Three panels left to right. Panel 1, the stream: rows
+  arrive one at a time in a single pass, row 1 to row N. Panel 2, the
+  reservoir of k equals 3 slots, the focal element: the first k rows fill the
+  slots; for each later row i the algorithm draws j uniformly in 1 to i, and
+  if j is at most k that row overwrites slot j (probability k over i),
+  otherwise the row is discarded (probability 1 minus k over i). Panel 3, the
+  guarantee: after N rows the reservoir holds k rows using O(k) memory in one
+  pass, and every one of the N rows is in the final sample with equal
+  probability k over N. Color key: mint is the fixed-size reservoir and the
+  keep rule; grey is the stream and the discarded rows.</desc>
+  <defs><marker id="ah-rsv" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="560" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Reservoir sampling: a uniform sample in one pass</text>
+  <text x="560" y="58" text-anchor="middle" font-size="16" fill="#3F3F46">Keep k. For row i, swap it in with probability k/i. Every row ends up equally likely.</text>
+
+  <!-- Panel 1: the stream -->
+  <g data-step="1">
+  <rect x="30" y="84" width="300" height="266" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="180" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">1 · The stream</text>
+  <rect x="90" y="128" width="180" height="26" rx="4" fill="#E1F4EC" stroke="#6EE7B7"/>
+  <text x="180" y="146" text-anchor="middle" font-size="14" fill="#0E0E10">row 1   (fills slot)</text>
+  <rect x="90" y="160" width="180" height="26" rx="4" fill="#E1F4EC" stroke="#6EE7B7"/>
+  <text x="180" y="178" text-anchor="middle" font-size="14" fill="#0E0E10">row 2   (fills slot)</text>
+  <rect x="90" y="192" width="180" height="26" rx="4" fill="#E1F4EC" stroke="#6EE7B7"/>
+  <text x="180" y="210" text-anchor="middle" font-size="14" fill="#0E0E10">row 3   (fills slot)</text>
+  <rect x="90" y="224" width="180" height="26" rx="4" fill="#FFFFFF" stroke="#D4D7DC"/>
+  <text x="180" y="242" text-anchor="middle" font-size="14" fill="#3F3F46">row i</text>
+  <text x="180" y="272" text-anchor="middle" font-size="14" fill="#6B7280">… up to row N</text>
+  <text x="180" y="328" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">one pass, no rewind</text>
+  </g>
+
+  <!-- Panel 2: the reservoir (mint) -->
+  <g data-step="2">
+  <line x1="332" y1="217" x2="368" y2="217" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ah-rsv)"/>
+  <rect x="370" y="84" width="430" height="266" rx="8" fill="#E1F4EC" stroke="#6EE7B7" stroke-width="2"/>
+  <text x="585" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">2 · The reservoir · k = 3</text>
+  <rect x="430" y="128" width="100" height="40" rx="6" fill="#FFFFFF" stroke="#6EE7B7" stroke-width="1.5"/>
+  <text x="480" y="153" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">slot 1</text>
+  <rect x="540" y="128" width="100" height="40" rx="6" fill="#FFFFFF" stroke="#6EE7B7" stroke-width="1.5"/>
+  <text x="590" y="153" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">slot 2</text>
+  <rect x="650" y="128" width="100" height="40" rx="6" fill="#FFFFFF" stroke="#6EE7B7" stroke-width="1.5"/>
+  <text x="700" y="153" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">slot 3</text>
+  <text x="585" y="200" text-anchor="middle" font-size="14" fill="#3F3F46">First k rows fill the k slots.</text>
+  <text x="585" y="224" text-anchor="middle" font-size="14" fill="#3F3F46">Row i (i &gt; k): draw j uniform in 1…i.</text>
+  <text x="585" y="252" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">j &#8804; k &#8594; row i overwrites slot j   (prob k/i)</text>
+  <text x="585" y="276" text-anchor="middle" font-size="14" fill="#6B7280">else &#8594; discard row i   (prob 1 &#8722; k/i)</text>
+  <text x="585" y="328" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">O(k) memory, one pass, no second scan</text>
+  </g>
+
+  <!-- Panel 3: the guarantee -->
+  <g data-step="3">
+  <line x1="802" y1="217" x2="838" y2="217" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ah-rsv)"/>
+  <rect x="840" y="84" width="250" height="266" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="965" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">3 · The guarantee</text>
+  <text x="965" y="150" text-anchor="middle" font-size="14" fill="#3F3F46">After N rows: k rows</text>
+  <text x="965" y="172" text-anchor="middle" font-size="14" fill="#3F3F46">held, one pass.</text>
+  <text x="965" y="206" text-anchor="middle" font-size="14" fill="#3F3F46">Every one of the N</text>
+  <text x="965" y="228" text-anchor="middle" font-size="14" fill="#3F3F46">rows is in the sample</text>
+  <text x="965" y="250" text-anchor="middle" font-size="14" fill="#3F3F46">with equal prob.</text>
+  <text x="965" y="328" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">P(in sample) = k/N</text>
+  </g>
+
+  <text x="560" y="384" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#6EE7B7" font-weight="700">mint</tspan><tspan fill="#3F3F46"> = the fixed-size reservoir and keep rule&#160;&#160;&#183;&#160;&#160;grey = the stream and discarded rows</tspan></text>
+</svg>

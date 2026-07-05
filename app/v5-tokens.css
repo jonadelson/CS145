@@ -1,0 +1,100 @@
+/**
+ * v5-tokens.css — CS 145 design system (FA-26V5)
+ *
+ * Loadable side-by-side with shared/core-styles.css.
+ * Pure variable definitions — NO visual side effects.
+ *
+ * Two layers:
+ *   1. Public color tokens (--m1 … --m6 and sub-module shades).
+ *      These are the canonical course color system. PSets, projects,
+ *      and any other surface should reference them directly.
+ *   2. Private chrome variables (--v5-*).
+ *      Internal to v5-chrome.css. Prefixed to avoid collision with
+ *      anything else on the page.
+ *
+ * Per-page accent routing: when a page sets <body data-module="m1">,
+ * the bottom block resolves --accent and --accent-tint for every
+ * selector in v5-chrome.css. One attribute switches the whole page.
+ */
+
+:root {
+    /* ────────────── Neutrals (private) ────────────── */
+    --v5-bg:         #F7F8FA;
+    --v5-surface:    #FFFFFF;
+    --v5-ink:        #0E0E10;
+    --v5-text:       #3F3F46;
+    --v5-muted:      #6B7280;
+    --v5-hairline:   #E5E7EB;
+    --v5-hairline-2: #D4D7DC;
+
+    /* ────────────── Status (private) ────────────── */
+    --v5-done:    #16A34A;
+    --v5-warn:    #D97706;
+    --v5-danger:  #DC2626;
+
+    /* ────────────── Module color tokens (PUBLIC) ──────────────
+       Reuse these in PSets, projects, dashboards, anywhere.
+       Sub-module variants share the parent's hue at a lighter
+       saturation so they read as one family. */
+    --m1:  #2563EB;   /* SQL — blue */
+    --m1b: #60A5FA;   /* Intermediate SQL — lighter blue */
+
+    --m2:  #EA580C;   /* Systems — orange */
+
+    --m3:  #059669;   /* nanoDB — emerald */
+    --m3b: #34D399;   /* Indexing — lighter emerald */
+    --m3c: #6EE7B7;   /* Query Optimization — lightest emerald */
+
+    --m4:  #7C3AED;   /* Transactions — violet */
+    --m4b: #A78BFA;   /* Crash Recovery — lighter violet */
+    --m4c: #C4B5FD;   /* End-to-End TM — lightest violet */
+
+    --m5:  #DB2777;   /* Distributed Systems — pink */
+    --m6:  #0891B2;   /* Data Systems — cyan (bumped from dim slate for projector visibility) */
+    --m10: #4F46E5;   /* Algorithms & LeetCode — indigo */
+    --m11: #0D9488;   /* Advanced Math — teal */
+
+    /* Soft tints — one per family. Used for hover backgrounds,
+       active sidebar items, code-block lang chips, callout fills. */
+    --m1-tint: #ECF1FE;
+    --m2-tint: #FDEBE0;
+    --m3-tint: #E1F4EC;
+    --m4-tint: #EFE8FB;
+    --m5-tint: #FBE3EE;
+    --m6-tint: #E0F2F6;
+    --m11-tint: #DEF3F1;
+    --m10-tint: #EEF2FF;
+
+    /* ────────────── Type (private) ──────────────
+       Fonts must be loaded by the host page (link in <head>).
+       v5-tokens.css just names them. */
+    --v5-serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --v5-sans:  'Inter Tight', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --v5-mono:  'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+    /* ────────────── Radii / shadow (private) ────────────── */
+    --v5-r:    8px;
+    --v5-r-sm: 4px;
+    --v5-shadow-1: 0 1px 2px rgba(14,14,16,0.04), 0 0 0 1px var(--v5-hairline);
+    --v5-shadow-2: 0 4px 12px rgba(14,14,16,0.06), 0 0 0 1px var(--v5-hairline-2);
+}
+
+/* ────────────── Module → accent routing ──────────────
+   When base-template.html emits <body data-module="m1"> (etc.),
+   --accent and --accent-tint resolve to the right color family.
+   Every selector in v5-chrome.css references var(--accent) and
+   var(--accent-tint), so the entire page recolors from one
+   attribute. */
+body[data-module="m1"]  { --accent: var(--m1);  --accent-tint: var(--m1-tint); }
+body[data-module="m1b"] { --accent: var(--m1b); --accent-tint: var(--m1-tint); }
+body[data-module="m2"]  { --accent: var(--m2);  --accent-tint: var(--m2-tint); }
+body[data-module="m3"]  { --accent: var(--m3);  --accent-tint: var(--m3-tint); }
+body[data-module="m3b"] { --accent: var(--m3b); --accent-tint: var(--m3-tint); }
+body[data-module="m3c"] { --accent: var(--m3c); --accent-tint: var(--m3-tint); }
+body[data-module="m4"]  { --accent: var(--m4);  --accent-tint: var(--m4-tint); }
+body[data-module="m4b"] { --accent: var(--m4b); --accent-tint: var(--m4-tint); }
+body[data-module="m4c"] { --accent: var(--m4c); --accent-tint: var(--m4-tint); }
+body[data-module="m5"]  { --accent: var(--m5);  --accent-tint: var(--m5-tint); }
+body[data-module="m6"]  { --accent: var(--m6);  --accent-tint: var(--m6-tint); }
+body[data-module="m10"] { --accent: var(--m10); --accent-tint: var(--m10-tint); }
+body[data-module="m11"] { --accent: var(--m11); --accent-tint: var(--m11-tint); }

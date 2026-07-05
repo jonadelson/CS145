@@ -1,0 +1,101 @@
+<h1>B+Tree Indexes</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A B+Tree index keeps keys sorted in a balanced tree, supporting O(log N) point lookups and range scans (<code>WHERE rating BETWEEN 4.0 AND 5.0</code>) by walking the leaf pages in order.</p>
+<p><strong>Intuition.</strong> Think of a dictionary: half a million words, but you never scan them all. The thumb tabs jump you to the right letter, the guide words at the top of each page narrow you to the right page, and your word is right there. A B+Tree gives a database table that same stack of signposts. So when you query "find Listens with <code>rating</code> between 4.0 and 5.0," it walks down the tree to the first 4.0, then reads leaf pages in order until it passes 5.0. One descent, then a scan, not a tree walk per row.</p>
+</div>
+<p><strong>Prerequisites.</strong> <a href="#/page/Module3B-Indexing/index-fundamentals">Index Fundamentals</a> introduces <code>(key, page#)</code> pairs and pointers.</p>
+<hr />
+<h2>What a B+Tree Stores</h2>
+<p>A B+Tree sits on top of the table's data pages. Three layers of index nodes (root, internal, leaf) route a lookup down to the right page, and the leaves are linked left-to-right so a range scan can stream across them without going back to the root.</p>
+<p><a id="btree-lookup-cost"></a></p>
+<p><img src="assets/Module3B-Indexing/svgs/btree-layout.svg" alt="B+Tree on Songs.release_date_since_1970. Five green data pages on the left hold rows. The tree on the right has a green root, three green internal nodes, and six green leaves. The purple trace shows the lookup path for key 12890: root → middle internal → leaf 11234–13788 → Page 3, where row 12: As It Was (12890) lives." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The data pages on disk hold the actual <code>Songs</code> rows; the B+Tree on disk sits on top, its root and internal nodes routing a lookup down to the sorted, left-linked leaves that store <code>(key, data-page pointer)</code> pairs. Tracing <code>release_date = 12890</code> ("As It Was"): the root sends it into <code>5000..14999</code>, the internal node into <code>11234..13788</code>, the leaf resolves <code>12890 → Page 3</code>, and reading Page 3 finds the row, four page reads total.</p>
+<p>Fanout here is only 4 for clarity (3 keys plus 4 child pointers per node). Real databases use fanout in the thousands to millions depending on page size, so with fanout about 1,000 a billion-key table is only three levels deep: <code>height = ⌈log_fanout(N)⌉</code>.</p>
+</div>
+<p>Every layer is one IO. A billion-row table with fanout around 1,000 fits in three levels (root, internal, leaf). Add one more IO to read the data page itself, and a point lookup is roughly 4 IOs regardless of table size.</p>
+<hr />
+<h2>Walking a Range Query</h2>
+<p>The B+Tree finds the starting leaf in O(log N) IOs, then streams across leaves until it passes the end key. The trace below walks <code>12000 ≤ release_date ≤ 14000</code>.</p>
+<p><a id="range-query"></a></p>
+<p><img src="assets/Module3B-Indexing/svgs/btree-range-query.svg" alt="Walking the range 12000 to 14000. The root chooses the middle subtree, the middle internal node chooses leaf 3, the query reads leaves 3 and 4 in order, then peeks at leaf 5 whose first key 14456 exceeds 14000 and the scan stops. Data pages 3 and 4 are fetched. Total 7 IOs versus 160,000 for a full scan." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The same B+Tree answering the range query <code>12000 ≤ release_date ≤ 14000</code>: the query visits the solid green nodes, skips the dashed grey ones, and fetches only the data pages with matching rows (Page 3 and Page 4). The descent runs root → middle internal → Leaf 3, then walks the linked leaves (Leaf 3 yields <code>12890</code> and <code>13456</code>, Leaf 4 yields <code>13789</code> and <code>13980</code>). Leaf 4's last key <code>13980</code> is still inside the range, so the scan cannot stop there and reads one leaf further to be sure; Leaf 5 opens with <code>14456</code>, past <code>14000</code>, so it stops. That boundary key is no accident: <code>14456</code> is the very separator the internal node already held one level up to point at Leaf 5, so the index brackets every range at every level and the stop is never a surprise. Leaf 5's data page is never fetched. That is 5 index IOs plus 2 data-page IOs, 7 total, versus roughly 160,000 for a full scan, about 23,000× faster.</p>
+</div>
+<p>The result is mostly sequential IO once the descent reaches the starting leaf, which makes range scans cheap on a B+Tree.</p>
+<hr />
+<p><a id="fanout"></a></p>
+<h2>Why B+Trees Are Shallow: Fanout</h2>
+<p><strong>Fanout</strong> is how many children an internal node has, and it's set by how many <code>(key, pointer)</code> pairs fit on one page. High fanout means a shallow tree, and a shallow tree means few IOs per lookup.</p>
+<pre><code class="language-text">Fanout = ⌊page size / (key size + pointer size)⌋
+Height = ⌈log_fanout(number of keys)⌉
+</code></pre>
+<p>A 4 KB page with 4-byte keys and 4-byte pointers gives a fanout of 512. An 8 KB page gives roughly 1,024. At fanout 1,000, a billion keys need only three levels. That is why B+Tree lookups feel constant-time even as tables grow.</p>
+<h3>How Page and Key Size Drive Tree Height</h3>
+<p>One trillion keys stored four different ways. Read down the Page-size column to see the effect of moving from a 64 KB to a 64 MB page.</p>
+<table>
+<thead>
+<tr>
+<th>Page size</th>
+<th>Key size</th>
+<th>Fanout</th>
+<th>Height</th>
+<th>IOs / lookup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>64 KB</td>
+<td>8 B</td>
+<td>4,096</td>
+<td>4</td>
+<td><strong>4</strong></td>
+</tr>
+<tr>
+<td>64 KB</td>
+<td>1 KB</td>
+<td>63</td>
+<td>7</td>
+<td><strong>7</strong></td>
+</tr>
+<tr>
+<td>64 MB</td>
+<td>8 B</td>
+<td>4,194,304</td>
+<td>2</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td>64 MB</td>
+<td>1 KB</td>
+<td>65,027</td>
+<td>3</td>
+<td><strong>3</strong></td>
+</tr>
+</tbody>
+</table>
+<p>A trillion-key index with 1 KB search keys goes from 7 IOs on a 64 KB page to just 3 IOs on a 64 MB page. Same tree structure, different arithmetic. The tradeoff is that larger pages use more memory per node, but they give you a far shallower tree. Real systems pick the page size that fits their workload: PostgreSQL ships with 8 KB, MySQL InnoDB with 16 KB, and analytical engines like BigQuery and Snowflake use MB-sized columnar blocks.</p>
+<hr />
+<h2>What B+Trees Handle Well, and What They Don't</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+<div class="v5-callout v5-callout--info">
+<h4 style="margin-top: 0; color: #059669;">Handles well</h4>
+<pre><code><span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">42</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">BETWEEN</span> <span class="sql-number">4.0</span> <span class="sql-keyword">AND</span> <span class="sql-number">5.0</span>
+<span class="sql-keyword">WHERE</span> name <span class="sql-keyword">LIKE</span> <span class="sql-string">'Ali%'</span>
+<span class="sql-keyword">ORDER BY</span> created_at
+</code></pre>
+<p>Equality, ranges, prefix matching, and sorted scans. Anything that benefits from keys being in order.</p>
+</div>
+<div class="v5-callout v5-callout--danger">
+<h4 style="margin-top: 0; color: #7F1D1D;">Doesn't help</h4>
+<pre><code><span class="sql-keyword">WHERE</span> LOWER(name) <span class="sql-operator">=</span> <span class="sql-string">'alice'</span>
+<span class="sql-keyword">WHERE</span> name <span class="sql-keyword">LIKE</span> <span class="sql-string">'%son'</span>
+<span class="sql-keyword">WHERE</span> age <span class="sql-operator">!=</span> <span class="sql-number">30</span>
+</code></pre>
+<p>Functions on the indexed column (the index is on <code>name</code>, not <code>LOWER(name)</code>), suffix matches, and non-equality <code>!=</code>. The tree can't narrow the search space, so it falls back to a scan.</p>
+</div>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/sstables">SSTables →</a></strong> The immutable sorted file format that write-heavy stores use instead of a B+Tree on disk.</p>

@@ -1,0 +1,61 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.489
+During COVID, Google published mobility reports.
+
+00:00:06.489 --> 00:00:10.979
+Visits to hospitals and testing centers, anonymized, to help public health without exposing anyone.
+
+00:00:10.979 --> 00:00:15.468
+But anonymized data can still point at one person.
+
+00:00:15.468 --> 00:00:17.912
+You know Bob took a day off.
+
+00:00:17.912 --> 00:00:20.356
+The data shows one testing-center visit that day, near his home.
+
+00:00:20.356 --> 00:00:22.800
+Enough to identify him?
+
+00:00:22.800 --> 00:00:25.244
+Yes.
+
+00:00:25.244 --> 00:00:27.688
+A unique visit on a known day is a fingerprint.
+
+00:00:27.688 --> 00:00:31.682
+So Google added differential privacy.
+
+00:00:31.682 --> 00:00:35.675
+Calibrated noise on every count, so the totals stay accurate while no single person changes the answer.
+
+00:00:35.675 --> 00:00:39.669
+Useful trends, no individual exposed.
+
+00:00:39.669 --> 00:00:43.180
+In practice it is one extra clause.
+
+00:00:43.180 --> 00:00:46.691
+Count visits per location, then add noise tuned by a privacy budget, epsilon.
+
+00:00:46.691 --> 00:00:50.201
+The true count might be a hundred.
+
+00:00:50.201 --> 00:00:53.712
+The released count, ninety-eight, or a hundred three.
+
+00:00:53.712 --> 00:00:57.223
+Close enough to trust, noisy enough to hide Bob.
+
+00:00:57.223 --> 00:01:00.950
+So privacy is not deleting names.
+
+00:01:00.950 --> 00:01:04.677
+It is math: differential privacy, k-anonymity, and clear consent.
+
+00:01:04.677 --> 00:01:08.403
+That closes Module six, and the course.
+
+00:01:08.403 --> 00:01:12.130
+From one SQL query to a planet of data, built and defended.

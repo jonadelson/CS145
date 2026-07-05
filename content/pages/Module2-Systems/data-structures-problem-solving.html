@@ -1,0 +1,235 @@
+<h1>Practice Problems for Basic Systems Design</h1>
+<p>Hints: hashing, bloom filters, locality-sensitive hashing (including MinHash), approximate-nearest-neighbour indexes, and compression / quantization.</p>
+<h2>Putting it together</h2>
+<p>A big system can't afford to scan all N on every query, or to keep all N bytes in the memory the query runs in. The fix is always the same: turn one too-big problem into a small one. Every structure in this module's Basic and Approximation Algorithms sections does it the same handful of ways: <strong>partition</strong> it so a query touches one slice, <strong>prune</strong> the parts that are definitely unnecessary, <strong>reframe</strong> it so a coarse description still ranks right, or <strong>shrink</strong> each item by dropping redundancy or precision. Two levers, used together in real systems:</p>
+<p><img src="assets/Module2-Systems/svgs/shrink-the-problem.svg"
+     alt="Two panels. Lever 1, don't scan all N: partition the lookup; exact = hash to one bucket (hashing), approximate = prune what is definitely absent or bucket by similarity, then check only the candidates near the query (Bloom, LSH, IVF, HNSW). Lever 2, don't store all N bytes: shrink each item; exact/lossless = drop the redundancy (RLE, dictionary, delta, bit-pack, only if the data has structure), approximate/lossy = drop precision keep order (PQ, TurboQuant, reframe via random rotation). A connector notes real systems compose both as IVF-PQ, the vector database."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure.</strong> Two levers for a too-big problem. <strong>Lever 1</strong> partitions the lookup so a query examines one slice instead of all N: exactly, by hashing to a bucket; approximately, by pruning what is definitely absent (Bloom) or bucketing by similarity (LSH, IVF, HNSW) and checking only the candidates near the query. <strong>Lever 2</strong> shrinks each item: losslessly by dropping the redundancy the data already has (only if it has structure), or lossily by dropping precision while keeping the rank order (a random rotation reframes the data so one coarse quantizer fits any of it). The exact-vs-approximate split inside each lever is the module's Basic-vs-Approximation track. Production composes both, IVF-PQ is partition plus compress, the vector database.</p>
+</div>
+<p>Each problem below is one of these four. Spot which, then name the structure.</p>
+<h3>Problem 1: Startup API Cache (1M Scale)</h3>
+<p><strong>Problem</strong>: A music-streaming API serves 1M song-metadata requests. Each query hits several database tables, and peak-hour latency is high. What structure cuts the wait?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Hash Table</p>
+</li>
+<li>
+<p><strong>Design</strong>: In-memory HashMap: <code>request_id</code> → <code>cached_response</code> • Expire periodically • Evict least-recently used entries</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 100MB memory, 50K lookups/sec, 100% accuracy</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Database queries take 50-200ms vs 0.01ms hash lookup. Caching "popular" results avoids expensive DB connections and queries.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 2: Photo Similarity Detection (1M Scale)</h3>
+<p><strong>Problem</strong>: A photo app needs to flag near-duplicate images in a user's library to suggest a cleanup, at 1M photos. What structure finds the near-matches?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Locality-Sensitive Hashing (LSH)</p>
+</li>
+<li>
+<p><strong>Design</strong>: Convert images to 512-dim feature vectors • Generate similarity-preserving hash codes • Group photos in same buckets</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 200MB memory, 10K photos/sec, 95% accuracy</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Exact pixel comparison is $O(n^2)$ across 1M photos = 1 trillion operations. LSH allows finding near-matches in near $O(n)$ time.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 3: Embedding Index Won't Fit in RAM (10M Scale)</h3>
+<p><strong>Problem</strong>: A semantic-search service stores 10M documents as OpenAI 1,536-D float32 embeddings, about 60 GB, too big for the RAM the similarity search runs in. How do you shrink the index?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Vector Quantization (Product Quantization; TurboQuant for training-free)</p>
+</li>
+<li>
+<p><strong>Design</strong>: Replace each 32-bit coordinate with a few bits (4, 2, or 1-bit) so a ~6 KB vector becomes tens of bytes • Classic PQ trains a codebook on the data; TurboQuant skips the codebook with a random rotation, no training pass</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: ~60 GB → ~2–8 GB (8–32× smaller), recall within a few percent of exact</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Search only needs rank order ("is A closer than B?"), not exact coordinates, so most of the float32 precision is wasted. Quantization keeps the order and drops the rest. (Case Study 2.4.)</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 4: Social Media Recommendations (100M Scale)</h3>
+<p><strong>Problem</strong>: Instagram wants to suggest similar users to follow, based on interests, follow lists, and hashtags, at 100M users. What structure finds them?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Locality-Sensitive Hashing (LSH)</p>
+</li>
+<li>
+<p><strong>Design</strong>: Represent users as sparse feature vectors (likes, follows) • Hash similar users to same buckets • Pull recommendations from the same bucket</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 2GB memory, 50K users/sec, 90% relevance</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Computing exact similarity between 100M users requires $10^{16}$ comparisons. LSH reduces the search space to a localized bucket of likely candidates.</p>
+</li>
+<li>
+<p><strong>At production scale</strong>: raw LSH is the teaching version; a live recommender over 100M+ users uses a production ANN index (HNSW or IVF), the vector database from Case Study 2.3. Same idea, better recall per millisecond.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 5: Web Crawler Deduplication (1B Scale)</h3>
+<p><strong>Problem</strong>: A web crawler must avoid re-crawling URLs it has already seen, at 1B URLs. What structure tracks "seen"?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Bloom Filter</p>
+</li>
+<li>
+<p><strong>Design</strong>: A large Bloom filter tracks all visited URLs • Check URL before crawling • 1% false positive rate is acceptable (skips 1% of new pages)</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 1.2GB memory, 1M URLs/sec, 99% deduplication</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: A standard Hash Table for 1B URLs would require 32GB+ RAM. A Bloom filter fits comfortably in the memory of a single machine.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 6: Username Availability (10M Scale)</h3>
+<p><strong>Problem</strong>: As a user types a desired username, the client should flag "taken" instantly without an API call per keystroke, over ~10M taken usernames. What structure makes the check local?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Bloom Filter</p>
+</li>
+<li>
+<p><strong>Design</strong>: Periodically download a compressed Bloom filter of taken usernames to the client/app • Perform local "taken" check</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: ~12MB download, instant client-side checks</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Replaces a 100ms API call with a 0.01ms local check. A false positive simply tells the user a name is taken when it's available, a minor ux friction compared to lag.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 7: Document Near-Duplicates (10B Scale)</h3>
+<p><strong>Problem</strong>: A search engine must drop near-duplicate pages (same content, different ads), at 10B documents. What structure detects them?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Locality-sensitive hashing for sets (MinHash)</p>
+</li>
+<li>
+<p><strong>Design</strong>: Turn each doc into a set of word-shingles • Build a <strong>MinHash fingerprint</strong>: hash that set with many functions and keep the smallest value from each, giving a short integer signature whose fraction of matching slots estimates how much two docs overlap • Group docs with near-identical fingerprints</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 40GB memory, 500K docs/sec, 85% detection rate</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Comparing the full text of 10B documents is physically impossible. A MinHash fingerprint shrinks each doc to a few integers whose agreement approximates its similarity, so near-duplicates collide, the same locality idea as LSH, applied to sets.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 8: Log Storage Compression (100M Scale)</h3>
+<p><strong>Problem</strong>: A system writes 100M log entries a day, drawn from the same ~1,000 strings. How do you store them without the bloat?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Dictionary Encoding</p>
+</li>
+<li>
+<p><strong>Design</strong>: Create a mapping of 1,000 unique strings → 10-bit IDs • Store only IDs in the main log table</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 40GB raw logs → ~150MB stored (over 99% reduction)</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Storing the string "ConnectionTimeoutError" (22 bytes) millions of times is wasteful. Storing a 2-byte ID achieves massive space savings.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 9: Time Series Analytics (1B Scale)</h3>
+<p><strong>Problem</strong>: An IoT platform records a temperature sensor every second; timestamps are predictable, at 1B rows. How do you store them efficiently?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Delta Encoding</p>
+</li>
+<li>
+<p><strong>Design</strong>: Store a "Base" timestamp (e.g., midnight) • Store only the +1s or +2s difference (delta) for each subsequent row</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 8GB raw timestamps → ~1GB stored</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: A standard 8-byte timestamp is redundant when values are predictable. Deltas can be further compressed using bit-packing for even smaller footprints.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 10: E-commerce User Behavior (10M Scale)</h3>
+<p><strong>Problem</strong>: An e-commerce site logs 10M user clicks; sessions are repetitive. How do you store them without redundancy?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Run-Length Encoding (RLE) + Dictionary Encoding</p>
+</li>
+<li>
+<p><strong>Design</strong>: Dictionary encode the action types • Use RLE for consecutive repeated actions (e.g., <code>(view_item, 3)</code>)</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 10x compression ratio for session data</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: User behavior is repetitive. RLE eliminates the redundancy of sequential identical events.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 11: Rating System Storage (100M Scale)</h3>
+<p><strong>Problem</strong>: You store 100M ratings (each 1 to 5) for a recommendation engine. How do you store them compactly?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Bit Packing</p>
+</li>
+<li>
+<p><strong>Design</strong>: A number from 1-5 only needs 3 bits ($2^3 = 8$) • Pack multiple 3-bit ratings into a single 32-bit or 64-bit word</p>
+</li>
+<li>
+<p><strong>Rough Performance</strong>: 400MB raw integers → ~40MB packed storage</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Using a full 32-bit integer for a value that only goes up to 5 wastes 90% of the allocated space. Bit packing maximizes density.</p>
+</li>
+</ul>
+</details>
+<hr />
+<p><strong>Key insight</strong>: Scale numbers (millions vs billions) + problem type ("lookup," "similarity," "storage") immediately point to the right data structure family. Real systems combine multiple techniques for 10-100x improvements.</p>

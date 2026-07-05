@@ -1,0 +1,97 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.071
+Around 2001, Google's web crawl outgrew any single machine, and reliable hardware at that scale was unaffordable.
+
+00:00:06.071 --> 00:00:10.143
+Their answer reshaped computing.
+
+00:00:10.143 --> 00:00:14.214
+The Google File System.
+
+00:00:14.214 --> 00:00:18.602
+Start with the hardware.
+
+00:00:18.602 --> 00:00:22.991
+Enterprise drives are reliable but cost-prohibitive, so Google chose cheap commodity disks instead.
+
+00:00:22.991 --> 00:00:27.380
+Wire ten thousand of them together, and a disk failing every day is a certainty.
+
+00:00:27.380 --> 00:00:31.768
+So the software treats failure as routine, not an emergency.
+
+00:00:31.768 --> 00:00:36.029
+Now the capacity problem.
+
+00:00:36.029 --> 00:00:40.290
+A hundred-terabyte file cannot fit on a one-terabyte disk.
+
+00:00:40.290 --> 00:00:44.550
+So split it into sixty-four-megabyte chunks, about one point six million of them.
+
+00:00:44.550 --> 00:00:48.811
+Scatter the chunks across many machines, and total capacity grows with every machine you add.
+
+00:00:48.811 --> 00:00:52.410
+How does a read work?
+
+00:00:52.410 --> 00:00:56.009
+One leader keeps an in-memory directory; cheap chunk servers hold the data.
+
+00:00:56.009 --> 00:00:59.608
+The client asks the leader where a chunk lives.
+
+00:00:59.608 --> 00:01:03.208
+The leader replies with the chunk handle and the servers holding it.
+
+00:01:03.208 --> 00:01:06.807
+Then the client reads the chunk directly from a chunk server, never through the leader.
+
+00:01:06.807 --> 00:01:10.406
+The leader stays small, so it stays fast.
+
+00:01:10.406 --> 00:01:13.787
+Now reliability.
+
+00:01:13.787 --> 00:01:17.168
+Every chunk is stored as three replicas on three different racks.
+
+00:01:17.168 --> 00:01:20.548
+When a server dies, two replicas still serve.
+
+00:01:20.548 --> 00:01:23.929
+The leader notices, copies the chunk to a fresh healthy server, and you are back to three.
+
+00:01:23.929 --> 00:01:27.310
+The cluster heals itself.
+
+00:01:27.310 --> 00:01:32.542
+The original 2003 paper is fifteen pages and hugely influential.
+
+00:01:32.542 --> 00:01:37.775
+HDFS, S3, Spark, the entire big data ecosystem trace back to it.
+
+00:01:37.775 --> 00:01:43.007
+The engineering is mostly still right twenty years later.
+
+00:01:43.007 --> 00:01:45.905
+Every limit GFS hit spawned research.
+
+00:01:45.905 --> 00:01:48.803
+Consensus and leader election replace the single master.
+
+00:01:48.803 --> 00:01:51.700
+Consistent hashing fixes resharding.
+
+00:01:51.700 --> 00:01:54.598
+Erasure coding cuts three-way replication's cost.
+
+00:01:54.598 --> 00:01:57.496
+Each became its own page.
+
+00:01:57.496 --> 00:02:04.369
+The lesson of GFS: you can build a robust system from unreliable parts, if your software does the bookkeeping.
+
+00:02:04.369 --> 00:02:11.242
+That insight founded every distributed system after it: every cloud you use traces back to this paper.

@@ -1,0 +1,25 @@
+<svg viewBox="0 0 460 280" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:460px; display:block; margin:1rem auto;" role="img" aria-labelledby="conflict-matrix-t conflict-matrix-d">
+  <title id="conflict-matrix-t">2 by 2 matrix of action pairs: only R-R is a non-conflict; the other three (R-W, W-R, W-W) are all conflicts</title>
+  <desc id="conflict-matrix-d">A 2 by 2 matrix comparing one action of transaction T1 (rows) against one action of transaction T2 (columns), both on the same row. Only read-read commutes (green, no conflict); read-write, write-read, and write-write are conflicts (red). A conflict needs two transactions, the same row, and at least one write.</desc>
+    <text x="205" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T₂ Reads</text>
+    <text x="350" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T₂ Writes</text>
+    <text x="60"  y="100" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T₁ Reads</text>
+    <text x="60"  y="180" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T₁ Writes</text>
+    <g data-step="1">
+    <rect x="135" y="55" width="140" height="80" rx="8" fill="#E1F4EC" stroke="#16A34A" stroke-width="2"/>
+    <text x="205" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">R–R</text>
+    <text x="205" y="115" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#16A34A">commute · no conflict</text>
+    </g>
+    <g data-step="2">
+    <rect x="285" y="55" width="140" height="80" rx="8" fill="#FCEBEA" stroke="#DC2626" stroke-width="2"/>
+    <text x="355" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">R–W</text>
+    <text x="355" y="115" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#DC2626">conflict (stale read)</text>
+    <rect x="135" y="145" width="140" height="80" rx="8" fill="#FCEBEA" stroke="#DC2626" stroke-width="2"/>
+    <text x="205" y="182" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">W–R</text>
+    <text x="205" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#DC2626">conflict (dirty read)</text>
+    <rect x="285" y="145" width="140" height="80" rx="8" fill="#FCEBEA" stroke="#DC2626" stroke-width="2"/>
+    <text x="355" y="182" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">W–W</text>
+    <text x="355" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#DC2626">conflict (lost update)</text>
+    </g>
+    <text x="230" y="262" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#3F3F46"><tspan font-weight="700" fill="#0E0E10" text-decoration="underline">Two transactions</tspan>, the same row, <tspan font-weight="700" fill="#0E0E10" text-decoration="underline">at least one a write</tspan>.</text>
+</svg>

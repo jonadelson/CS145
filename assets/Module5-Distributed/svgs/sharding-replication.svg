@@ -1,0 +1,67 @@
+<svg viewBox="0 0 900 384" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="sr-t sr-d">
+  <title id="sr-t">Sharding vs replication: capacity vs availability</title>
+  <desc id="sr-d">Two panels. Left, sharding: a 10 TB dataset splits into ten disjoint shards,
+  about 1 TB each, one per node, so total capacity scales past one machine. Right,
+  replication: one shard is copied onto three machines so any single node can fail without
+  losing data, which buys availability, not extra capacity. The two use distinct counts on
+  purpose: ten shards for capacity, three replicas for safety. Color key: pink is the
+  mechanism in focus, grey is the data and the machines.</desc>
+  <defs><marker id="ah-sr" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Sharding vs replication</text>
+  <text x="450" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Different jobs: 10 shards scale capacity, 3 replicas survive failure.</text>
+
+  <!-- divider (static) -->
+  <line x1="450" y1="92" x2="450" y2="330" stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- Sharding panel: 10 shards -->
+  <g data-step="1">
+  <rect x="24" y="80" width="404" height="262" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="24" y="80" width="404" height="6" rx="3" fill="#DB2777"/>
+  <text x="226" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Sharding</text>
+  <text x="226" y="134" text-anchor="middle" font-size="14" fill="#6B7280">10 TB split into 10 disjoint shards</text>
+
+  <g fill="#FFFFFF" stroke="#6B7280" stroke-width="1">
+    <rect x="64" y="158" width="56" height="40" rx="4"/><rect x="128" y="158" width="56" height="40" rx="4"/><rect x="192" y="158" width="56" height="40" rx="4"/><rect x="256" y="158" width="56" height="40" rx="4"/><rect x="320" y="158" width="56" height="40" rx="4"/>
+    <rect x="64" y="206" width="56" height="40" rx="4"/><rect x="128" y="206" width="56" height="40" rx="4"/><rect x="192" y="206" width="56" height="40" rx="4"/><rect x="256" y="206" width="56" height="40" rx="4"/><rect x="320" y="206" width="56" height="40" rx="4"/>
+  </g>
+  <g font-size="13" fill="#3F3F46" text-anchor="middle">
+    <text x="92" y="183">S1</text><text x="156" y="183">S2</text><text x="220" y="183">S3</text><text x="284" y="183">S4</text><text x="348" y="183">S5</text>
+    <text x="92" y="231">S6</text><text x="156" y="231">S7</text><text x="220" y="231">S8</text><text x="284" y="231">S9</text><text x="348" y="231">S10</text>
+  </g>
+
+  <text x="226" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">10 nodes, about 1 TB each</text>
+  <text x="226" y="310" text-anchor="middle" font-size="14" fill="#6B7280">Each row on one shard · capacity scales past one machine</text>
+  </g>
+
+  <!-- Replication panel: 3 copies -->
+  <g data-step="2">
+  <rect x="472" y="80" width="404" height="262" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="472" y="80" width="404" height="6" rx="3" fill="#DB2777"/>
+  <text x="674" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Replication</text>
+  <text x="674" y="134" text-anchor="middle" font-size="14" fill="#6B7280">One shard copied to 3 machines</text>
+
+  <rect x="496" y="170" width="96" height="96" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="544" y="212" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">1 shard</text>
+  <text x="544" y="232" text-anchor="middle" font-size="14" fill="#6B7280">~1 TB</text>
+
+  <line x1="596" y1="188" x2="634" y2="188" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-sr)"/>
+  <line x1="596" y1="218" x2="634" y2="218" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-sr)"/>
+  <line x1="596" y1="248" x2="634" y2="248" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-sr)"/>
+
+  <rect x="638" y="170" width="214" height="30" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="745" y="190" text-anchor="middle" font-size="14" fill="#3F3F46">Copy on Node A</text>
+  <rect x="638" y="206" width="214" height="30" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="745" y="226" text-anchor="middle" font-size="14" fill="#3F3F46">Copy on Node B</text>
+  <rect x="638" y="242" width="214" height="30" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="745" y="262" text-anchor="middle" font-size="14" fill="#3F3F46">Copy on Node C</text>
+
+  <text x="674" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Any one node can fail</text>
+  <text x="674" y="310" text-anchor="middle" font-size="14" fill="#6B7280">Availability, not extra capacity</text>
+  </g>
+
+  <text x="450" y="370" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the mechanism in focus&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the data and the machines</tspan></text>
+</svg>

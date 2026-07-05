@@ -1,0 +1,51 @@
+<svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ds-t ds-d">
+  <title id="ds-t">Distributed sort in three phases</title>
+  <desc id="ds-d">Three machines sort a dataset into one global order in three phases.
+  Phase one: each machine sorts its own partition locally. Phase two: the cluster samples
+  the data to pick two split points that divide the value range into thirds. Phase three:
+  machines redistribute rows by split point, so node one holds the lowest range, node two the
+  middle, node three the highest, a total order across the cluster. Color key: pink marks the
+  active phase, grey the machines and data.</desc>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Distributed sort: three phases</text>
+  <text x="450" y="56" text-anchor="middle" font-size="14" fill="#6B7280">Sort local, sample split points, redistribute into one global order.</text>
+
+  <!-- Phase 1 -->
+  <g data-step="1">
+    <text x="40" y="92" font-size="16" font-weight="700" fill="#DB2777">1 · Sort locally</text>
+    <text x="40" y="112" font-size="13" fill="#6B7280">each node sorts its own partition</text>
+    <rect x="40"  y="124" width="250" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="58"  y="151" font-size="14" fill="#3F3F46">Node 1&#160;&#160;<tspan font-weight="700" fill="#0E0E10">1 · 4 · 7</tspan></text>
+    <rect x="325" y="124" width="250" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="343" y="151" font-size="14" fill="#3F3F46">Node 2&#160;&#160;<tspan font-weight="700" fill="#0E0E10">3 · 6 · 9</tspan></text>
+    <rect x="610" y="124" width="250" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="628" y="151" font-size="14" fill="#3F3F46">Node 3&#160;&#160;<tspan font-weight="700" fill="#0E0E10">2 · 5 · 8</tspan></text>
+  </g>
+
+  <!-- Phase 2 -->
+  <g data-step="2">
+    <text x="40" y="212" font-size="16" font-weight="700" fill="#DB2777">2 · Sample split points</text>
+    <text x="40" y="232" font-size="13" fill="#6B7280">pick boundaries that cut the range into equal thirds</text>
+    <rect x="40" y="244" width="820" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <line x1="313" y1="244" x2="313" y2="278" stroke="#DB2777" stroke-width="2"/>
+    <line x1="587" y1="244" x2="587" y2="278" stroke="#DB2777" stroke-width="2"/>
+    <text x="176" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">≤ 3</text>
+    <text x="450" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">4 – 6</text>
+    <text x="723" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">≥ 7</text>
+  </g>
+
+  <!-- Phase 3 -->
+  <g data-step="3">
+    <text x="40" y="322" font-size="16" font-weight="700" fill="#DB2777">3 · Redistribute by range</text>
+    <text x="40" y="342" font-size="13" fill="#6B7280">rows move to the node that owns their range</text>
+    <rect x="40"  y="354" width="250" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="58"  y="381" font-size="14" fill="#3F3F46">Node 1&#160;&#160;<tspan font-weight="700" fill="#0E0E10">1 · 2 · 3</tspan></text>
+    <rect x="325" y="354" width="250" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="343" y="381" font-size="14" fill="#3F3F46">Node 2&#160;&#160;<tspan font-weight="700" fill="#0E0E10">4 · 5 · 6</tspan></text>
+    <rect x="610" y="354" width="250" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="628" y="381" font-size="14" fill="#3F3F46">Node 3&#160;&#160;<tspan font-weight="700" fill="#0E0E10">7 · 8 · 9</tspan></text>
+    <text x="450" y="418" text-anchor="middle" font-size="13" fill="#6B7280">Read the nodes in order: one total sort across the cluster.</text>
+  </g>
+</svg>

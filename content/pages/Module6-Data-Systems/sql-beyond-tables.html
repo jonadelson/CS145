@@ -1,0 +1,113 @@
+<h1>SQL's Complex Types</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> SQL is not limited to <code>INT</code> and <code>TEXT</code>. One relational engine can store and query geographic points, documents, arrays, DNA strings, and even LLM calls, all through the same <code>SELECT / FROM / WHERE</code>, so you reach for a specialized database far later than you think.</p>
+<p><strong>Intuition.</strong> Spotify wants users within 5 km of a venue, an <code>orders</code> table with a flexible per-order JSON column, and songs an LLM tags "energetic". In modern Postgres or BigQuery each is one more function inside an ordinary query: <code>ST_DWITHIN(...)</code>, a <code>JSONB</code> lookup, <code>AI.CLASSIFY(...)</code>. None of them is a new database.</p>
+</div>
+<p><em>Course note: good to know for interviews; exact syntax is optional for tests.</em></p>
+<p><a id="sql-complex-types-fig"></a></p>
+<p><img src="assets/Module6-Data-Systems/svgs/sql-complex-types.svg" alt="A central cyan box holds the unchanging query shape (SELECT, FROM, WHERE, ORDER BY); four grey domain chips below keep that shape and only swap in a function: ST_DWITHIN for geographic, EDIT_DISTANCE for genomic, a JSONB lookup for semi-structured, AI.GENERATE for generative AI." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The query shape never changes; only the function does. Every example on this page is the same <code>SELECT / FROM / WHERE / ORDER BY</code> you have written all course, with a domain-specific function dropped into a clause: a distance test in the <code>WHERE</code>, a JSON path in the <code>SELECT</code>, an LLM call as a column. Learning a new data type means learning one function, not a new query language.</p>
+</div>
+<hr />
+<h2>JSONB Before NoSQL</h2>
+<p>A little JSON in your data is not a reason to stand up a NoSQL cluster. One PostgreSQL node with a <code>JSONB</code> column gives you a flexible document schema <em>and</em> ACID transactions and joins, which carries an MVP well past the point most teams think they need MongoDB.</p>
+<pre><code><span class="sql-comment">-- One Postgres node with JSONB: ACID and joins from the relational side,</span>
+<span class="sql-comment">-- a flexible document schema from the JSONB column.</span>
+<span class="sql-keyword">CREATE</span> <span class="sql-keyword">TABLE</span> <span class="sql-table">orders</span> (
+  id         SERIAL PRIMARY KEY,
+  user_id    INTEGER REFERENCES <span class="sql-table">users</span>(id),
+  items      JSONB,        <span class="sql-comment">-- Flexible per-order document</span>
+  created_at TIMESTAMP
+);
+</code></pre>
+<p>Modern Postgres added <code>JSONB</code>, vectors, and geo-spatial types fast enough that it absorbed much of the demand that drove specialized document and vector databases in the 2024 to 2025 AI wave.</p>
+<hr />
+<h2>Geographic: Finding Things Nearby</h2>
+<pre><code><span class="sql-comment">-- Spotify users within 5 km of Stanford (BigQuery)</span>
+<span class="sql-keyword">SELECT</span>
+  u.name,
+  u.email,
+  ST_DISTANCE(u.location, ST_GEOGPOINT(<span class="sql-operator">-</span><span class="sql-number">122.1697</span>, <span class="sql-number">37.4275</span>)) <span class="sql-keyword">AS</span> distance_meters
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">WHERE</span> ST_DWITHIN(
+    u.location,
+    ST_GEOGPOINT(<span class="sql-operator">-</span><span class="sql-number">122.1697</span>, <span class="sql-number">37.4275</span>),  <span class="sql-comment">-- longitude, latitude</span>
+    <span class="sql-number">5000</span>                               <span class="sql-comment">-- meters</span>
+  )
+<span class="sql-keyword">ORDER BY</span> distance_meters;
+</code></pre>
+<p><code>ST_DWITHIN</code> is a <code>WHERE</code> predicate like any other; the engine handles the spherical geometry.</p>
+<hr />
+<h2>Generative AI: Semantic Understanding</h2>
+<p>LLM functions turn a column of free text into a column of structured output, in the same query that filters and sorts it.</p>
+<pre><code><span class="sql-comment">-- Tag, summarize, and translate songs with an LLM (BigQuery)</span>
+<span class="sql-keyword">SELECT</span>
+  title,
+  artist,
+  AI.CLASSIFY(lyrics, [&quot;Happy&quot;, &quot;Melancholic&quot;, &quot;Energetic&quot;, &quot;Chill&quot;]) <span class="sql-keyword">AS</span> vibe,
+  AI.GENERATE(&quot;Summarize the emotional arc <span class="sql-keyword">IN</span> one sentence&quot;, lyrics) <span class="sql-keyword">AS</span> ai_summary,
+  AI.TRANSLATE(title, &quot;Spanish&quot;) <span class="sql-keyword">AS</span> title_es
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span>
+<span class="sql-keyword">WHERE</span> AI.IF(&quot;The song <span class="sql-keyword">IS</span> about a summer romance&quot;, lyrics)
+  <span class="sql-keyword">AND</span> play_count &gt; <span class="sql-number">100000</span>;
+</code></pre>
+<hr />
+<h2>User-Defined Functions: Custom Logic</h2>
+<p>A UDF puts your business logic inside SQL: define it once, call it like any built-in. Use SQL for simple math, JavaScript when SQL alone is not expressive enough.</p>
+<div class="side-by-side align-top">
+<div><h3>Define Once</h3>
+<pre><code><span class="sql-comment">-- SQL UDF: simple, fast, inlined</span>
+<span class="sql-keyword">CREATE</span> TEMP FUNCTION viralScore(plays INT64, shares INT64)
+RETURNS FLOAT64
+<span class="sql-keyword">AS</span> (plays <span class="sql-operator">*</span> <span class="sql-number">0.3</span> <span class="sql-operator">+</span> shares <span class="sql-operator">*</span> <span class="sql-number">10</span>);
+
+<span class="sql-comment">-- JavaScript UDF: when SQL alone falls short</span>
+<span class="sql-keyword">CREATE</span> TEMP FUNCTION normalizeTitle(t STRING)
+RETURNS STRING
+LANGUAGE js <span class="sql-keyword">AS</span> &quot;&quot;&quot;
+  return t.toLowerCase().trim();
+&quot;&quot;&quot;;
+</code></pre></div><div><h3>Use Anywhere</h3>
+<pre><code><span class="sql-keyword">SELECT</span>
+  normalizeTitle(s.title) <span class="sql-keyword">AS</span> title,
+  s.artist,
+  viralScore(s.play_count, s.share_count) <span class="sql-keyword">AS</span> viral_potential
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s
+<span class="sql-keyword">WHERE</span> s.release_year <span class="sql-operator">=</span> <span class="sql-number">2024</span>
+  <span class="sql-keyword">AND</span> s.play_count &gt; <span class="sql-number">1000</span>
+<span class="sql-keyword">ORDER BY</span> viral_potential DESC
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">100</span>;
+</code></pre></div>
+</div>
+<p>A UDF (<code>viralScore</code>) runs per row; a UDAF runs over a group for custom aggregations like a weighted average. Either way, you define it once and reuse it across queries.</p>
+<hr />
+<h2>Try It Yourself: BigQuery Public Datasets</h2>
+<p><em>Optional.</em> If you want to run something now, these work today on the free tier. Skip without losing the thread.</p>
+<pre><code><span class="sql-comment">-- Cafes named Starbucks within 10 km of downtown San Francisco</span>
+<span class="sql-keyword">SELECT</span> name, address, geom
+<span class="sql-keyword">FROM</span> `bigquery-public-data.geo_openstreetmap.planet_features`
+<span class="sql-keyword">WHERE</span> feature_type <span class="sql-operator">=</span> <span class="sql-string">'amenity'</span>
+  <span class="sql-keyword">AND</span> tags[<span class="sql-string">'amenity'</span>] <span class="sql-operator">=</span> <span class="sql-string">'cafe'</span>
+  <span class="sql-keyword">AND</span> tags[<span class="sql-string">'name'</span>] <span class="sql-keyword">LIKE</span> <span class="sql-string">'%Starbucks%'</span>
+  <span class="sql-keyword">AND</span> ST_DWITHIN(geom, ST_GEOGPOINT(<span class="sql-operator">-</span><span class="sql-number">122.4194</span>, <span class="sql-number">37.7749</span>), <span class="sql-number">10000</span>);
+
+<span class="sql-comment">-- COVID variants with more than 10 mutations</span>
+<span class="sql-keyword">SELECT</span> variant_name, country, date, mutation_count
+<span class="sql-keyword">FROM</span> `bigquery-public-data.covid19_genome_sequence.variants`
+<span class="sql-keyword">WHERE</span> mutation_count &gt; <span class="sql-number">10</span>
+<span class="sql-keyword">ORDER BY</span> date DESC;
+</code></pre>
+<hr />
+<h2>The Pattern Holds</h2>
+<p>SQL has absorbed new data types every decade, and the query shape has not changed.</p>
+<pre><code class="language-text">1970s: numbers and text
+1990s: + dates and binary
+2000s: + XML and spatial
+2010s: + JSON and arrays
+2020s: + vectors, geo, and LLM calls
+</code></pre>
+<p>Each decade added functions, not a new language. The <code>SELECT / FROM / WHERE</code> you know already reaches the next data type.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/db-design-bigtech">Database Design at Big-Tech Scale →</a></strong> One node stretches far, but not forever. When analytics start to choke the live database, the stack splits into OLTP, OLAP, and a pipeline between them.</p>

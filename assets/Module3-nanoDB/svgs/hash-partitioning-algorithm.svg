@@ -1,0 +1,84 @@
+<svg viewBox="0 0 1000 570" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="hash-partitioning-algorithm-t hash-partitioning-algorithm-d">
+  <title id="hash-partitioning-algorithm-t">Hash partitioning shown as DISK input on the left, a small RAM workspace in the middle, and DISK partitions on the right</title>
+  <desc id="hash-partitioning-algorithm-d">Hash partitioning shown as DISK input on the left, a small RAM workspace in the middle, and DISK partitions on the right. The disk columns are visibly large; RAM is intentionally small to convey that the input file does not fit in RAM. The source file is read one page at a time into a RAM input-buffer slot. Each row is hashed (h(user_id) % 3) and routed to one of three output buffers. When a buffer fills, it flushes to its partition file on disk. Color key: red is RAM (volatile and limited), green is disk (persistent), grey is out of focus.</desc>
+    <defs>
+        <marker id="ar-hp" markerWidth="14" markerHeight="14" refX="12" refY="5" orient="auto"><polygon points="0 0, 14 5, 0 10" fill="#6B7280"/></marker>
+    </defs>
+    <text x="500" y="34" text-anchor="middle" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#0E0E10">Hash Partitioning: split a too-big-for-RAM file into B partitions</text>
+
+    <g data-step="1">
+    <rect x="20" y="80" width="240" height="440" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="20" y="80" width="240" height="6" rx="10" fill="#059669"/>
+    <text x="140" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#059669">DISK · input</text>
+    <rect x="40" y="148" width="200" height="38" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="167" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">P1</text>
+    <text x="155" y="172" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">42·100  ·  7·200</text>
+    <rect x="40" y="190" width="200" height="38" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="209" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">P2</text>
+    <text x="155" y="214" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13·100  ·  42·300</text>
+    <rect x="40" y="232" width="200" height="38" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="251" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">P3</text>
+    <text x="155" y="256" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">7·100  ·  13·200</text>
+    <rect x="40" y="274" width="200" height="38" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="293" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">P4</text>
+    <text x="155" y="298" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">42·400  ·  99·500</text>
+    <rect x="40" y="316" width="200" height="38" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="335" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">P5</text>
+    <text x="155" y="340" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">88·600  ·  7·700</text>
+    <rect x="40" y="358" width="200" height="38" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="55" y="377" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">P6</text>
+    <text x="155" y="382" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13·800  ·  42·900</text>
+    <text x="140" y="425" text-anchor="middle" font-family="Inter, sans-serif" font-size="17" font-weight="700" fill="#6B7280">⋮</text>
+    <text x="140" y="455" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">+ thousands more pages</text>
+    <text x="140" y="478" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">(won't fit in RAM)</text>
+    </g>
+
+    <g data-step="2">
+    <line x1="265" y1="270" x2="295" y2="270" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-hp)"/>
+    <text x="280" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0E0E10">read</text>
+    <rect x="300" y="180" width="400" height="280" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="300" y="180" width="400" height="6" rx="10" fill="#DC2626"/>
+    <text x="500" y="207" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#DC2626">RAM</text>
+    <text x="320" y="245" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#DC2626">input buffer (1-page slot · swapped each iteration)</text>
+    <rect x="320" y="252" width="360" height="36" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="500" y="274" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">e.g. P3: 7·100, 13·200 · each row hashed, then routed</text>
+    <text x="500" y="307" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#0E0E10">↓  h(user_id) % 3  ↓</text>
+    <text x="320" y="328" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#DC2626">B = 3 output buffers (one per partition)</text>
+    <rect x="320" y="335" width="360" height="34" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="335" y="357" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">B₀</text>
+    <text x="510" y="357" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">42, 99 (h=0), fills then flushes →</text>
+    <rect x="320" y="374" width="360" height="34" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="335" y="396" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">B₁</text>
+    <text x="510" y="396" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">7, 88 (h=1), fills then flushes →</text>
+    <rect x="320" y="413" width="360" height="34" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="335" y="435" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">B₂</text>
+    <text x="510" y="435" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13 (h=2), fills then flushes →</text>
+    <line x1="685" y1="352" x2="735" y2="186" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-hp)"/>
+    <line x1="685" y1="391" x2="735" y2="290" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-hp)"/>
+    <line x1="685" y1="430" x2="735" y2="394" stroke="#6B7280" stroke-width="2" marker-end="url(#ar-hp)"/>
+    <text x="715" y="270" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280" transform="rotate(-50 715 270)">flush</text>
+    <text x="715" y="345" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280" transform="rotate(-25 715 345)">flush</text>
+    <text x="715" y="416" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#6B7280">flush</text>
+    </g>
+
+    <g data-step="3">
+    <rect x="740" y="80" width="240" height="440" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="740" y="80" width="240" height="6" rx="10" fill="#059669"/>
+    <text x="860" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#059669">DISK · partitions</text>
+    <rect x="760" y="148" width="200" height="100" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="775" y="167" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">P₀  (h=0)</text>
+    <text x="860" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">42·100  ·  42·300</text>
+    <text x="860" y="208" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">42·400  ·  99·500</text>
+    <text x="860" y="226" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">42·900  ·  …</text>
+    <rect x="760" y="258" width="200" height="76" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="775" y="277" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">P₁  (h=1)</text>
+    <text x="860" y="300" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">7·200  ·  7·100</text>
+    <text x="860" y="318" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">7·700  ·  …</text>
+    <rect x="760" y="344" width="200" height="76" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="775" y="363" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">P₂  (h=2)</text>
+    <text x="860" y="386" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13·100  ·  13·200</text>
+    <text x="860" y="404" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">13·800  ·  …</text>
+    </g>
+
+    <text x="500" y="552" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = RAM, volatile and limited&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = disk, persistent</tspan></text>
+</svg>

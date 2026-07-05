@@ -1,0 +1,95 @@
+<svg viewBox="0 0 1200 736" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="cte-t cte-d">
+  <title id="cte-t">CTEs: turn nested chaos into named, linear steps</title>
+  <desc id="cte-d">A before-and-after. The left panel (red, the problem) shows three subqueries nested inside one another, read inside-out and hard to debug. The right panel (green, the better way) shows the same logic as three named CTE steps read top to bottom: RockSongs returns {3,4,5,9}, RockListeners returns {1,2,3}, the final query returns {Mickey, Minnie, Daffy}. Color key: red is the hard-to-read nested way, green is the clear CTE way, grey is a neutral step label, and the ink target marks the takeaway.</desc>
+  <defs>
+    <marker id="arrowheadCTE" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280" />
+    </marker>
+  </defs>
+  <text x="600" y="42" text-anchor="middle" style="font-size: 24px; font-weight: 700; fill: #0E0E10;">CTEs: turn nested chaos into named, linear steps</text>
+  <text x="600" y="68" text-anchor="middle" style="font-size: 14px; fill: #6B7280;">Goal: find the users who listen to Rock songs.</text>
+
+  <!-- LEFT: nested subqueries (the problem) -->
+  <g data-step="1" transform="translate(50, 92)">
+    <rect x="0" y="0" width="520" height="600" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+    <rect x="0" y="0" width="520" height="6" rx="3" fill="#DC2626"/>
+    <text x="20" y="38" style="font-size: 17px; font-weight: 700; fill: #DC2626;">Nested subqueries</text>
+    <text x="20" y="60" style="font-size: 14px; fill: #6B7280;">Read inside-out &#183; hard to debug</text>
+
+    <rect x="24" y="80" width="472" height="412" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5" rx="6"/>
+    <text x="40" y="108" style="font-size: 14px; font-weight: 700; fill: #3F3F46;">SELECT name FROM Users</text>
+    <text x="40" y="130" style="font-size: 14px; fill: #6B7280;">WHERE user_id IN ( ... )</text>
+    <text x="484" y="108" text-anchor="end" style="font-size: 12px; font-style: italic; fill: #6B7280;">Step 3 (outer)</text>
+
+    <rect x="56" y="150" width="408" height="312" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5" rx="6"/>
+    <text x="72" y="178" style="font-size: 14px; font-weight: 700; fill: #3F3F46;">SELECT user_id FROM Listens</text>
+    <text x="72" y="200" style="font-size: 14px; fill: #6B7280;">WHERE song_id IN ( ... )</text>
+    <text x="452" y="178" text-anchor="end" style="font-size: 12px; font-style: italic; fill: #6B7280;">Step 2 (middle)</text>
+
+    <rect x="88" y="220" width="344" height="222" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5" rx="6"/>
+    <text x="104" y="248" style="font-size: 14px; font-weight: 700; fill: #3F3F46;">SELECT song_id FROM Songs</text>
+    <text x="104" y="270" style="font-size: 14px; fill: #6B7280;">WHERE genre = 'Rock'</text>
+    <text x="420" y="248" text-anchor="end" style="font-size: 12px; font-style: italic; fill: #6B7280;">Step 1 (innermost)</text>
+
+    <text x="104" y="318" style="font-size: 14px; font-weight: 700; fill: #DC2626;">Problems</text>
+    <text x="104" y="342" style="font-size: 14px; fill: #3F3F46;">&#8226; Must read inside-out</text>
+    <text x="104" y="364" style="font-size: 14px; fill: #3F3F46;">&#8226; Hard to debug a single step</text>
+    <text x="104" y="386" style="font-size: 14px; fill: #3F3F46;">&#8226; Cannot reuse a piece</text>
+
+    <circle cx="240" cy="540" r="16" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="240" y="546" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #6B7280;">?</text>
+    <circle cx="290" cy="540" r="16" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="290" y="546" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #6B7280;">?</text>
+    <circle cx="340" cy="540" r="16" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="340" y="546" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #6B7280;">?</text>
+  </g>
+
+  <!-- RIGHT: CTE approach (the better way) -->
+  <g data-step="2" transform="translate(630, 92)">
+    <rect x="0" y="0" width="520" height="600" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+    <rect x="0" y="0" width="520" height="6" rx="3" fill="#059669"/>
+    <text x="20" y="38" style="font-size: 17px; font-weight: 700; fill: #059669;">CTE approach</text>
+    <text x="20" y="60" style="font-size: 14px; fill: #6B7280;">Linear &#183; clear &#183; maintainable</text>
+
+    <rect x="24" y="80" width="472" height="112" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+    <rect x="36" y="92" width="150" height="26" fill="#6B7280" rx="4"/>
+    <text x="111" y="110" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #FFFFFF;">WITH RockSongs</text>
+    <text x="36" y="142" style="font-size: 14px; font-weight: 700; fill: #3F3F46;">Step 1: find Rock songs</text>
+    <text x="36" y="164" style="font-size: 14px; fill: #6B7280;">SELECT song_id FROM Songs WHERE genre = 'Rock'</text>
+    <text x="36" y="184" style="font-size: 14px; font-weight: 700; fill: #0E0E10;">&#8594; {3, 4, 5, 9}</text>
+
+    <path d="M 260 192 L 260 212" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#arrowheadCTE)"/>
+
+    <rect x="24" y="216" width="472" height="112" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+    <rect x="36" y="228" width="150" height="26" fill="#6B7280" rx="4"/>
+    <text x="111" y="246" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #FFFFFF;">RockListeners</text>
+    <text x="36" y="274" style="font-size: 14px; font-weight: 700; fill: #3F3F46;">Step 2: find users who listened</text>
+    <text x="36" y="292" style="font-size: 13px; fill: #6B7280;">SELECT DISTINCT user_id FROM Listens</text>
+    <text x="36" y="308" style="font-size: 13px; fill: #6B7280;">WHERE song_id IN (SELECT song_id FROM RockSongs)</text>
+    <text x="36" y="324" style="font-size: 14px; font-weight: 700; fill: #0E0E10;">&#8594; {1, 2, 3}</text>
+
+    <path d="M 260 328 L 260 348" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#arrowheadCTE)"/>
+
+    <rect x="24" y="352" width="472" height="112" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="6"/>
+    <rect x="36" y="364" width="150" height="26" fill="#6B7280" rx="4"/>
+    <text x="111" y="382" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #FFFFFF;">Final query</text>
+    <text x="36" y="410" style="font-size: 14px; font-weight: 700; fill: #3F3F46;">Step 3: get user names</text>
+    <text x="36" y="428" style="font-size: 13px; fill: #6B7280;">SELECT name FROM Users</text>
+    <text x="36" y="444" style="font-size: 13px; fill: #6B7280;">WHERE user_id IN (SELECT user_id FROM RockListeners)</text>
+    <text x="36" y="460" style="font-size: 14px; font-weight: 700; fill: #0E0E10;">&#8594; {Mickey, Minnie, Daffy}</text>
+
+    <rect x="24" y="486" width="472" height="96" fill="#FFFFFF" stroke="#059669" stroke-width="1" rx="6"/>
+    <text x="36" y="512" style="font-size: 14px; font-weight: 700; fill: #059669;">Benefits</text>
+    <text x="36" y="534" style="font-size: 14px; fill: #3F3F46;">&#10003; Each step has a name &#160;&#160; &#10003; Self-documenting</text>
+    <text x="36" y="556" style="font-size: 14px; fill: #3F3F46;">&#10003; Easy to debug &#160;&#160;&#160;&#160;&#160; &#10003; Reuse a CTE</text>
+    <text x="36" y="572" style="font-size: 13px; fill: #6B7280;">Test each intermediate result on its own</text>
+  </g>
+
+  <!-- transform arrow between the two panels -->
+  <text x="600" y="372" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #059669;">transform</text>
+  <path d="M 576 384 L 624 384" stroke="#059669" stroke-width="3" fill="none" marker-end="url(#arrowheadCTE)"/>
+
+  <!-- takeaway folded into the figure caption -->
+
+  <text x="600" y="716" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the hard-to-read nested way&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the clear CTE way&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = a neutral step label</tspan></text>
+</svg>

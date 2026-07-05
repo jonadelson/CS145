@@ -1,0 +1,70 @@
+<h1>Paging &amp; Storage: How Does One Machine Process 128 GB with Only 16 GB of RAM?</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Disks and SSDs read in fixed-size pages (typically 64 MB in big-data systems). One IO costs the same whether you read one byte or a full page, so algorithms minimise page count, not byte count.</p>
+<p><strong>Intuition.</strong> How do you process 128 GB on a machine with 16 GB of RAM? You read it 64 MB at a time. The disk hands you a full page on every IO whether you want one byte or all of it, so algorithms count pages, not bytes, and the page that holds Mickey's listens costs the same whether you're after one row or fifty.</p>
+</div>
+<h2>Paging: From CPU to RAM</h2>
+<p>The CPU never touches the SSD, and it does not work on RAM directly either. The core computes out of its registers and L1/L2/L3 cache, which the hardware fills from RAM in 64-byte cache lines. Pages live one level down: data crosses between SSD and RAM one fixed-size page at a time, and one page moved is one IO. A page is 8 KB in classic Unix and relational databases like PostgreSQL; big-data systems use 64 MB.</p>
+<p><img src="assets/Module2-Systems/svgs/paging-cpu-ram.svg"
+     alt="Three tiers left to right: a CPU working out of registers and L1/L2/L3 cache (filled from RAM in 64-byte cache lines, in nanoseconds), RAM (16 GB, 256 page slots) in the middle, and an SSD (128 GB, 2048 pages) on the right as a grid of same-size cells with one highlighted orange as it is paged into a free RAM slot, labeled one page, 64 MB, one IO, transfer-bound at about 5 GB/s so about 13 ms."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Two transfer units, one per level. Between SSD and RAM the unit is a page: one 64 MB block is one IO, costing the same whether you need one row or the whole block, and even on a fast SSD it is transfer-bound, so moving 64 MB at about 5 GB/s takes ~13 ms. Between RAM and the CPU the unit is a 64-byte cache line, pulled into L1/L2/L3 in nanoseconds; the core works only out of cache and registers, never the SSD. RAM holds 256 pages (16 GB) and the SSD 2048 (128 GB), drawn as same-size cells, so the data streams through the small RAM window one page at a time.</p>
+</div>
+<hr />
+<h2>Why Paging Matters: The Speed Gap</h2>
+<p>Nanoseconds and milliseconds are hard to feel, so the cost of falling to disk stays abstract. Rescale every access as if a cache hit took one second, and the hierarchy turns visceral.</p>
+<p><a id="speed-gap"></a></p>
+<p><img src="assets/Module2-Systems/svgs/storage-human-time.svg"
+     alt="Four storage tiers rescaled as if an L1 cache hit took one second: cache 1 second, RAM 1.5 minutes (100x slower), SSD 3 hours (another 100x), hard disk 4 months (another 1000x). Paging keeps the working set in the fast tiers, so a read is a short pause, not a months-long wait."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The same latencies, scaled so a cache hit is one second. RAM becomes a 1.5-minute pause, an SSD read an afternoon, and a hard disk read four months. That gap is what paging fights: it keeps your working set in RAM so a read costs a pause, not a season. A query that falls to disk on every page pays the four-month rate, one page at a time.</p>
+</div>
+<hr />
+<h2>Storage Hierarchy: Speed, Cost, and Capacity</h2>
+<p>Faster storage costs more and holds less. RAM is about 100x faster than SSD and 100,000x faster than HDD, and price per terabyte runs the opposite way.</p>
+<p><img src="assets/Module2-Systems/svgs/storage-hierarchy.svg"
+     alt="Four storage tiers as a descending staircase: cache and registers at ~1 ns, RAM at 100 ns, SSD 100x slower at 10 µs, HDD another 1,000x slower at 10 ms, with a left axis from faster/costlier/smaller down to slower/cheaper/bigger."
+     style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> The storage hierarchy is a staircase. Each step down is roughly 100x to 1,000x slower but far cheaper per terabyte and far larger: RAM at 100 ns and $3,500/TB, SSD at 10 µs and $75/TB, HDD at 10 ms and $25/TB. An algorithm cannot beat this ladder; it can only choose which tier its working set lives in.</p>
+</div>
+<hr />
+<h2>IO Cost Definitions</h2>
+<p>IO cost is two numbers: a fixed startup overhead, then a sustained transfer rate.</p>
+<div class="v5-callout v5-callout--info">
+<p><strong>Access Latency</strong>: time to initiate an IO before any data moves</p>
+<ul>
+<li>A fixed overhead paid once per IO, independent of size (the per-tier values are in the hierarchy above)</li>
+</ul>
+<p><strong>Throughput</strong>: the sustained transfer rate once data starts moving</p>
+<ul>
+<li>RAM 100 GB/s, SSD 5 GB/s, HDD 100 MB/s (not shown above; this is the other half of the cost)</li>
+</ul>
+</div>
+<p><strong>Key Insight</strong>: For large pages (64MB), transfer time dominates access time. For small pages, access time dominates. </p>
+<p><strong>Refresher</strong>: Read your OS materials on how the OS' IO controllers work. DBs rely on OS for those details.</p>
+<hr />
+<h2>Modern Reality: CPUs/GPUs Can't Escape the Disk Bottleneck</h2>
+<h3>The 10,000,000× Gap</h3>
+<p>The gap between storage and compute is not 10x, it is 10,000,000x: one HDD seek (10 ms) is the time a GPU needs for ten million operations. Even with the data on a fast SSD, the slow part is the link that feeds the processor, not the math.</p>
+<p><img src="assets/Module2-Systems/svgs/single-machine-datapath.svg"
+     alt="Two single-machine setups, a laptop and a server, each a vertical data path: grey compute (CPU plus GPU) at the top, a red-strip RAM box (volatile) in the middle, a green-strip NVMe SSD box (durable) at the bottom, joined by orange links labeled with bandwidth (PCIe ~32 GB/s, SSD ~5 GB/s). The server has more cores, RAM, and SSDs but the same per-link speed."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Inside one machine the processor is never the slow part. The GPU (grey, effectively free) does ~3x10<sup>14</sup> ops/s, but the links that feed it (orange) move only ~32 GB/s over PCIe and ~5 GB/s from an SSD. Reading a 1 TB dataset across the PCIe link to the GPU takes ~30 s; the computation over it takes ~0. RAM (red) is volatile and the SSD (green) is durable, but both sit behind the same narrow link. A server adds cores, RAM, and SSDs (more capacity, more devices), never link speed, so the bottleneck is the same on a laptop and a rack.</p>
+</div>
+<h3>GPUs Are Data Hungry</h3>
+<p>The bottleneck chain:</p>
+<ol>
+<li>
+<p><strong>Data lives on disk</strong> - Your 1TB dataset won't fit in 80GB GPU memory (e.g. A100 has 80GB in 2025)</p>
+</li>
+<li>
+<p><strong>PCI interfaces between hardware components are narrow</strong> - 32GB/s seems fast until you have 1TB to move</p>
+</li>
+<li>
+<p><strong>Compute is free</strong> - 312 TFLOPS means compute takes ~0 time</p>
+</li>
+</ol>

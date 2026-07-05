@@ -1,0 +1,261 @@
+{
+  "module": "Module6-Data-Systems",
+  "title": "Patterns of Big Data Systems",
+  "questions": [
+    {
+      "id": "m6-q01",
+      "category": "DB Design for a Startup",
+      "page": "Module6-Data-Systems/db-design-startup",
+      "difficulty": "intro",
+      "question": "According to the course, why should a startup begin with a single managed PostgreSQL node instead of a distributed \"web-scale\" setup?",
+      "options": [
+        "Postgres is the only database that can later be sharded",
+        "Distributed databases cannot store more than 100 GB",
+        "A startup's real risk is corrupting its first users' data, and single-node Postgres gives ACID guarantees while handling the scale most apps will ever see",
+        "NoSQL databases are illegal to use with personal data"
+      ],
+      "correct": 2,
+      "explanation": "95% of data apps never exceed a single node, and the true early threat is data corruption, not scale — ACID on one boring, managed Postgres node is the safety net (Instagram and WhatsApp rode it to huge exits). The other options invent constraints the course never claims; distributed systems scale fine, they're just premature complexity."
+    },
+    {
+      "id": "m6-q02",
+      "category": "DB Design for a Startup",
+      "page": "Module6-Data-Systems/db-design-startup",
+      "difficulty": "core",
+      "question": "A user saves an edit and immediately reloads the page, but their change is missing. The app uses one Postgres primary plus read replicas. What most likely happened, and what is the standard fix?",
+      "options": [
+        "The write was lost by the primary; the fix is enabling ACID transactions",
+        "The reload was served by a replica that lags the primary; the fix is routing that specific read back to the primary (read-your-writes)",
+        "The replica rejected the write; the fix is sending writes to all replicas simultaneously",
+        "The cache was polluted by an analytical scan; the fix is adding more replicas"
+      ],
+      "correct": 1,
+      "explanation": "Replication is asynchronous, so a replica can trail the primary by milliseconds and miss a just-committed write; the \"read-your-writes\" exception routes reads that must see the user's own edits to the primary. Replicas never take writes at all — every write goes to the primary — so options about writes to replicas misread the architecture."
+    },
+    {
+      "id": "m6-q03",
+      "category": "SQL's Complex Types",
+      "page": "Module6-Data-Systems/sql-beyond-tables",
+      "difficulty": "intro",
+      "question": "Your app stores a small amount of flexible, per-order JSON data. Per the course, what does a <code>JSONB</code> column in one Postgres node give you that a separate NoSQL document store would not?",
+      "options": [
+        "A flexible document schema while keeping ACID transactions and joins with the rest of your relational data",
+        "Faster writes than any NoSQL system at any scale",
+        "Automatic sharding across multiple machines",
+        "A guarantee that the JSON documents all share the same structure"
+      ],
+      "correct": 0,
+      "explanation": "JSONB gives document flexibility inside the same engine that provides ACID and joins, which is exactly why much of the NoSQL use case folded back into SQL. It does not enforce a shared document structure (that flexibility is the point), and it says nothing about sharding or beating NoSQL on raw write speed."
+    },
+    {
+      "id": "m6-q04",
+      "category": "SQL's Complex Types",
+      "page": "Module6-Data-Systems/sql-beyond-tables",
+      "difficulty": "core",
+      "question": "The course shows queries using <code>ST_DWITHIN(...)</code> for geography and <code>AI.CLASSIFY(...)</code> for LLM tagging. What larger pattern do these examples illustrate?",
+      "options": [
+        "Each new data type requires learning a separate query language",
+        "Geo and AI workloads must run in a specialized database, not SQL",
+        "SQL only supports these types through external Python scripts",
+        "SQL absorbs new data types by adding functions while the SELECT/FROM/WHERE query shape stays the same"
+      ],
+      "correct": 3,
+      "explanation": "The page's central claim is that the query shape never changes — every decade (XML, spatial, JSON, vectors, LLM calls) added functions dropped into ordinary clauses, not a new language. That is the opposite of needing a specialized database or separate language, which is the tempting but wrong intuition the page argues against."
+    },
+    {
+      "id": "m6-q05",
+      "category": "DB Design for Big Tech",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "difficulty": "stretch",
+      "question": "Postgres uses MVCC, so a read-only analytical scan takes no row locks that block writers. Why, then, does running petabyte-scale analytics on the live OLTP database still hurt user-facing queries?",
+      "options": [
+        "MVCC only applies to single-row reads, so big scans do take locks",
+        "Analytical queries always run at a higher priority than user queries",
+        "Resource contention: the scan saturates CPU and disk I/O, evicts hot pages from the cache, and holds a snapshot open that stalls VACUUM cleanup",
+        "The scan forces the primary to stop streaming to its replicas"
+      ],
+      "correct": 2,
+      "explanation": "The course stresses the problem is not lock contention but resource contention at three levels: CPU/I-O saturation, cache pollution, and a long-held read snapshot that keeps VACUUM from reclaiming dead rows so the database bloats. The first option is the tempting misconception the page explicitly corrects — MVCC really does avoid those locks."
+    },
+    {
+      "id": "m6-q06",
+      "category": "DB Design for Big Tech",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "difficulty": "core",
+      "question": "A genre-trends query scans 5 TB in about 15 seconds on BigQuery but would take hours on one Postgres node. What is the main reason for the difference?",
+      "options": [
+        "BigQuery skips reading most of the data by sampling rows",
+        "Parallelism: the scan is split across many machines, so 100 machines each scan a small slice and finish ~100x faster",
+        "BigQuery caches every possible query result in advance",
+        "OLAP systems store fewer rows because they delete history"
+      ],
+      "correct": 1,
+      "explanation": "The page's arithmetic: one machine scanning 1 TB at 5 GB/s takes 200 s, while 100 machines scanning 10 GB each take 2 s — same total work, split across a cluster. OLAP warehouses do not sample or discard data to get their speed; they parallelize the full scan."
+    },
+    {
+      "id": "m6-q07",
+      "category": "DB Design for Big Tech",
+      "page": "Module6-Data-Systems/db-design-bigtech",
+      "difficulty": "stretch",
+      "question": "A nightly Spark job extracts data by running <code>SELECT * FROM listens WHERE date = YESTERDAY</code> against the OLTP database. Compared with Change Data Capture (tailing the write-ahead log), which problem does the batch pull have that CDC fixes?",
+      "options": [
+        "Deleted rows never propagate, because a SELECT cannot see rows that no longer exist — while CDC streams every insert, update, AND delete from the WAL",
+        "The batch pull cannot read tables with JSONB columns",
+        "CDC compresses the data, while batch pulls send it uncompressed",
+        "The batch pull only works if the OLTP database is offline"
+      ],
+      "correct": 0,
+      "explanation": "The page lists three problems with periodic pulls — it loads the primary with the exact analytical scan you're avoiding, data is only as fresh as the batch interval, and deletes are invisible to a SELECT — and CDC fixes all three by tailing the WAL, where every committed change (including deletes) is already recorded. The other options invent limitations that don't exist."
+    },
+    {
+      "id": "m6-q08",
+      "category": "SQL vs NoSQL",
+      "page": "Module6-Data-Systems/case-study-nosql",
+      "difficulty": "intro",
+      "question": "How does the course describe the history of the SQL-versus-NoSQL choice?",
+      "options": [
+        "NoSQL fully replaced SQL once data outgrew single machines",
+        "SQL and NoSQL have always served identical workloads",
+        "It flipped twice: teams left SQL for NoSQL's horizontal scale, then distributed SQL plus JSONB/vector columns brought most workloads back to SQL",
+        "SQL was invented after NoSQL to fix its consistency problems"
+      ],
+      "correct": 2,
+      "explanation": "Early Big Data teams traded ACID for horizontal scale; now distributed SQL delivers cluster scale without giving up SQL, and JSONB (first-class in Postgres since 9.4 in 2014) absorbed the \"flexible schema\" use case — Pinterest's move off HBase and Spanner becoming a SQL system are the cited examples. The other options miss the two-directional flip that is the point of the case study."
+    },
+    {
+      "id": "m6-q09",
+      "category": "SQL vs NoSQL",
+      "page": "Module6-Data-Systems/case-study-nosql",
+      "difficulty": "core",
+      "question": "Per the course's \"2026 view,\" which situation genuinely justifies leaving modern SQL for an ultra-specialized system?",
+      "options": [
+        "Storing user preferences that vary from user to user",
+        "Needing sub-millisecond key lookups (key-value store) or friend-of-a-friend traversals (graph database)",
+        "Storing AI embeddings for a recommendation feature",
+        "Needing to add a new attribute without a table migration"
+      ],
+      "correct": 1,
+      "explanation": "The remaining ~20% where specialization wins is narrow: ultra-fast key-value lookups and relationship-heavy graph queries. The other three are exactly the cases modern SQL absorbed — flexible preferences go in a JSONB column (no migration needed) and embeddings go in a vector column, all in one Postgres table."
+    },
+    {
+      "id": "m6-q10",
+      "category": "Key-Value Stores",
+      "page": "Module6-Data-Systems/case-study-keyvalue",
+      "difficulty": "core",
+      "question": "Why does Spotify store a song's audio file or lyrics in a key-value store (or in S3 with a key-value index) rather than in SQL columns?",
+      "options": [
+        "SQL databases cannot store text longer than 255 characters",
+        "Key-value stores enforce stronger integrity constraints on media files",
+        "Audio files must be encrypted, and SQL cannot store encrypted data",
+        "SQL engines excel at scanning many small typed rows, and huge opaque blobs disrupt that efficiency — so store the blob by key and keep the structured facts in SQL"
+      ],
+      "correct": 3,
+      "explanation": "The course's image is cramming a video into a spreadsheet cell: SQL shines at slicing billions of tiny rows (who played what, when), while a 10 GB blob is better fetched in one hop by key — often with the file in S3 and the key-value store as the index to its location. Key-value stores actually have LOWER integrity guarantees (the app handles integrity), so that distractor inverts the tradeoff table."
+    },
+    {
+      "id": "m6-q11",
+      "category": "Key-Value Stores",
+      "page": "Module6-Data-Systems/case-study-keyvalue",
+      "difficulty": "stretch",
+      "question": "In Cassandra, <code>plays_by_user</code> is defined with <code>PRIMARY KEY ((user_id), played_at)</code> and clustering order <code>played_at DESC</code>. Why is \"Mickey's 20 most recent plays\" so cheap to answer?",
+      "options": [
+        "All of Mickey's plays share one partition key, so they live together on one node, physically sorted newest-first — the query reads the first 20 rows of one partition and stops",
+        "Cassandra keeps every user's full history cached in RAM on every node",
+        "The query is broadcast to all nodes, and each returns its 20 newest rows",
+        "Cassandra builds a global secondary index over played_at across the cluster"
+      ],
+      "correct": 0,
+      "explanation": "The partition key (<code>user_id</code>) decides which node stores the rows, and the clustering column (<code>played_at</code>) decides the physical sort order inside that partition, so the query is a single-partition scan with no scatter-gather and no global sort. The broadcast option describes exactly the cluster-wide work this data model is designed to avoid — modeling the access pattern into the key is the whole game."
+    },
+    {
+      "id": "m6-q12",
+      "category": "Zero Trust Security",
+      "page": "Module6-Data-Systems/data-security",
+      "difficulty": "intro",
+      "question": "What is the core principle of Zero Trust security as presented in the course?",
+      "options": [
+        "Build one very strong firewall so nothing hostile gets inside the network",
+        "Assume every layer — network, users, admins, code, backups — is already compromised, and verify every request instead of trusting any boundary",
+        "Trust internal traffic but verify all external traffic",
+        "Encrypt the database so that no verification is needed"
+      ],
+      "correct": 1,
+      "explanation": "Zero Trust treats all five surfaces as hostile until verified — the 2024 mega-breaches (plaintext passwords, missing MFA, stolen credentials) were each one trusted surface that should have been verified. A stronger wall around one boundary, or trusting the internal network, is precisely the perimeter mindset Zero Trust rejects."
+    },
+    {
+      "id": "m6-q13",
+      "category": "Zero Trust Security",
+      "page": "Module6-Data-Systems/data-security",
+      "difficulty": "core",
+      "question": "A login form builds its query by string concatenation, and an attacker submits <code>Robert'; DROP TABLE users; --</code>. Why does switching to a parameterized query stop the attack?",
+      "options": [
+        "Parameterized queries scan the input and delete dangerous keywords like DROP",
+        "Parameterized queries run with read-only database permissions",
+        "The input is sent separately from the query text and bound as one literal value, so the database just searches for a user with that odd name and drops nothing",
+        "Parameterized queries encrypt the input before it reaches the database"
+      ],
+      "correct": 2,
+      "explanation": "With concatenation, the attacker's quote closes the string and the rest of the input executes as a new command; parameterization sends input and query text separately, so the whole string is treated as a single value to match. It is not keyword filtering or encryption — the fix is mechanical: never concatenate input into SQL."
+    },
+    {
+      "id": "m6-q14",
+      "category": "Data Privacy",
+      "page": "Module6-Data-Systems/data-privacy",
+      "difficulty": "core",
+      "question": "Netflix replaced names with random IDs before releasing 100M ratings, yet researchers re-identified users in 2007. How?",
+      "options": [
+        "A linkage attack: they joined the ratings to public IMDB reviews on shared (movie, rating, date) pairs, matching anonymous IDs to real names",
+        "They decrypted the random IDs using Netflix's leaked key",
+        "Netflix accidentally left real names in a hidden column",
+        "They guessed passwords for the accounts behind each ID"
+      ],
+      "correct": 0,
+      "explanation": "Rare rating combinations are quasi-identifiers — about 8 ratings with dates make you roughly 99% unique — so joining against a public dataset where people review under real names breaks the anonymity. No decryption or leak was needed, which is the lesson: removing names does nothing when the remaining attributes are that unique."
+    },
+    {
+      "id": "m6-q15",
+      "category": "Data Privacy",
+      "page": "Module6-Data-Systems/data-privacy",
+      "difficulty": "stretch",
+      "question": "You must publicly release aggregate statistics from a sensitive dataset using differential privacy. Compared to the epsilon used for internal analytics (ε = 10), what should you choose and why?",
+      "options": [
+        "A higher epsilon, because public releases need more accurate numbers",
+        "The same epsilon, because epsilon only affects query speed",
+        "Epsilon of exactly 1.0, which is required by GDPR for all public data",
+        "A much lower epsilon (e.g. 0.1), accepting more noise in exchange for stronger privacy, since lower ε means more noise and more privacy"
+      ],
+      "correct": 3,
+      "explanation": "Epsilon is the privacy budget: lower means more noise and more privacy, and the course's table pairs ε = 0.1 (±100% noise) with public release versus ε = 10 (±1-2%) for internal analytics. Choosing a higher epsilon for public data inverts the trade-off — more exposure is exactly when you spend more accuracy to buy privacy; and no regulation fixes a specific ε value."
+    },
+    {
+      "id": "m6-q16",
+      "category": "Privacy Case Study",
+      "page": "Module6-Data-Systems/case-study-privacy",
+      "difficulty": "core",
+      "question": "In the \"Bob\" example, an attacker knows Bob was off work one day and sees a single visit to a nearby COVID testing center in the anonymized mobility data. How did Google's published reports prevent this re-identification?",
+      "options": [
+        "By deleting all visits to sensitive locations from the reports",
+        "By adding calibrated differential-privacy noise to location counts, so no individual visit stands out while aggregate trends stay accurate",
+        "By only releasing data for users who logged in with real names",
+        "By publishing exact counts but delaying them by 30 days"
+      ],
+      "correct": 1,
+      "explanation": "A unique visit on a known day is enough to triangulate a person even without names, so Google added Laplacian noise (e.g. a true count of 100 might publish as 98 or 103) — each run differs slightly, but the trend across locations remains useful to public health. Deleting sensitive locations or delaying exact counts would either destroy the reports' purpose or leave the unique-visit fingerprint intact."
+    },
+    {
+      "id": "m6-q17",
+      "category": "Big Data Economics",
+      "page": "Module6-Data-Systems/sql-trends",
+      "difficulty": "core",
+      "question": "Why does separating storage from compute (as in modern data lakes and Apache Iceberg) save so much money for a 100 TB dataset queried once a week?",
+      "options": [
+        "Object storage compresses data 100x better than database clusters",
+        "Separated systems skip writing data to disk entirely",
+        "Queries run faster on object storage than on local SSDs",
+        "Raw data sits in dirt-cheap object storage that scales for pennies, and expensive compute (CPU/RAM) is spun up only for the minutes a query actually runs"
+      ],
+      "correct": 3,
+      "explanation": "A coupled legacy cluster bills an always-on server 24/7 just to hold files that are rarely queried; decoupling parks the data in S3-style storage and rents compute per query, letting each scale independently. The savings come from not paying for idle CPU/RAM — not from compression or raw query speed (object storage is not faster than local SSD)."
+    }
+  ]
+}

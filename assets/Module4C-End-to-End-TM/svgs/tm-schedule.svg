@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 470" role="img" aria-labelledby="ts-t ts-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="ts-t">The interleaved schedule of T1, T2, T3 on A, B, C</title>
+  <desc id="ts-d">A schedule shown as a table of Transaction, Action, Variable, Step, and Value, one row per read or write in step order. T1 touches A, T2 touches A, T3 touches B then C; the three interleave under Strict 2PL. Reads are blue, writes are orange. The database starts at A=19, B=32, C=27 and, if all commit, ends at A=27.36, B=38.4, C=32.4.</desc>
+
+  <text x="60" y="34" font-size="24" font-weight="700" fill="#0E0E10">One interleaved schedule, three transactions</text>
+  <text x="60" y="58" font-size="14" fill="#6B7280">Start values: { A = 19,  B = 32,  C = 27 }   ·   Strict 2PL: each lock is held until COMMIT or ABORT</text>
+
+  <!-- header -->
+  <text x="186" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Transaction</text>
+  <text x="330" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Action</text>
+  <text x="474" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Variable</text>
+  <text x="598" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Step</text>
+  <text x="722" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Value</text>
+  <line x1="120" y1="100" x2="760" y2="100" stroke="#D4D7DC"/>
+
+  <!-- step 1: T2 R A 19 -->
+  <g data-step="1">
+    <text x="186" y="120" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="330" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="474" y="120" text-anchor="middle" font-size="14" fill="#0E0E10">A</text>
+    <text x="598" y="120" text-anchor="middle" font-size="14" fill="#0E0E10">1</text>
+    <text x="722" y="120" text-anchor="middle" font-size="14" fill="#0E0E10">19</text>
+  </g>
+  <!-- step 2: T2 W A 22.8 -->
+  <g data-step="2">
+    <rect x="120" y="128" width="640" height="30" fill="#F7F8FA"/>
+    <text x="186" y="148" text-anchor="middle" font-size="14" fill="#0E0E10">T2</text>
+    <text x="330" y="148" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="474" y="148" text-anchor="middle" font-size="14" fill="#0E0E10">A</text>
+    <text x="598" y="148" text-anchor="middle" font-size="14" fill="#0E0E10">2</text>
+    <text x="722" y="148" text-anchor="middle" font-size="14" fill="#0E0E10">22.8</text>
+  </g>
+  <!-- step 3: T3 R B 32 -->
+  <g data-step="3">
+    <text x="186" y="176" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="330" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="474" y="176" text-anchor="middle" font-size="14" fill="#0E0E10">B</text>
+    <text x="598" y="176" text-anchor="middle" font-size="14" fill="#0E0E10">3</text>
+    <text x="722" y="176" text-anchor="middle" font-size="14" fill="#0E0E10">32</text>
+  </g>
+  <!-- step 4: T1 R A 22.8 -->
+  <g data-step="4">
+    <rect x="120" y="184" width="640" height="30" fill="#F7F8FA"/>
+    <text x="186" y="204" text-anchor="middle" font-size="14" fill="#0E0E10">T1</text>
+    <text x="330" y="204" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="474" y="204" text-anchor="middle" font-size="14" fill="#0E0E10">A</text>
+    <text x="598" y="204" text-anchor="middle" font-size="14" fill="#0E0E10">4</text>
+    <text x="722" y="204" text-anchor="middle" font-size="14" fill="#0E0E10">22.8</text>
+  </g>
+  <!-- step 5: T3 W B 38.4 -->
+  <g data-step="5">
+    <text x="186" y="232" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="330" y="232" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="474" y="232" text-anchor="middle" font-size="14" fill="#0E0E10">B</text>
+    <text x="598" y="232" text-anchor="middle" font-size="14" fill="#0E0E10">5</text>
+    <text x="722" y="232" text-anchor="middle" font-size="14" fill="#0E0E10">38.4</text>
+  </g>
+  <!-- step 6: T1 W A 27.36 -->
+  <g data-step="6">
+    <rect x="120" y="240" width="640" height="30" fill="#F7F8FA"/>
+    <text x="186" y="260" text-anchor="middle" font-size="14" fill="#0E0E10">T1</text>
+    <text x="330" y="260" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="474" y="260" text-anchor="middle" font-size="14" fill="#0E0E10">A</text>
+    <text x="598" y="260" text-anchor="middle" font-size="14" fill="#0E0E10">6</text>
+    <text x="722" y="260" text-anchor="middle" font-size="14" fill="#0E0E10">27.36</text>
+  </g>
+  <!-- step 7: T3 R C 27 -->
+  <g data-step="7">
+    <text x="186" y="288" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="330" y="288" text-anchor="middle" font-size="14" font-weight="700" fill="#2563EB">R</text>
+    <text x="474" y="288" text-anchor="middle" font-size="14" fill="#0E0E10">C</text>
+    <text x="598" y="288" text-anchor="middle" font-size="14" fill="#0E0E10">7</text>
+    <text x="722" y="288" text-anchor="middle" font-size="14" fill="#0E0E10">27</text>
+  </g>
+  <!-- step 8: T3 W C 32.4 -->
+  <g data-step="8">
+    <rect x="120" y="296" width="640" height="30" fill="#F7F8FA"/>
+    <text x="186" y="316" text-anchor="middle" font-size="14" fill="#0E0E10">T3</text>
+    <text x="330" y="316" text-anchor="middle" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="474" y="316" text-anchor="middle" font-size="14" fill="#0E0E10">C</text>
+    <text x="598" y="316" text-anchor="middle" font-size="14" fill="#0E0E10">8</text>
+    <text x="722" y="316" text-anchor="middle" font-size="14" fill="#0E0E10">32.4</text>
+  </g>
+
+  <line x1="120" y1="326" x2="760" y2="326" stroke="#D4D7DC"/>
+  <text x="60" y="356" font-size="14" font-weight="700" fill="#0E0E10">If all three commit: { A = 27.36,  B = 38.4,  C = 32.4 }</text>
+
+  <!-- legend -->
+  <rect x="60" y="392" width="700" height="56" rx="8" fill="#FFFFFF" stroke="#D4D7DC"/>
+  <text x="80" y="416" font-size="13" fill="#3F3F46">Disjoint rows: <tspan font-weight="700">T1</tspan> and <tspan font-weight="700">T2</tspan> share A, <tspan font-weight="700">T3</tspan> owns B and C. They interleave for speed.</text>
+  <text x="80" y="438" font-size="13" fill="#6B7280">Color key:  <tspan fill="#2563EB" font-weight="700">R</tspan> = a read   ·   <tspan fill="#EA580C" font-weight="700">W</tspan> = a write   ·   Value = the variable after that step</text>
+</svg>

@@ -1,0 +1,76 @@
+<svg viewBox="0 0 900 452" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="chr-t chr-d">
+  <title id="chr-t">Consistent hashing: each key goes to the first node clockwise, and adding a node moves only the small arc behind it</title>
+  <desc id="chr-d">A ring spans 0 to 2^32 minus 1. Three grey nodes A at the top, B lower right, C lower left,
+  sit at hashed positions. Three grey keys sit on the ring, and from each a pink arrow walks
+  clockwise to the first node it meets. Then a new node D is added halfway between C and A. Only
+  the keys in the short green arc between C and D move: key 1 leaves A and goes to D. Key 2, which
+  sits past D between D and A, still walks clockwise to A and does not move; nor does key 3. So
+  adding a node shifts only that one small arc, about 1 over N of the keys, not the whole side.
+  Color key: pink is clockwise ownership; green is the small arc of keys that moves to the new
+  node; grey is the ring, the nodes, and the keys.</desc>
+  <defs>
+    <marker id="ah-chr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#DB2777"/></marker>
+    <marker id="ah-chr-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#16A34A"/></marker>
+  </defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The consistent hashing ring</text>
+  <text x="450" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Each key belongs to the first node clockwise. Add a node, and only its short arc of keys moves.</text>
+
+  <g transform="translate(450, 242)">
+    <circle cx="0" cy="0" r="120" fill="none" stroke="#D4D7DC" stroke-width="8"/>
+
+    <!-- Nodes -->
+    <g data-step="1">
+      <circle cx="0" cy="-120" r="18" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+      <text x="0" y="-115" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">A</text>
+      <text x="34" y="-128" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Node A</text>
+      <circle cx="104" cy="60" r="18" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+      <text x="104" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">B</text>
+      <text x="150" y="78" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Node B</text>
+      <circle cx="-104" cy="60" r="18" fill="#FFFFFF" stroke="#6B7280" stroke-width="2"/>
+      <text x="-104" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">C</text>
+      <text x="-150" y="78" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Node C</text>
+    </g>
+
+    <!-- Keys -->
+    <g data-step="2">
+      <circle cx="-120" cy="2" r="6" fill="#6B7280"/>
+      <text x="-142" y="6" text-anchor="middle" font-size="13" fill="#6B7280">key 1</text>
+      <circle cx="-58" cy="-105" r="6" fill="#6B7280"/>
+      <text x="-52" y="-118" text-anchor="middle" font-size="13" fill="#6B7280">key 2</text>
+      <circle cx="105" cy="-58" r="6" fill="#6B7280"/>
+      <text x="127" y="-56" text-anchor="middle" font-size="13" fill="#6B7280">key 3</text>
+    </g>
+
+    <!-- Clockwise ownership (before D): key1->A, key2->A, key3->B -->
+    <g data-step="3">
+      <path d="M -114 -8 Q -80 -104 -16 -120" fill="none" stroke="#DB2777" stroke-width="2.5" marker-end="url(#ah-chr)"/>
+      <path d="M -50 -110 Q -30 -126 -16 -122" fill="none" stroke="#DB2777" stroke-width="2.5" marker-end="url(#ah-chr)"/>
+      <path d="M 110 -46 Q 128 5 110 42" fill="none" stroke="#DB2777" stroke-width="2.5" marker-end="url(#ah-chr)"/>
+    </g>
+
+    <!-- Add node D halfway between C and A: only the short C->D arc moves -->
+    <g data-step="4">
+      <path d="M -104 60 A 120 120 0 0 0 -104 -60" fill="none" stroke="#16A34A" stroke-width="8" opacity="0.55"/>
+      <circle cx="-104" cy="-60" r="18" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
+      <text x="-104" y="-55" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">D</text>
+      <text x="-150" y="-78" text-anchor="middle" font-size="15" font-weight="700" fill="#16A34A">Node D (new)</text>
+      <!-- key1 re-homes to D (green); strike the old key1->A -->
+      <path d="M -116 -10 Q -120 -40 -108 -50" fill="none" stroke="#16A34A" stroke-width="2.5" marker-end="url(#ah-chr-g)"/>
+      <line x1="-78" y1="-72" x2="-64" y2="-58" stroke="#9AA0AA" stroke-width="2"/>
+      <line x1="-78" y1="-58" x2="-64" y2="-72" stroke="#9AA0AA" stroke-width="2"/>
+      <text x="-178" y="18" text-anchor="middle" font-size="13" font-weight="700" fill="#16A34A">only C to D moves</text>
+      <text x="-178" y="36" text-anchor="middle" font-size="12" fill="#3F3F46">key 1 leaves A for D</text>
+      <text x="70" y="-104" text-anchor="middle" font-size="13" fill="#3F3F46">key 2 is past D:</text>
+      <text x="70" y="-88" text-anchor="middle" font-size="13" fill="#3F3F46">still A, does not move</text>
+    </g>
+  </g>
+
+  <g data-step="5">
+    <text x="450" y="414" text-anchor="middle" font-size="14" fill="#3F3F46">Adding a node moves only the small arc behind it, about 1/N of the keys, not the ~75% modulo reshuffles.</text>
+  </g>
+
+  <text x="450" y="440" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = clockwise ownership&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the short arc that moves to the new node&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = ring, nodes, keys</tspan></text>
+</svg>

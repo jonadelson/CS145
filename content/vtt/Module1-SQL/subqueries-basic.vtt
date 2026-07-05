@@ -1,0 +1,193 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.689
+A subquery is a query inside a query, like nesting dolls, and you read it inside out.
+
+00:00:07.689 --> 00:00:13.378
+The innermost query finds Taylor Swift song-IDs: one, two, nine.
+
+00:00:13.378 --> 00:00:19.067
+The middle query wraps it and finds the users who played them: one, two, three.
+
+00:00:19.067 --> 00:00:24.755
+The outer query wraps that and looks up their names: Mickey, Minnie, Daffy.
+
+00:00:24.755 --> 00:00:30.444
+One statement, three nested SELECTs.
+
+00:00:30.444 --> 00:00:36.133
+We will cover three flavors: IN and NOT IN, EXISTS, and Scalar.
+
+00:00:36.133 --> 00:00:39.709
+Here is that as one query.
+
+00:00:39.709 --> 00:00:43.285
+Read it inside out.
+
+00:00:43.285 --> 00:00:46.861
+Step one, the innermost SELECT, finds the Taylor Swift song-IDs.
+
+00:00:46.861 --> 00:00:50.436
+Step two, the middle SELECT, takes that list and finds the distinct users who played them.
+
+00:00:50.436 --> 00:00:54.012
+Step three, the outer SELECT, looks up their names.
+
+00:00:54.012 --> 00:00:57.588
+The database runs them in that exact order.
+
+00:00:57.588 --> 00:01:00.963
+Now walk the data.
+
+00:01:00.963 --> 00:01:04.337
+Step one filters Songs to Taylor Swift, leaving songs one, two, and nine.
+
+00:01:04.337 --> 00:01:07.712
+Step two finds the listens on those songs and takes the distinct users: one, two, three.
+
+00:01:07.712 --> 00:01:11.087
+Step three looks them up in Users.
+
+00:01:11.087 --> 00:01:14.461
+Mickey, Minnie, Daffy.
+
+00:01:14.461 --> 00:01:17.836
+Three rows out.
+
+00:01:17.836 --> 00:01:21.406
+NOT IN just flips the final step.
+
+00:01:21.406 --> 00:01:24.976
+The inner queries are the same: users one, two, three listened to Taylor Swift.
+
+00:01:24.976 --> 00:01:28.546
+The outer query now keeps the users whose ID is NOT in that list.
+
+00:01:28.546 --> 00:01:32.117
+The three who listened drop out.
+
+00:01:32.117 --> 00:01:35.687
+Who is left?
+
+00:01:35.687 --> 00:01:39.257
+Pluto, the only user who never played Taylor Swift.
+
+00:01:39.257 --> 00:01:42.827
+But NOT IN hides a famous NULL trap, coming up.
+
+00:01:42.827 --> 00:01:47.686
+A scalar subquery returns one value.
+
+00:01:47.686 --> 00:01:52.544
+Here is the query: which listens beat the global average rating?
+
+00:01:52.544 --> 00:01:57.403
+The inner subquery runs once: AVG of rating across all Listens, skipping the NULL, which gives four point two.
+
+00:01:57.403 --> 00:02:02.262
+The outer query then keeps every listen rated above four point two.
+
+00:02:02.262 --> 00:02:07.121
+Mickey's four point five stays, his four point two does not, because greater-than is strict.
+
+00:02:07.121 --> 00:02:11.980
+Minnie's two high ratings stay, Daffy's four point nine stays, and Daffy's NULL is unknown, so it drops.
+
+00:02:11.980 --> 00:02:16.838
+Four rows.
+
+00:02:16.838 --> 00:02:21.697
+One value, reused for every row.
+
+00:02:21.697 --> 00:02:24.959
+EXISTS asks a yes-or-no question: does the inner query return even one row?
+
+00:02:24.959 --> 00:02:28.221
+Here, is there any rating above four point five?
+
+00:02:28.221 --> 00:02:31.483
+EXISTS can stop at the first match.
+
+00:02:31.483 --> 00:02:34.745
+How many of the nine rows must it check?
+
+00:02:34.745 --> 00:02:38.006
+Row one, no.
+
+00:02:38.006 --> 00:02:41.268
+Row two, no.
+
+00:02:41.268 --> 00:02:44.530
+Row three, no.
+
+00:02:44.530 --> 00:02:47.792
+Row four, four point seven, yes, and it stops right there.
+
+00:02:47.792 --> 00:02:51.054
+Four rows, not nine.
+
+00:02:51.054 --> 00:02:54.897
+Compare that to COUNT star.
+
+00:02:54.897 --> 00:02:58.740
+To check the count against zero, it must scan all nine rows and build the full total first, even though we only care that one match exists.
+
+00:02:58.740 --> 00:03:02.583
+Same answer, more work.
+
+00:03:02.583 --> 00:03:06.426
+For a presence check, reach for EXISTS.
+
+00:03:06.426 --> 00:03:10.193
+Here is the NULL trap that catches everyone.
+
+00:03:10.193 --> 00:03:13.960
+Run this query: find every listen whose rating is NOT IN Daffy's ratings.
+
+00:03:13.960 --> 00:03:17.728
+What does it return?
+
+00:03:17.728 --> 00:03:21.495
+Zero rows.
+
+00:03:21.495 --> 00:03:25.262
+Here is why.
+
+00:03:25.262 --> 00:03:29.029
+Daffy rated three songs: two point nine, four point nine, and one unrated, a NULL.
+
+00:03:29.029 --> 00:03:32.797
+NOT IN expands into a chain of not-equals.
+
+00:03:32.797 --> 00:03:36.564
+Four point five is not two point nine, true.
+
+00:03:36.564 --> 00:03:40.331
+Not four point nine, true.
+
+00:03:40.331 --> 00:03:44.099
+But four point five not-equal NULL is UNKNOWN, because any comparison with NULL is unknown.
+
+00:03:44.099 --> 00:03:47.866
+TRUE and TRUE and UNKNOWN is UNKNOWN, so WHERE drops every row.
+
+00:03:47.866 --> 00:03:51.633
+The fix is on the right: add AND rating IS NOT NULL, and your six rows come back.
+
+00:03:51.633 --> 00:03:55.906
+That is the whole idea.
+
+00:03:55.906 --> 00:04:00.178
+The inner query returns a table; the outer query treats it like any other table.
+
+00:04:00.178 --> 00:04:04.451
+IN and NOT IN check membership.
+
+00:04:04.451 --> 00:04:08.723
+EXISTS checks whether any row comes back.
+
+00:04:08.723 --> 00:04:12.996
+Scalar returns one value to compare against.
+
+00:04:12.996 --> 00:04:17.268
+Once you can read a nested query inside out, you can answer almost any "users who did X" question SQL can express.

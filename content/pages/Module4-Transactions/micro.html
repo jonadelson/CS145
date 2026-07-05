@@ -1,0 +1,128 @@
+<h1>Microschedules &amp; Deadlock</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> You met the lock manager and one lock's cycle; now it runs <em>many</em> transactions at once. The order it grants locks is the <strong>microschedule</strong>, the time-ordered record of which operation runs when, and overlapping the idle waits is where the speedup comes from. Locking also creates one new risk: two transactions each waiting on the other, a cycle in the <strong>WaitsFor graph</strong>, which the manager breaks by aborting a victim.</p>
+<p><strong>Intuition.</strong> Mickey and Minnie both want to write row A. The lock manager hands A to Mickey, queues Minnie behind him, and writes that order into the schedule. When two transactions each hold a row the other is waiting on, the WaitsFor graph closes into a cycle, and the manager aborts a victim to break it.</p>
+</div>
+<p>The lock manager has three jobs. <a href="#/page/Module4-Transactions/concurrency-stack">Locks Stack &amp; the Lock Manager</a> introduced the manager and its first job, granting and queuing one lock. This page is the other two, now that many transactions are in flight: build a fast schedule, and break the deadlocks that locking makes possible.</p>
+<p><a id="lock-manager-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/lock-manager.svg" alt="Three transactions T1, T2, T3 each send a lock request to a central component, the lock manager, which holds the lock table showing row A held by T1 with T2 and T3 waiting and row B granted to T3. The lock manager does three jobs: grant or queue each request, build the microschedule as the order it grants locks, and detect deadlock by watching the WaitsFor graph for a cycle." style="width:100%; max-width:960px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The lock manager again, all three jobs in one view. Job one, grant or queue, came on the Locks Stack page; this page is jobs two and three: the microschedule it builds as it grants locks, and the WaitsFor cycle it watches for. The rest of the page is those two jobs in motion.</p>
+</div>
+<hr />
+<h2>What the Lock Manager Does</h2>
+<p>Each lock follows the pattern <code>Req → Get → [R/W] → Unl</code>. The rest of this page watches the lock manager grant those across three schedules and one deadlock, building the time-ordered <strong>microschedule</strong> (the record of which operation runs when) as it goes.</p>
+<hr />
+<h2>Reading the Timeline: A Read or Write Takes Time</h2>
+<p>Recall from <a href="#/page/Module4-Transactions/db-locks-2pl">DB Locks &amp; 2PL</a> that an operation is not instant: a read or write takes real time to reach storage and back, and the transaction sits idle in between. The lock manager turns that idle gap into a speedup: it grants another transaction while one waits. The timelines below put a notation on it: a read runs from <strong>Rs</strong> (read start) to <strong>Re</strong> (read end), a write from <strong>Ws</strong> to <strong>We</strong>, and the span between is the <strong>IO lag</strong>.</p>
+<p><a id="io-interleave-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/io-interleave.svg" alt="Two transaction lanes over a time axis. T1 computes, issues a read of B at Rs, then sits idle while the read is in flight to disk and back, until it completes at Re and T1 resumes. T2 runs in exactly that idle gap. Notation: Rs/Re are read start/end, Ws/We are write start/end, and the span between is the IO lag." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Every read and write on the lock manager's timelines below is drawn as a start and an end (Rs to Re, or Ws to We) because the data has to travel to storage and back. While T1's read of B is in flight, the CPU is idle, so the lock manager grants T2 in that gap. The whole point of a microschedule is to make those overlaps visible.</p>
+</div>
+<hr />
+<h2>Example 1: Serial Schedule (S1)</h2>
+<h3>Serial Schedule with T2 → T1 → T3</h3>
+<p>The lock manager's simplest schedule grants one transaction at a time. Three transactions share one CPU core, so the serial run never overlaps a wait with work.</p>
+<div class="core-scheduling">
+<p><img src="assets/Module4-Transactions/svgs/lock-serial.svg" alt="Serial lock schedule running T2, then T1, then T3 with no overlap: a timeline of each transaction's lock operations (Req and Get, read/write start and end, Unl) over 49 time units." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Serial schedule S1 runs T2, then T1, then T3 with no overlap. It is correct by construction but slow: 49 time units end to end, the baseline the interleaved schedules below have to beat. (The serial order is whichever the lock manager picks; any order is equally correct.)</p>
+</div>
+<hr />
+<h2>WaitsFor Graph: Who Waits for Whom</h2>
+<h3>Definitions</h3>
+<p>The lock manager reads its own grant-and-queue state as a graph. Each node is a transaction, and each directed edge points from a waiter to the holder of the lock it needs. Read straight off the graph who is blocked on whom. Most of the time those edges form a chain: every transaction eventually reaches the front and proceeds. Example 4 shows the one case where the edges instead close into a loop.</p>
+<hr />
+<h2>Example 2: Interleaved Schedule (S2) - Fast Execution</h2>
+<h3>Interleaved Schedule with Optimized Performance</h3>
+<div class="micro-scheduling">
+<p><img src="assets/Module4-Transactions/svgs/lock-inter1.svg" alt="Interleaved lock schedule, completion 31 units: a timeline of lock operations for T1, T2, T3, the per-transaction locks, and a WaitsFor graph forming the chain T3 to T1 to T2 with no cycle (no deadlock)." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> When the lock manager interleaves the same transactions, S2 finishes in 31 units, well under the serial 49. Overlapping the lock-free stretches produces the speedup.</p>
+</div>
+<p><strong>Lock sequence:</strong> the lock manager grants T2 lock A at unit 3, releases at 10; T1 then waits and acquires A at 10. The WaitsFor graph is the chain T3 → T1 → T2 (each waits for the next on A). No cycles, no deadlock.</p>
+<hr />
+<h2>Example 3: Interleaved Schedule (S3) - Different Microschedule</h2>
+<h3>Different Interleaved Schedule for Same Transactions</h3>
+<div class="micro-scheduling">
+<p><img src="assets/Module4-Transactions/svgs/lock-inter2.svg" alt="A different interleaved lock schedule, completion 45 units: the lock timeline, the per-transaction locks, and a WaitsFor graph T2 to T1 to T3 (T2 also waits on T3) with no cycle." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 5.</strong> S3 is a different valid interleaving of the same transactions, yet it finishes in 45 units, barely better than serial. Interleaving helps only when it overlaps the right operations; the order the lock manager grants in matters, not just the decision to interleave.</p>
+</div>
+<p><strong>S3 vs S2:</strong> same three transactions, a different lock-acquisition order produces more contention and longer waits. 45 units vs S2's 31. The lock manager's grant order matters as much as the transactions themselves.</p>
+<hr />
+<h2>Example 4: Deadlock Detection</h2>
+<p>This is the deadlock <a href="#/page/Module4-Transactions/db-locks-2pl">Two-Phase Locking</a> flagged as locking's one new risk, now drawn as a WaitsFor cycle.</p>
+<h3>When Cycles Create System Deadlock</h3>
+<div class="micro-scheduling">
+<p><img src="assets/Module4-Transactions/svgs/lock-deadlock.svg" alt="Deadlock with 2 transactions: a lock-schedule timeline (T1 and T2 acquiring and requesting locks on A and B over time), the per-transaction locks, and a WaitsFor graph whose red cycle T1 to T2 to T1 (T1 waits for B held by T2, T2 waits for A held by T1) is the deadlock." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 6.</strong> The same transaction pattern under different timing deadlocks: each transaction holds a ticket the other needs, so the lock manager's WaitsFor graph forms a cycle and neither can proceed. Interleaving buys performance only until a cycle stops everything.</p>
+</div>
+<p><strong>Circular wait:</strong> T1 waits for T2 to release B; T2 waits for T1 to release A. The lock manager's WaitsFor graph has the cycle T1 → T2 → T1. Neither can proceed. Probability rises with more concurrent transactions; the lock manager needs an explicit deadlock-detection-and-resolution mechanism, so it aborts a victim to break the cycle.</p>
+<hr />
+<h2>Performance: Why Interleaved Schedules Win</h2>
+<h3>The Power of Overlapping CPU and IO</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"># of Transactions</th>
+<th style="text-align: right;">IOlag</th>
+<th style="text-align: right;">Serial Time</th>
+<th style="text-align: right;">Interleaved Time</th>
+<th style="text-align: right;">Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">135</td>
+<td style="text-align: right;">68</td>
+<td style="text-align: right;">1.99×</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">225</td>
+<td style="text-align: right;">76</td>
+<td style="text-align: right;">2.96×</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">1,845</td>
+<td style="text-align: right;">229</td>
+<td style="text-align: right;">8.06×</td>
+</tr>
+<tr>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1,485</td>
+<td style="text-align: right;">698</td>
+<td style="text-align: right;">2.13×</td>
+</tr>
+<tr>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">2,475</td>
+<td style="text-align: right;">704</td>
+<td style="text-align: right;">3.52×</td>
+</tr>
+<tr>
+<td style="text-align: right;"><strong>100</strong></td>
+<td style="text-align: right;"><strong>100</strong></td>
+<td style="text-align: right;"><strong>20,295</strong></td>
+<td style="text-align: right;"><strong>825</strong></td>
+<td style="text-align: right;"><strong>24.6×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The bottom row is one specific run: 100 transactions at an IO lag of 100, where interleaving wins <strong>24.6×</strong>. That exact number depends on the IO numbers you plug in. The trend matters more than the exact number: as the IO lag and the number of concurrent transactions grow, the speedup grows with them, reaching roughly <strong>10× to 100×</strong> in IO-bound workloads.</p>
+<p>The lock manager earns that speedup by making readers and writers wait for each other on shared rows. The next page, <a href="#/page/Module4-Transactions/mvcc">MVCC</a>, removes even that wait: readers never block on writers, because each one reads its own version.</p>
+<hr />

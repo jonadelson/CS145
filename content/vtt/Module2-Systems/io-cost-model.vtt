@@ -1,0 +1,172 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.885
+In school we learn algorithm complexity.
+
+00:00:04.885 --> 00:00:07.770
+Big O of n.
+
+00:00:07.770 --> 00:00:10.655
+Big O of n log n.
+
+00:00:10.655 --> 00:00:13.540
+We argue about which sort is faster.
+
+00:00:13.540 --> 00:00:16.426
+As if the difference between n squared and n log n is what matters.
+
+00:00:16.426 --> 00:00:19.311
+Then you walk into a real database with a billion tuples.
+
+00:00:19.311 --> 00:00:22.196
+And none of that analysis predicts what actually happens.
+
+00:00:22.196 --> 00:00:25.081
+The bottleneck is somewhere else.
+
+00:00:25.081 --> 00:00:27.800
+Two worlds.
+
+00:00:27.800 --> 00:00:30.518
+In small data, everything fits in memory.
+
+00:00:30.518 --> 00:00:33.237
+CPU is the bottleneck.
+
+00:00:33.237 --> 00:00:35.955
+Big O of n versus n squared matters.
+
+00:00:35.955 --> 00:00:38.674
+In big data, the data is bigger than RAM.
+
+00:00:38.674 --> 00:00:41.392
+It lives on disk.
+
+00:00:41.392 --> 00:00:44.111
+Now CPU is essentially free.
+
+00:00:44.111 --> 00:00:46.829
+The bottleneck is moving data between disk and CPU.
+
+00:00:46.829 --> 00:00:49.548
+A CPU comparison takes a nanosecond.
+
+00:00:49.548 --> 00:00:52.266
+A disk reed takes ten milliseconds.
+
+00:00:52.266 --> 00:00:54.985
+A factor of ten million.
+
+00:00:54.985 --> 00:00:57.703
+Skipping one disk reed is worth a thousand CPU operations.
+
+00:00:57.703 --> 00:01:00.422
+The two worlds have different physics.
+
+00:01:00.422 --> 00:01:03.876
+The unit the disk likes to move is a page.
+
+00:01:03.876 --> 00:01:07.330
+Sixty-four kilobytes, give or take.
+
+00:01:07.330 --> 00:01:10.784
+You do not reed a single tuple off disk.
+
+00:01:10.784 --> 00:01:14.238
+You reed the whole page.
+
+00:01:14.238 --> 00:01:17.692
+So the cost model becomes simple.
+
+00:01:17.692 --> 00:01:21.146
+C sub r times pages reed, plus C sub w times pages written.
+
+00:01:21.146 --> 00:01:24.600
+Everything else, the comparisons, loops, arithmetic, is essentially nothing.
+
+00:01:24.600 --> 00:01:28.054
+Count pages and you have ranked the algorithms correctly.
+
+00:01:28.054 --> 00:01:31.695
+Example one.
+
+00:01:31.695 --> 00:01:35.336
+An algorithm that reeds every page once, then writes every page once.
+
+00:01:35.336 --> 00:01:38.976
+Cost: C sub r times P of R, plus C sub w times P of R.
+
+00:01:38.976 --> 00:01:42.617
+The simplest baseline.
+
+00:01:42.617 --> 00:01:46.258
+Any algorithm that touches every page exactly twice lives here.
+
+00:01:46.258 --> 00:01:49.584
+Example two.
+
+00:01:49.584 --> 00:01:52.910
+A multi-pass algorithm.
+
+00:01:52.910 --> 00:01:56.237
+Reeds the same pages seven times, writes them three times.
+
+00:01:56.237 --> 00:01:59.563
+Cost: C sub r times seven P of R, plus C sub w times three P of R.
+
+00:01:59.563 --> 00:02:02.889
+Still linear in table size.
+
+00:02:02.889 --> 00:02:06.215
+Just a bigger constant.
+
+00:02:06.215 --> 00:02:09.542
+The constant is the number of passes.
+
+00:02:09.542 --> 00:02:12.868
+Saving one pass is the single biggest optimization for sort and join algorithms.
+
+00:02:12.868 --> 00:02:16.251
+Example three.
+
+00:02:16.251 --> 00:02:19.635
+A logarithmic algorithm.
+
+00:02:19.635 --> 00:02:23.018
+Reeds P of R pages log P of R times.
+
+00:02:23.018 --> 00:02:26.402
+Writes a small fraction times the tuple count.
+
+00:02:26.402 --> 00:02:29.785
+The log term shows up whenever you walk a search tree, like a B-plus-tree index lookup.
+
+00:02:29.785 --> 00:02:33.169
+The writes per tuple look bad on paper.
+
+00:02:33.169 --> 00:02:36.552
+They are usually trivial because they hit buffer pages, not the disk directly.
+
+00:02:36.552 --> 00:02:40.087
+Next time you optimize a query, do not think about big O of n.
+
+00:02:40.087 --> 00:02:43.623
+Think about how many pages each algorithm touches.
+
+00:02:43.623 --> 00:02:47.158
+The right algorithm is the one that touches fewer pages.
+
+00:02:47.158 --> 00:02:50.693
+Even if the in-memory analysis says it should be slower.
+
+00:02:50.693 --> 00:02:54.228
+In big data, the disk wins every argument.
+
+00:02:54.228 --> 00:02:57.763
+The way to make the disk lose is to give it fewer pages to fetch.
+
+00:02:57.763 --> 00:03:01.299
+That is what the next set of algorithms is about.
+
+00:03:01.299 --> 00:03:04.834
+Hashing first.

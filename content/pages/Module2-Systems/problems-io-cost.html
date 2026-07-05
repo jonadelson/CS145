@@ -1,0 +1,321 @@
+<h1>Problems: IO Cost Model</h1>
+<h2>Reference</h2>
+<p>For the official formulas and notation, check the <a href="#/page/Module2-Systems/io-reference">IO Reference Sheet</a>.</p>
+<div style="max-width: 900px; margin: 2rem auto;">
+<p><img src="assets/Module2-Systems/iocosts-block1.png" alt="IO Cost Model Reference Card" style="width: 60%; border: 2px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></p>
+</div>
+<h2>Setup</h2>
+<p><strong>System Configuration:</strong></p>
+<ul>
+<li>
+<p><strong>Page Size</strong>: 64 MB</p>
+</li>
+<li>
+<p><strong>Spotify Songs Table</strong>: 500 million rows × 1024 bytes/row</p>
+</li>
+<li>
+<p><strong>Formulas and Device Specs</strong>: Refer to the <a href="#/page/Module2-Systems/io-reference">IO Reference Sheet</a> for C_r/C_w formulas</p>
+</li>
+</ul>
+<p><strong>Quick Reference (64MB pages):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>C_r = C_w</th>
+<th>Access + Transfer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RAM</strong></td>
+<td>0.00064s</td>
+<td>100ns + 64MB/100GB/s</td>
+</tr>
+<tr>
+<td><strong>SSD</strong></td>
+<td>0.01281s</td>
+<td>10μs + 64MB/5GB/s</td>
+</tr>
+<tr>
+<td><strong>HDD</strong></td>
+<td>0.65s</td>
+<td>10ms + 64MB/100MB/s</td>
+</tr>
+<tr>
+<td><strong>Network</strong></td>
+<td>0.00641s</td>
+<td>1μs + 64MB/10GB/s</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Problem 1: Table Size Calculation</h2>
+<p>The Spotify Songs table has 500 million rows with an average row size of 1024 bytes. Calculate:</p>
+<ol>
+<li>
+<p>Total size in MB</p>
+</li>
+<li>
+<p>Number of 64 MB pages needed</p>
+</li>
+</ol>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<h3>Step 1: Calculate Total Size</h3>
+<pre><code>Total Size = NumRows × RowSize
+         = 500,000,000 × 1024 bytes
+         = 512,000,000,000 bytes
+         = 512,000,000,000 / 1,000,000 MB
+         = 512,000 MB = 512 GB
+</code></pre>
+<h3>Step 2: Calculate Number of Pages</h3>
+<pre><code>numPages = Total Size / Page Size
+        = 512,000 MB / 64 MB
+        = 8,000 pages
+</code></pre>
+<h3>Answer</h3>
+<p><strong>Size: 512,000 MB (512 GB)</strong> | <strong>numPages: 8,000</strong></p>
+</details>
+<hr />
+<h2>Problem 2: Read Cost Comparison</h2>
+<p>Calculate the time (in seconds) to read 100 pages from different storage devices.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<h3>For Each Device:</h3>
+<p><strong>Cost = numPages × C_r</strong> where C_r includes both access time and transfer time:
+<strong>C_r = Access Time + PageSize / Scan Speed</strong></p>
+<h3>RAM:</h3>
+<pre><code>Cost = numPages × C_r = 100 × (100×10⁻⁹ + 64MB/100GB/s)
+     = 100 × (0.0000001 + 0.00064)
+     = 100 × 0.0006401
+     = 0.064 seconds
+</code></pre>
+<h3>SSD:</h3>
+<pre><code>Cost = numPages × C_r = 100 × (10×10⁻⁶ + 64MB/5GB/s)
+     = 100 × (0.00001 + 0.0128)
+     = 100 × 0.01281
+     = 1.281 seconds
+</code></pre>
+<h3>HDD:</h3>
+<pre><code>Cost = numPages × C_r = 100 × (10×10⁻³ + 64MB/100MB/s)
+     = 100 × (0.01 + 0.64)
+     = 100 × 0.65
+     = 65 seconds
+</code></pre>
+<h3>Answer</h3>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Time (seconds)</th>
+<th>Relative Speed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RAM</strong></td>
+<td>0.064</td>
+<td>1× (fastest)</td>
+</tr>
+<tr>
+<td><strong>SSD</strong></td>
+<td>1.281</td>
+<td>20× slower</td>
+</tr>
+<tr>
+<td><strong>HDD</strong></td>
+<td>65.0</td>
+<td>1,016× slower</td>
+</tr>
+</tbody>
+</table>
+</details>
+<hr />
+<h2>Problem 3: Cache Hit Rate Impact</h2>
+<p>You need to read 200 pages with the following cache hierarchy:</p>
+<ul>
+<li>
+<p>Check RAM first for all pages (90% hit rate)</p>
+</li>
+<li>
+<p>For RAM misses (10%): 75% found in SSD, 25% in HDD</p>
+</li>
+</ul>
+<p>Calculate the total read time, including the cost of checking RAM.</p>
+<!-- Cache Hierarchy Visualization -->
+
+<p><img src="assets/Module2-Systems/svgs/cache-hierarchy.svg" alt="200 page reads. The RAM check costs 0.128s and serves 180 pages (90% hit, green); 20 miss. 15 misses go to SSD (0.192s, amber) and 5 to HDD (3.25s, red). Total 3.57s. The 5 HDD reads, 2.5% of the requests, are 91% of the time. Color key: green is a RAM hit, amber is SSD, red is the slow HDD tail, grey is structure." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Of 200 page reads, the RAM check is always paid (200 &#215; 0.00064s = 0.128s) and serves 180 hits at 90% (green); the 20 misses split into 15 SSD fetches (0.192s, amber) and 5 HDD fetches (3.25s, red), for 3.57s total. The point is the tail: those 5 HDD pages are just 2.5% of the workload but 91% of the wall-clock time (3.25 / 3.57). A high cache hit rate is not enough on its own, because the latency of the slowest tier dominates whenever any request falls through to it.</p>
+</div>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<h3>Step 1: Check RAM for ALL pages</h3>
+<pre><code>Must check RAM for all 200 pages to determine hits/misses
+RAM Check Cost = numPages × C_r = 200 × (100ns + 64MB/100GB/s)
+               = 200 × 0.00064 = 0.128 seconds
+
+Results: 180 pages found (90% hit), 20 pages miss (10%)
+</code></pre>
+<h3>Step 2: Fetch misses from lower levels</h3>
+<pre><code>Of the 20 misses:
+  → 15 pages (75%) found in SSD
+  → 5 pages (25%) found in HDD
+
+SSD Fetch Cost = numPages × C_r = 15 × (10μs + 64MB/5GB/s)
+               = 15 × 0.01281 = 0.192 seconds
+
+HDD Fetch Cost = numPages × C_r = 5 × (10ms + 64MB/100MB/s)
+               = 5 × 0.65 = 3.25 seconds
+</code></pre>
+<h3>Step 3: Total Cost</h3>
+<pre><code>Total = RAM Check + SSD Fetch + HDD Fetch
+      = 0.128 + 0.192 + 3.25 = 3.57 seconds
+</code></pre>
+<h3>Answer</h3>
+<p><strong>Total time: 3.57 seconds</strong></p>
+<p><strong>Key Insights</strong>: </p>
+<ol>
+<li>
+<p>You ALWAYS pay the cost to check RAM for all pages - this is how caching works!</p>
+</li>
+<li>
+<p>Even with 90% cache hit rate, the 2.5% that goes to HDD (5 out of 200 pages) dominates the total cost!</p>
+</li>
+</ol>
+</details>
+<hr />
+<h2>Problem 4: Mixed Read/Write Operations</h2>
+<p>You need to:</p>
+<ul>
+<li>
+<p>Read 30 pages</p>
+</li>
+<li>
+<p>Write 10 pages</p>
+</li>
+</ul>
+<p>Calculate total cost for each storage device.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<h3>Cost Formula</h3>
+<p>For mixed operations, calculate each separately:</p>
+<pre><code>Total = Read Cost + Write Cost
+      = numPages(read) × C_r + numPages(write) × C_w
+      = 30 × C_r + 10 × C_w
+</code></pre>
+<p>Since read and write costs are equal for these devices: C_r = C_w</p>
+<pre><code>Total = (30 + 10) × C_r = 40 × C_r
+</code></pre>
+<h3>RAM:</h3>
+<pre><code>Cost = 40 × C_r = 40 × 0.00064s = 0.026 seconds
+</code></pre>
+<h3>SSD:</h3>
+<pre><code>Cost = 40 × C_r = 40 × 0.01281s = 0.512 seconds
+</code></pre>
+<h3>HDD:</h3>
+<pre><code>Cost = 40 × C_r = 40 × 0.65s = 26 seconds
+</code></pre>
+</details>
+<hr />
+<h2>Problem 5: Network vs Local Storage</h2>
+<p>Compare reading 1 page from:</p>
+<ol>
+<li>
+<p>Local RAM</p>
+</li>
+<li>
+<p>Local SSD  </p>
+</li>
+<li>
+<p>Local HDD</p>
+</li>
+<li>
+<p>Network RAM (RAM on another machine)</p>
+</li>
+</ol>
+<!-- Network vs Local Storage Visualization -->
+
+<p><img src="assets/Module2-Systems/svgs/local-vs-network.svg" alt="Local RAM 0.00064s (green), local SSD 0.0128s (amber), local HDD 0.65s (red). A network RAM path, remote read 0.00064s plus 0.0064s transfer plus 0.00064s local write, totals 0.0077s (orange, the path in focus). Network RAM beats local SSD because transfer cost dominates locality. Color key: green fastest, amber SSD, red slow HDD, orange the network path in focus, grey structure." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Reading one 64 MB page costs about 0.00064s from local RAM (green), 0.0128s from local SSD (amber), and 0.65s from local HDD (red). The orange path is network RAM: a remote read (0.00064s) plus network transfer (0.0064s) plus a local write (0.00064s) totals 0.0077s. The point is that this network RAM path beats local SSD, so transfer cost matters more than the local-versus-remote intuition. That is why distributed in-memory caches like Memcached and Redis Cluster beat single-node SSD-backed databases for hot reads, and why data centers expose RAM across racks as if it were local.</p>
+</div>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<h3>Local Storage Costs</h3>
+<p><strong>Local RAM:</strong></p>
+<pre><code>Cost = numPages × C_r = 1 × (100ns + 64MB/100GB/s)
+     = 1 × (0.0000001s + 0.00064s)
+     = 0.0006401 seconds
+</code></pre>
+<p><strong>Local SSD:</strong></p>
+<pre><code>Cost = numPages × C_r = 1 × (10μs + 64MB/5GB/s)
+     = 1 × (0.00001s + 0.0128s)
+     = 0.01281 seconds
+</code></pre>
+<p><strong>Local HDD:</strong></p>
+<pre><code>Cost = numPages × C_r = 1 × (10ms + 64MB/100MB/s)
+     = 1 × (0.01s + 0.64s)
+     = 0.65 seconds
+</code></pre>
+<h3>Network RAM Cost</h3>
+<p>Three steps: Read from remote RAM → Network transfer → Write to local RAM</p>
+<pre><code>Remote RAM read:  numPages × C_r = 1 × 0.0006401 = 0.0006401 seconds
+Network transfer: numPages × C_network = 1 × (1μs + 64MB/10GB/s)
+                = 1 × (0.000001 + 0.0064) = 0.006401 seconds
+Local RAM write:  numPages × C_w = 1 × 0.0006401 = 0.0006401 seconds
+Total:           0.0006401 + 0.006401 + 0.0006401 = 0.0076812 seconds
+</code></pre>
+<h3>Answer</h3>
+<table>
+<thead>
+<tr>
+<th>Storage Type</th>
+<th>Time (seconds)</th>
+<th>Relative to Local RAM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Local RAM</strong></td>
+<td>0.00064</td>
+<td>1× (baseline)</td>
+</tr>
+<tr>
+<td><strong>Network RAM</strong></td>
+<td>0.0077</td>
+<td>12× slower</td>
+</tr>
+<tr>
+<td><strong>Local SSD</strong></td>
+<td>0.0128</td>
+<td>20× slower</td>
+</tr>
+<tr>
+<td><strong>Local HDD</strong></td>
+<td>0.65</td>
+<td>1,016× slower</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Insight</strong>: With modern 10GB/s networks, Network RAM is faster than Local SSD! This is why distributed caching works so well.</p>
+</details>
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>HDDs and SSDs are much slower than RAM</strong> for random access</p>
+</li>
+<li>
+<p><strong>Cache hit rates matter enormously</strong> - even 5% HDD access can dominate</p>
+</li>
+<li>
+<p><strong>Network RAM ≈ Local SSD</strong> in performance</p>
+</li>
+<li>
+<p><strong>Page size affects random access penalty</strong> - larger pages amortize seek cost</p>
+</li>
+<li>
+<p><strong>Moving forward</strong>: We'll count IOs (1 page = 1 IO) to analyze algorithm complexity</p>
+</li>
+</ol>

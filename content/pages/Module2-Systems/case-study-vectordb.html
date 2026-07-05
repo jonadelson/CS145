@@ -1,0 +1,78 @@
+<h1>Case Study 2.3: How OpenAI and Facebook Speed Up Queries with Vector Databases</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> You just built LSH, the simplest approximate-nearest-neighbour (ANN) index. A vector database is the production version of that idea: an ANN index over embeddings (OpenAI's are ~1,536-D), usually IVF or HNSW rather than plain LSH, so "find the 10 most similar" runs in milliseconds instead of comparing the query against every vector.</p>
+<p><strong>Intuition.</strong> An embedding turns meaning into coordinates; similar text sits near in that space. An exact answer needs a distance to every stored vector, O(N) <em>per query</em>, and OpenAI runs billions of queries. The fix is to build the index once and reuse it: an approximate index trades an occasional miss for sub-millisecond lookups, the only thing that scales.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 2.3</span>
+<span>Reading Time: 6 mins</span></p>
+</div>
+<h2>The problem: a dot product against every row</h2>
+<p>OpenAI embeds documents into ~1,536-D vectors and searches billions of them. One nearest-neighbour query, done exactly, compares the query to every stored vector. At a million vectors that is a million 1,536-D L2 distances, about 1.5 billion multiply-adds, scanning ~6 GB, per query. In FAISS that exact index is <code>IndexFlatL2</code>: correct, but O(N), and it does not scale to billions.</p>
+<h2>The fix: an approximate nearest-neighbour index</h2>
+<p><strong>Approximate nearest-neighbour (ANN) search</strong> gives up the guarantee of returning the <em>exact</em> closest vectors for an answer that is almost always right and far cheaper. LSH, the index you built last page, is the simplest ANN method: random hyperplanes bucket similar vectors, you search one bucket. IVF and HNSW are improvements on the same idea, and what a production vector database uses. All three share one goal, look at far fewer than all N:</p>
+<ul>
+<li>
+<p><strong>LSH.</strong> Random-hyperplane buckets, the one you built. Simple; lower recall per byte than the others, so production has mostly moved on, but still ANN.</p>
+</li>
+<li>
+<p><strong>IVF (inverted file).</strong> k-means the vectors into cells; a query probes only the few nearest cells and skips the rest.</p>
+</li>
+<li>
+<p><strong>HNSW (Hierarchical Navigable Small World).</strong> A <em>hierarchy</em> of proximity graphs: short near-neighbour links at the bottom, sparse long-range links on top. A query enters at the top and greedy-hops down toward itself. Best recall per millisecond, more memory; the common production default.</p>
+</li>
+</ul>
+<p>For all three the structure (the cuts, the clusters, or the graph) is <strong>built once at index time</strong>, when vectors are added. A query never rebuilds it; it just <strong>walks the small part near the query</strong> and skips the rest.</p>
+<p>HNSW is the one to picture, and the production default. It is two ideas. The first is the <strong>hierarchy</strong>, built once as vectors arrive.</p>
+<p><a id="hnsw-build-fig"></a></p>
+<p><img src="assets/Module2-Systems/svgs/hnsw-build.svg"
+     alt="A hierarchical near-neighbour graph. Layer 0 holds every vector with short links to its nearest neighbours; a few are promoted to layer 1, fewer to layer 2, with longer links, the express lanes. Dashed verticals mark the same vector on more than one layer."
+     style="width:100%; max-width:980px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> How the graph is built. Layer 0 holds every vector, each linked to its nearest neighbours with short local links. A few vectors are promoted to layer 1, fewer to layer 2, with progressively longer links, the express lanes. The dashed verticals are the same vector appearing on more than one layer. This is built once, when vectors are added, never per query.</p>
+</div>
+<p>The second idea is the <strong>search</strong>, and it answers how the walk knows which way to go. A query is a vector we already hold, so at any node we can measure how far each neighbour sits from the query. The walk enters at the single top-layer node and steps to whichever neighbour is closest to the query, a long jump up top. When no neighbour is closer, it drops a layer and repeats, refining. The hierarchy is what stops a plain greedy walk from getting stuck: the upper layers are highways that reach the right region fast, the bottom layer does the fine search.</p>
+<p><a id="hnsw-search-fig"></a></p>
+<p><img src="assets/Module2-Systems/svgs/hnsw-search.svg"
+     alt="The query is a held point. The walk enters at the top-layer entry node, jumps to the neighbour closest to the query, drops a layer and hops again, then refines on layer 0 to the nearest. Only the orange path is visited; the rest of the graph is skipped."
+     style="width:100%; max-width:980px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> How a query is answered, and it works the way you drive across a city: take the highway to cover ground fast, then the local streets to reach the exact address. HNSW does the same. We hold the query (the black line), so at each node we step to whichever neighbour sits closer to it: one long jump on the top-layer express lane, then shorter links a layer down, until the bottom layer lands on the nearest. Only the orange path is visited; the rest of the graph is skipped.</p>
+</div>
+<blockquote>
+<p>An <em>index</em> here just means a structure that lets a query skip the full scan. You have already built two: the exact hash bucket (Basic Hashing) and the approximate LSH bucket. Module 3 builds the classical keyed indexes, B+Tree and LSM, for <em>exact</em> lookups; an ANN index is their approximate cousin, for "find similar."</p>
+</blockquote>
+<pre><code class="language-python">import faiss
+from sentence_transformers import SentenceTransformer
+
+# Demo uses a smaller 768-D model so it runs in a notebook;
+# OpenAI's production embeddings are ~1,536-D.
+model = SentenceTransformer('all-mpnet-base-v2')          # 768-D
+strings = [f&quot;String {i}&quot; for i in range(100_000)]
+strings[42] = &quot;String 42 is making me hungry&quot;
+emb = model.encode(strings).astype('float32')
+d = 768
+<span class="py-ds">q</span> = model.encode([&quot;String 42 is making me hungry&quot;]).astype('float32')
+
+# Exact baseline: query vs all 100k vectors, O(N) per query
+flat = faiss.IndexFlatL2(d)
+flat.<span class="py-ds">add</span>(emb)
+print(flat.search(<span class="py-ds">q</span>, 5))      # exact, scans everything
+
+# ANN: IVF clusters; probe only a few of them
+ann = faiss.IndexIVFFlat(faiss.IndexFlatL2(d), d, 256)  # 256 cells
+ann.train(emb)                # learns the cluster centroids
+ann.<span class="py-ds">add</span>(emb)
+ann.nprobe = 8                # probe 8 of 256 cells, skip the rest
+print(ann.search(<span class="py-ds">q</span>, 5))       # approximate, far fewer comparisons
+</code></pre>
+<p>Both return <code>String 42 is making me hungry</code> at distance ≈ 0 (it was embedded and queried) plus near neighbours. The flat index compares the query to all 100k vectors; the IVF index compares it only to the vectors in the 8 of 256 cells it probes, orders of magnitude fewer, missing a true neighbour only rarely. You can run this, and LSH, in the <a href="https://drive.google.com/drive/u/0/folders/1MvoALUcHHu9YJ7mm4KmWC0qqTiGRL_Dl">Hashing Colab</a>.</p>
+<p>Shrinking the vectors <em>themselves</em> so a billion of them fit in RAM is a separate lever, quantization, and the subject of <a href="#/page/Module2-Systems/case-study-vector-compression">Case Study 2.4</a>.</p>
+<p><a id="ann-vs-bruteforce-fig"></a></p>
+<p><img src="assets/Module2-Systems/svgs/ann-vs-bruteforce.svg"
+     alt="Two panels: grey exact IndexFlatL2 compares the query to all 1M 1,536-D vectors (~1.5B multiply-adds, ~6 GB per query, O(N)); orange ANN index (IVF clusters, or an HNSW graph) looks at only the few near the query, sub-millisecond, occasionally missing a neighbour."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> The exact baseline (grey) compares the query against all million 1,536-D vectors: ~1.5 billion multiply-adds and ~6 GB scanned per query, correct but O(N). An ANN index (orange) looks at only the vectors near the query, the few IVF cells it probes or the HNSW graph neighbours it walks, so a query touches a small fraction of the data in well under a millisecond, at the price of an occasional missed neighbour. Same recall target, roughly 100 to 1000x less work. That is why OpenAI and FAISS index embeddings instead of scanning them.</p>
+</div>
+<p><strong>Takeaway:</strong> A vector database is approximate-nearest-neighbour indexing (LSH, or in production IVF and HNSW) over embeddings: it trades the occasional missed match for sub-millisecond search across billions of ~1,536-D vectors an exact scan could never serve. Fitting those billions in RAM is the other half, quantization, in Case Study 2.4.</p>

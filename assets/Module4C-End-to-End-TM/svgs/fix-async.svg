@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" role="img" aria-labelledby="f3-t f3-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="f3-t">Fix three: fall back to async</title>
+  <desc id="f3-d">Before, red: fans block in real time, holding locks through hours-long queues, so only about a hundred users run at once. After, green: fans submit instantly with a timestamp, a background system processes them in order and emails the confirmation, so about fifty thousand users run at once. Color key: red is the old flow, green is the fixed flow.</desc>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">Fix 3: fall back to async</text>
+
+  <g data-step="1">
+    <rect x="40" y="56" width="400" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="40" y="56" width="400" height="6" rx="3" fill="#DC2626"/>
+    <text x="64" y="90" font-size="17" font-weight="700" fill="#DC2626">Before: block in real time</text>
+    <text x="64" y="120" font-size="14" fill="#3F3F46">Wait in the queue holding a lock</text>
+    <text x="64" y="142" font-size="14" fill="#3F3F46">the whole time.</text>
+    <text x="64" y="184" font-size="14" font-weight="700" fill="#0E0E10">3-hour queue waits</text>
+    <text x="64" y="210" font-size="14" font-weight="700" fill="#0E0E10">Concurrent users: ~100</text>
+  </g>
+
+  <g data-step="2">
+    <rect x="480" y="56" width="400" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="480" y="56" width="400" height="6" rx="3" fill="#16A34A"/>
+    <text x="504" y="90" font-size="17" font-weight="700" fill="#16A34A">After: stamp and queue</text>
+    <text x="504" y="120" font-size="14" fill="#3F3F46">Submit instantly. A background job</text>
+    <text x="504" y="142" font-size="14" fill="#3F3F46">processes it and emails you.</text>
+    <text x="504" y="184" font-size="14" font-weight="700" fill="#0E0E10">Instant submit, email confirm</text>
+    <text x="504" y="210" font-size="14" font-weight="700" fill="#0E0E10">Concurrent users: ~50,000</text>
+  </g>
+
+  <text x="40" y="284" font-size="13" fill="#6B7280"><tspan fill="#DC2626" font-weight="700">red</tspan> = the old flow  &#183;  <tspan fill="#16A34A" font-weight="700">green</tspan> = the fix</text>
+</svg>

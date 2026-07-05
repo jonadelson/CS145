@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" role="img" aria-labelledby="cvu-t cvu-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="cvu-t">Clustered vs unclustered: the same range query</title>
+  <desc id="cvu-d">The same query for every rating of 4 or 5, over the same four matching rows. On a clustered table (sorted by rating) the matches sit in two contiguous pages, so it is two sequential reads and a sparse index. On an unclustered table (insert order) the same matches scatter across all four pages, so it is one random read per row and a dense index. Color key: a green left-bar marks an in-range row and a page that gets read; grey is out of range.</desc>
+  <text x="600" y="40" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Clustered vs unclustered: same query, same matches</text>
+  <text x="600" y="68" text-anchor="middle" font-size="15" fill="#6B7280">Find every rating of 4 or 5. Sorting packs the matches together; insert order scatters them.</text>
+
+  <g data-step="1">
+    <rect x="40" y="96" width="540" height="360" rx="14" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+    <text x="310" y="130" text-anchor="middle" font-size="18" font-weight="700" fill="#16A34A">CLUSTERED &#183; table sorted by rating</text>
+    <rect x="62" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="116" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 1</text>
+    <text x="94" y="241" font-size="19" fill="#9AA0AA">rating 1</text>
+    <text x="94" y="297" font-size="19" fill="#9AA0AA">rating 2</text>
+    <rect x="184" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="238" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 2</text>
+    <text x="216" y="241" font-size="19" fill="#9AA0AA">rating 2</text>
+    <text x="216" y="297" font-size="19" fill="#9AA0AA">rating 3</text>
+    <rect x="306" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="360" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 3</text>
+    <rect x="324" y="214" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="338" y="241" font-size="19" font-weight="700" fill="#16A34A">rating 4</text>
+    <rect x="324" y="270" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="338" y="297" font-size="19" font-weight="700" fill="#16A34A">rating 4</text>
+    <rect x="428" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="482" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 4</text>
+    <rect x="446" y="214" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="460" y="241" font-size="19" font-weight="700" fill="#16A34A">rating 5</text>
+    <rect x="446" y="270" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="460" y="297" font-size="19" font-weight="700" fill="#16A34A">rating 5</text>
+  </g>
+  <g data-step="2">
+    <rect x="140.0" y="364" width="340" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/><rect x="140.0" y="364" width="340" height="4" rx="2" fill="#16A34A"/><text x="310.0" y="397" text-anchor="middle" font-size="19" font-weight="700" fill="#16A34A">2 reads · sequential</text><text x="310.0" y="420" text-anchor="middle" font-size="14" fill="#6B7280">sparse index: one entry per page</text>
+  </g>
+
+  <g data-step="3">
+    <rect x="620" y="96" width="540" height="360" rx="14" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <text x="890" y="130" text-anchor="middle" font-size="18" font-weight="700" fill="#3F3F46">UNCLUSTERED &#183; insert order</text>
+    <rect x="642" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="696" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 1</text>
+    <rect x="660" y="214" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="674" y="241" font-size="19" font-weight="700" fill="#16A34A">rating 4</text>
+    <text x="674" y="297" font-size="19" fill="#9AA0AA">rating 2</text>
+    <rect x="764" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="818" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 2</text>
+    <text x="796" y="241" font-size="19" fill="#9AA0AA">rating 1</text>
+    <rect x="782" y="270" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="796" y="297" font-size="19" font-weight="700" fill="#16A34A">rating 5</text>
+    <rect x="886" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="940" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 3</text>
+    <rect x="904" y="214" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="918" y="241" font-size="19" font-weight="700" fill="#16A34A">rating 4</text>
+    <text x="918" y="297" font-size="19" fill="#9AA0AA">rating 3</text>
+    <rect x="1008" y="166" width="108" height="168" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="1062" y="193" text-anchor="middle" font-size="14" fill="#6B7280">Page 4</text>
+    <rect x="1026" y="214" width="4" height="40" rx="2" fill="#16A34A"/>
+    <text x="1040" y="241" font-size="19" font-weight="700" fill="#16A34A">rating 5</text>
+    <text x="1040" y="297" font-size="19" fill="#9AA0AA">rating 2</text>
+  </g>
+  <g data-step="4">
+    <rect x="720.0" y="364" width="340" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/><rect x="720.0" y="364" width="340" height="4" rx="2" fill="#D4D7DC"/><text x="890.0" y="397" text-anchor="middle" font-size="19" font-weight="700" fill="#3F3F46">4 reads · random, one per row</text><text x="890.0" y="420" text-anchor="middle" font-size="14" fill="#6B7280">dense index: one entry per row</text>
+  </g>
+
+  <text x="40" y="490" font-size="14" fill="#6B7280"><tspan fill="#16A34A" font-weight="700">green bar</tspan> = an in-range row, on a page that gets read&#160;&#160;&#183;&#160;&#160;grey = out of range</text>
+</svg>

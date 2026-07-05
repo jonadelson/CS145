@@ -1,0 +1,43 @@
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="oo-t oo-d">
+  <title id="oo-t">Why OLTP and OLAP get physically separated at scale</title>
+  <desc id="oo-d">MVCC removes lock contention between readers and writers, but a long analytical
+  scan still strains the production database's shared resources: it saturates the CPU and IO
+  that user-facing queries need, pollutes the buffer cache, and pins VACUUM so tables bloat.
+  None of these is a lock problem. The fix is physical separation: change-data-capture
+  replicates the data to a separate columnar warehouse where analytics runs, and the OLTP
+  database stays user-facing only. Color key: violet is the user-facing OLTP database, red is
+  the strain a scan would put on it, grey is the separate analytics warehouse.</desc>
+  <defs><marker id="ah-oo" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Keep analytics off the production database</text>
+  <text x="450" y="56" text-anchor="middle" font-size="14" fill="#6B7280">MVCC ends the lock fight, but a big scan still strains shared resources.</text>
+
+  <!-- OLTP + the strain -->
+  <g data-step="1">
+  <rect x="36" y="92" width="320" height="80" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="36" y="92" width="320" height="6" rx="3" fill="#7C3AED"/>
+  <text x="196" y="124" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED">OLTP · Postgres</text>
+  <text x="196" y="150" text-anchor="middle" font-size="14" fill="#6B7280">user-facing, 100 ms queries</text>
+  <text x="196" y="200" text-anchor="middle" font-size="13.5" font-weight="700" fill="#DC2626">A 10-minute scan here would:</text>
+  <text x="196" y="222" text-anchor="middle" font-size="13" fill="#DC2626">saturate CPU &amp; IO</text>
+  <text x="196" y="240" text-anchor="middle" font-size="13" fill="#DC2626">pollute the buffer cache</text>
+  <text x="196" y="258" text-anchor="middle" font-size="13" fill="#DC2626">pin VACUUM, bloat tables</text>
+  </g>
+
+  <!-- the fix -->
+  <g data-step="2">
+  <line x1="360" y1="132" x2="540" y2="132" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-oo)"/>
+  <text x="450" y="124" text-anchor="middle" font-size="13" fill="#6B7280">replicate (CDC)</text>
+  <rect x="544" y="92" width="320" height="80" rx="8" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <rect x="544" y="92" width="320" height="6" rx="3" fill="#6B7280"/>
+  <text x="704" y="124" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">OLAP warehouse</text>
+  <text x="704" y="150" text-anchor="middle" font-size="14" fill="#6B7280">columnar · BigQuery, Snowflake</text>
+  <text x="704" y="212" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">analytics runs here</text>
+  <text x="704" y="234" text-anchor="middle" font-size="13.5" fill="#6B7280">the OLTP database stays</text>
+  <text x="704" y="252" text-anchor="middle" font-size="13.5" fill="#6B7280">user-facing only</text>
+  </g>
+
+  <text x="450" y="290" text-anchor="middle" font-size="13"><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = production OLTP&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the strain a scan adds&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the separate warehouse</tspan></text>
+</svg>

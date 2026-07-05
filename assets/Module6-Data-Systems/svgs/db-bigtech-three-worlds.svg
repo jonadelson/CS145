@@ -1,0 +1,65 @@
+<svg viewBox="0 0 1100 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="b3w-t b3w-d" font-family="Inter, sans-serif">
+  <title id="b3w-t">Three systems, one data stack: OLTP serves users, ETL/CDC moves data, OLAP answers analytics</title>
+  <desc id="b3w-d">Three panels left to right. OLTP (blue) handles user-facing writes at low latency on Postgres, Aurora, or Spanner, 100M to 5B transactions a day. ETL or CDC (grey, the bridge in the middle) moves and reshapes data, by nightly Spark batch or a streaming write-ahead-log capture, about 100 TB a day. OLAP (violet) scans billions of rows for analytics on BigQuery, Snowflake, or Redshift, a petabyte-scale warehouse. Color key: blue is the transactional OLTP system, violet is the analytical OLAP warehouse, grey is the ETL/CDC bridge between them.</desc>
+  <defs>
+    <marker id="b3w-ar" markerWidth="11" markerHeight="8" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="550" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Three systems, one data stack</text>
+  <text x="550" y="60" text-anchor="middle" font-size="16" fill="#3F3F46">OLTP serves users, OLAP answers analytics, ETL or CDC moves data between them</text>
+
+  <!-- OLTP -->
+  <g data-step="1">
+    <rect x="30" y="90" width="320" height="296" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="30" y="90" width="320" height="6" rx="3" fill="#2563EB"/>
+    <text x="190" y="118" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">OLTP — user-facing writes</text>
+    <g font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">
+      <text x="50" y="148">play · like · follow · playlist</text>
+    </g>
+    <text x="50" y="178" font-size="14" fill="#3F3F46">&lt; 100 ms · 1000s queries/sec</text>
+    <text x="50" y="200" font-size="14" fill="#3F3F46">single-row reads and writes</text>
+    <line x1="50" y1="220" x2="330" y2="220" stroke="#D4D7DC"/>
+    <text x="50" y="246" font-size="14" fill="#3F3F46">Postgres ~5K TPS on one node</text>
+    <text x="50" y="268" font-size="14" fill="#3F3F46">Aurora 200K/s, Spanner 50K/region</text>
+    <text x="190" y="330" text-anchor="middle" font-size="22" font-weight="800" fill="#2563EB">100M–5B</text>
+    <text x="190" y="352" text-anchor="middle" font-size="14" fill="#6B7280">transactions / day</text>
+  </g>
+
+  <!-- ETL / CDC bridge -->
+  <g data-step="2">
+    <rect x="390" y="90" width="320" height="296" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="390" y="90" width="320" height="6" rx="3" fill="#E7EAEE"/>
+    <text x="550" y="118" text-anchor="middle" font-size="17" font-weight="700" fill="#6B7280">ETL / CDC — move and reshape</text>
+    <text x="410" y="150" font-size="14" font-weight="700" fill="#3F3F46">Batch (nightly)</text>
+    <text x="410" y="172" font-size="14" fill="#3F3F46">Spark + Airflow, hours behind</text>
+    <text x="410" y="204" font-size="14" font-weight="700" fill="#3F3F46">Streaming (CDC)</text>
+    <text x="410" y="226" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">WAL → Debezium → Kafka</text>
+    <text x="410" y="248" font-size="14" fill="#3F3F46">seconds behind, deletes too</text>
+    <text x="550" y="330" text-anchor="middle" font-size="22" font-weight="800" fill="#6B7280">~100 TB</text>
+    <text x="550" y="352" text-anchor="middle" font-size="14" fill="#6B7280">processed / day</text>
+  </g>
+
+  <!-- OLAP -->
+  <g data-step="3">
+    <rect x="750" y="90" width="320" height="296" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="750" y="90" width="320" height="6" rx="3" fill="#7C3AED"/>
+    <text x="910" y="118" text-anchor="middle" font-size="17" font-weight="700" fill="#7C3AED">OLAP — analytics scans</text>
+    <g font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">
+      <text x="770" y="148">top songs · retention · revenue</text>
+    </g>
+    <text x="770" y="178" font-size="14" fill="#3F3F46">1–60 s · scan billions of rows</text>
+    <text x="770" y="200" font-size="14" fill="#3F3F46">columnar, always distributed</text>
+    <line x1="770" y1="220" x2="1050" y2="220" stroke="#D4D7DC"/>
+    <text x="770" y="246" font-size="14" fill="#3F3F46">BigQuery · Snowflake · Redshift</text>
+    <text x="770" y="268" font-size="14" fill="#3F3F46">5 TB scan in ~15 s vs hours on one node</text>
+    <text x="910" y="330" text-anchor="middle" font-size="22" font-weight="800" fill="#7C3AED">1 PB</text>
+    <text x="910" y="352" text-anchor="middle" font-size="14" fill="#6B7280">warehouse</text>
+  </g>
+
+  <line x1="350" y1="230" x2="388" y2="230" stroke="#6B7280" stroke-width="2" marker-end="url(#b3w-ar)"/>
+  <line x1="710" y1="230" x2="748" y2="230" stroke="#6B7280" stroke-width="2" marker-end="url(#b3w-ar)"/>
+  <text x="369" y="222" text-anchor="middle" font-size="11" fill="#6B7280">raw</text>
+  <text x="729" y="222" text-anchor="middle" font-size="11" fill="#6B7280">aggregates</text>
+
+  <text x="550" y="416" text-anchor="middle" font-size="13"><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = transactional OLTP&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = analytical OLAP warehouse&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the ETL/CDC bridge</tspan></text>
+</svg>

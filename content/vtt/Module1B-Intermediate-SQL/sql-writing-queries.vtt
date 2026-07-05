@@ -1,0 +1,193 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.749
+Real SQL work is rarely a single SELECT against a single table.
+
+00:00:04.749 --> 00:00:07.498
+It is layered: filter, group, rank, compare.
+
+00:00:07.498 --> 00:00:10.248
+The five patterns on this page, together, solve about eighty percent of the data questions you will ever be asked.
+
+00:00:10.248 --> 00:00:12.997
+Each one has a name.
+
+00:00:12.997 --> 00:00:15.746
+Funnel.
+
+00:00:15.746 --> 00:00:18.495
+Ladder.
+
+00:00:18.495 --> 00:00:21.244
+Timeline.
+
+00:00:21.244 --> 00:00:23.994
+Comparison.
+
+00:00:23.994 --> 00:00:26.743
+Exception.
+
+00:00:26.743 --> 00:00:29.492
+For each, we will look at the shape, then read the query.
+
+00:00:29.492 --> 00:00:33.114
+The funnel: who did step A but not step B?
+
+00:00:33.114 --> 00:00:36.736
+Played a song, but never shared one.
+
+00:00:36.736 --> 00:00:40.359
+Each stage keeps fewer, so the picture narrows.
+
+00:00:40.359 --> 00:00:43.981
+A thousand played, four hundred fifty made a playlist, only eighty-seven shared.
+
+00:00:43.981 --> 00:00:47.000
+Now read the query, top to bottom.
+
+00:00:47.000 --> 00:00:50.018
+SELECT user id and name.
+
+00:00:50.018 --> 00:00:53.037
+FROM users.
+
+00:00:53.037 --> 00:00:56.055
+WHERE user id is IN the set of people who listened, the players.
+
+00:00:56.055 --> 00:00:59.074
+AND user id is NOT IN the set who shared.
+
+00:00:59.074 --> 00:01:02.092
+Keep the players, subtract the sharers.
+
+00:01:02.092 --> 00:01:05.111
+What is left played but never shared.
+
+00:01:05.111 --> 00:01:08.083
+The ladder ranks within groups.
+
+00:01:08.083 --> 00:01:11.056
+Top three songs per genre.
+
+00:01:11.056 --> 00:01:14.028
+Top salesperson per region.
+
+00:01:14.028 --> 00:01:17.000
+Number every row inside its own group, then keep the top rungs and cut the rest.
+
+00:01:17.000 --> 00:01:21.328
+Read it inside out.
+
+00:01:21.328 --> 00:01:25.656
+The inner SELECT computes ROW_NUMBER OVER, PARTITION BY genre, ORDER BY plays descending.
+
+00:01:25.656 --> 00:01:29.985
+That numbers each genre's songs, one for the most played, two for the next.
+
+00:01:29.985 --> 00:01:34.313
+The outer SELECT then keeps WHERE row-number is three or less.
+
+00:01:34.313 --> 00:01:38.641
+Partition, order, number, filter.
+
+00:01:38.641 --> 00:01:41.880
+The timeline tracks a value as it accumulates over time.
+
+00:01:41.880 --> 00:01:45.120
+A running total of listens.
+
+00:01:45.120 --> 00:01:48.359
+A seven-day moving average.
+
+00:01:48.359 --> 00:01:51.598
+The line only climbs: three, then eight, then ten, then fourteen.
+
+00:01:51.598 --> 00:01:54.663
+The query.
+
+00:01:54.663 --> 00:01:57.728
+SELECT date and hours.
+
+00:01:57.728 --> 00:02:00.793
+Then SUM of hours OVER an ORDER BY date window.
+
+00:02:00.793 --> 00:02:03.858
+That ORDER BY inside the OVER clause is what makes it cumulative: each row sums itself and everything before it.
+
+00:02:03.858 --> 00:02:06.923
+FROM daily listening.
+
+00:02:06.923 --> 00:02:09.988
+One window, a running total.
+
+00:02:09.988 --> 00:02:13.378
+The comparison measures one row against its group's average.
+
+00:02:13.378 --> 00:02:16.768
+This artist versus their genre.
+
+00:02:16.768 --> 00:02:20.158
+A bar above the dashed line beats its peers; a bar below trails them.
+
+00:02:20.158 --> 00:02:24.263
+The query.
+
+00:02:24.263 --> 00:02:28.368
+SELECT artist name, genre, plays.
+
+00:02:28.368 --> 00:02:32.474
+Then plays minus AVG of plays OVER, PARTITION BY genre.
+
+00:02:32.474 --> 00:02:36.579
+The window computes the genre average once and attaches it to every row, so the subtraction gives each artist's distance from the pack.
+
+00:02:36.579 --> 00:02:40.684
+Positive is above, negative is below.
+
+00:02:40.684 --> 00:02:44.105
+The exception finds outliers.
+
+00:02:44.105 --> 00:02:47.526
+A daily count that jumped fifty percent overnight.
+
+00:02:47.526 --> 00:02:50.947
+Most points sit in a normal band; the spike pops out, flagged.
+
+00:02:50.947 --> 00:02:55.582
+The query, in two steps.
+
+00:02:55.582 --> 00:03:00.217
+The first common table expression, changes, uses LAG OVER, PARTITION BY song, ORDER BY date, to grab yesterday's listens onto today's row.
+
+00:03:00.217 --> 00:03:04.851
+The second computes percent change from previous to current.
+
+00:03:04.851 --> 00:03:09.486
+Then the final SELECT keeps WHERE percent change is over fifty.
+
+00:03:09.486 --> 00:03:14.121
+LAG, compute, filter.
+
+00:03:14.121 --> 00:03:19.717
+One full walkthrough.
+
+00:03:19.717 --> 00:03:25.313
+Find breakout artists with over fifty percent month-over-month growth.
+
+00:03:25.313 --> 00:03:30.909
+The query stitches two patterns together: timeline, to compute the previous month with LAG, and comparison, to compute the percent change.
+
+00:03:30.909 --> 00:03:36.505
+Three common table expressions, and every line is a recognizable piece of the patterns we just walked through.
+
+00:03:36.505 --> 00:03:41.277
+Writing SQL is problem solving.
+
+00:03:41.277 --> 00:03:46.048
+The same five shapes come up over and over: funnel, ladder, timeline, comparison, exception.
+
+00:03:46.048 --> 00:03:50.820
+Once you can name the shape and read its query, you have a starting structure to work from.
+
+00:03:50.820 --> 00:03:55.592
+You map your tables and columns onto it, and adapt.

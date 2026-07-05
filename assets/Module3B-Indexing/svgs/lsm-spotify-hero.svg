@@ -1,0 +1,74 @@
+<svg viewBox="0 0 1100 560" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="lsm-spotify-t lsm-spotify-d">
+  <title id="lsm-spotify-t">Spotify's LSM write and read path: events append to a MemTable, flush to immutable SSTables, then compact</title>
+  <desc id="lsm-spotify-d">Spotify routes a firehose of like, play, and pause events into an LSM-backed store. Every event is a fast append into an in-memory MemTable (red, the only volatile part), so no random disk seek ever happens on the write path. When the MemTable fills, it is flushed sequentially as an immutable SSTable on disk (green), and a background compaction merges old SSTables, applying the merge function and dropping superseded versions and tombstones (grey). A read scans newest to oldest, MemTable first then SSTables in reverse order, and returns the first match. Color key: red is the in-RAM MemTable (volatile), green is the SSTables on disk (persistent), grey is compaction and superseded versions.</desc>
+  <defs>
+    <marker id="lsm-ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="550" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Spotify's write path never seeks: append, flush, compact</text>
+  <text x="550" y="64" text-anchor="middle" font-size="16" fill="#3F3F46">Millions of events per second append to RAM, flush sequentially to immutable files, and merge in the background.</text>
+
+  <!-- Step 1: the firehose of events appending to the MemTable -->
+  <g data-step="1">
+    <text x="150" y="108" text-anchor="middle" font-size="15" font-weight="700" fill="#3F3F46">Event firehose</text>
+    <rect x="40" y="124" width="220" height="40" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="150" y="149" text-anchor="middle" font-size="14" fill="#3F3F46" font-family="JetBrains Mono, monospace">like (song 42, +1)</text>
+    <rect x="40" y="174" width="220" height="40" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="150" y="199" text-anchor="middle" font-size="14" fill="#3F3F46" font-family="JetBrains Mono, monospace">play (song 42, +1)</text>
+    <rect x="40" y="224" width="220" height="40" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="150" y="249" text-anchor="middle" font-size="14" fill="#3F3F46" font-family="JetBrains Mono, monospace">pause (podcast 7, t=92:14)</text>
+    <text x="150" y="290" text-anchor="middle" font-size="14" font-style="italic" fill="#6B7280">700M users, no write locks</text>
+  </g>
+
+  <!-- Step 2: in-memory MemTable, the fast append target -->
+  <g data-step="2">
+    <rect x="330" y="120" width="240" height="180" rx="8" fill="#FCEBEA" stroke="#DC2626" stroke-width="2"/>
+    <rect x="330" y="120" width="240" height="6" rx="3" fill="#DC2626"/>
+    <text x="450" y="148" text-anchor="middle" font-size="18" font-weight="700" fill="#0E0E10">MemTable</text>
+    <text x="450" y="168" text-anchor="middle" font-size="14" fill="#3F3F46">in RAM, sorted, append-only</text>
+    <rect x="350" y="186" width="200" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="360" y="206" font-size="13" fill="#3F3F46" font-family="JetBrains Mono, monospace">song 42 → +1, +1</text>
+    <rect x="350" y="222" width="200" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="360" y="242" font-size="13" fill="#3F3F46" font-family="JetBrains Mono, monospace">podcast 7 → t=92:14</text>
+    <text x="450" y="282" text-anchor="middle" font-size="14" font-style="italic" fill="#3F3F46">fills up, then flushes</text>
+    <line x1="266" y1="194" x2="324" y2="194" stroke="#6B7280" stroke-width="2" marker-end="url(#lsm-ah)"/>
+    <text x="295" y="184" text-anchor="middle" font-size="13" fill="#6B7280">append</text>
+  </g>
+
+  <!-- Step 3: flush to immutable SSTables on disk, newest at top -->
+  <g data-step="3">
+    <text x="800" y="108" text-anchor="middle" font-size="15" font-weight="700" fill="#3F3F46">SSTables on disk</text>
+    <text x="800" y="126" text-anchor="middle" font-size="13" font-style="italic" fill="#6B7280">immutable, newest on top</text>
+    <rect x="660" y="140" width="280" height="44" rx="6" fill="#E1F4EC" stroke="#34D399" stroke-width="2"/>
+    <rect x="660" y="140" width="6" height="44" rx="3" fill="#34D399"/>
+    <text x="678" y="160" font-size="14" font-weight="700" fill="#0E0E10">SSTable 3</text>
+    <text x="678" y="177" font-size="13" fill="#3F3F46" font-family="JetBrains Mono, monospace">song 42 → +1, +1 · ⊘ song 9</text>
+    <rect x="660" y="190" width="280" height="44" rx="6" fill="#E1F4EC" stroke="#34D399" stroke-width="2"/>
+    <rect x="660" y="190" width="6" height="44" rx="3" fill="#34D399"/>
+    <text x="678" y="210" font-size="14" font-weight="700" fill="#0E0E10">SSTable 2</text>
+    <text x="678" y="227" font-size="13" fill="#3F3F46" font-family="JetBrains Mono, monospace">podcast 7 → t=92:14 (latest)</text>
+    <rect x="660" y="240" width="280" height="44" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="660" y="240" width="6" height="44" rx="3" fill="#D4D7DC"/>
+    <text x="678" y="260" font-size="14" font-weight="700" fill="#6B7280">SSTable 1</text>
+    <text x="678" y="277" font-size="13" fill="#6B7280" font-family="JetBrains Mono, monospace">podcast 7 → t=14:00 (superseded)</text>
+    <line x1="576" y1="180" x2="654" y2="162" stroke="#6B7280" stroke-width="2" marker-end="url(#lsm-ah)"/>
+    <text x="615" y="158" text-anchor="middle" font-size="13" fill="#6B7280">flush</text>
+  </g>
+
+  <!-- Step 4: background compaction merges SSTables, drops superseded + tombstones -->
+  <g data-step="4">
+    <rect x="660" y="328" width="280" height="92" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="660" y="328" width="280" height="6" rx="3" fill="#D4D7DC"/>
+    <text x="800" y="356" text-anchor="middle" font-size="17" font-weight="700" fill="#6B7280">Compaction (background)</text>
+    <text x="800" y="380" text-anchor="middle" font-size="14" fill="#3F3F46">merge fn: SUM · pick-latest · append</text>
+    <text x="800" y="402" text-anchor="middle" font-size="14" fill="#3F3F46">drops old versions and tombstones</text>
+    <line x1="800" y1="290" x2="800" y2="322" stroke="#6B7280" stroke-width="2" stroke-dasharray="5,4" opacity="0.6" marker-end="url(#lsm-ah)"/>
+  </g>
+
+  <!-- Read path: scans newest to oldest, MemTable first -->
+  <line x1="450" y1="306" x2="450" y2="470" stroke="#6B7280" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.6"/>
+  <line x1="450" y1="470" x2="654" y2="470" stroke="#6B7280" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.6" marker-end="url(#lsm-ah)"/>
+  <text x="455" y="490" font-size="14" font-style="italic" fill="#6B7280">read: scan MemTable, then SSTables newest → oldest, return first match</text>
+
+  <text x="550" y="540" text-anchor="middle" font-size="14"><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the in-RAM MemTable (volatile)&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = SSTables on disk (persistent)&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = compaction and superseded versions</tspan></text>
+</svg>

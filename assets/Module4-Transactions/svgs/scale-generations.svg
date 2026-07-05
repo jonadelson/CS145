@@ -1,0 +1,65 @@
+<svg viewBox="0 0 960 400" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="sg-t sg-d">
+  <title id="sg-t">Each generation of the stack is about 100 times the last</title>
+  <desc id="sg-d">Three generations side by side. Classic, the 1990s to 2000s:
+  about a thousand transactions per second, on hard disks with one to four cores,
+  using B-Trees. Times ten thousand to Modern, the 2000s to 2020s: about ten million
+  per second, on solid-state drives with 128-plus cores, using LSM Trees. Times ten
+  thousand again to Future, the 2030s on: millions of AI agents per second, on NVMe
+  with ten-thousand-plus cores, using learned indexes. Concurrency, hardware, and
+  data structures all jump together.</desc>
+
+  <text x="480" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Each generation, about 10,000× the last</text>
+  <text x="480" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Concurrency, hardware, and the data structures underneath all jump together.</text>
+
+  <defs><marker id="ah-sg" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#7C3AED"/></marker></defs>
+
+  <!-- Classic -->
+  <g data-step="1">
+    <rect x="44" y="92" width="262" height="252" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="44" y="92" width="262" height="6" rx="3" fill="#7C3AED"/>
+    <text x="64" y="126" font-size="17" font-weight="700" fill="#7C3AED">Classic</text>
+    <text x="64" y="146" font-size="12.5" fill="#9AA0AA">1990s – 2000s · banks, Oracle</text>
+    <text x="64" y="186" font-size="12" fill="#9AA0AA">CONCURRENCY</text>
+    <text x="64" y="206" font-size="14.5" font-weight="700" fill="#0E0E10">~1,000s / sec</text>
+    <text x="64" y="244" font-size="12" fill="#9AA0AA">HARDWARE</text>
+    <text x="64" y="264" font-size="14" fill="#3F3F46">HDD · 1–4 cores · 1 GB</text>
+    <text x="64" y="302" font-size="12" fill="#9AA0AA">DATA STRUCTURES</text>
+    <text x="64" y="322" font-size="14" fill="#3F3F46">B-Trees</text>
+  </g>
+
+  <!-- x100 arrow 1 -->
+  <g data-step="2">
+    <line x1="312" y1="218" x2="346" y2="218" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#ah-sg)"/>
+    <text x="329" y="206" text-anchor="middle" font-size="13" font-weight="700" fill="#7C3AED">×10⁴</text>
+    <!-- Modern -->
+    <rect x="349" y="92" width="262" height="252" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="349" y="92" width="262" height="6" rx="3" fill="#7C3AED"/>
+    <text x="369" y="126" font-size="17" font-weight="700" fill="#7C3AED">Modern</text>
+    <text x="369" y="146" font-size="12.5" fill="#9AA0AA">2000s – 2020s · Gmail, Roblox</text>
+    <text x="369" y="186" font-size="12" fill="#9AA0AA">CONCURRENCY</text>
+    <text x="369" y="206" font-size="14.5" font-weight="700" fill="#0E0E10">~10M / sec</text>
+    <text x="369" y="244" font-size="12" fill="#9AA0AA">HARDWARE</text>
+    <text x="369" y="264" font-size="14" fill="#3F3F46">SSD · 128+ cores · 1 TB</text>
+    <text x="369" y="302" font-size="12" fill="#9AA0AA">DATA STRUCTURES</text>
+    <text x="369" y="322" font-size="14" fill="#3F3F46">LSM Trees</text>
+  </g>
+
+  <!-- x100 arrow 2 -->
+  <g data-step="3">
+    <line x1="617" y1="218" x2="651" y2="218" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#ah-sg)"/>
+    <text x="634" y="206" text-anchor="middle" font-size="13" font-weight="700" fill="#7C3AED">×10⁴</text>
+    <!-- Future -->
+    <rect x="654" y="92" width="262" height="252" rx="10" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="654" y="92" width="262" height="6" rx="3" fill="#7C3AED"/>
+    <text x="674" y="126" font-size="17" font-weight="700" fill="#7C3AED">Future</text>
+    <text x="674" y="146" font-size="12.5" fill="#9AA0AA">2030s on · AI agents, serverless</text>
+    <text x="674" y="186" font-size="12" fill="#9AA0AA">CONCURRENCY</text>
+    <text x="674" y="206" font-size="14.5" font-weight="700" fill="#0E0E10">millions of agents / sec</text>
+    <text x="674" y="244" font-size="12" fill="#9AA0AA">HARDWARE</text>
+    <text x="674" y="264" font-size="14" fill="#3F3F46">NVMe · 10K+ cores · 1 PB</text>
+    <text x="674" y="302" font-size="12" fill="#9AA0AA">DATA STRUCTURES</text>
+    <text x="674" y="322" font-size="14" fill="#3F3F46">Learned indexes</text>
+  </g>
+</svg>

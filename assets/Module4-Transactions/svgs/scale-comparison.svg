@@ -1,0 +1,43 @@
+<svg viewBox="0 0 960 380" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="sc-t sc-d">
+  <title id="sc-t">Size was never the problem: Visa and Amazon clear far more, reliably</title>
+  <desc id="sc-d">Three systems compared by peak throughput and whether they held.
+  Visa clears about 100,000 transactions per second every day and holds. Amazon on
+  Prime Day serves about 105 million requests per second under ten milliseconds and
+  holds. Ticketmaster peaked at four times its own prior record and fell over. The
+  difference is decades of transaction discipline.</desc>
+
+  <text x="480" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Size was never the problem</text>
+  <text x="480" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Others clear far more, every single day, without melting. The difference is transaction discipline.</text>
+
+  <!-- Visa -->
+  <g data-step="1">
+    <rect x="60" y="86" width="840" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="60" y="86" width="6" height="78" rx="3" fill="#16A34A"/>
+    <text x="90" y="118" font-size="17" font-weight="700" fill="#0E0E10">Visa network</text>
+    <text x="90" y="142" font-size="13.5" fill="#6B7280">100,000 transactions / sec at peak, every day</text>
+    <rect x="690" y="112" width="180" height="30" rx="15" fill="#E1F4EC"/>
+    <text x="780" y="132" text-anchor="middle" font-size="13.5" font-weight="700" fill="#16A34A">held</text>
+  </g>
+
+  <!-- Amazon -->
+  <g data-step="2">
+    <rect x="60" y="178" width="840" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="60" y="178" width="6" height="78" rx="3" fill="#16A34A"/>
+    <text x="90" y="210" font-size="17" font-weight="700" fill="#0E0E10">Amazon, Prime Day</text>
+    <text x="90" y="234" font-size="13.5" fill="#6B7280">105 million requests / sec, answered in under 10 ms</text>
+    <rect x="690" y="204" width="180" height="30" rx="15" fill="#E1F4EC"/>
+    <text x="780" y="224" text-anchor="middle" font-size="13.5" font-weight="700" fill="#16A34A">held</text>
+  </g>
+
+  <!-- Ticketmaster -->
+  <g data-step="3">
+    <rect x="60" y="270" width="840" height="78" rx="8" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+    <rect x="60" y="270" width="6" height="78" rx="3" fill="#DC2626"/>
+    <text x="90" y="302" font-size="17" font-weight="700" fill="#0E0E10">Ticketmaster, Taylor Swift on-sale</text>
+    <text x="90" y="326" font-size="13.5" fill="#6B7280">peaked at just 4× its own prior record</text>
+    <rect x="690" y="296" width="180" height="30" rx="15" fill="#FCEBEA"/>
+    <text x="780" y="316" text-anchor="middle" font-size="13.5" font-weight="700" fill="#DC2626">fell over</text>
+  </g>
+</svg>

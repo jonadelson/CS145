@@ -1,0 +1,41 @@
+<svg viewBox="0 0 960 332" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="se-t se-d">
+  <title id="se-t">Shared and exclusive locks</title>
+  <desc id="se-d">Two lock modes on seat A15. On the left, a shared lock for
+  reading: T1, T2, and T3 each take a shared lock and all read the status as
+  available at the same time, because reads do not conflict. On the right, an
+  exclusive lock for writing: T1 takes an exclusive lock and writes the status to
+  sold, while T2 and T3 are blocked and must wait.</desc>
+
+  <text x="480" y="32" text-anchor="middle" font-size="23" font-weight="700" fill="#0E0E10">Two kinds of lock</text>
+  <text x="480" y="56" text-anchor="middle" font-size="13.5" fill="#6B7280">Reads can share one row. A write needs the row to itself.</text>
+
+  <!-- Shared -->
+  <g data-step="1">
+    <rect x="40" y="84" width="420" height="220" rx="9" fill="#FFFFFF" stroke="#16A34A" stroke-width="1.5"/>
+    <rect x="40" y="84" width="420" height="6" rx="3" fill="#16A34A"/>
+    <text x="64" y="116" font-size="13" font-weight="700" fill="#16A34A" letter-spacing="0.5">SHARED (S) · FOR READING</text>
+    <text x="64" y="138" font-size="13" fill="#6B7280">Checking seat A15 availability</text>
+    <rect x="64" y="152" width="372" height="86" rx="6" fill="#0D1117"/>
+    <text x="80" y="174" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T1: Get(S) <tspan fill="#79C0FF">R(A15)</tspan> = "available"</text>
+    <text x="80" y="196" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T2: Get(S) <tspan fill="#79C0FF">R(A15)</tspan> = "available"</text>
+    <text x="80" y="218" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T3: Get(S) <tspan fill="#79C0FF">R(A15)</tspan> = "available"</text>
+    <text x="64" y="266" font-size="13.5" font-weight="700" fill="#16A34A">All three hold S at once.</text>
+    <text x="64" y="287" font-size="13" fill="#3F3F46">Reads never conflict, so they share the row.</text>
+  </g>
+
+  <!-- Exclusive -->
+  <g data-step="2">
+    <rect x="500" y="84" width="420" height="220" rx="9" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+    <rect x="500" y="84" width="420" height="6" rx="3" fill="#DC2626"/>
+    <text x="524" y="116" font-size="13" font-weight="700" fill="#DC2626" letter-spacing="0.5">EXCLUSIVE (X) · FOR WRITING</text>
+    <text x="524" y="138" font-size="13" fill="#6B7280">Buying seat A15</text>
+    <rect x="524" y="152" width="372" height="86" rx="6" fill="#0D1117"/>
+    <text x="540" y="174" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#E6EDF3">T1: Get(X) <tspan fill="#79C0FF">W(A15)</tspan> = "sold to T1"</text>
+    <text x="540" y="196" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#8B949E">T2: [blocked] cannot read or buy</text>
+    <text x="540" y="218" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#8B949E">T3: [blocked] cannot read or buy</text>
+    <text x="524" y="266" font-size="13.5" font-weight="700" fill="#DC2626">Only T1 holds X.</text>
+    <text x="524" y="287" font-size="13" fill="#3F3F46">T2 and T3 wait, so no one sees a half-written row.</text>
+  </g>
+</svg>

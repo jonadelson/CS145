@@ -1,0 +1,216 @@
+{
+  "module": "Module3B-Indexing",
+  "title": "Indexing",
+  "cards": [
+    {
+      "id": "m3b-c01",
+      "front": "What is an index, and what does each entry store?",
+      "back": "An auxiliary structure mapping a search key to the page where matching rows live — <code>(search_key, page#)</code> pairs of 8–20 bytes. It turns a full-table scan (160,000 pages for Songs) into a couple of IOs: read the index entry, then the data page.",
+      "page": "Module3B-Indexing/index-fundamentals",
+      "tags": ["indexes", "fundamentals"]
+    },
+    {
+      "id": "m3b-c02",
+      "front": "When does adding an index pay off?",
+      "back": "On columns queries actually use and that narrow results to few rows: primary keys (usually automatic), foreign keys that joins walk, high-selectivity columns like <code>email</code>, and frequently filtered <code>WHERE</code> targets.",
+      "page": "Module3B-Indexing/index-fundamentals",
+      "tags": ["indexes", "design"]
+    },
+    {
+      "id": "m3b-c03",
+      "front": "When should you SKIP creating an index?",
+      "back": "Rarely queried columns, low-selectivity columns (a boolean points at half the table), frequently updated columns (every write also rewrites the index), and small tables (&lt; ~1,000 rows) where a scan is already fast. Indexes trade faster reads for storage and slower writes.",
+      "page": "Module3B-Indexing/index-fundamentals",
+      "tags": ["indexes", "tradeoffs"]
+    },
+    {
+      "id": "m3b-c04",
+      "front": "Hash index: what is it great at, and what's its cost?",
+      "back": "Equality lookups — <code>WHERE user_id = 42</code> — in O(1) IOs regardless of table size: hash to the bucket, read the entry, read the data page. Duplicate keys add one IO per data page holding the key.",
+      "page": "Module3B-Indexing/hash-indexes",
+      "tags": ["hash-index", "io-cost"]
+    },
+    {
+      "id": "m3b-c05",
+      "front": "Why are hash indexes useless for ranges, ORDER BY, and prefix LIKE?",
+      "back": "The hash function scatters neighbouring keys to random buckets, so there is no ordered structure to walk. Any predicate spanning a range of keys needs a B+Tree instead.",
+      "page": "Module3B-Indexing/hash-indexes",
+      "tags": ["hash-index", "limitations"]
+    },
+    {
+      "id": "m3b-c06",
+      "front": "Why partition a hash index across N pages instead of one giant dictionary?",
+      "back": "A billion 16-byte entries is 16 GB — too big for RAM, so every lookup starts with a disk read. Splitting into N ~64 MB index pages via <code>hash(key) % N</code> keeps each page manageable; the extra hash step is free and semantics are unchanged.",
+      "page": "Module3B-Indexing/hash-indexes",
+      "tags": ["hash-index", "partitioning"]
+    },
+    {
+      "id": "m3b-c07",
+      "front": "B+Tree fanout and height formulas?",
+      "back": "<code>Fanout = ⌊page size / (key size + pointer size)⌋</code>; <code>Height = ⌈log_fanout(#keys)⌉</code>. At fanout ~1,000, a billion keys fit in 3 levels, so a point lookup is ~3–4 IOs regardless of table size.",
+      "page": "Module3B-Indexing/btree-indexes",
+      "tags": ["btree", "fanout"]
+    },
+    {
+      "id": "m3b-c08",
+      "front": "How does a B+Tree answer a range query like <code>rating BETWEEN 4.0 AND 5.0</code>?",
+      "back": "One descent to the leaf holding the first key in range (O(log N) IOs), then stream across the left-to-right linked leaves until a key passes the end of the range. Mostly sequential IO after the descent.",
+      "page": "Module3B-Indexing/btree-indexes",
+      "tags": ["btree", "range-scan"]
+    },
+    {
+      "id": "m3b-c09",
+      "front": "Which predicates does a B+Tree on <code>name</code> handle well, and which defeat it?",
+      "back": "Handles: equality, ranges, prefix <code>LIKE 'Ali%'</code>, <code>ORDER BY</code> — anything that benefits from sorted keys. Defeats it: functions on the column (<code>LOWER(name)</code>), suffix <code>LIKE '%son'</code>, and <code>!=</code> — the tree can't narrow the search space.",
+      "page": "Module3B-Indexing/btree-indexes",
+      "tags": ["btree", "predicates"]
+    },
+    {
+      "id": "m3b-c10",
+      "front": "Why do bigger pages make B+Trees shallower?",
+      "back": "More <code>(key, pointer)</code> pairs fit per node, so fanout soars: a trillion 1 KB keys need height 7 on 64 KB pages (fanout 63) but height 3 on 64 MB pages (fanout ~65,000). Tradeoff: more memory per node.",
+      "page": "Module3B-Indexing/btree-indexes",
+      "tags": ["btree", "fanout"]
+    },
+    {
+      "id": "m3b-c11",
+      "front": "Define an SSTable.",
+      "back": "A Sorted String Table: an immutable on-disk file of key-value pairs sorted by key, written once in a sequential flush and never modified. The building block of LSM trees; powers Bigtable, Cassandra, DynamoDB, RocksDB.",
+      "page": "Module3B-Indexing/sstables",
+      "tags": ["sstable", "storage"]
+    },
+    {
+      "id": "m3b-c12",
+      "front": "What are the three sections of an SSTable, in read order?",
+      "back": "1) Bloom filter (in RAM) — O(1) \"is key K possibly here?\", skipping a wasted disk read on a miss; 2) sparse index block — binary-search to the right data block; 3) sorted, compressed data blocks holding the key-values.",
+      "page": "Module3B-Indexing/sstables",
+      "tags": ["sstable", "bloom-filter"]
+    },
+    {
+      "id": "m3b-c13",
+      "front": "Name the three SSTable operations every system implements.",
+      "back": "Flush: sort an in-memory buffer and write it as a new immutable file (one sequential write). Read: bloom filter → sparse index → data block. Compact: k-way merge older SSTables into one file, keeping the newest version per key and dropping deleted entries.",
+      "page": "Module3B-Indexing/sstables",
+      "tags": ["sstable", "compaction"]
+    },
+    {
+      "id": "m3b-c14",
+      "front": "What is the MemTable in an LSM tree?",
+      "back": "The in-RAM buffer that absorbs all incoming writes as appends (fast, no seek; recoverable via WAL replay). When it fills, it's sorted and flushed as one immutable Level-0 SSTable in a single sequential write.",
+      "page": "Module3B-Indexing/lsm-indexes",
+      "tags": ["lsm", "memtable"]
+    },
+    {
+      "id": "m3b-c15",
+      "front": "Trace the LSM write path from arrival to long-term storage.",
+      "back": "Write appends to the MemTable (RAM) → periodic flush produces an immutable Level-0 SSTable (sequential) → background compaction merges Level-0 files into larger sorted, de-duplicated Level-1+ files (streaming merge). No step does a random seek.",
+      "page": "Module3B-Indexing/lsm-indexes",
+      "tags": ["lsm", "writes"]
+    },
+    {
+      "id": "m3b-c16",
+      "front": "What is merge-on-read in an LSM tree?",
+      "back": "A key's current state isn't stored anywhere; a read walks every tier that might hold fragments (MemTable, then SSTables newest-to-oldest) and combines them with the merge function — e.g. summing +2, +18, and 5,420 play-count fragments to get 5,440.",
+      "page": "Module3B-Indexing/lsm-indexes",
+      "tags": ["lsm", "reads"]
+    },
+    {
+      "id": "m3b-c17",
+      "front": "Name the four common LSM merge-function patterns.",
+      "back": "Counter: <code>sum</code> the fragments (play counts). Latest-wins: pick max timestamp (profile updates, playback position). Statistical: keep running sums and counts (rolling averages). TTL/retention: drop fragments older than a window (session logs).",
+      "page": "Module3B-Indexing/lsm-indexes",
+      "tags": ["lsm", "merge"]
+    },
+    {
+      "id": "m3b-c18",
+      "front": "What is a tombstone in an LSM/SSTable system?",
+      "back": "A marker written to record a delete, since immutable SSTables can't be edited. Reads hitting the tombstone before the older entry return \"not found\"; the next compaction matches tombstone against entry and drops both permanently.",
+      "page": "Module3B-Indexing/case-study-lsm-spotify",
+      "tags": ["lsm", "tombstone"]
+    },
+    {
+      "id": "m3b-c19",
+      "front": "Why do LSM trees beat B+Trees for high-volume event ingestion (e.g. Spotify play events)?",
+      "back": "A B+Tree update is a random disk seek per write (descend, load leaf, rewrite), so the disk controller becomes the bottleneck. LSM writes hit RAM and reach disk in batched sequential flushes, sustaining ~1M writes/sec on commodity disks.",
+      "page": "Module3B-Indexing/case-study-lsm-spotify",
+      "tags": ["lsm", "writes"]
+    },
+    {
+      "id": "m3b-c20",
+      "front": "Clustered vs unclustered index: what differs physically?",
+      "back": "Clustered: table data is physically sorted by the index key, so the index can be sparse (one entry per page) and range scans read contiguous pages. Unclustered: data sits in insert order, the index is dense (one entry per row), and a range scan pays one random IO per matching row.",
+      "page": "Module3B-Indexing/io-indexes",
+      "tags": ["clustering", "indexes"]
+    },
+    {
+      "id": "m3b-c21",
+      "front": "How many clusterings can one table have, and what do systems do when several access patterns must be fast?",
+      "back": "One — physical sort order can only go one way, so all other indexes on the table are unclustered. Production systems sometimes keep multiple physical copies of the table, each clustered differently (storage is cheap; query-time seeks are not).",
+      "page": "Module3B-Indexing/io-indexes",
+      "tags": ["clustering", "tradeoffs"]
+    },
+    {
+      "id": "m3b-c22",
+      "front": "Match the workload to the index: equality lookups, range scans, sustained heavy writes, full-text search.",
+      "back": "Equality → hash index (O(1)). Ranges / <code>ORDER BY</code> → B+Tree (linked sorted leaves). Write-heavy → LSM on SSTables (append + sequential flush). Full-text → inverted index (term dictionary + postings lists).",
+      "page": "Module3B-Indexing/io-indexes",
+      "tags": ["indexes", "workloads"]
+    },
+    {
+      "id": "m3b-c23",
+      "front": "What actually drives LSM read/write cost, if not table-size Big-O?",
+      "back": "The count of SSTables per tier at that moment. Reads walk MemTable → Level-0 files → Level-1+ (bloom-filter-skipped where possible); a flush is an in-memory sort; compaction is a sort-merge over already-sorted runs — the same primitives as BigSort.",
+      "page": "Module3B-Indexing/io-indexes",
+      "tags": ["lsm", "io-cost"]
+    },
+    {
+      "id": "m3b-c24",
+      "front": "Why is \"hash O(1) vs B+Tree O(log N)\" mostly a red herring when choosing an index?",
+      "back": "With fanout in the thousands, O(log N) is ~3 page reads even at a trillion rows, versus 1 for hash — a tiny constant gap. The decisive difference is capability: B+Trees support range scans and ordering; hashes cannot.",
+      "page": "Module3B-Indexing/io-indexes",
+      "tags": ["indexes", "big-o"]
+    },
+    {
+      "id": "m3b-c25",
+      "front": "What is an inverted index?",
+      "back": "A per-word lookup table mapping each term to the sorted list of document/song IDs containing it (postings list), like a textbook's back-of-book index. Search intersects the postings lists of the query words in RAM, then fetches only matching rows.",
+      "page": "Module3B-Indexing/case-study-spotify-search",
+      "tags": ["inverted-index", "search"]
+    },
+    {
+      "id": "m3b-c26",
+      "front": "Why is Spotify's search term dictionary a B+Tree rather than a hash?",
+      "back": "Users type prefixes (\"Craz\" before \"Crazy\"), and a B+Tree keeps terms sorted so prefix lookup and autocomplete work. A hash would scatter neighbouring terms to random buckets and couldn't complete a partial word.",
+      "page": "Module3B-Indexing/case-study-spotify-search",
+      "tags": ["inverted-index", "btree"]
+    },
+    {
+      "id": "m3b-c27",
+      "front": "What are the two phases of Spotify Wrapped, and what index serves each?",
+      "back": "Batch (overnight): scan Listens clustered by <code>(user_id, listen_time)</code> — each user's year sits on one page — and write one summary row per user. Online (Dec 1): a hash index on <code>user_id</code> gives the O(1) lookup for millions of simultaneous card taps.",
+      "page": "Module3B-Indexing/case-study-wrapped-indexing",
+      "tags": ["clustering", "hash-index"]
+    },
+    {
+      "id": "m3b-c28",
+      "front": "Why is a composite B+Tree like <code>(user_id, timestamp)</code> called one of the highest-leverage index moves?",
+      "back": "One index serves several patterns at once: per-user history scans, most-recent lookups, and time-range filters — because the sort order groups by user first, then time.",
+      "page": "Module3B-Indexing/index-problem-solving",
+      "tags": ["composite-index", "design"]
+    },
+    {
+      "id": "m3b-c29",
+      "front": "In the $550K query disaster, what waste does each optimization attack, and what is the compound effect?",
+      "back": "B+Tree index on <code>listen_time</code>: rows scanned (×90). Columnar storage: columns read (×9). Compression (dictionary, bit-packing, RLE): bytes stored (×2). Independent wastes multiply — 49,200 IOs → ~35, roughly 1,400×, $550K/yr → ~$400.",
+      "page": "Module3B-Indexing/case-study-query-disaster",
+      "tags": ["optimization", "compounding"]
+    },
+    {
+      "id": "m3b-c30",
+      "front": "Uber needs only the latest location per driver from pings every 5 seconds. What index design fits?",
+      "back": "An LSM tree with a keep-latest merge function: writes append to RAM at effectively 0 IOs, and compaction discards older locations per <code>driver_id</code> for free (~100× data reduction). A B+Tree would pay a random update per ping.",
+      "page": "Module3B-Indexing/index-problem-solving",
+      "tags": ["lsm", "design"]
+    }
+  ]
+}

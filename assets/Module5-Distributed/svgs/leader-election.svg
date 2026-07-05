@@ -1,0 +1,79 @@
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="le-t le-d">
+  <title id="le-t">Leader election: one leader fails, the cluster elects another</title>
+  <desc id="le-d">A three-node cluster over time. In steady state, the pink
+  leader serves clients while two grey followers replicate the log. When the
+  leader fails, it goes grey with a cross and heartbeats stop. A follower
+  whose timeout elapsed becomes a candidate and asks the others for votes.
+  Winning a majority, it turns pink and resumes heartbeats, about 200 ms
+  after the failure. The election only runs when the leader fails; it is not
+  a pipeline of stages. Color key: pink is the leader and the election in
+  focus, grey is the followers and the timeline.</desc>
+  <defs><marker id="ah-le" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Leader election</text>
+  <text x="450" y="58" text-anchor="middle" font-size="14" fill="#6B7280">One leader serves. When it fails, the survivors run a quick election.</text>
+
+  <!-- timeline -->
+  <line x1="80" y1="252" x2="850" y2="252" stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- Steady state -->
+  <g data-step="1">
+    <text x="150" y="92" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Steady state</text>
+    <circle cx="150" cy="130" r="20" fill="#DB2777"/>
+    <text x="150" y="135" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">L</text>
+    <circle cx="118" cy="178" r="15" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <circle cx="182" cy="178" r="15" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <line x1="138" y1="146" x2="124" y2="162" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-le)"/>
+    <line x1="162" y1="146" x2="176" y2="162" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-le)"/>
+    <text x="150" y="214" text-anchor="middle" font-size="14" fill="#6B7280">Leader serves;</text>
+    <text x="150" y="232" text-anchor="middle" font-size="14" fill="#6B7280">followers replicate</text>
+    <text x="150" y="270" text-anchor="middle" font-size="14" fill="#6B7280">T = 0</text>
+  </g>
+
+  <!-- Leader fails -->
+  <g data-step="2">
+    <text x="375" y="92" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Leader fails</text>
+    <circle cx="375" cy="130" r="20" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <line x1="365" y1="120" x2="385" y2="140" stroke="#6B7280" stroke-width="2.5"/>
+    <line x1="385" y1="120" x2="365" y2="140" stroke="#6B7280" stroke-width="2.5"/>
+    <circle cx="343" cy="178" r="15" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <circle cx="407" cy="178" r="15" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="375" y="214" text-anchor="middle" font-size="14" fill="#6B7280">No heartbeat;</text>
+    <text x="375" y="232" text-anchor="middle" font-size="14" fill="#6B7280">followers wait</text>
+    <text x="375" y="270" text-anchor="middle" font-size="14" fill="#6B7280">crash</text>
+  </g>
+
+  <!-- Election -->
+  <g data-step="3">
+    <text x="600" y="92" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Election</text>
+    <circle cx="600" cy="130" r="20" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <line x1="590" y1="120" x2="610" y2="140" stroke="#6B7280" stroke-width="2.5"/>
+    <line x1="610" y1="120" x2="590" y2="140" stroke="#6B7280" stroke-width="2.5"/>
+    <circle cx="568" cy="178" r="16" fill="#FFFFFF" stroke="#DB2777" stroke-width="2.5"/>
+    <text x="568" y="183" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">C</text>
+    <circle cx="632" cy="178" r="15" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <line x1="584" y1="178" x2="613" y2="178" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-le)"/>
+    <text x="600" y="214" text-anchor="middle" font-size="14" fill="#6B7280">Timed-out follower</text>
+    <text x="600" y="232" text-anchor="middle" font-size="14" fill="#6B7280">asks for votes</text>
+    <text x="600" y="270" text-anchor="middle" font-size="14" fill="#6B7280">~150 ms timeout</text>
+  </g>
+
+  <!-- New leader -->
+  <g data-step="4">
+    <text x="810" y="92" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">New leader</text>
+    <circle cx="810" cy="130" r="20" fill="#DB2777"/>
+    <text x="810" y="135" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">L</text>
+    <circle cx="778" cy="178" r="15" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <circle cx="842" cy="178" r="15" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <line x1="798" y1="146" x2="784" y2="162" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-le)"/>
+    <line x1="822" y1="146" x2="836" y2="162" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-le)"/>
+    <text x="810" y="214" text-anchor="middle" font-size="14" fill="#6B7280">Wins a majority;</text>
+    <text x="810" y="232" text-anchor="middle" font-size="14" fill="#6B7280">resumes heartbeats</text>
+    <text x="810" y="270" text-anchor="middle" font-size="14" fill="#6B7280">~200 ms elected</text>
+  </g>
+
+  <text x="450" y="294" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the leader and the election in focus&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the followers and the timeline</tspan></text>
+</svg>

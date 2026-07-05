@@ -1,0 +1,82 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.437
+You have the spec, the precise definition of what you want.
+
+00:00:05.437 --> 00:00:08.873
+Now the model writes the SQL.
+
+00:00:08.873 --> 00:00:12.309
+The first attempt rarely lands.
+
+00:00:12.309 --> 00:00:15.746
+It names a column that has since been renamed, or it joins two tables on the wrong key.
+
+00:00:15.746 --> 00:00:19.183
+A one shot model has no way to know any of this.
+
+00:00:19.183 --> 00:00:22.619
+It just ships the broken query and moves on.
+
+00:00:22.619 --> 00:00:28.322
+So you give the model a real database to run against, reached through a tool like MCP or a CLI.
+
+00:00:28.322 --> 00:00:34.025
+Now it writes a query, runs it, reads the error the database hands back, and rewrites.
+
+00:00:34.025 --> 00:00:39.727
+Then it does that again, in seconds, many times over.
+
+00:00:39.727 --> 00:00:45.430
+This is the same loop you run by hand when you debug, just automated.
+
+00:00:45.430 --> 00:00:51.133
+It is exactly the difference between one shot and multi shot, and it is most of the jump in those benchmark scores.
+
+00:00:51.133 --> 00:00:55.828
+The database does a lot of checking for you, and for free.
+
+00:00:55.828 --> 00:01:00.522
+A column that does not exist.
+
+00:01:00.522 --> 00:01:05.217
+A type that does not match.
+
+00:01:05.217 --> 00:01:09.912
+A join that comes back with zero rows.
+
+00:01:09.912 --> 00:01:14.606
+Each one is an error the engine raises the instant it runs the query, and the model reads that error and fixes it, with no human in the loop.
+
+00:01:14.606 --> 00:01:19.301
+Everything mechanical, the engine catches on its own.
+
+00:01:19.301 --> 00:01:23.995
+But the database has no opinion about what you meant.
+
+00:01:23.995 --> 00:01:28.690
+Ask for active users, and the model can write a query that runs, returns a clean number, and counts the wrong thing, because active user has a dozen definitions and it quietly guessed one.
+
+00:01:28.690 --> 00:01:33.385
+That query sails straight through execution.
+
+00:01:33.385 --> 00:01:38.079
+The engine only ran what it was given.
+
+00:01:38.079 --> 00:01:42.774
+A query that runs is not yet a query that is right, and catching that is the next step.
+
+00:01:42.774 --> 00:01:46.805
+So execution earns you a query that works, and it earns it the moment the database runs the query.
+
+00:01:46.805 --> 00:01:50.836
+The crashes are caught.
+
+00:01:50.836 --> 00:01:54.867
+The empty results are caught.
+
+00:01:54.867 --> 00:01:58.898
+The wrong but running answer is not, because the database ran what it was given and cannot read your mind.
+
+00:01:58.898 --> 00:02:02.929
+Proving that one is the final step: verification.

@@ -1,0 +1,167 @@
+<h1>Selectivity &amp; Statistics: How Databases Estimate Data Flow</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Selectivity is the fraction of rows a predicate keeps; the database's statistics (histograms, distinct-value counts) let the query planner estimate selectivity to choose the cheapest plan.</p>
+<p><strong>Intuition.</strong> <code>WHERE user_id = 1</code> keeps a tiny sliver of Listens, one user's rows out of billions, far under 1%; <code>WHERE rating IS NOT NULL</code> keeps ~95%. The optimizer needs to know which is which: a highly selective predicate should use the index, a near-everything predicate should scan. Statistics tell it which.</p>
+</div>
+<h2>Core Concepts: Selectivity &amp; Cardinality</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Selectivity</th>
+<th>Cardinality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Definition</strong></td>
+<td>Fraction passing the filter (0.0 – 1.0)</td>
+<td>Number of rows in the output</td>
+</tr>
+<tr>
+<td><strong>Examples</strong></td>
+<td><code>user_id = 123</code> → 0.0001<br><code>genre = 'Rock'</code> → 0.30<br><code>rating IS NOT NULL</code> → 0.95</td>
+<td><code>Output = Input × Selectivity</code><br>e.g. 1M × 0.01 = 10K rows</td>
+</tr>
+<tr>
+<td><strong>Combining</strong></td>
+<td><code>AND</code>: S₁ × S₂<br><code>OR</code>: S₁ + S₂ − (S₁ × S₂)</td>
+<td>FK join: <code>≈ \|R\|</code> (R = FK side)<br>M:N join: <code>\|R\|×\|S\| / max(V_R, V_S)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> bad estimates → 10–1000× slower plans. Selectivity drives algorithm choice (hash vs. nested loop), access method (index vs. scan), buffer sizing, and parallelism.</p>
+<hr />
+<h2>Step 1: Gathering Statistics</h2>
+<p>The pipeline: <strong>sample / scan → build structures → store &amp; use</strong>.</p>
+<h3>Sampling Techniques</h3>
+<p><a id="sampling-techniques"></a>
+<img src="assets/Module3C-Query-Optimization/svgs/reservoir-sampling.svg" alt="Reservoir sampling in three panels: a single-pass stream of rows; a fixed k-slot reservoir where the first k rows fill the slots and each later row i overwrites a random slot with probability k/i (else is discarded); and the guarantee that every one of the N rows ends up in the sample with equal probability k/N, in O(k) memory." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Reservoir sampling is the default when you need an unbiased uniform sample in one streaming pass over a table too big to shuffle. Keep the first <code>k</code> rows; for each later row <code>i</code>, swap it into a random slot with probability <code>k/i</code>, otherwise discard it. The result is exact: every one of the <code>N</code> rows is in the final sample with equal probability <code>k/N</code>, using only <code>O(k)</code> memory and no second pass. Two cheaper alternatives trade exactness for speed: <strong>block sampling</strong> reads whole pages (fast I/O, but biased when rows are clustered on disk), and <strong>progressive sampling</strong> starts small and grows until the estimate's variance is low enough (cheap when the data is easy, more passes when it is not).</p>
+</div>
+<hr />
+<h2>Step 2: Storing Statistics</h2>
+<p>After gathering, build compressed representations.</p>
+<h3>Table-level vs. column-level stats</h3>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>What's stored</th>
+<th>Stored where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Table</strong></td>
+<td><code>row_count</code>, <code>page_count</code>, <code>avg_row_len</code>, <code>last_analyzed</code>, <code>staleness</code></td>
+<td>PostgreSQL: <code>pg_class</code> · MySQL: <code>innodb_table_stats</code> · BigQuery: <code>INFORMATION_SCHEMA</code></td>
+</tr>
+<tr>
+<td><strong>Column</strong></td>
+<td><code>null_fraction</code>, <code>distinct_count</code>, most-common values + frequencies, histogram bounds</td>
+<td>PostgreSQL: <code>pg_statistic</code></td>
+</tr>
+</tbody>
+</table>
+<p>Column-level stats enable range estimates, equality selectivity, NULL handling, and join cardinality.</p>
+<div class="v5-callout">
+<p><strong>Key trade-off.</strong> We can't store every value, so we use compressed structures that trade space for accuracy. Histograms model <em>distributions</em>; sketches answer specific queries (membership, distinct count, frequency).</p>
+</div>
+<h3>Histograms: Modeling Value Distribution</h3>
+<p><a id="histograms"></a>
+<img src="assets/Module3C-Query-Optimization/svgs/histogram-types.svg" alt="Two ways to bucket a skewed column: equi-width gives every bucket an equal value range so on skew one bucket holds ~85% of rows and its estimate is useless; height-balanced gives every bucket the same row count (25% each) so ranges shrink where data is dense and estimates stay accurate." style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> An <strong>equi-width</strong> histogram splits the value range into equal slices; it is trivial to build but on skewed data one bucket swallows almost all the rows, so any selectivity read off it is wildly wrong. A <strong>height-balanced</strong> histogram instead gives every bucket the same row count (each holds 1/B of the rows), so bucket ranges automatically shrink where data is dense, which keeps estimates accurate exactly where skew would otherwise hurt. A third kind, the <strong>wavelet</strong> histogram, stores a multi-resolution summary for complex or multi-dimensional distributions.</p>
+</div>
+<h3>Probabilistic sketches</h3>
+<table>
+<thead>
+<tr>
+<th>Sketch</th>
+<th>Answers</th>
+<th>Space</th>
+<th>Error</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bloom Filter</strong></td>
+<td>"Might item <code>x</code> be in the set?"</td>
+<td>~10 bits/item for 1% FP</td>
+<td>1% false positive</td>
+<td>Skip partitions in distributed query</td>
+</tr>
+<tr>
+<td><strong>HyperLogLog</strong></td>
+<td><code>COUNT(DISTINCT x)</code></td>
+<td>~1.5 KB total</td>
+<td>±1%</td>
+<td>Unique visitors over billions</td>
+</tr>
+<tr>
+<td><strong>Count-Min Sketch</strong></td>
+<td>"How often did item <code>x</code> appear?"</td>
+<td>~10 KB for 0.1% error</td>
+<td>ε with prob δ</td>
+<td>Top-K / heavy hitters</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python"># Bloom filter (space O(m) bits)
+def insert(x):
+    for h in hash_funcs:
+        bits[h(x)] = 1
+
+def contains(x):
+    return all(bits[h(x)] for h in hash_funcs)
+</code></pre>
+<pre><code class="language-python"># HyperLogLog (space ~1.5KB total)
+def add(value):
+    h = hash(value)
+    bucket = h &amp; (m - 1)
+    zeros = leading_zeros(h)
+    buckets[bucket] = max(buckets[bucket], zeros)
+</code></pre>
+<pre><code class="language-python"># Count-Min Sketch (space O(w×d))
+def increment(item):
+    for i, h in enumerate(hash_funcs):
+        table[i][h(item)] += 1
+
+def estimate(item):
+    return min(table[i][h(item)] for i, h in enumerate(hash_funcs))
+</code></pre>
+<hr />
+<h2>Step 3: Using Statistics for Selectivity Patterns</h2>
+<table>
+<thead>
+<tr>
+<th>Selectivity</th>
+<th>Examples</th>
+<th>Recommended access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Low (&lt; 1%)</strong></td>
+<td>Primary key lookup · unique constraint · rare value</td>
+<td><strong>Index</strong></td>
+</tr>
+<tr>
+<td><strong>Medium (1 – 10%)</strong></td>
+<td>Common value · single-month date range · category filter</td>
+<td><strong>Bitmap scan</strong></td>
+</tr>
+<tr>
+<td><strong>High (&gt; 10%)</strong></td>
+<td><code>IS NOT NULL</code> · broad date range · popular category</td>
+<td><strong>Sequential scan</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>One thing the three steps above do not fix: statistics go stale as the table changes. When they drift far enough, <code>ANALYZE</code> (or autovacuum) re-gathers them; until then every estimate above is computed against the old shape of the data.</p>
+<hr />
+<p><strong>Next:</strong> <a href="#/page/Module3C-Query-Optimization/io-cost-summary">IO Cost Summary</a> puts these selectivity estimates to work, comparing two query plans by hand using the sort, hash, and join cost formulas from <a href="#/page/Module3-nanoDB/io-algorithms">Module 3 nanoDB: IO Algorithms</a>.</p>

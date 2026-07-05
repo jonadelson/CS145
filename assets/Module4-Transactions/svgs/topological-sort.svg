@@ -1,0 +1,31 @@
+<svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:460px; display:block; margin:0.75rem auto;" role="img" aria-labelledby="topological-sort-t topological-sort-d">
+  <title id="topological-sort-t">A 4-node DAG and its two valid topological orderings, listed as text</title>
+  <desc id="topological-sort-d">A 4-node DAG on the left (edges A to B, A to C, B to D, C to D) and, on the right, its two valid topological orderings listed as text: A B C D, and A C B D. B and C are independent, so either can come first.</desc>
+            <defs>
+                <marker id="ar-topo" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><polygon points="0 0, 12 4, 0 8" fill="#2563EB"/></marker>
+            </defs>
+
+            <!-- divider (static) -->
+            <line x1="240" y1="40" x2="240" y2="190" stroke="#D4D7DC" stroke-width="1"/>
+
+            <!-- LEFT: 2x2 DAG (A→B, A→C, B→D, C→D) -->
+            <g data-step="1">
+            <text x="115" y="24" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#2563EB">DAG</text>
+            <circle cx="55"  cy="70"  r="20" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="55"  y="75"  text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">A</text>
+            <circle cx="175" cy="70"  r="20" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="175" y="75"  text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">B</text>
+            <circle cx="55"  cy="160" r="20" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="55"  y="165" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">C</text>
+            <circle cx="175" cy="160" r="20" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="175" y="165" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">D</text>
+            <line x1="75"  y1="70"  x2="153" y2="70"  stroke="#2563EB" stroke-width="2.5" marker-end="url(#ar-topo)"/>
+            <line x1="55"  y1="90"  x2="55"  y2="138" stroke="#2563EB" stroke-width="2.5" marker-end="url(#ar-topo)"/>
+            <line x1="75"  y1="160" x2="153" y2="160" stroke="#2563EB" stroke-width="2.5" marker-end="url(#ar-topo)"/>
+            <line x1="175" y1="90"  x2="175" y2="138" stroke="#2563EB" stroke-width="2.5" marker-end="url(#ar-topo)"/>
+            </g>
+
+            <!-- RIGHT: the two valid orders, listed as text -->
+            <g data-step="2">
+            <text x="350" y="24" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#2563EB">Two valid orders</text>
+            <text x="350" y="98"  text-anchor="middle" font-family="Inter, sans-serif" font-size="17" font-weight="600" fill="#0E0E10">A &#8594; B &#8594; C &#8594; D</text>
+            <text x="350" y="131" text-anchor="middle" font-family="Inter, sans-serif" font-size="17" font-weight="600" fill="#0E0E10">A &#8594; C &#8594; B &#8594; D</text>
+            <text x="350" y="166" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6B7280" font-style="italic">B and C are independent</text>
+            </g>
+        </svg>

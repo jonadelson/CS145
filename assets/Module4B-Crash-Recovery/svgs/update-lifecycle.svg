@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 660" role="img" aria-labelledby="ul-t ul-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="ul-t">The lifecycle of one update: append to the log, update the RAM page, flush the page to disk later</title>
+  <desc id="ul-d">One update, value A going from 19 to 22.8, is three writes in time order. First it appends a tiny old-to-new diff to the write-ahead log, violet, durable and sequential. Second it updates A's page in the RAM buffer, red, in place, drawn as a grid of 64 MB page slots; RAM is volatile. Both happen now. Third, later, the whole 64 MB page is flushed to disk, green, a grid of durable page slots, as one write from the start of the page to its end. The log record is durable before the page ever reaches disk, which is the write-ahead rule. Color key: violet is the durable sequential log, red is the volatile RAM buffer, green is the durable disk, grey is page structure.</desc>
+
+  <defs>
+    <marker id="ah-ul" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+    <marker id="ah-ulg" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16A34A"/>
+    </marker>
+  </defs>
+
+  <text x="600" y="40" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The lifecycle of an update</text>
+  <text x="600" y="66" text-anchor="middle" font-size="15" fill="#3F3F46">Three writes, in order: append to the log, update the RAM page, flush the page to disk later.</text>
+  <text x="600" y="88" text-anchor="middle" font-size="13" fill="#6B7280">A page is 64 MB (big-data systems); a log record is a few dozen bytes.</text>
+
+  <!-- ===== the update (trigger) ===== -->
+  <g data-step="1">
+    <rect x="40" y="250" width="168" height="110" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="250" width="168" height="6" rx="3" fill="#6B7280"/>
+    <text x="124" y="282" text-anchor="middle" font-size="14" fill="#6B7280">the update</text>
+    <text x="124" y="306" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">value A</text>
+    <text x="124" y="336" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#0E0E10">19 &#8594; 22.8</text>
+  </g>
+
+  <!-- ===== WAL box (static frame) ===== -->
+  <rect x="300" y="118" width="356" height="140" rx="10" fill="#FFFFFF" stroke="#A78BFA" stroke-width="2"/>
+  <rect x="300" y="118" width="356" height="6" rx="3" fill="#A78BFA"/>
+  <text x="322" y="148" font-size="18" font-weight="700" fill="#7C3AED">WAL log</text>
+  <text x="322" y="170" font-size="13" fill="#6B7280">tracks old and new &#183; a few tens of bytes (~40 B)</text>
+  <g fill="#F7F8FA" stroke="#D4D7DC" stroke-width="1">
+    <rect x="322" y="196" width="40" height="42" rx="4"/>
+    <rect x="368" y="196" width="40" height="42" rx="4"/>
+    <rect x="414" y="196" width="40" height="42" rx="4"/>
+  </g>
+
+  <!-- ===== RAM box (static frame) ===== -->
+  <rect x="300" y="304" width="356" height="168" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+  <rect x="300" y="304" width="356" height="6" rx="3" fill="#DC2626"/>
+  <text x="322" y="334" font-size="18" font-weight="700" fill="#DC2626">RAM buffer</text>
+  <text x="322" y="356" font-size="13" fill="#6B7280">64 MB pages &#183; volatile, lost on a crash</text>
+  <g fill="#F7F8FA" stroke="#D4D7DC" stroke-width="1">
+    <rect x="416" y="372" width="76" height="46" rx="4"/>
+    <rect x="502" y="372" width="76" height="46" rx="4"/>
+    <rect x="416" y="424" width="76" height="46" rx="4"/>
+    <rect x="502" y="424" width="76" height="46" rx="4"/>
+  </g>
+
+  <!-- ===== Disk box (static frame) ===== -->
+  <rect x="768" y="150" width="392" height="308" rx="10" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+  <rect x="768" y="150" width="392" height="6" rx="3" fill="#16A34A"/>
+  <text x="790" y="180" font-size="18" font-weight="700" fill="#16A34A">Disk (data file)</text>
+  <text x="790" y="202" font-size="13" fill="#6B7280">64 MB pages &#183; durable, slow</text>
+  <g fill="#E7EAEE" stroke="#D4D7DC" stroke-width="1">
+    <rect x="858" y="222" width="60" height="42" rx="4"/><rect x="928" y="222" width="60" height="42" rx="4"/><rect x="998" y="222" width="60" height="42" rx="4"/><rect x="1068" y="222" width="60" height="42" rx="4"/>
+    <rect x="790" y="274" width="60" height="42" rx="4"/><rect x="928" y="274" width="60" height="42" rx="4"/><rect x="998" y="274" width="60" height="42" rx="4"/><rect x="1068" y="274" width="60" height="42" rx="4"/>
+    <rect x="790" y="326" width="60" height="42" rx="4"/><rect x="858" y="326" width="60" height="42" rx="4"/><rect x="928" y="326" width="60" height="42" rx="4"/><rect x="998" y="326" width="60" height="42" rx="4"/><rect x="1068" y="326" width="60" height="42" rx="4"/>
+    <rect x="790" y="378" width="60" height="42" rx="4"/><rect x="858" y="378" width="60" height="42" rx="4"/><rect x="928" y="378" width="60" height="42" rx="4"/><rect x="998" y="378" width="60" height="42" rx="4"/><rect x="1068" y="378" width="60" height="42" rx="4"/>
+  </g>
+  <text x="790" y="442" font-size="13" fill="#3F3F46">19 of 2048 pages</text>
+
+  <!-- ===== step 2: append to WAL (first) ===== -->
+  <g data-step="2">
+    <line x1="210" y1="278" x2="298" y2="210" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-ul)"/>
+    <text x="228" y="200" font-size="15" font-weight="700" fill="#7C3AED">&#9312; append</text>
+    <rect x="470" y="196" width="164" height="42" rx="4" fill="#EFE8FB" stroke="#A78BFA" stroke-width="1.5"/>
+    <text x="552" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">A: 19 &#8594; 22.8</text>
+  </g>
+
+  <!-- ===== step 3: update the RAM page (then) ===== -->
+  <g data-step="3">
+    <line x1="210" y1="330" x2="298" y2="392" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-ul)"/>
+    <text x="222" y="360" font-size="15" font-weight="700" fill="#DC2626">&#9313; update</text>
+    <rect x="330" y="372" width="76" height="46" rx="4" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="368" y="392" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">A</text>
+    <text x="368" y="410" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#DC2626">22.8</text>
+    <text x="368" y="440" text-anchor="middle" font-size="13" fill="#DC2626">dirty page</text>
+  </g>
+
+  <!-- ===== step 4: flush the whole page to disk (later) ===== -->
+  <g data-step="4">
+    <line x1="660" y1="392" x2="782" y2="300" stroke="#16A34A" stroke-width="2.5" marker-end="url(#ah-ulg)"/>
+    <text x="690" y="352" font-size="15" font-weight="700" fill="#16A34A">&#9314; flush</text>
+    <text x="690" y="372" font-size="13" fill="#6B7280">later</text>
+    <rect x="790" y="222" width="60" height="42" rx="4" fill="#E1F4EC" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="820" y="248" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">A</text>
+  </g>
+
+  <!-- ===== timeline strip (static) ===== -->
+  <line x1="90" y1="556" x2="1104" y2="556" stroke="#D4D7DC" stroke-width="2"/>
+  <line x1="500" y1="556" x2="828" y2="556" stroke="#D4D7DC" stroke-width="2" stroke-dasharray="6,6"/>
+  <line x1="1104" y1="556" x2="1130" y2="556" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-ul)"/>
+  <text x="1140" y="561" font-size="13" fill="#6B7280">time</text>
+
+  <circle cx="210" cy="556" r="7" fill="#7C3AED"/>
+  <text x="210" y="534" text-anchor="middle" font-size="14" font-weight="700" fill="#7C3AED">&#9312; append to log</text>
+  <text x="210" y="582" text-anchor="middle" font-size="13" fill="#6B7280">durable now</text>
+
+  <circle cx="430" cy="556" r="7" fill="#DC2626"/>
+  <text x="430" y="534" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">&#9313; update RAM page</text>
+  <text x="430" y="582" text-anchor="middle" font-size="13" fill="#6B7280">now</text>
+
+  <circle cx="900" cy="556" r="7" fill="#16A34A"/>
+  <text x="900" y="534" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">&#9314; flush page to disk</text>
+  <text x="900" y="582" text-anchor="middle" font-size="13" fill="#6B7280">later &#183; one whole-page write (Ws &#8594; We)</text>
+
+  <text x="600" y="614" text-anchor="middle" font-size="14" fill="#3F3F46">The log record is durable before the page ever reaches disk. That is write-ahead.</text>
+
+  <!-- color key -->
+  <text x="90" y="644" font-size="14" fill="#6B7280">Color key  <tspan fill="#7C3AED" font-weight="700">violet</tspan> = durable, sequential log  ·  <tspan fill="#DC2626" font-weight="700">red</tspan> = volatile RAM buffer  ·  <tspan fill="#16A34A" font-weight="700">green</tspan> = durable disk  ·  grey = page structure</text>
+</svg>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 452" role="img" aria-labelledby="uo-t uo-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="uo-t">Undo is logged: it appends W-abort rows to the log</title>
+  <desc id="uo-d">The same WAL rows as the WAL Log page: T1 wrote A from 19 to 22.8 and B from 23 to 27.6. When T1 aborts, undo does not just fix the data page, it appends its reversal to the log, newest write first: a W-abort row for B from 27.6 back to 23, then a W-abort row for A from 22.8 back to 19, then an abort record. The data page ends at A=19, B=23. Because each W-abort row is itself a logged write, the log records the whole rollback. Color key: orange is the old value, green is the new value, red is undo's own W-abort rows.</desc>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">Undo is a write too: it appends W-abort rows</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">On abort, write each old value back and record the reversal in the log as W-abort rows.</text>
+
+  <!-- column headers -->
+  <text x="95"  y="94" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Txn</text>
+  <text x="210" y="94" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Action</text>
+  <text x="320" y="94" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Var</text>
+  <text x="445" y="94" text-anchor="middle" font-size="14" font-weight="700" fill="#D97706">old value</text>
+  <text x="570" y="94" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">new value</text>
+  <line x1="50" y1="104" x2="710" y2="104" stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- step 1: T1's forward writes (the WAL Log rows) -->
+  <g data-step="1">
+    <text x="95"  y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="210" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="320" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">A</text>
+    <text x="445" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">19</text>
+    <text x="570" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">22.8</text>
+    <rect x="50" y="144" width="660" height="30" fill="#F7F8FA"/>
+    <text x="95"  y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="210" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#EA580C">W</text>
+    <text x="320" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">B</text>
+    <text x="445" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">23</text>
+    <text x="570" y="164" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">27.6</text>
+  </g>
+
+  <!-- step 2: undo appends W-abort rows, newest first -->
+  <g data-step="2">
+    <line x1="50" y1="184" x2="710" y2="184" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="380" y="200" text-anchor="middle" font-size="13" fill="#6B7280" font-style="italic">abort: no commit, so undo walks back and logs each reversal</text>
+    <text x="95"  y="230" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="210" y="230" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#DC2626">W-abort</text>
+    <text x="320" y="230" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">B</text>
+    <text x="445" y="230" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">27.6</text>
+    <text x="570" y="230" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">23</text>
+    <rect x="50" y="242" width="660" height="30" fill="#F7F8FA"/>
+    <text x="95"  y="262" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="210" y="262" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#DC2626">W-abort</text>
+    <text x="320" y="262" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">A</text>
+    <text x="445" y="262" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">22.8</text>
+    <text x="570" y="262" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">19</text>
+  </g>
+
+  <!-- step 3: abort record + the payoff -->
+  <g data-step="3">
+    <text x="95"  y="294" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="210" y="294" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#DC2626">abort</text>
+    <text x="320" y="294" text-anchor="middle" font-size="14" fill="#6B7280">&#8212;</text>
+    <text x="445" y="294" text-anchor="middle" font-size="14" fill="#6B7280">&#8212;</text>
+    <text x="570" y="294" text-anchor="middle" font-size="14" fill="#6B7280">&#8212;</text>
+    <line x1="50" y1="310" x2="710" y2="310" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="328" width="680" height="70" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="328" width="6" height="70" rx="3" fill="#A78BFA"/>
+    <text x="66" y="354" font-size="15" font-weight="700" fill="#7C3AED">Undo is logged, not just applied</text>
+    <text x="66" y="378" font-size="14" fill="#3F3F46">The data page ends at A=19, B=23. Each reversal is itself a logged write, so the log records the whole rollback.</text>
+  </g>
+
+  <!-- color key -->
+  <text x="40" y="428" font-size="14" fill="#6B7280">Color key  <tspan fill="#D97706" font-weight="700">orange</tspan> = old value  ·  <tspan fill="#16A34A" font-weight="700">green</tspan> = new value  ·  <tspan fill="#DC2626" font-weight="700">red</tspan> = undo's own W-abort rows</text>
+</svg>

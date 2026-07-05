@@ -1,0 +1,271 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.615
+You write two SQL queries that look different.
+
+00:00:05.615 --> 00:00:09.229
+Both run, and both return the same answer on your test data.
+
+00:00:09.229 --> 00:00:12.844
+Are they equivalent?
+
+00:00:12.844 --> 00:00:16.458
+Maybe.
+
+00:00:16.458 --> 00:00:20.073
+There is a sharp line here.
+
+00:00:20.073 --> 00:00:23.687
+Output equivalence, on the right, means two queries agree on the data you have right now.
+
+00:00:23.687 --> 00:00:27.302
+Like rating greater than four point five versus rating at least four point six.
+
+00:00:27.302 --> 00:00:30.916
+They match today, but the moment a row rates four point five five, they split.
+
+00:00:30.916 --> 00:00:34.531
+That is a coincidence.
+
+00:00:34.531 --> 00:00:38.146
+Query equivalence, on the left, means two queries agree on any input, ever.
+
+00:00:38.146 --> 00:00:41.760
+Like x between one and five versus x at least one and at most five.
+
+00:00:41.760 --> 00:00:45.375
+Always the same.
+
+00:00:45.375 --> 00:00:48.989
+That is a guarantee.
+
+00:00:48.989 --> 00:00:52.604
+And here is the catch you cannot test your way out of.
+
+00:00:52.604 --> 00:00:56.218
+Running both queries and seeing the same rows only proves they agree on the rows you have.
+
+00:00:56.218 --> 00:00:59.833
+It never proves they agree on the rows you do not.
+
+00:00:59.833 --> 00:01:03.447
+For that you have to reason about what each one actually computes.
+
+00:01:03.447 --> 00:01:07.062
+Let's do that for three examples.
+
+00:01:07.062 --> 00:01:11.454
+Example one.
+
+00:01:11.454 --> 00:01:15.847
+Find every user with at least one rating above their own personal average.
+
+00:01:15.847 --> 00:01:20.239
+Both queries compute the very same value, this user's average rating, and both keep a user when some rating beats it.
+
+00:01:20.239 --> 00:01:24.632
+They differ only in when they compute it.
+
+00:01:24.632 --> 00:01:29.024
+The correlated subquery re-derives the average on every single row, from scratch.
+
+00:01:29.024 --> 00:01:33.416
+The CTE derives it once, up front, and joins it back.
+
+00:01:33.416 --> 00:01:37.809
+But a user's average is a fixed number.
+
+00:01:37.809 --> 00:01:42.201
+Compute it once or compute it per row, you get the same number.
+
+00:01:42.201 --> 00:01:46.594
+And the test, rating above that average, is identical.
+
+00:01:46.594 --> 00:01:50.986
+Same value in, same comparison, same users out, for absolutely any data you could load.
+
+00:01:50.986 --> 00:01:55.379
+So these two are genuinely query-equivalent.
+
+00:01:55.379 --> 00:01:59.771
+Here they return Mickey, Minnie, Daffy.
+
+00:01:59.771 --> 00:02:03.609
+Example two.
+
+00:02:03.609 --> 00:02:07.446
+Find users who span at least two genres.
+
+00:02:07.446 --> 00:02:11.284
+Another genuine equivalence, and the comments show why.
+
+00:02:11.284 --> 00:02:15.122
+Both join listens to songs, count the distinct genres for each user, and keep the users with two or more.
+
+00:02:15.122 --> 00:02:18.959
+The CTE version computes nothing new.
+
+00:02:18.959 --> 00:02:22.797
+It just gives that distinct-genre count a name, genre count, and filters on the name one step later.
+
+00:02:22.797 --> 00:02:26.634
+Naming a value cannot change the value.
+
+00:02:26.634 --> 00:02:30.472
+Same count, same threshold, same answer, on every possible input.
+
+00:02:30.472 --> 00:02:34.310
+They return Mickey, Minnie, Daffy.
+
+00:02:34.310 --> 00:02:38.147
+So that is two genuine equivalences.
+
+00:02:38.147 --> 00:02:41.985
+Now watch one that only looks like a third.
+
+00:02:41.985 --> 00:02:46.682
+Example three.
+
+00:02:46.682 --> 00:02:51.378
+Each user's top three songs.
+
+00:02:51.378 --> 00:02:56.075
+Both queries ask the same question, where does a song rank inside its own user.
+
+00:02:56.075 --> 00:03:00.771
+The window version ranks directly.
+
+00:03:00.771 --> 00:03:05.468
+ROW_NUMBER, ordered by rating within each user, stamps one, two, three, and you keep rank three or lower.
+
+00:03:05.468 --> 00:03:10.165
+The classical version never ranks.
+
+00:03:10.165 --> 00:03:14.861
+For each song it counts how many of that user's songs rate strictly higher, and keeps the song when fewer than three beat it.
+
+00:03:14.861 --> 00:03:19.558
+On distinct ratings those are the same statement: the song in position three is exactly the song with two above it.
+
+00:03:19.558 --> 00:03:24.254
+So on our data they agree.
+
+00:03:24.254 --> 00:03:28.951
+But watch one extra tuple.
+
+00:03:28.951 --> 00:03:33.648
+Give Mickey a second song rated three point nine, tying for third.
+
+00:03:33.648 --> 00:03:38.344
+ROW_NUMBER hands out one, two, three, four, so that fourth song is rank four, and it gets dropped: three songs.
+
+00:03:38.344 --> 00:03:43.041
+But that same song still has only two rated higher, fewer than three, so the counting version keeps it: four songs.
+
+00:03:43.041 --> 00:03:47.737
+The tie at the cutoff is exactly where they split.
+
+00:03:47.737 --> 00:03:52.434
+Equal output today, not equal queries.
+
+00:03:52.434 --> 00:03:56.841
+So where do these look-alikes actually split?
+
+00:03:56.841 --> 00:04:01.248
+Two places, and neither shows up in our nine rows.
+
+00:04:01.248 --> 00:04:05.655
+First, the tie, from example three.
+
+00:04:05.655 --> 00:04:10.062
+Give one user four songs all tied at five point oh.
+
+00:04:10.062 --> 00:04:14.468
+ROW_NUMBER forces a strict order and cuts at three, so it keeps three songs.
+
+00:04:14.468 --> 00:04:18.875
+The counting version sees zero songs rated higher for all four, so it keeps all four.
+
+00:04:18.875 --> 00:04:23.282
+Same intent, different tie-handling, and nothing forbids a tie.
+
+00:04:23.282 --> 00:04:27.689
+Second, a trap that hits a pattern you will reach for constantly, NOT IN.
+
+00:04:27.689 --> 00:04:32.096
+Picture its exclude-list holding a two and a null.
+
+00:04:32.096 --> 00:04:36.503
+NOT IN asks, is this user different from every value in the list?
+
+00:04:36.503 --> 00:04:40.910
+You are comparing a known id to an unknown, so SQL answers unknown, and the row drops.
+
+00:04:40.910 --> 00:04:45.317
+The whole result collapses to nothing.
+
+00:04:45.317 --> 00:04:49.724
+NOT EXISTS asks a plain existence question that a null cannot poison.
+
+00:04:49.724 --> 00:04:54.131
+Now the subtle part.
+
+00:04:54.131 --> 00:04:58.537
+On our schema this never arises, because Listens dot user id is declared NOT NULL.
+
+00:04:58.537 --> 00:05:02.944
+And that is the NOT NULL constraint doing the work, not the foreign key.
+
+00:05:02.944 --> 00:05:07.351
+A foreign key still allows nulls.
+
+00:05:07.351 --> 00:05:11.758
+It only checks that present values point at a real user.
+
+00:05:11.758 --> 00:05:16.165
+So the same NOT IN query is safe here, and a landmine the day you aim it at a column that can be null.
+
+00:05:16.165 --> 00:05:20.456
+A few rules for picking.
+
+00:05:20.456 --> 00:05:24.747
+EXISTS over IN when NULLs are possible, because we just saw IN break on a null.
+
+00:05:24.747 --> 00:05:29.038
+Window functions over correlated subqueries when the database optimizer can rewrite them.
+
+00:05:29.038 --> 00:05:33.329
+CTE over a deeply nested subquery for readability.
+
+00:05:33.329 --> 00:05:37.620
+Each pick has a reason rooted in equivalence.
+
+00:05:37.620 --> 00:05:42.125
+So here is the model to keep.
+
+00:05:42.125 --> 00:05:46.629
+Two queries that look the same and return the same answer today are not necessarily the same query.
+
+00:05:46.629 --> 00:05:51.134
+Real equivalence is about every future input.
+
+00:05:51.134 --> 00:05:55.639
+The edge cases, the ties, the nulls.
+
+00:05:55.639 --> 00:06:00.144
+That is where look-alike queries split apart, exactly as the tie and the null just did.
+
+00:06:00.144 --> 00:06:04.648
+And remember what a test can and cannot do.
+
+00:06:04.648 --> 00:06:09.153
+Running the queries shows they agree on the rows you have.
+
+00:06:09.153 --> 00:06:13.658
+Only reasoning about what they compute shows they agree on the rows you do not.
+
+00:06:13.658 --> 00:06:18.162
+Get that right, and you pick the shape that reads clearest and trust the optimizer for speed.
+
+00:06:18.162 --> 00:06:22.667
+Get it wrong, and you ship a bug that only shows up on tomorrow's data.

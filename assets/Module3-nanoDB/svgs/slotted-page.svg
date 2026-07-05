@@ -1,0 +1,51 @@
+<svg viewBox="0 0 800 488" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="slotted-page-t slotted-page-d">
+  <title id="slotted-page-t">Slotted page layout: a single 64MB row-oriented page</title>
+  <desc id="slotted-page-d">Slotted page layout: a single 64MB row-oriented page on disk. Data records grow from the top down (Row A, B, C). The slot array grows from the bottom up; three slot cells (S0, S1, S2) point to their rows by label. Free space sits in the middle and shrinks as both grow toward each other. Color key: green is the page on disk (persistent); the rows and slots inside are neutral.</desc>
+    <text x="400" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#0E0E10">Slotted Page (Row-Oriented Layout)</text>
+    <rect x="80" y="78" width="640" height="370" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="80" y="78" width="640" height="6" rx="10" fill="#059669"/>
+    <text x="700" y="72" text-anchor="end" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">on disk</text>
+    <rect x="80" y="78" width="640" height="28" rx="10" fill="#E7EAEE"/>
+    <rect x="80" y="92" width="640" height="14" fill="#E7EAEE"/>
+    <line x1="80" y1="106" x2="720" y2="106" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="400" y="97" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#6B7280">page header (metadata)</text>
+
+    <g data-step="1">
+    <rect x="100" y="116" width="560" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="120" y="136" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">Row A</text>
+    <text x="640" y="136" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[42, 7, 100, 5, 10:32]</text>
+    <rect x="100" y="154" width="560" height="48" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="120" y="174" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">Row B</text>
+    <text x="640" y="174" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[7, 13, 200, 4, 10:35,</text>
+    <text x="640" y="190" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">'longer comment field…']</text>
+    <rect x="100" y="208" width="560" height="32" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="120" y="228" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">Row C</text>
+    <text x="640" y="228" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="15" fill="#3F3F46">[13, 42, 300, 3, 10:40]</text>
+    <text x="735" y="135" text-anchor="start" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">data ↓</text>
+    </g>
+
+    <g data-step="3">
+    <rect x="100" y="252" width="560" height="118" fill="none" stroke="#D4D7DC" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <text x="400" y="305" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-style="italic" fill="#6B7280">free space</text>
+    <line x1="400" y1="258" x2="400" y2="282" stroke="#6B7280" stroke-width="2"/>
+    <polygon points="400,289 394,280 406,280" fill="#6B7280"/>
+    <line x1="400" y1="364" x2="400" y2="340" stroke="#6B7280" stroke-width="2"/>
+    <polygon points="400,333 394,342 406,342" fill="#6B7280"/>
+    </g>
+
+    <g data-step="2">
+    <rect x="80" y="378" width="640" height="70" fill="#E7EAEE"/>
+    <line x1="80" y1="378" x2="720" y2="378" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="100" y="394" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#6B7280">slot array (each slot = offset + length, fixed size)</text>
+    <rect x="120" y="402" width="140" height="36" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="190" y="425" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">S0 → Row A</text>
+    <rect x="280" y="402" width="140" height="36" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="350" y="425" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">S1 → Row B</text>
+    <rect x="440" y="402" width="140" height="36" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="510" y="425" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#3F3F46">S2 → Row C</text>
+    <text x="650" y="425" text-anchor="start" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">+ next →</text>
+    <text x="735" y="425" text-anchor="start" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#3F3F46">slots ↑</text>
+    </g>
+
+    <text x="400" y="476" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the page on disk&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#0E0E10" font-weight="700">slots grow up, rows grow down,</tspan><tspan fill="#3F3F46"> free space shrinks between them.</tspan></text>
+</svg>

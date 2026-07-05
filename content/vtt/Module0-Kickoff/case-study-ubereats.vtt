@@ -1,0 +1,91 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.686
+A burrito order on UberEats has three sides.
+
+00:00:05.686 --> 00:00:09.372
+The diner, the driver, and the restaurant.
+
+00:00:09.372 --> 00:00:13.058
+And the moment the order is placed, all three have to agree.
+
+00:00:13.058 --> 00:00:16.745
+UberEats keeps them in one relational database, the shared source of truth.
+
+00:00:16.745 --> 00:00:20.431
+Placing an order is a single transaction.
+
+00:00:20.431 --> 00:00:24.117
+Charge the diner, assign exactly one driver, decrement inventory.
+
+00:00:24.117 --> 00:00:27.803
+All of it, or none of it.
+
+00:00:27.803 --> 00:00:31.489
+That atomic guarantee is why two drivers can never claim the same order.
+
+00:00:31.489 --> 00:00:36.218
+Look closer at that one order.
+
+00:00:36.218 --> 00:00:40.947
+Three records change at once.
+
+00:00:40.947 --> 00:00:45.677
+The diner's balance, the driver's assignment, the restaurant's inventory.
+
+00:00:45.677 --> 00:00:50.406
+If any one of them fails, none of them should happen.
+
+00:00:50.406 --> 00:00:55.135
+That is atomicity, the A in ACID, and it is exactly what a relational database gives you.
+
+00:00:55.135 --> 00:00:59.864
+No bespoke coordination code, just one transaction, and the database holds that guarantee even if the server crashes in the middle.
+
+00:00:59.864 --> 00:01:04.105
+The apps on each phone hold volatile state.
+
+00:01:04.105 --> 00:01:08.347
+What you see on screen right now, gone when you close the app.
+
+00:01:08.347 --> 00:01:12.588
+The database holds the global state, the truth everyone shares.
+
+00:01:12.588 --> 00:01:16.830
+The split matters.
+
+00:01:16.830 --> 00:01:21.072
+The apps can crash, lose signal, or restart, and the order is still correct, because the truth never lived in the app.
+
+00:01:21.072 --> 00:01:25.313
+It lived in the database, the one place all three sides agree on.
+
+00:01:25.313 --> 00:01:30.545
+There is one more place the database lives: the driver's phone itself.
+
+00:01:30.545 --> 00:01:35.777
+The driver app runs an embedded SQLite database, so it keeps working with no signal, transactional even if the phone dies mid-write.
+
+00:01:35.777 --> 00:01:41.010
+SQLite is the most widely deployed database in the world for exactly this reason.
+
+00:01:41.010 --> 00:01:46.242
+On reconnect, it pushes its local changes up and reconciles against the shared truth.
+
+00:01:46.242 --> 00:01:51.474
+That truth is one cloud database.
+
+00:01:51.474 --> 00:01:56.706
+Same SQL, from the data center to your pocket.
+
+00:01:56.706 --> 00:02:02.825
+One service, one database, three sides, and a copy in every pocket.
+
+00:02:02.825 --> 00:02:08.943
+The relational database is the shared truth that keeps the diner, driver, and restaurant in agreement, and its transactions make that agreement safe.
+
+00:02:08.943 --> 00:02:15.061
+From the cluster to the phone, it is the same SQL, and the same transactional guarantees.
+
+00:02:15.061 --> 00:02:21.180
+That is the spine this whole course builds on.

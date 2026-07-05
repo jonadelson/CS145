@@ -1,0 +1,58 @@
+<h1>Hash Partitioning: Divide and Conquer</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Hash partitioning splits a too-big-for-RAM table into N partitions by hashing a key, so that each partition fits in RAM and can be processed independently.</p>
+<p><strong>Intuition.</strong> When your Listens table is 64 GB but your machine has 6.4 GB of RAM, hash <code>user_id % 16</code> to split Listens into 16 partitions of 4 GB each. Each partition fits, and Mickey's listens always land in the same partition no matter which one you read first.</p>
+</div>
+<h2>The Hash Partitioning Algorithm</h2>
+<h3>Core Idea</h3>
+<p>Break the data into B smaller chunks, each chunk holding rows for a subset of keys. This is not elegance, it is necessity when the table dwarfs RAM.</p>
+<p><a id="hash-partitioning-figure"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/hash-partitioning-algorithm.svg" alt="Hash partitioning shown as DISK input on the left, a small RAM workspace in the middle, and DISK partitions on the right. The source file is read one page at a time into a RAM input-buffer slot. Each row is hashed and routed to one of three colored output buffers. When a buffer fills, it flushes to its partition file on disk." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Hash partitioning makes one pass over a too-big-for-RAM file through a small RAM workspace. A page streams into the input slot, each row is hashed by <code>h(user_id) % B</code> and routed to one of <code>~B</code> output buffers, and a full buffer flushes to its partition file on disk. The same key always lands in the same partition no matter when it appears, so each partition fits in RAM and the next stage can sort, join, or group them one at a time. Cost is below; see also the <a href="#/page/Module3-nanoDB/io-algorithms">IO Cost Summary</a>.</p>
+</div>
+<p><a id="hash-partitioning-pseudocode"></a></p>
+<div class="algo">
+<p class="algo-head">Algorithm · Hash Partitioning</p>
+<pre class="algo-code">
+<span class="sig">HashPartition(file, B, key):</span>          <span class="cmt">// B output buffers + 1 input buffer</span>
+
+    <span class="cmt phase">Phase 1: Stream rows into per-bucket buffers</span>
+    for row in file:
+        p = hash(row.key) % B
+        output_buffers[p].add(row)
+        if output_buffers[p].full:
+            write(output_buffers[p] to dbfile_p)   <span class="cmt">// spill a full buffer</span>
+            output_buffers[p].clear()
+
+    <span class="cmt phase">Phase 2: Flush whatever is left</span>
+    flush_all(output_buffers)
+</pre>
+</div>
+<hr />
+<h2>Example Problem: Break Big Problem Into Small Problems</h2>
+<p>The Spotify Listens table is ten times the size of RAM, so brute force is out. Slice it into RAM-sized pieces and process each one independently.</p>
+<div class="metrics-grid">
+<div class="metric-card">
+<div class="metric-value">
+<p>64GB</p>
+</div>
+<div class="metric-label">
+<p>Spotify Listens table</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>6.4GB</p>
+</div>
+<div class="metric-label">
+<p>Available RAM</p>
+</div>
+</div>
+</div>
+<hr />
+<h2>Cost</h2>
+<p>One read of every page and one write of every page: <code>C_r×N + C_w×N</code>, which is <code>2N</code> IOs for <code>C_r = C_w = 1</code>. That is the whole point: the cost is linear in N. A RAM-blind join of two big tables is quadratic, O(N²); one partitioning pass makes every downstream sort, join, and group-by linear instead, because each partition now fits in RAM and is processed once. The full cost comparison against the join algorithms is on the <a href="#/page/Module3-nanoDB/io-algorithms">IO Algorithms</a> page.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/big-sort">BigSort →</a></strong> Sorting a table that doesn't fit in RAM uses the same divide-and-conquer trick, just on sorted runs instead of hash partitions.</p>

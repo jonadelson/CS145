@@ -1,0 +1,136 @@
+<h1>Module 3 Capstone: Picking the Right Algorithm</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Real systems aren't built from one perfect data structure. They're built by matching each workload to the algorithm and index type that fits it best, then letting each component do its specialized job.</p>
+<p><strong>Intuition.</strong> A music service needs fast writes (LSM), fast geography lookups (H3), fast similarity search (LSH), fast range queries on history (B+Tree), and fast parallel scans (hash partitioning). No single tool covers all of them. The skill is picking the right one for each problem.</p>
+</div>
+<p>This is a wrap-up exercise across all of <strong>Module 3</strong> (storage, indexing, query optimization). For each Spotify-style goal below, the answer pulls from a different M3 page: B+Tree from <a href="#/page/Module3B-Indexing/index-fundamentals">index-fundamentals</a>, LSM from <a href="#/page/Module3B-Indexing/lsm-indexes">lsm-indexes</a>, H3 and LSH from <a href="#/page/Module3B-Indexing/hash-indexes">hash-indexes</a>, Hash Partitioning from <a href="#/page/Module3-nanoDB/hash-partitioning">hash-partitioning</a>, and so on.</p>
+<p>Think less about monolithic giants and more about a well-organized toolbox. You've got SQL, B+Trees, LSM, H3, LSH, and Hash Partitioning. Each is a tool for a specific job. The capstone skill of M3 is <strong>picking the right one for each problem.</strong></p>
+<p><a id="m3-toolbox"></a></p>
+<p><img src="assets/Module3C-Query-Optimization/svgs/m3-toolbox.svg" alt="Seven Spotify workloads matched to their Module 3 tool: date-range queries to a B+Tree, similarity clustering to LSH, hyper-local zones to H3 geo-hashing, a write surge to an LSM tree, a viral surge to hash partitioning, a privacy-safe API to differential privacy, and messy feeds to versioned tables. Each row names the workload, the tool in a green chip, and why it fits." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The seven workloads below and the structure each one calls for, from a B+Tree for date ranges to versioned tables for messy feeds. Every row pairs a Spotify problem with the tool that fits its access pattern and the one reason it fits. No single structure handles all seven, so the capstone skill is the match. Green marks the chosen tool.</p>
+</div>
+<hr />
+<h3>Goal 1: Artist-Facing UI for Royalty Stats</h3>
+<p><strong>Problem</strong>: Artists need to track geographical trends and specific date ranges, like post-release impacts. How do you handle fast range queries on trillions of listens?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Logic</strong>: Deploy a SQL engine for counting and mapping zip codes.</p>
+</li>
+<li>
+<p><strong>Indexing</strong>: Implement a <strong>B+ Tree Index</strong> on <code>Listens &lt;song_id, date&gt;</code>.</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Dates are sequential. B+ Trees let you jump to the start date and move forward efficiently.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Goal 2: Fan Preference Clustering</h3>
+<p><strong>Problem</strong>: Clustering similar users or songs for marketing requires searching through high-dimensional feature vectors. What's the strategy?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Use Embeddings with Locality Sensitive Hashing (LSH).</p>
+</li>
+<li>
+<p><strong>Design</strong>: Generate embeddings (lyrics, tempo, etc.) and use an <strong>LSH Index</strong> to group similar vectors.</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: B+ Trees falter in high dimensions. LSH maps similar items to the same hash bucket with high probability.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Goal 3: Local Fan Club Meetups</h3>
+<p><strong>Problem</strong>: Identifying hyper-local communities when zip codes fall short. How do you pinpoint zones with over 100 fans for "listen parties"?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Geo-Hashing (H3).</p>
+</li>
+<li>
+<p><strong>Design</strong>: Map user addresses to <strong>H3 cells</strong>. Execute: <code>GROUP BY H3(address) HAVING count(user) &gt; 100</code>.</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: H3 provides a hierarchical grid system, supported by extensions like PostGIS.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Goal 4: "Live" Taylor Swift Drops</h3>
+<p><strong>Problem</strong>: When 50,000 users tune into a live song drop, a standard B+ Tree chokes on random write overhead. How do you manage these updates?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: LSM Trees.</p>
+</li>
+<li>
+<p><strong>Design</strong>: Use an <strong>LSM Tree</strong> to handle the write surge, keeping partial counts in a MemTable and flushing to SSTables.</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: LSM Trees convert random writes into sequential flushes, ideal for high-bandwidth telemetry data.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Goal 5: Handling Viral Surges</h3>
+<p><strong>Problem</strong>: Distributing table traffic across a cluster during a viral song surge. What's the approach?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Hash Partitioning.</p>
+</li>
+<li>
+<p><strong>Design</strong>: Partition data across nodes using a <strong>Hash function</strong> on <code>song_id</code> or <code>user_id</code>.</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Balances load on reads and writes, avoiding "hot spots" and enabling massive parallelism.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Goal 6: Privacy-Preserving Recommendations</h3>
+<p><strong>Problem</strong>: Offering a SQL API for third-party concert apps while safeguarding user privacy in aggregates. How do you achieve this?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Differential Privacy.</p>
+</li>
+<li>
+<p><strong>Design</strong>: Integrate <strong>Differential Privacy</strong> noise into SQL results (e.g., using BigQuery's built-in DP functions).</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: DP ensures that one user's data presence doesn't significantly alter the aggregate result.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Goal 7: Messy External Data (ETL)</h3>
+<p><strong>Problem</strong>: Ingesting lyrics and album covers from unreliable third-party feeds. How do you maintain quality and allow rollbacks?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept</strong>: Versioned Tables + Reconciliation.</p>
+</li>
+<li>
+<p><strong>Design</strong>: Build an ETL pipeline with cleaning/normalization steps. Store results in <strong>versioned tables</strong>.</p>
+</li>
+<li>
+<p><strong>The "Why"</strong>: Messy data is a given. Versioning lets you revert to a "last known good" state, reconciling feeds against original source logs.</p>
+</li>
+</ul>
+</details>
+<hr />
+<p><strong>Takeaway</strong>: Complex problems find solutions in modular systems. Clustering for batching, hashing for searching and partitioning, and LSM for scaling writes. Each piece has its place.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3C-Query-Optimization/query-optimization-quiz">Query Optimization Quiz →</a></strong> Check your understanding of plan enumeration, cost estimation, and algorithm selection.</p>

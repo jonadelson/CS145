@@ -1,0 +1,73 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.559
+Seven hundred million people are listening right now.
+
+00:00:06.559 --> 00:00:11.118
+Every like, every play, every pause is a tiny write.
+
+00:00:11.118 --> 00:00:15.676
+That is millions of writes a second, never stopping.
+
+00:00:15.676 --> 00:00:20.235
+AB-plus tree cannot keep up, because every update is a random write, a seek to load one leaf page and rewrite it.
+
+00:00:20.235 --> 00:00:24.794
+The disk controller becomes the wall.
+
+00:00:24.794 --> 00:00:29.353
+So Spotify routes the whole flood into an LSM tree, and the trick is that it never seeks.
+
+00:00:29.353 --> 00:00:35.537
+Follow one event through the write path.
+
+00:00:35.537 --> 00:00:41.720
+On the left the event firehose is constant: like song forty-two, play song forty-two, pause podcast seven.
+
+00:00:41.720 --> 00:00:47.904
+Each one is just an append that creates a new entry, no lock, no seek.
+
+00:00:47.904 --> 00:00:54.087
+They land in an in-memory mem-table, sorted, the only volatile part of this picture, living in RAM.
+
+00:00:54.087 --> 00:01:00.271
+When it fills, Spotify does not update anything in place.
+
+00:01:00.271 --> 00:01:06.455
+It flushes it to disk as one immutable SS Table, written in a single sequential pass.
+
+00:01:06.455 --> 00:01:12.638
+Newer files sit on top of older ones.
+
+00:01:12.638 --> 00:01:18.822
+Now, if you only ever append, how do you read the right answer.
+
+00:01:18.822 --> 00:01:25.006
+The merge function.
+
+00:01:25.006 --> 00:01:31.189
+For play counts every like is a fragment, song forty-two plus one, and the total is the SUM across the mem-table and every SS Table.
+
+00:01:31.189 --> 00:01:37.373
+For your spot in a podcast the merge is pick-latest, newest version wins.
+
+00:01:37.373 --> 00:01:43.556
+Delete is an append too, a tombstone that marks a key gone, so the read returns not found even while the old like still sits below.
+
+00:01:43.556 --> 00:01:49.740
+Last, a background compaction merges old SS Tables, applies the merge function, and drops the tombstoned and superseded versions nobody needs.
+
+00:01:49.740 --> 00:01:55.118
+That is the whole idea.
+
+00:01:55.118 --> 00:02:00.496
+The LSM tree treats storage as an append-only log, not a ledger you overwrite, so the write path never stops to seek.
+
+00:02:00.496 --> 00:02:05.873
+The merge function is the real engine.
+
+00:02:05.873 --> 00:02:11.251
+SUM for counters, pick-latest for your podcast spot, a tombstone for delete, and compaction reclaims the rest in the background.
+
+00:02:11.251 --> 00:02:16.629
+Next, what happens when seven hundred million of these summaries have to be served in a single day.

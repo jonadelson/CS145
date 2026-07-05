@@ -1,0 +1,103 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.093
+A transaction can abort.
+
+00:00:05.093 --> 00:00:08.186
+By choice, or by error.
+
+00:00:08.186 --> 00:00:11.278
+When it does, the database takes back every change it made, so it is as if the transaction never ran.
+
+00:00:11.278 --> 00:00:14.371
+That is undo, and it gives atomicity.
+
+00:00:14.371 --> 00:00:17.464
+All or nothing.
+
+00:00:17.464 --> 00:00:21.129
+Undo writes each old value back.
+
+00:00:21.129 --> 00:00:24.793
+For an active transaction, its recent rows are cached in RAM, so undo knows what to reverse at once.
+
+00:00:24.793 --> 00:00:28.458
+But watch the log.
+
+00:00:28.458 --> 00:00:32.122
+Here are T1's rows, A and B, from the last page.
+
+00:00:32.122 --> 00:00:35.787
+When T1 aborts, undo does not just fix the page.
+
+00:00:35.787 --> 00:00:39.451
+It appends its reversal to the log.
+
+00:00:39.451 --> 00:00:43.116
+AW-abort row for B, back to twenty-three.
+
+00:00:43.116 --> 00:00:46.780
+Then A, back to nineteen.
+
+00:00:46.780 --> 00:00:50.445
+And an abort record.
+
+00:00:50.445 --> 00:00:54.109
+The page ends at A nineteen, B twenty-three.
+
+00:00:54.109 --> 00:00:57.774
+And because each reversal is itself a logged write, the log records the whole rollback.
+
+00:00:57.774 --> 00:01:01.974
+Now the hard case.
+
+00:01:01.974 --> 00:01:06.174
+TLong runs for hours, touching far more than RAM can hold.
+
+00:01:06.174 --> 00:01:10.374
+So its pages flush to disk long before it commits.
+
+00:01:10.374 --> 00:01:14.574
+At time thirteen, it wrote value A0, from nineteen to twenty-two point eight.
+
+00:01:14.574 --> 00:01:18.774
+At time ninety-two, value A1000, from twenty-seven to thirty-two point four.
+
+00:01:18.774 --> 00:01:22.974
+Then TLong aborts, and value A0 is already on disk with its new value.
+
+00:01:22.974 --> 00:01:27.174
+You never kept an old copy of that page.
+
+00:01:27.174 --> 00:01:31.374
+You do not need one, the log holds it.
+
+00:01:31.374 --> 00:01:35.574
+The database walks the log backward, newest first.
+
+00:01:35.574 --> 00:01:39.774
+It restores value A1000, thirty-two point four back to twenty-seven.
+
+00:01:39.774 --> 00:01:43.974
+Then value A0, twenty-two point eight back to nineteen, including the copy that already flushed.
+
+00:01:43.974 --> 00:01:48.174
+A final abort record closes it.
+
+00:01:48.174 --> 00:01:52.374
+And because every undo is logged as its own W-abort row, the log records TLong's full rollback.
+
+00:01:52.374 --> 00:01:56.574
+TLong leaves no trace.
+
+00:01:56.574 --> 00:02:02.774
+So undo gives atomicity, off the log's old values.
+
+00:02:02.774 --> 00:02:08.974
+And it logs its own reversal, the W-abort rows, so the log records every rollback in full.
+
+00:02:08.974 --> 00:02:15.173
+One transaction aborts this way while the system runs.
+
+00:02:15.173 --> 00:02:21.373
+Next, a crash leaves many unfinished at once, and recovery replays the whole log, W-abort rows and all, before undoing the losers.

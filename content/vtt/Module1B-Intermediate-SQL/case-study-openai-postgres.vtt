@@ -1,0 +1,82 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.630
+OpenAI runs ChatGPT for eight hundred million users.
+
+00:00:05.630 --> 00:00:09.260
+The expectation is that they have built some custom-engineered distributed database to handle that load.
+
+00:00:09.260 --> 00:00:12.890
+They have not.
+
+00:00:12.890 --> 00:00:16.520
+They run on Postgres.
+
+00:00:16.520 --> 00:00:20.150
+The same Postgres you can install on your laptop in five minutes.
+
+00:00:20.150 --> 00:00:23.780
+The trick is not in the database, it is in how they shape the workload.
+
+00:00:23.780 --> 00:00:28.285
+Look at the constraint.
+
+00:00:28.285 --> 00:00:32.789
+Of those eight hundred million users, almost all of them are reading: scrolling chat history, opening conversations, listing past prompts.
+
+00:00:32.789 --> 00:00:37.294
+A small fraction are writing: sending a new message, starting a new chat.
+
+00:00:37.294 --> 00:00:41.798
+Reads outnumber writes by maybe a hundred to one.
+
+00:00:41.798 --> 00:00:46.303
+That asymmetry is the architectural opening.
+
+00:00:46.303 --> 00:00:50.274
+OpenAI's design: keep one writable Postgres primary, the single source of truth for every write.
+
+00:00:50.274 --> 00:00:54.244
+Then spin up fifty globally distributed read-only replicas.
+
+00:00:54.244 --> 00:00:58.215
+Every read request routes to a replica.
+
+00:00:58.215 --> 00:01:02.186
+Every write goes to the primary.
+
+00:01:02.186 --> 00:01:06.156
+The replicas catch up via streaming replication.
+
+00:01:06.156 --> 00:01:10.127
+One database engine, horizontally scaled in a way Postgres was designed for.
+
+00:01:10.127 --> 00:01:13.718
+Why not switch to a distributed database like Spanner or Cockroach?
+
+00:01:13.718 --> 00:01:17.310
+Two reasons.
+
+00:01:17.310 --> 00:01:20.901
+First, Postgres is mature.
+
+00:01:20.901 --> 00:01:24.492
+Decades of bug fixes, every edge case handled.
+
+00:01:24.492 --> 00:01:28.084
+Second, the workload doesn't need distributed writes.
+
+00:01:28.084 --> 00:01:31.675
+With one primary and replicas, you keep transaction guarantees and avoid the complexity of distributed consensus.
+
+00:01:31.675 --> 00:01:36.806
+The lesson is one many startups learn at scale.
+
+00:01:36.806 --> 00:01:41.938
+The hard problem in databases is not usually the database itself.
+
+00:01:41.938 --> 00:01:47.070
+It is figuring out which constraints your workload obeys, and picking the cheapest architecture that respects them.
+
+00:01:47.070 --> 00:01:52.201
+For a read-heavy workload, Postgres with read replicas takes you further than you would think.

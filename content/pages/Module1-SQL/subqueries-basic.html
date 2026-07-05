@@ -1,0 +1,320 @@
+<h1>Subqueries: Basic Patterns</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A subquery is a <code>SELECT</code> nested inside another query. The inner query runs first, and its result feeds the outer one as a value, a list, or an existence test.</p>
+<p><strong>Intuition.</strong> To find songs nobody played, the inner query lists every played <code>song_id</code> and the outer query keeps the songs <code>NOT IN</code> that list.</p>
+</div>
+<div style="width: 100%; max-width: 1200px; margin: 2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/subq-nesting.svg" style="width:100%;height:auto;display:block;" alt="A subquery nests queries inside queries, read inside-out: the innermost finds Taylor Swift songs {1, 2, 9}, the middle finds the users who played them {1, 2, 3}, the outer looks up their names Mickey, Minnie, Daffy. Beside them the three flavors: IN/NOT IN, EXISTS, Scalar."></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A subquery is a query inside a query, read inside-out: the innermost finds Taylor Swift songs, the middle finds who played them, the outer returns their names. The same nesting drives IN / NOT IN, EXISTS, and Scalar.</p>
+</div>
+</div>
+<hr />
+<h2>IN Subquery: Find Taylor Swift Listeners</h2>
+<p>Key Rule: <strong>Inside-Out Execution</strong>: Inner queries finish before outer queries begin</p>
+<p><a id="in-query"></a></p>
+<pre><code><span class="sql-comment">-- Find users who listen to Taylor Swift songs.</span>
+<span class="sql-comment">-- Reads inside-out: Step 1 first, Step 3 last.</span>
+
+<span class="sql-comment">-- Step 3 (LAST): pick names for the users found in Step 2.</span>
+<span class="sql-keyword">SELECT</span> name
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span>
+<span class="sql-keyword">WHERE</span> user_id <span class="sql-keyword">IN</span> (
+    <span class="sql-comment">-- Step 2: distinct users who listened to those songs.</span>
+    <span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> user_id
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+    <span class="sql-keyword">WHERE</span> song_id <span class="sql-keyword">IN</span> (
+        <span class="sql-comment">-- Step 1 (FIRST): all Taylor Swift song IDs. Returns {1, 2, 9}.</span>
+        <span class="sql-keyword">SELECT</span> song_id
+        <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span>
+        <span class="sql-keyword">WHERE</span> artist <span class="sql-operator">=</span> <span class="sql-string">'Taylor Swift'</span>
+    )
+)
+</code></pre>
+<h3>Walking the Data Inside-Out</h3>
+<p>The three nested SELECTs run innermost first: filter the songs, find the listeners, then look up their names.</p>
+<p><a id="in-walk"></a></p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/subq-in-walk.svg" style="width:100%;height:auto;display:block;" alt="Walking the IN subquery inside-out: Step 1 filters Songs to Taylor Swift, leaving song_ids 1, 2, 9; Step 2 finds the listens on those songs and takes the distinct users 1, 2, 3; Step 3 looks them up in Users, giving Mickey, Minnie, Daffy."></p>
+</div>
+<hr />
+<h2>NOT IN Subquery: Non-Taylor Swift Fans</h2>
+<p><a id="not-in-query"></a></p>
+<pre><code><span class="sql-comment">-- Find users who never listened to any Taylor Swift song.</span>
+
+<span class="sql-comment">-- Step 3 (LAST): pick names for users NOT in the Step 2 list.</span>
+<span class="sql-keyword">SELECT</span> name
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span>
+<span class="sql-keyword">WHERE</span> user_id <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (
+    <span class="sql-comment">-- Step 2: distinct users who listened to those songs.</span>
+    <span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> user_id
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+    <span class="sql-keyword">WHERE</span> song_id <span class="sql-keyword">IN</span> (
+        <span class="sql-comment">-- Step 1: all Taylor Swift song IDs.</span>
+        <span class="sql-keyword">SELECT</span> song_id
+        <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span>
+        <span class="sql-keyword">WHERE</span> artist <span class="sql-operator">=</span> <span class="sql-string">'Taylor Swift'</span>
+    )
+)
+</code></pre>
+<p>Using the same inner queries, but inverting at the end:</p>
+<p><strong>Step 1 &amp; 2:</strong> Same as above → Users {1, 2, 3} listened to Taylor Swift</p>
+<p><strong>Step 3: WHERE user_id NOT IN {1, 2, 3}</strong> · 4 users → 1 row (the three who listened are crossed out)</p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>name</th><th>in {1, 2, 3}?</th></tr>
+</thead>
+<tbody>
+<tr class="row-drop"><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>yes</td></tr><tr class="row-drop"><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>yes</td></tr><tr class="row-drop"><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>yes</td></tr><tr class="row-keep"><td class="color-bar cyan"></td><td>4</td><td>Pluto</td><td>no</td></tr>
+</tbody>
+</table>
+<hr />
+<h2>Scalar Subquery: Above Average Ratings</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/subq-scalar.svg" style="width:100%;height:auto;display:block;" alt="A scalar subquery returns one value the outer query reuses for every row: the inner SELECT AVG(rating) over all Listens, skipping the one NULL, returns 4.2; the outer query keeps every listen rated above 4.2 (Mickey 4.5, Minnie 4.7 and 4.6, Daffy 4.9), dropping Mickey's 4.2 and Daffy's NULL, leaving 4 rows."></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> A scalar subquery returns exactly one value. The inner query runs once, averaging all ratings (the NULL is skipped) to 4.2. The outer query reuses that single number to keep every listen rated above it, four rows. Mickey's 4.2 is not strictly greater, and Daffy's NULL comparison is UNKNOWN, so both drop.</p>
+</div>
+</div>
+<hr />
+<h2>EXISTS: Early Stop Optimization</h2>
+<div class="side-by-side">
+<div><p><strong>Efficient: EXISTS with Early Stopping</strong></p>
+<pre><code><span class="sql-comment">-- Check if ANY high-value listeners exist.</span>
+
+<span class="sql-keyword">SELECT</span> <span class="sql-string">'High-value listeners found!'</span> <span class="sql-keyword">AS</span> result
+<span class="sql-comment">-- EXISTS returns TRUE as soon as ANY row matches.</span>
+<span class="sql-keyword">WHERE</span> <span class="sql-keyword">EXISTS</span> (
+    <span class="sql-comment">-- SELECT 1 is convention; the value is ignored.</span>
+    <span class="sql-keyword">SELECT</span> <span class="sql-number">1</span>
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+    <span class="sql-comment">-- Stops at the FIRST row where rating &gt; 4.5 (efficient).</span>
+    <span class="sql-keyword">WHERE</span> rating &gt; <span class="sql-number">4.5</span>
+)
+</code></pre>
+<p><strong>Execution Trace:</strong></p>
+<table>
+<thead>
+<tr><th>Step</th><th>rating</th><th>rating &gt; 4.5?</th><th class="annotation">Action</th></tr>
+</thead>
+<tbody>
+<tr><td>Row 1</td><td>4.5</td><td>false</td><td class="annotation">Continue</td></tr><tr><td>Row 2</td><td>4.2</td><td>false</td><td class="annotation">Continue</td></tr><tr><td>Row 3</td><td>3.9</td><td>false</td><td class="annotation">Continue</td></tr><tr><td>Row 4</td><td>4.7</td><td>true</td><td class="annotation"><strong>STOP!</strong></td></tr><tr><td>Row 5</td><td>4.6</td><td>-</td><td class="annotation">Skipped</td></tr><tr><td>Row 6</td><td>3.9</td><td>-</td><td class="annotation">Skipped</td></tr><tr><td>Row 7</td><td>2.9</td><td>-</td><td class="annotation">Skipped</td></tr><tr><td>Row 8</td><td>4.9</td><td>-</td><td class="annotation">Skipped</td></tr><tr><td>Row 9</td><td><span class="null-value">NULL</span></td><td>-</td><td class="annotation">Skipped</td></tr>
+</tbody>
+</table>
+<p><strong>Rows checked: 4 of 9</strong></p></div><div><p><a id="exists-count"></a></p>
+<p><strong>Inefficient: COUNT(*) Comparison</strong></p>
+<pre><code><span class="sql-comment">-- INEFFICIENT: must scan ALL rows before answering.</span>
+
+<span class="sql-keyword">SELECT</span> <span class="sql-string">'High-value listeners found!'</span> <span class="sql-keyword">AS</span> result
+<span class="sql-keyword">WHERE</span> (
+    <span class="sql-comment">-- COUNT(*) tallies ALL matching rows (no early stop).</span>
+    <span class="sql-keyword">SELECT</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)
+    <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+    <span class="sql-comment">-- Scans the entire table.</span>
+    <span class="sql-keyword">WHERE</span> rating &gt; <span class="sql-number">4.5</span>
+) &gt; <span class="sql-number">0</span>  <span class="sql-comment">-- Compare the final count to 0.</span>
+</code></pre>
+<p><strong>Execution Trace:</strong></p>
+<table>
+<thead>
+<tr><th>Step</th><th>rating</th><th>rating &gt; 4.5?</th><th class="annotation">Action</th></tr>
+</thead>
+<tbody>
+<tr><td>Row 1</td><td>4.5</td><td>false</td><td class="annotation">Count: 0</td></tr><tr><td>Row 2</td><td>4.2</td><td>false</td><td class="annotation">Count: 0</td></tr><tr><td>Row 3</td><td>3.9</td><td>false</td><td class="annotation">Count: 0</td></tr><tr><td>Row 4</td><td>4.7</td><td>true</td><td class="annotation">Count: 1</td></tr><tr><td>Row 5</td><td>4.6</td><td>true</td><td class="annotation">Count: 2</td></tr><tr><td>Row 6</td><td>3.9</td><td>false</td><td class="annotation">Count: 2</td></tr><tr><td>Row 7</td><td>2.9</td><td>false</td><td class="annotation">Count: 2</td></tr><tr><td>Row 8</td><td>4.9</td><td>true</td><td class="annotation">Count: 3</td></tr><tr><td>Row 9</td><td><span class="null-value">NULL</span></td><td>false</td><td class="annotation">Count: 3</td></tr>
+</tbody>
+</table>
+<p><strong>Rows checked: 9 of 9</strong></p></div>
+</div>
+<h3>Performance Comparison:</h3>
+<ul>
+<li>
+<p><strong>EXISTS</strong>: 4 rows checked, stops early</p>
+</li>
+<li>
+<p><strong>COUNT(*)</strong>: 9 rows checked, no early stop</p>
+</li>
+<li>
+<p><strong>Savings</strong>: 56% fewer rows to examine</p>
+</li>
+<li>
+<p><strong>Best for</strong>: Presence checks, not quantity</p>
+</li>
+</ul>
+<hr />
+<h2>Subquery Types Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Returns</th>
+<th>Example</th>
+<th>Use When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IN</td>
+<td>List of values</td>
+<td>WHERE id IN (SELECT...)</td>
+<td>Checking membership</td>
+</tr>
+<tr>
+<td>NOT IN</td>
+<td>List to exclude</td>
+<td>WHERE id NOT IN (...)</td>
+<td>Finding non-members</td>
+</tr>
+<tr>
+<td>EXISTS</td>
+<td>TRUE/FALSE</td>
+<td>WHERE EXISTS (...)</td>
+<td>Any match suffices</td>
+</tr>
+<tr>
+<td>NOT EXISTS</td>
+<td>TRUE/FALSE</td>
+<td>WHERE NOT EXISTS (...)</td>
+<td>Ensuring absence</td>
+</tr>
+<tr>
+<td>Scalar</td>
+<td>Single value</td>
+<td>WHERE x &gt; (SELECT AVG...)</td>
+<td>Comparing to aggregate</td>
+</tr>
+<tr>
+<td>Table</td>
+<td>Full result set</td>
+<td>FROM (SELECT...) AS t</td>
+<td>Derived tables</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Key Rules</h2>
+<ol>
+<li>
+<p><strong>Inside-Out Execution</strong>: Inner queries complete before outer queries start</p>
+</li>
+<li>
+<p><strong>Return Types</strong>: Single value (scalar), multiple values (IN), or existence check (EXISTS)</p>
+</li>
+<li>
+<p><strong>Independence</strong>: Basic subqueries run once, independently of the outer query</p>
+</li>
+<li>
+<p><strong>NULL Handling</strong>: NULL in NOT IN can eliminate all results</p>
+</li>
+<li>
+<p><strong>Performance</strong>: Often rewritten as JOINs by the optimizer</p>
+</li>
+</ol>
+<hr />
+<h2>Common Patterns</h2>
+<ul>
+<li>
+<p><strong>IN/NOT IN</strong>: Check if a value exists in a list</p>
+</li>
+<li>
+<p><strong>EXISTS/NOT EXISTS</strong>: Check if any rows match a condition  </p>
+</li>
+<li>
+<p><strong>Scalar Comparison</strong>: Compare against a single calculated value</p>
+</li>
+<li>
+<p><strong>Nested Levels</strong>: Subqueries within subqueries</p>
+</li>
+</ul>
+<h2>Common Mistakes</h2>
+<p><a id="null-trap"></a></p>
+<h3>The NULL in NOT IN Trap</h3>
+<div class="v5-callout v5-callout--danger">
+<p><strong>NULL in NOT IN.</strong> If a NOT IN subquery returns any NULL, the whole result collapses to zero rows. This NULL trap is easy to hit and hard to spot.</p>
+</div>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/subq-notin-trap.svg" style="width:100%;height:auto;display:block;" alt="Why a NULL in NOT IN returns zero rows: 4.5 NOT IN (2.9, 4.9, NULL) expands to 4.5 != 2.9 AND 4.5 != 4.9 AND 4.5 != NULL. The first two are TRUE but the NULL comparison is UNKNOWN, so the whole AND is UNKNOWN and WHERE drops every row, returning 0 rows. Adding rating IS NOT NULL removes the NULL and 6 rows return."></p>
+</div>
+<pre><code><span class="sql-comment">-- WRONG: Daffy has one unrated listen, so the inner result contains a NULL,</span>
+<span class="sql-comment">-- and a NULL inside a NOT IN list silently collapses the result to 0 rows.</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (
+    <span class="sql-keyword">SELECT</span> rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> <span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">3</span>
+)
+
+<span class="sql-comment">-- CORRECT: filter the NULL out of the subquery first.</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (
+    <span class="sql-keyword">SELECT</span> rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> <span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">3</span>
+    <span class="sql-keyword">AND</span> rating <span class="sql-keyword">IS</span> <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>
+)
+</code></pre>
+<h4>Why This Happens (Step by Step)</h4>
+<div class="side-by-side">
+<div><p><strong>What You Think Happens:</strong></p>
+<pre><code class="language-sql">-- Check: is 4.5 not one of Daffy's ratings {2.9, 4.9, NULL}?
+4.5 NOT IN (2.9, 4.9, NULL)
+-- You expect: TRUE (4.5 isn't 2.9 or 4.9)
+</code></pre>
+<p><strong>What Happens:</strong></p>
+<pre><code class="language-sql">-- SQL expands NOT IN to:
+4.5 != 2.9 AND 4.5 != 4.9 AND 4.5 != NULL
+
+-- Evaluates to:
+TRUE AND TRUE AND UNKNOWN
+
+-- Final result:
+UNKNOWN  -- Not TRUE, so filtered out!
+</code></pre></div>
+</div>
+<h4>Real Example with Our Data</h4>
+<pre><code><span class="sql-comment">-- Find every listen NOT rated the way Daffy rated something.</span>
+
+<span class="sql-comment">-- WRONG: Daffy's ratings include a NULL, so this returns 0 rows.</span>
+<span class="sql-keyword">SELECT</span> listen_id, rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (
+    <span class="sql-comment">-- Daffy's ratings: 2.9, 4.9, and one NULL.</span>
+    <span class="sql-keyword">SELECT</span> rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> <span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">3</span>
+)
+
+<span class="sql-comment">-- CORRECT: filter the NULL out of the subquery first.</span>
+<span class="sql-keyword">SELECT</span> listen_id, rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (
+    <span class="sql-comment">-- Critical filter to avoid the NOT IN NULL trap.</span>
+    <span class="sql-keyword">SELECT</span> rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> <span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">3</span>
+    <span class="sql-keyword">AND</span> rating <span class="sql-keyword">IS</span> <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>
+)
+</code></pre>
+<p><strong>Result Difference:</strong></p>
+<ul>
+<li>
+<p>Wrong query: 0 rows (silent failure!)</p>
+</li>
+<li>
+<p>Correct query: 6 rows (every listen rated something other than 2.9 or 4.9)</p>
+</li>
+</ul>
+<h4>Safe Patterns to Use Instead</h4>
+<pre><code><span class="sql-comment">-- Option 1: Filter NULLs (shown above)</span>
+<span class="sql-keyword">WHERE</span> id <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (<span class="sql-keyword">SELECT</span> id <span class="sql-keyword">FROM</span> <span class="sql-keyword">TABLE</span> <span class="sql-keyword">WHERE</span> id <span class="sql-keyword">IS</span> <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>)
+
+<span class="sql-comment">-- Option 2: Use NOT EXISTS (NULL-safe)</span>
+<span class="sql-keyword">WHERE</span> <span class="sql-keyword">NOT</span> <span class="sql-keyword">EXISTS</span> (
+    <span class="sql-keyword">SELECT</span> <span class="sql-number">1</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l 
+    <span class="sql-keyword">WHERE</span> l.song_id <span class="sql-operator">=</span> s.song_id
+)
+
+<span class="sql-comment">-- Option 3: Use LEFT JOIN with NULL check</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s
+<span class="sql-keyword">LEFT JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id
+<span class="sql-keyword">WHERE</span> l.song_id <span class="sql-keyword">IS</span> <span class="sql-keyword">NULL</span>
+</code></pre>
+<p><strong>Remember:</strong> Always check if your NOT IN subquery can return NULL!</p>
+<h3>The Multiple Values Error</h3>
+<pre><code><span class="sql-comment">-- WRONG: subquery returns multiple rows, but `=` expects one.</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-operator">=</span> (<span class="sql-keyword">SELECT</span> rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>)
+
+<span class="sql-comment">-- CORRECT: use IN for multiple values.</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">IN</span> (<span class="sql-keyword">SELECT</span> rating <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>)
+
+<span class="sql-comment">-- OR: use scalar aggregation to get a single value.</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-operator">=</span> (<span class="sql-keyword">SELECT</span> <span class="sql-keyword">MAX</span>(rating) <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>)
+</code></pre>
+<p><strong>Problem:</strong> = expects a single value, not a list</p>

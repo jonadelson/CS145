@@ -1,0 +1,136 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.526
+The cost model says count pages.
+
+00:00:04.526 --> 00:00:07.053
+Now we use it.
+
+00:00:07.053 --> 00:00:09.579
+A billion-tuple Listens table.
+
+00:00:09.579 --> 00:00:12.105
+You want Mickey's three listens.
+
+00:00:12.105 --> 00:00:14.632
+Reeding every tuple costs millions of page reeds.
+
+00:00:14.632 --> 00:00:17.158
+Sorting first costs even more.
+
+00:00:17.158 --> 00:00:19.684
+There is a way to find the right page in one IO.
+
+00:00:19.684 --> 00:00:22.210
+Hashing.
+
+00:00:22.210 --> 00:00:24.737
+A hash function maps a key to a bucket id in constant time.
+
+00:00:24.737 --> 00:00:27.263
+Every database in the world relies on it.
+
+00:00:27.263 --> 00:00:29.714
+A hash function takes any input.
+
+00:00:29.714 --> 00:00:32.165
+A number.
+
+00:00:32.165 --> 00:00:34.616
+A string.
+
+00:00:34.616 --> 00:00:37.067
+An entire record.
+
+00:00:37.067 --> 00:00:39.518
+It produces a fixed-size bucket id in a fixed range.
+
+00:00:39.518 --> 00:00:41.969
+Same input, same bucket, always.
+
+00:00:41.969 --> 00:00:44.420
+It aims to spread keys evenly so each bucket stays small.
+
+00:00:44.420 --> 00:00:46.871
+It is not compression.
+
+00:00:46.871 --> 00:00:49.322
+You cannot turn the bucket id back into the key.
+
+00:00:49.322 --> 00:00:52.516
+The simplest hash for an integer is the modulo.
+
+00:00:52.516 --> 00:00:55.710
+Take the key.
+
+00:00:55.710 --> 00:00:58.904
+Divide by the number of buckets.
+
+00:00:58.904 --> 00:01:02.098
+Keep the remainder.
+
+00:01:02.098 --> 00:01:05.292
+That is the bucket.
+
+00:01:05.292 --> 00:01:08.486
+With ten buckets, forty-two lands in bucket two.
+
+00:01:08.486 --> 00:01:11.680
+One fifty-seven lands in bucket seven.
+
+00:01:11.680 --> 00:01:14.874
+Ten forty-two also lands in bucket two, a collision with forty-two, because they share a last digit.
+
+00:01:14.874 --> 00:01:18.068
+Production code mixes the bits first so keys that look alike still scatter.
+
+00:01:18.068 --> 00:01:22.796
+Strings are harder, because a hash works on numbers.
+
+00:01:22.796 --> 00:01:27.523
+So first you turn the string into one.
+
+00:01:27.523 --> 00:01:32.251
+Adding up the character codes works but collides badly, since reorderings sum the same.
+
+00:01:32.251 --> 00:01:36.978
+A polynomial rolling hash weights each character by a power of a prime, so order matters and keys spread evenly.
+
+00:01:36.978 --> 00:01:41.706
+Then modulo into a bucket, exactly like the integer case.
+
+00:01:41.706 --> 00:01:45.620
+Collisions are not rare, they are guaranteed.
+
+00:01:45.620 --> 00:01:49.535
+Twenty-three people in a room and two of them likely share a birthday.
+
+00:01:49.535 --> 00:01:53.449
+A table of B buckets sees a fifty percent chance of a collision after only about square-root-of-B inserts.
+
+00:01:53.449 --> 00:01:57.363
+Two standard fixes.
+
+00:01:57.363 --> 00:02:01.277
+Chaining hangs a short list at the bucket.
+
+00:02:01.277 --> 00:02:05.192
+Open addressing probes for the next empty slot.
+
+00:02:05.192 --> 00:02:09.106
+Keep the load factor under about three quarters and each lookup stays close to one IO.
+
+00:02:09.106 --> 00:02:13.824
+Hashing turns a key lookup into a single IO, no matter how big the table is.
+
+00:02:13.824 --> 00:02:18.542
+You will see it again in hash indexes, hash joins, hash partitioning, and Bloom filters.
+
+00:02:18.542 --> 00:02:23.261
+Every place a database asks where does this key live, a hash function is answering.
+
+00:02:23.261 --> 00:02:27.979
+Next, a structure that uses hashing to skip the disk reed entirely.
+
+00:02:27.979 --> 00:02:32.697
+Bloom filters.

@@ -1,0 +1,47 @@
+<svg viewBox="0 0 1040 380" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="rq-t rq-d"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="rq-t">After a crash, recovery answers one question from the WAL: which work survives and which is thrown away</title>
+  <desc id="rq-d">A crash interrupts running transactions. When the server reboots it must answer one question, which work survives and which gets thrown away. The whole answer lives in the WAL, the durable record of every change. Committed transactions are kept, green; transactions that never committed are thrown away, orange; and the log, the source of truth, decides which is which. Color key: green = committed work that survives, orange = uncommitted work that is thrown away, grey = the durable log that decides.</desc>
+
+  <defs>
+    <marker id="ah-rq" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">A crash leaves one question: which work survives?</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">Power dies mid-transaction. On reboot, the WAL decides what is kept and what is discarded.</text>
+
+  <!-- ===== STEP 1: the crash + the log ===== -->
+  <g data-step="1">
+  <rect x="40" y="92" width="300" height="220" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+  <rect x="40" y="92" width="300" height="6" rx="3" fill="#DC2626"/>
+  <text x="64" y="124" font-size="18" font-weight="700" fill="#DC2626">Crash</text>
+  <text x="64" y="150" font-size="13.5" fill="#6B7280">power dies, disk faults, network drops</text>
+  <text x="64" y="186" font-size="14" fill="#3F3F46">Several transactions were</text>
+  <text x="64" y="208" font-size="14" fill="#3F3F46">running. Some had committed.</text>
+  <text x="64" y="230" font-size="14" fill="#3F3F46">Some had not.</text>
+  <text x="64" y="276" font-size="14" font-weight="700" fill="#0E0E10">The answer is in one place:</text>
+  <text x="64" y="298" font-size="14" font-weight="700" fill="#6B7280">the WAL.</text>
+  <line x1="344" y1="202" x2="396" y2="202" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-rq)"/>
+  </g>
+
+  <!-- ===== STEP 2: survives (committed) ===== -->
+  <g data-step="2">
+  <rect x="400" y="92" width="600" height="100" rx="10" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+  <rect x="400" y="92" width="600" height="6" rx="3" fill="#16A34A"/>
+  <text x="424" y="126" font-size="18" font-weight="700" fill="#16A34A">&#10003; Survives</text>
+  <text x="424" y="154" font-size="14.5" fill="#3F3F46">Committed transactions. Once you saw COMMIT, that work is kept.</text>
+  <text x="424" y="178" font-size="13.5" fill="#6B7280">recovery replays them so they reach disk for good</text>
+  </g>
+
+  <!-- ===== STEP 3: thrown away (uncommitted) ===== -->
+  <g data-step="3">
+  <rect x="400" y="212" width="600" height="100" rx="10" fill="#FFFFFF" stroke="#EA580C" stroke-width="2"/>
+  <rect x="400" y="212" width="600" height="6" rx="3" fill="#EA580C"/>
+  <text x="424" y="246" font-size="18" font-weight="700" fill="#EA580C">&#10007; Thrown away</text>
+  <text x="424" y="274" font-size="14.5" fill="#3F3F46">Transactions that never committed. Their writes are reversed.</text>
+  <text x="424" y="298" font-size="13.5" fill="#6B7280">recovery undoes them so no half-done work remains</text>
+  </g>
+
+  <text x="40" y="362" font-size="13" fill="#6B7280" xml:space="preserve"><tspan>Color key   </tspan><tspan fill="#16A34A">green = committed work that survives</tspan><tspan>   &#183;   </tspan><tspan fill="#EA580C">orange = uncommitted work thrown away</tspan><tspan>   &#183;   </tspan><tspan fill="#DC2626">red = the crash</tspan></text>
+</svg>

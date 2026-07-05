@@ -1,0 +1,100 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.709
+OpenAI turns text into vectors of about fifteen hundred numbers, and stores billions of them.
+
+00:00:06.709 --> 00:00:11.418
+To find the most similar, the exact way compares your query against every single one.
+
+00:00:11.418 --> 00:00:16.127
+At a million vectors that is over a billion multiply-adds, six gigabytes scanned, for one query.
+
+00:00:16.127 --> 00:00:20.836
+OpenAI runs billions of queries.
+
+00:00:20.836 --> 00:00:25.545
+The exact way does not stand a chance.
+
+00:00:25.545 --> 00:00:29.423
+The exact index is simple.
+
+00:00:29.423 --> 00:00:33.300
+Store every vector, and for each query, measure the distance to all of them, then take the closest.
+
+00:00:33.300 --> 00:00:37.178
+The answer is exact, but the cost is order N every time.
+
+00:00:37.178 --> 00:00:41.056
+Double the data, double the work.
+
+00:00:41.056 --> 00:00:44.933
+At a billion vectors, one lookup reads the whole dataset.
+
+00:00:44.933 --> 00:00:48.811
+The only way to scale is to stop looking at most of it.
+
+00:00:48.811 --> 00:00:52.924
+So how does HNSW find the answer without scanning?
+
+00:00:52.924 --> 00:00:57.038
+It is a graph, built in layers, once, as the vectors arrive.
+
+00:00:57.038 --> 00:01:01.151
+At the bottom, every vector links to its nearest neighbours, short local hops.
+
+00:01:01.151 --> 00:01:05.264
+Then a few vectors are promoted up a layer, with longer links.
+
+00:01:05.264 --> 00:01:09.377
+Fewer still go up again, with the longest links of all, the express lanes.
+
+00:01:09.377 --> 00:01:13.491
+That hierarchy is the whole index.
+
+00:01:13.491 --> 00:01:17.604
+Short roads at the bottom, highways on top.
+
+00:01:17.604 --> 00:01:22.208
+Now, how does a search know which way to go?
+
+00:01:22.208 --> 00:01:26.812
+It holds the query, so at any node it can measure how far each neighbour sits from it.
+
+00:01:26.812 --> 00:01:31.416
+It enters at the one node on the top layer.
+
+00:01:31.416 --> 00:01:36.021
+It steps to the neighbour closest to the query, a long jump on the express lane.
+
+00:01:36.021 --> 00:01:40.625
+When nothing is closer, it drops a layer and hops again, refining.
+
+00:01:40.625 --> 00:01:45.229
+At the bottom layer it lands on the nearest.
+
+00:01:45.229 --> 00:01:49.833
+The highways get it close, the local roads finish the job, a few hops instead of a scan.
+
+00:01:49.833 --> 00:01:55.557
+Now the trade-off, side by side.
+
+00:01:55.557 --> 00:02:01.281
+The exact scan compares the query to every vector, a billion multiply-adds, six gigabytes, every query.
+
+00:02:01.281 --> 00:02:07.004
+The fix is to build the index once, and then a query touches only a tiny fraction of the data, the few near it, in well under a millisecond.
+
+00:02:07.004 --> 00:02:12.728
+Same answer almost always, a hundred to a thousand times less work.
+
+00:02:12.728 --> 00:02:18.475
+A vector database is approximate nearest neighbor search over embeddings.
+
+00:02:18.475 --> 00:02:24.222
+It trades the occasional missed match for sub- millisecond lookups across billions of vectors, which an exact scan could never serve.
+
+00:02:24.222 --> 00:02:29.969
+HNSW, the layered graph, is the production default.
+
+00:02:29.969 --> 00:02:35.716
+Fitting all those vectors in memory is the other half, quantization, next.

@@ -1,0 +1,158 @@
+<h1>SQL Problem Solving: Writing Queries</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Most queries you write are one of five shapes: filter to a subset, rank within groups, accumulate over time, compare to a group, or flag outliers.</p>
+<p><strong>Intuition.</strong> Recognize the shape, then fill in your own tables. "Top 3 songs per genre" is a ranking; "users who played but never shared" is a set difference. The five patterns below give each shape a skeleton.</p>
+</div>
+<h2>Master These 5 Patterns</h2>
+<p>These five patterns cover the most common query shapes you will write. Each one below uses a small illustrative schema, just the tables it needs, so the shape stands on its own; swap in your own tables when you apply it.</p>
+<ol>
+<li>
+<p><strong>The Funnel</strong>: find drop-offs (listened, but never shared).</p>
+</li>
+<li>
+<p><strong>The Ladder</strong>: rank items within groups (top songs per genre).</p>
+</li>
+<li>
+<p><strong>The Timeline</strong>: track cumulative behavior (running total of listens).</p>
+</li>
+<li>
+<p><strong>The Comparison</strong>: individual vs. group metrics (artist vs. genre average).</p>
+</li>
+<li>
+<p><strong>The Exception</strong>: spot outliers (viral surges in daily listening).</p>
+</li>
+</ol>
+<p><a id="funnel"></a></p>
+<h3>Pattern 1: The Funnel</h3>
+<p><em>Identifying user progression through stages, or the lack thereof.</em></p>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/writing-funnel.svg" style="width:100%;height:auto;display:block;" alt="The funnel narrows from played 1000 to made-a-playlist 450 to shared 87. Keep one set and subtract another with WHERE user_id IN (listens) AND user_id NOT IN (shares)."></p>
+</div>
+<p><strong>When to use:</strong> users who did A but never B · conversion-funnel analysis · multi-step journeys · drop-off analysis.</p>
+<h4>The funnel query</h4>
+<pre><code><span class="sql-comment">-- Users who played a song but never shared one</span>
+<span class="sql-keyword">SELECT</span> user_id, name
+<span class="sql-keyword">FROM</span> <span class="sql-table">users</span>
+<span class="sql-keyword">WHERE</span> user_id <span class="sql-keyword">IN</span>     (<span class="sql-keyword">SELECT</span> user_id <span class="sql-keyword">FROM</span> <span class="sql-table">listens</span>)   <span class="sql-comment">-- played</span>
+  <span class="sql-keyword">AND</span> user_id <span class="sql-keyword">NOT</span> <span class="sql-keyword">IN</span> (<span class="sql-keyword">SELECT</span> user_id <span class="sql-keyword">FROM</span> shares)    <span class="sql-comment">-- but never shared</span>
+</code></pre>
+<p><a id="ladder"></a></p>
+<h3>Pattern 2: The Ladder</h3>
+<p><em>Ranking items within groups.</em></p>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p>&lt;img src="assets/Module1B-Intermediate-SQL/svgs/writing-ladder.svg" style="width:100%;height:auto;display:block;" alt="A ladder of Pop songs numbered by plays: ranks 1 to 3 kept on the top rungs, rank 4 cut below the line, via ROW_NUMBER() OVER (PARTITION BY genre ORDER BY plays DESC) with rn &lt;= 3."&gt;</p>
+</div>
+<p><strong>When to use:</strong> top 3 items per category · rank within departments · find the nth best · percentile rankings.</p>
+<h4>The ladder query</h4>
+<pre><code><span class="sql-comment">-- Top 3 songs per genre</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> (
+  <span class="sql-keyword">SELECT</span> song, genre, plays,
+    <span class="sql-keyword">ROW_NUMBER</span>() <span class="sql-keyword">OVER</span> (
+      <span class="sql-keyword">PARTITION BY</span> genre        <span class="sql-comment">-- restart numbering for each genre</span>
+      <span class="sql-keyword">ORDER BY</span> plays DESC       <span class="sql-comment">-- highest plays gets #1</span>
+    ) <span class="sql-keyword">AS</span> rn
+  <span class="sql-keyword">FROM</span> <span class="sql-table">songs</span>
+) ranked
+<span class="sql-keyword">WHERE</span> rn &lt;<span class="sql-operator">=</span> <span class="sql-number">3</span>                   <span class="sql-comment">-- keep the top 3 rungs</span>
+</code></pre>
+<p><a id="timeline"></a></p>
+<h3>Pattern 3: The Timeline</h3>
+<p><em>Cumulative and moving calculations.</em></p>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/writing-timeline.svg" style="width:100%;height:auto;display:block;" alt="A running total that accumulates 3, then 8, then 10, then 14 across days, via SUM(hours) OVER (ORDER BY date)."></p>
+</div>
+<p><strong>When to use:</strong> running total over time · moving averages · month-to-date · cumulative growth.</p>
+<h4>The timeline query</h4>
+<pre><code><span class="sql-comment">-- Running total of daily listening hours</span>
+<span class="sql-keyword">SELECT</span> date, hours,
+  <span class="sql-keyword">SUM</span>(hours) <span class="sql-keyword">OVER</span> (
+    <span class="sql-keyword">ORDER BY</span> date               <span class="sql-comment">-- accumulate in date order</span>
+  ) <span class="sql-keyword">AS</span> cumulative_hours         <span class="sql-comment">-- 3, then 3+5=8, then 8+2=10 ...</span>
+<span class="sql-keyword">FROM</span> daily_listening
+</code></pre>
+<p><a id="comparison"></a></p>
+<h3>Pattern 4: The Comparison</h3>
+<p><em>Individual vs. group performance.</em></p>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/writing-comparison.svg" style="width:100%;height:auto;display:block;" alt="Three artists' plays against a dashed genre-average line, two above and one below, via plays - AVG(plays) OVER (PARTITION BY genre)."></p>
+</div>
+<p><strong>When to use:</strong> compare to a group average · percentile within a group · above/below a benchmark · peer comparisons.</p>
+<h4>The comparison query</h4>
+<pre><code><span class="sql-comment">-- Each artist's plays vs. their genre average</span>
+<span class="sql-keyword">SELECT</span> artist_name, genre, plays,
+  plays <span class="sql-operator">-</span> <span class="sql-keyword">AVG</span>(plays) <span class="sql-keyword">OVER</span> (
+    <span class="sql-keyword">PARTITION BY</span> genre          <span class="sql-comment">-- average within each genre</span>
+  ) <span class="sql-keyword">AS</span> vs_avg                   <span class="sql-comment">-- positive = above peers, negative = below</span>
+<span class="sql-keyword">FROM</span> artist_stats
+</code></pre>
+<p><a id="exception"></a></p>
+<h3>Pattern 5: The Exception</h3>
+<p><em>Spotting outliers and anomalies.</em></p>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/writing-exception.svg" style="width:100%;height:auto;display:block;" alt="Daily listens whose Thursday row spikes 138% and is flagged, via LAG(listens) to get the previous day then a percent-change > 50 filter."&gt;</p>
+</div>
+<p><strong>When to use:</strong> sudden drops · unusual spikes · behavior changes · anomaly detection.</p>
+<h4>The exception query</h4>
+<pre><code><span class="sql-comment">-- Daily listen spikes over 50%</span>
+<span class="sql-keyword">WITH</span> changes <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span> song_id, date, <span class="sql-table">listens</span>,
+    <span class="sql-keyword">LAG</span>(<span class="sql-table">listens</span>) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> song_id <span class="sql-keyword">ORDER BY</span> date) <span class="sql-keyword">AS</span> prev_listens
+  <span class="sql-keyword">FROM</span> daily_listens
+),
+with_pct <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span>,
+    (<span class="sql-table">listens</span> <span class="sql-operator">-</span> prev_listens) <span class="sql-operator">*</span> <span class="sql-number">100.0</span> <span class="sql-operator">/</span> NULLIF(prev_listens, <span class="sql-number">0</span>) <span class="sql-keyword">AS</span> pct_change
+  <span class="sql-keyword">FROM</span> changes
+)
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> with_pct
+<span class="sql-keyword">WHERE</span> pct_change &gt; <span class="sql-number">50</span>            <span class="sql-comment">-- keep only the surges</span>
+</code></pre>
+<hr />
+<h2>Example 1: Breakout Artists</h2>
+<p><strong>Problem:</strong> identify breakout artists with over 50% month-over-month growth in the last 3 months. <strong>Patterns used:</strong> Timeline (LAG for the previous month) and Comparison (the percent change).</p>
+<p><strong>Step 1: Count monthly plays.</strong> Establish a baseline: count plays for each artist per month.</p>
+<pre><code><span class="sql-keyword">WITH</span> monthly_plays <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span>
+    artist_id,
+    DATE_TRUNC(<span class="sql-string">'month'</span>, play_date) <span class="sql-keyword">AS</span> month,   <span class="sql-comment">-- round to the month</span>
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> play_count
+  <span class="sql-keyword">FROM</span> <span class="sql-table">listens</span>
+  <span class="sql-keyword">GROUP BY</span> artist_id, month                     <span class="sql-comment">-- one row per artist-month</span>
+)
+<span class="sql-comment">-- artist_id | month   | play_count</span>
+<span class="sql-comment">-- 1234      | 2024-09 | 1000        (Sept baseline)</span>
+<span class="sql-comment">-- 1234      | 2024-10 | 1600        (Oct growth)</span>
+<span class="sql-comment">-- 1234      | 2024-11 | 2500        (Nov spike)</span>
+</code></pre>
+<p><strong>Step 2: Calculate the growth rate.</strong> Compare each month to the previous one with <code>LAG()</code>.</p>
+<pre><code>, artist_growth <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span>
+    artist_id, month, play_count,
+    <span class="sql-keyword">LAG</span>(play_count) <span class="sql-keyword">OVER</span> (
+      <span class="sql-keyword">PARTITION BY</span> artist_id        <span class="sql-comment">-- reset per artist</span>
+      <span class="sql-keyword">ORDER BY</span> month                <span class="sql-comment">-- in time order</span>
+    ) <span class="sql-keyword">AS</span> prev_month_plays,
+    ROUND(
+      (play_count <span class="sql-operator">-</span> <span class="sql-keyword">LAG</span>(play_count) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> artist_id <span class="sql-keyword">ORDER BY</span> month))
+      <span class="sql-operator">*</span> <span class="sql-number">100.0</span> <span class="sql-operator">/</span> NULLIF(<span class="sql-keyword">LAG</span>(play_count) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> artist_id <span class="sql-keyword">ORDER BY</span> month), <span class="sql-number">0</span>),
+      <span class="sql-number">1</span>
+    ) <span class="sql-keyword">AS</span> growth_pct
+  <span class="sql-keyword">FROM</span> monthly_plays
+)
+<span class="sql-comment">-- artist_id | month   | play_count | prev | growth_pct</span>
+<span class="sql-comment">-- 1234      | 2024-09 | 1000       | NULL | NULL      (no prior month)</span>
+<span class="sql-comment">-- 1234      | 2024-10 | 1600       | 1000 | 60.0      (+60%)</span>
+<span class="sql-comment">-- 1234      | 2024-11 | 2500       | 1600 | 56.3      (+56%)</span>
+</code></pre>
+<p><strong>Step 3: Find the breakout artists.</strong> Filter to over 50% growth in the last 3 months.</p>
+<pre><code><span class="sql-keyword">SELECT</span> a.name <span class="sql-keyword">AS</span> artist_name, g.month, g.play_count, g.growth_pct
+<span class="sql-keyword">FROM</span> artist_growth g
+<span class="sql-keyword">JOIN</span> artists a <span class="sql-keyword">ON</span> g.artist_id <span class="sql-operator">=</span> a.artist_id
+<span class="sql-keyword">WHERE</span> g.growth_pct &gt; <span class="sql-number">50</span>                                        <span class="sql-comment">-- the breakout filter</span>
+  <span class="sql-keyword">AND</span> g.month &gt;<span class="sql-operator">=</span> DATE_TRUNC(<span class="sql-string">'month'</span>, CURRENT_DATE) <span class="sql-operator">-</span> INTERVAL <span class="sql-string">'3 months'</span>
+<span class="sql-keyword">ORDER BY</span> g.growth_pct DESC, g.month DESC
+
+<span class="sql-comment">-- artist_name | month   | play_count | growth_pct</span>
+<span class="sql-comment">-- Dua Lipa    | 2024-10 | 1600       | 60.0        (+60% on Sept, artist 1234 above)</span>
+<span class="sql-comment">-- Dua Lipa    | 2024-11 | 2500       | 56.3        (+56% on Oct)</span>
+</code></pre>

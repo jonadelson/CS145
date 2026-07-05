@@ -1,0 +1,79 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.124
+A transfer moves money from an account on one shard to an account on another.
+
+00:00:06.124 --> 00:00:10.248
+But neither shard can see the other.
+
+00:00:10.248 --> 00:00:14.371
+If the first one commits and the second one crashes, the money simply vanishes.
+
+00:00:14.371 --> 00:00:18.495
+One machine being atomic is not enough.
+
+00:00:18.495 --> 00:00:22.619
+The shards need a protocol to commit together, or abort together, as one.
+
+00:00:22.619 --> 00:00:26.092
+Here is the protocol, in two phases.
+
+00:00:26.092 --> 00:00:29.565
+In phase one, prepare, the coordinator asks every shard one question.
+
+00:00:29.565 --> 00:00:33.037
+Can you commit?
+
+00:00:33.037 --> 00:00:36.510
+Each shard writes its change to its own log and votes yes.
+
+00:00:36.510 --> 00:00:39.983
+The coordinator counts the votes.
+
+00:00:39.983 --> 00:00:43.456
+Does the transaction commit, or abort?
+
+00:00:43.456 --> 00:00:46.928
+They are all yes, so the decision is commit.
+
+00:00:46.928 --> 00:00:50.401
+A single no anywhere would force an abort instead, and the coordinator logs that decision before it tells anyone.
+
+00:00:50.401 --> 00:00:53.874
+Now phase two.
+
+00:00:53.874 --> 00:00:57.347
+The coordinator tells every shard to commit.
+
+00:00:57.347 --> 00:01:00.819
+Each shard applies the change and acknowledges it.
+
+00:01:00.819 --> 00:01:04.292
+The result is atomic across all three shards.
+
+00:01:04.292 --> 00:01:07.765
+All of them commit, or none of them do.
+
+00:01:07.765 --> 00:01:13.152
+There is a catch: the coordinator is a single point of failure.
+
+00:01:13.152 --> 00:01:18.539
+Crash it between prepare and decision, and every prepared shard is stuck, it cannot abort alone, cannot commit without the decision.
+
+00:01:18.539 --> 00:01:23.926
+Production fixes this with a consensus group.
+
+00:01:23.926 --> 00:01:27.530
+Two protocols, two jobs.
+
+00:01:27.530 --> 00:01:31.134
+Two-phase locking keeps one machine serializable; two-phase commit gets separate machines to agree on one outcome.
+
+00:01:31.134 --> 00:01:34.737
+A multi-shard transaction needs both.
+
+00:01:34.737 --> 00:01:38.341
+The weakness left is the single coordinator.
+
+00:01:38.341 --> 00:01:41.945
+Next: how a cluster elects a leader.

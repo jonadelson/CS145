@@ -1,0 +1,28 @@
+<h1>Locks Stack &amp; the Lock Manager</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Concurrent transactions are independent multi-step operations running at the same time on shared data, and the database makes each one act as if no other transaction exists. Four layers cooperate to deliver that: your SQL, the database's lock manager, the OS's mutexes, and the hardware's atomic instructions.</p>
+<p><strong>Intuition.</strong> When Mickey and Minnie both like the same song at the same instant, both transactions hit the same Likes row. Four layers cooperate so both likes count without one overwriting the other: the database's lock manager serializes access to the row, the OS schedules the threads that hold those locks, and the hardware guarantees the increment instruction is atomic.</p>
+</div>
+<p>Every <code>BEGIN TRANSACTION</code> runs through four layers:</p>
+<p><a id="concurrency-stack-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/concurrency-stack.svg" alt="A four-layer call stack: Your Code runs BEGIN and COMMIT and delegates down to the Database's lock manager, which acquires an exclusive lock on the row; the lock manager delegates down to the Operating System's mutex; the OS delegates down to the Hardware's single compare-and-swap instruction, the one indivisible step every layer reduces to; the guarantee then returns back up the right side." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One <code>COMMIT</code>, four layers down to a single instruction. The lock manager decides <em>what</em> to lock, the OS mutex decides <em>how</em>, and the hardware's <code>compare-and-swap</code> is the one indivisible step everything reduces to. The guarantee returns up the right side: swapped atomically, mutex held, row locked, transaction isolated.</p>
+</div>
+<p>Each layer builds on the one below to answer a single question: <strong>how do thousands of transactions run at once without overwriting each other?</strong></p>
+<hr />
+<h2>Why OS vs Database Locks?</h2>
+<p>Why can't databases just reuse the OS's locks? Because the two solve different problems:</p>
+<p><a id="os-vs-db-locks-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/os-vs-db-locks.svg" alt="A two-column comparison. Left, grey: the OS lock (mutex or semaphore) is binary locked/unlocked, has no data awareness, coordinates threads, and leaves deadlock for you to detect by hand. Right, violet: the database lock manager locks at table, page, or row granularity, supports intent locks that announce a plan, scales to millions of transactions, and resolves deadlock automatically." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The same word, two layers on one machine. The OS lock (grey) is one bit of state guarding a memory address it knows nothing about. The database lock manager (violet) locks at table, page, or row granularity, lets a transaction announce intent, and resolves deadlock for millions of transactions at once. The OS primitive cannot do any of that, so the database builds its own lock layer on top.</p>
+</div>
+<h2>The lock manager</h2>
+<p>That lock layer the database builds is the <strong>lock manager</strong>: the component every transaction asks for its locks. It runs a concurrency-control algorithm, the strategy for who waits and who runs, and a lock is the tool it uses. It keeps a <strong>lock table</strong>, the running record of who holds each row and who is queued behind them.</p>
+<p><a id="lock-manager-hub-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/lock-manager-hub.svg" alt="Three transactions each send a lock request to one component, the lock manager, which keeps a lock table of who holds each row and who waits. Its two goals: keep every schedule correct (equal to some serial order) and fast (overlap the idle waits). Of its three jobs, only the first is covered here in violet, grant or queue each request; the other two, schedule many transactions and break deadlocks, are greyed as still ahead." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Every transaction asks one component, the lock manager, for its locks, and it keeps the lock table of who holds each row and who waits. It owes two goals: <strong>correct</strong>, equal to some serial order, and <strong>fast</strong>, overlapping the idle waits. Its first job is the one shown, granting a free row or queuing you behind the holder; scheduling many transactions and breaking deadlocks (greyed) each get their own page later.</p>
+</div>
+<p>Next: one lock, start to finish, on <a href="#/page/Module4-Transactions/lock-manager-cycle">DB Locks Lifecycle</a>.</p>

@@ -1,0 +1,142 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.679
+Single-machine planning is solved.
+
+00:00:06.679 --> 00:00:11.357
+Now Listens is one hundred terabytes spread across one thousand machines.
+
+00:00:11.357 --> 00:00:16.036
+No one node holds enough to join it to Users alone.
+
+00:00:16.036 --> 00:00:20.715
+One thousand nodes can run it roughly one hundred times faster, but only if the optimizer can get matching keys onto the same machine first.
+
+00:00:20.715 --> 00:00:25.484
+Watch the central operation.
+
+00:00:25.484 --> 00:00:30.253
+Start with the rows scattered across three nodes.
+
+00:00:30.253 --> 00:00:35.022
+User forty-two sits on Node A, but copies of seven and thirteen are strewn everywhere, each key wherever it happened to land.
+
+00:00:35.022 --> 00:00:39.791
+No node can join yet.
+
+00:00:39.791 --> 00:00:44.560
+So shuffle.
+
+00:00:44.560 --> 00:00:49.329
+Send each row to hash of the key mod the node count, a target machine picked by the key, over the network.
+
+00:00:49.329 --> 00:00:54.098
+After the shuffle, every row with the same key on the same node.
+
+00:00:54.098 --> 00:00:58.867
+All of user forty-two on Node A, all of seven on Node B, all of thirteen on Node C.
+
+00:00:58.867 --> 00:01:03.636
+Now each node runs an ordinary local join on the rows it owns.
+
+00:01:03.636 --> 00:01:08.405
+This is exactly hash partitioning, just with the network as the destination.
+
+00:01:08.405 --> 00:01:13.174
+Local hash partitioning routes by hash mod B to a file on the same disk.
+
+00:01:13.174 --> 00:01:17.943
+Shuffle routes by hash mod nodes to another machine.
+
+00:01:17.943 --> 00:01:22.712
+Same two NI Os, plus the network transfer, and the network transfer is the dominant term.
+
+00:01:22.712 --> 00:01:26.209
+You do not always shuffle both sides.
+
+00:01:26.209 --> 00:01:29.706
+Broadcast shuffle sends one copy of the entire small table to every node.
+
+00:01:29.706 --> 00:01:33.203
+Cost is the small table size times the node count.
+
+00:01:33.203 --> 00:01:36.700
+Best when a tiny table joins a massive one.
+
+00:01:36.700 --> 00:01:40.197
+Hash shuffle redistributes both tables by a common key.
+
+00:01:40.197 --> 00:01:43.693
+Cost is the total size of both.
+
+00:01:43.693 --> 00:01:47.190
+Best when both are large.
+
+00:01:47.190 --> 00:01:50.687
+Co-located shuffle moves nothing at all.
+
+00:01:50.687 --> 00:01:54.184
+The data is already partitioned on the join key, so the cost is zero.
+
+00:01:54.184 --> 00:01:57.681
+Best when the tables were laid out together up front.
+
+00:01:57.681 --> 00:02:01.797
+Aggregation gets the same treatment.
+
+00:02:01.797 --> 00:02:05.912
+A global GROUP BY across one thousand nodes would flood the network with billions of tiny rows.
+
+00:02:05.912 --> 00:02:10.028
+So split it.
+
+00:02:10.028 --> 00:02:14.144
+Phase one, each node pre-aggregates its own data.
+
+00:02:14.144 --> 00:02:18.260
+One million listen rows per node collapse to one thousand artist totals.
+
+00:02:18.260 --> 00:02:22.375
+The data shrinks a thousandfold before the network sees any of it.
+
+00:02:22.375 --> 00:02:26.491
+Phase two, those partials shuffle by artist to a coordinator, which sums them into the true totals.
+
+00:02:26.491 --> 00:02:30.607
+Same answer, a fraction of the load.
+
+00:02:30.607 --> 00:02:35.739
+This is how the real systems work.
+
+00:02:35.739 --> 00:02:40.870
+Spark holds data in memory as RD Ds and rewrites the plan with its Catalyst optimizer, picking hash and broadcast joins.
+
+00:02:40.870 --> 00:02:46.002
+BigQuery runs a tree-shaped execution where each level aggregates partials from the level below.
+
+00:02:46.002 --> 00:02:51.134
+Snowflake separates storage from compute over cached micro-partitions.
+
+00:02:51.134 --> 00:02:56.265
+Presto and Trino pipeline operators across nodes and filter dynamically.
+
+00:02:56.265 --> 00:03:01.397
+Different systems, the same core ideas.
+
+00:03:01.397 --> 00:03:05.398
+Distributed planning is single-machine cost reasoning stretched across the network.
+
+00:03:05.398 --> 00:03:09.400
+Shuffle is hash partitioning over the wire.
+
+00:03:09.400 --> 00:03:13.401
+Broadcast for small times big, hash shuffle for big times big, co-located for free.
+
+00:03:13.401 --> 00:03:17.403
+Two-phase aggregation shrinks the data before it ships.
+
+00:03:17.403 --> 00:03:21.404
+Next we tie the whole course together.
+
+00:03:21.404 --> 00:03:25.406
+One click on a play button, three systems, eight algorithms, two seconds.

@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 560" role="img" aria-labelledby="ta-t ta-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="ta-t">Scenario 2: T3 aborts while T1 and T2 commit, with no cascade</title>
+  <desc id="ta-d">A write-ahead log table for the run where T3 aborts: T2 and T1 log their writes to A and commit, then T3's writes to B and C are undone by reading the WAL backward, reverting C from 32.4 to 27 and B from 38.4 to 32, and an abort record is written. T1 and T2 are not rolled back because Strict 2PL kept T3's locks held, so neither ever read T3's uncommitted data. The final database state is A=27.36, B=32, C=27. The blue A circle marks Atomicity: T3 leaves no trace.</desc>
+
+  <text x="60" y="34" font-size="24" font-weight="700" fill="#0E0E10">Scenario 2: T3 aborts, T1 and T2 commit</text>
+  <text x="60" y="58" font-size="14" fill="#6B7280">T3's locks were held the whole time, so no one read its dirty data. One abort, no cascade.</text>
+
+  <!-- WAL header -->
+  <text x="60" y="92" font-size="15" font-weight="700" fill="#7C3AED">Write-Ahead Log</text>
+  <text x="150" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Txn</text>
+  <text x="300" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Record</text>
+  <text x="470" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Variable</text>
+  <text x="600" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Old &#8594; New</text>
+  <line x1="100" y1="126" x2="740" y2="126" stroke="#D4D7DC"/>
+
+  <g data-step="1">
+    <text x="150" y="148" text-anchor="middle" font-size="13" fill="#0E0E10">T2</text>
+    <text x="300" y="148" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="148" text-anchor="middle" font-size="13" fill="#0E0E10">A</text>
+    <text x="600" y="148" text-anchor="middle" font-size="13" fill="#0E0E10">19 &#8594; 22.8</text>
+  </g>
+  <g data-step="2">
+    <text x="150" y="172" text-anchor="middle" font-size="13" fill="#0E0E10">T3</text>
+    <text x="300" y="172" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="172" text-anchor="middle" font-size="13" fill="#0E0E10">B</text>
+    <text x="600" y="172" text-anchor="middle" font-size="13" fill="#0E0E10">32 &#8594; 38.4</text>
+  </g>
+  <g data-step="3">
+    <rect x="100" y="180" width="640" height="26" rx="4" fill="#E1F4EC"/>
+    <rect x="100" y="180" width="4" height="26" fill="#16A34A"/>
+    <text x="150" y="198" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">T2</text>
+    <text x="300" y="198" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">COMMIT</text>
+    <text x="610" y="198" text-anchor="middle" font-size="12" fill="#6B7280">A = 22.8 is durable</text>
+  </g>
+  <g data-step="4">
+    <text x="150" y="224" text-anchor="middle" font-size="13" fill="#0E0E10">T3</text>
+    <text x="300" y="224" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="224" text-anchor="middle" font-size="13" fill="#0E0E10">C</text>
+    <text x="600" y="224" text-anchor="middle" font-size="13" fill="#0E0E10">27 &#8594; 32.4</text>
+  </g>
+  <g data-step="5">
+    <text x="150" y="248" text-anchor="middle" font-size="13" fill="#0E0E10">T1</text>
+    <text x="300" y="248" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="248" text-anchor="middle" font-size="13" fill="#0E0E10">A</text>
+    <text x="600" y="248" text-anchor="middle" font-size="13" fill="#0E0E10">22.8 &#8594; 27.36</text>
+  </g>
+  <g data-step="6">
+    <rect x="100" y="256" width="640" height="26" rx="4" fill="#FCEBEA"/>
+    <rect x="100" y="256" width="4" height="26" fill="#DC2626"/>
+    <text x="150" y="274" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">T3</text>
+    <text x="300" y="274" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">UNDO</text>
+    <text x="470" y="274" text-anchor="middle" font-size="13" fill="#0E0E10">C</text>
+    <text x="600" y="274" text-anchor="middle" font-size="13" fill="#0E0E10">32.4 &#8594; 27</text>
+  </g>
+  <g data-step="7">
+    <rect x="100" y="282" width="640" height="26" rx="4" fill="#FCEBEA"/>
+    <rect x="100" y="282" width="4" height="26" fill="#DC2626"/>
+    <text x="150" y="300" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">T3</text>
+    <text x="300" y="300" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">UNDO</text>
+    <text x="470" y="300" text-anchor="middle" font-size="13" fill="#0E0E10">B</text>
+    <text x="600" y="300" text-anchor="middle" font-size="13" fill="#0E0E10">38.4 &#8594; 32</text>
+  </g>
+  <g data-step="8">
+    <rect x="100" y="308" width="640" height="26" rx="4" fill="#FCEBEA"/>
+    <rect x="100" y="308" width="4" height="26" fill="#DC2626"/>
+    <text x="150" y="326" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">T3</text>
+    <text x="300" y="326" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">ABORT</text>
+    <text x="610" y="326" text-anchor="middle" font-size="12" fill="#6B7280">B, C restored; T3 leaves no trace</text>
+  </g>
+  <g data-step="9">
+    <rect x="100" y="334" width="640" height="26" rx="4" fill="#E1F4EC"/>
+    <rect x="100" y="334" width="4" height="26" fill="#16A34A"/>
+    <text x="150" y="352" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">T1</text>
+    <text x="300" y="352" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">COMMIT</text>
+    <text x="610" y="352" text-anchor="middle" font-size="12" fill="#6B7280">A = 27.36 is durable</text>
+  </g>
+
+  <!-- atomicity + no-cascade panel -->
+  <g data-step="10">
+    <rect x="60" y="392" width="700" height="118" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="60" y="392" width="700" height="5" rx="2" fill="#2563EB"/>
+    <circle cx="98" cy="438" r="20" fill="#2563EB"/>
+    <text x="98" y="445" text-anchor="middle" font-size="20" font-weight="700" fill="#FFFFFF">A</text>
+    <text x="132" y="428" font-size="15" font-weight="700" fill="#2563EB">Atomicity, and no cascade</text>
+    <text x="132" y="452" font-size="13.5" fill="#3F3F46">T3's writes are undone in full, so it is all-or-nothing. T1 and T2 never saw T3's</text>
+    <text x="132" y="470" font-size="13.5" fill="#3F3F46">uncommitted data (its locks were held), so neither rolls back. One abort, contained.</text>
+    <text x="132" y="496" font-size="14" font-weight="700" fill="#0E0E10">Final state:  A = 27.36,  B = 32,  C = 27</text>
+  </g>
+
+  <text x="60" y="540" font-size="12.5" fill="#6B7280">Color key:  <tspan fill="#EA580C" font-weight="700">W</tspan> = a logged write   ·   <tspan fill="#059669" font-weight="700">COMMIT</tspan> = durable   ·   <tspan fill="#DC2626" font-weight="700">UNDO</tspan> = reverted on abort   ·   <tspan fill="#2563EB" font-weight="700">A</tspan> = Atomicity</text>
+</svg>

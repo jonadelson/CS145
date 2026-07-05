@@ -1,0 +1,26 @@
+<h1>Distributed Commit</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> When one transaction touches several shards, <em>two-phase commit</em> makes it atomic across all of them: a coordinator first asks every shard to <em>prepare</em>, then tells them all to <em>commit</em> only if every shard voted yes. One shard that cannot commit forces the whole transaction to abort.</p>
+<p><strong>Intuition.</strong> Locking (2PL) keeps one machine's transaction correct, but it says nothing about whether three machines agree to commit together. Two-phase commit adds that agreement: a transfer that debits an account on Shard 1 and credits one on Shard 2 lands on both shards or on neither, even if a machine crashes part way through.</p>
+</div>
+<p>A transfer moves money from an account on Shard 1 to an account on Shard 2. Each shard can lock its own row and log its own change, but neither can see the other. If Shard 1 commits and Shard 2 crashes, the money vanishes. Single-node atomicity is not enough; the shards need a protocol to commit or abort as one.</p>
+<hr />
+<h2>Two-Phase Commit</h2>
+<p><a id="two-phase-commit-figure"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/two-phase-commit.svg" alt="Phase one: a coordinator asks every shard to prepare and each logs its change and votes yes; phase two: the coordinator tells every shard to commit and each acknowledges, so the transaction is atomic across shards." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Two-phase commit turns many shards into one atomic decision. In the prepare phase the coordinator asks each shard whether it can commit; a shard logs its change durably and votes yes, or votes no. The coordinator commits only if every vote is yes, logs that decision, then in the commit phase tells all shards to apply it. One no anywhere forces a global abort, so the transaction is all-or-nothing across machines.</p>
+</div>
+<p>Two-phase locking and two-phase commit are different tools, and the names mislead. <strong>2PL</strong> orders conflicting operations <em>within</em> one node so the schedule is serializable. <strong>2PC</strong> gets <em>separate</em> nodes to agree on a single commit-or-abort outcome. A multi-shard transaction needs both: 2PL on each shard for isolation, 2PC across shards for atomicity.</p>
+<h3>The blocking problem</h3>
+<p>The coordinator is a single point of failure at the worst moment. If it crashes <em>after</em> the shards prepare but <em>before</em> it sends the decision, each prepared shard is stuck. It voted yes, so it cannot unilaterally abort; it has no decision, so it cannot commit. It holds its locks and waits for the coordinator to come back. Other transactions that need those rows wait too.</p>
+<div class="v5-callout v5-callout--danger">
+<h4>Why 2PC alone is fragile</h4>
+<p>A prepared shard that loses contact with the coordinator blocks holding locks until the coordinator recovers. Production systems remove that single point of failure by electing a replacement coordinator, which is exactly the leader-election problem of the next page. Google Spanner commits this way, on a Paxos group.</p>
+</div>
+<hr />
+<h2>Common Confusions</h2>
+<p><strong>Q: Is two-phase commit the same as two-phase locking?</strong><br />
+No. 2PL is per-node concurrency control for serializability; 2PC is a cross-node agreement on commit or abort. A multi-shard transaction uses both.</p>
+<p><strong>Q: If a shard is slow or down, can 2PC proceed with a majority?</strong><br />
+No. Unlike the majority voting on the next page, plain 2PC needs <em>every</em> participant to vote yes, so one slow or dead shard stalls it. Electing a replacement coordinator fixes coordinator failure, not this all-must-agree requirement.</p>

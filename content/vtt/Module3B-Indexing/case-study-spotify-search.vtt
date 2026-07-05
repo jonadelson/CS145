@@ -1,0 +1,70 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.135
+You type Crazy Heart into Spotify and the matches come back before you finish typing.
+
+00:00:05.135 --> 00:00:08.269
+Behind that box sit one hundred million tracks.
+
+00:00:08.269 --> 00:00:11.404
+Read every row to check the title and one search is one hundred million reads.
+
+00:00:11.404 --> 00:00:14.539
+Do that per keystroke and the system falls over.
+
+00:00:14.539 --> 00:00:17.673
+Spotify never reads the table.
+
+00:00:17.673 --> 00:00:20.808
+It looks the words up.
+
+00:00:20.808 --> 00:00:26.081
+The structure that makes it work is an inverted index, and it works like the index at the back of a textbook.
+
+00:00:26.081 --> 00:00:31.353
+Start on the left with the term dictionary.
+
+00:00:31.353 --> 00:00:36.626
+Every unique word in the Songs table, held in a B-plus tree on disk.
+
+00:00:36.626 --> 00:00:41.899
+Look up Crazy, look up Heart, two quick tree descents.
+
+00:00:41.899 --> 00:00:47.171
+And the dictionary is a B-plus tree on purpose, not a hash index.
+
+00:00:47.171 --> 00:00:52.444
+A tree keeps neighbouring words in sorted order, so Craz sits right beside Crazy and the engine can autocomplete you as you type.
+
+00:00:52.444 --> 00:00:57.717
+A hash index would scatter them into random buckets and never finish a prefix.
+
+00:00:57.717 --> 00:01:02.990
+Each word points at its postings list on the right, a packed array of every song i-d that contains that word.
+
+00:01:02.990 --> 00:01:08.262
+Now you have two sorted lists.
+
+00:01:08.262 --> 00:01:13.535
+Pull both into memory and intersect them in RAM, walking them in lockstep and keeping only the i-ds in both.
+
+00:01:13.535 --> 00:01:18.808
+For Crazy Heart that leaves song i-ds twelve and one-oh-eight.
+
+00:01:18.808 --> 00:01:24.080
+Two term lookups, two postings reads, one intersection, then read just those two data pages.
+
+00:01:24.080 --> 00:01:29.353
+About ten reads total, against one hundred million for a full scan.
+
+00:01:29.353 --> 00:01:36.145
+That is the whole idea.
+
+00:01:36.145 --> 00:01:42.936
+An inverted index turns a scan of one hundred million rows into a tree lookup and an intersection in memory, and the same tree that finds Crazy completes Craz as you type.
+
+00:01:42.936 --> 00:01:49.728
+Real search then layers ranking on top, scoring each match by where the word hit, popularity, and your history.
+
+00:01:49.728 --> 00:01:56.520
+Next the workload flips from read-heavy search to write-heavy ingestion, and the index has to flip with it.

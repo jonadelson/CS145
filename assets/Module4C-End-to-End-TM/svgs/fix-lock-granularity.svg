@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" role="img" aria-labelledby="f2-t f2-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="f2-t">Fix two: shrink the lock</title>
+  <desc id="f2-d">Before, red: locking a whole zone freezes a thousand seats, so nine hundred ninety-nine other fans are blocked and only about a hundred users run at once. After, green: locking a single seat blocks nobody else, so about ten thousand users browse different seats at once. Color key: red is the old flow, green is the fixed flow.</desc>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">Fix 1: shrink the lock</text>
+
+  <g data-step="1">
+    <rect x="40" y="56" width="400" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="40" y="56" width="400" height="6" rx="3" fill="#DC2626"/>
+    <text x="64" y="90" font-size="17" font-weight="700" fill="#DC2626">Before: lock the zone</text>
+    <text x="64" y="120" font-size="14" fill="#3F3F46">One pick freezes the whole zone.</text>
+    <text x="64" y="164" font-size="14" font-weight="700" fill="#0E0E10">1,000 seats locked</text>
+    <text x="64" y="190" font-size="14" font-weight="700" fill="#0E0E10">999 fans blocked</text>
+    <text x="64" y="216" font-size="14" font-weight="700" fill="#0E0E10">Concurrent users: ~100</text>
+  </g>
+
+  <g data-step="2">
+    <rect x="480" y="56" width="400" height="196" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="480" y="56" width="400" height="6" rx="3" fill="#16A34A"/>
+    <text x="504" y="90" font-size="17" font-weight="700" fill="#16A34A">After: lock one seat</text>
+    <text x="504" y="120" font-size="14" fill="#3F3F46">Everyone else browses freely.</text>
+    <text x="504" y="164" font-size="14" font-weight="700" fill="#0E0E10">1 seat locked</text>
+    <text x="504" y="190" font-size="14" font-weight="700" fill="#0E0E10">0 fans blocked</text>
+    <text x="504" y="216" font-size="14" font-weight="700" fill="#0E0E10">Concurrent users: ~10,000</text>
+  </g>
+
+  <text x="40" y="284" font-size="13" fill="#6B7280"><tspan fill="#DC2626" font-weight="700">red</tspan> = the old flow  &#183;  <tspan fill="#16A34A" font-weight="700">green</tspan> = the fix</text>
+</svg>

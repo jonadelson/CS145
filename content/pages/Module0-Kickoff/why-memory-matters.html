@@ -1,0 +1,67 @@
+<h1>Why Memory Matters</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> CS145 is about data and how it persists over time.</p>
+<p><strong>Intuition.</strong> Your other classes teach the actions: algorithms, model inference, systems. Actions are short-term. The data those actions read and write lives in a database, on disk, long-term. ("Memory" here means that durable database, not the volatile RAM chip in your laptop.)</p>
+</div>
+<h2>What this course teaches</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/course-teaches.svg" style="width:100%;height:auto;display:block;" alt="Six module panels left to right, M1 through M6. The same database cylinder sits in every panel; each module adds one capability the database needs at the next scale, from one machine to planet-wide."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Each module adds one capability the database needs at the next scale. <strong>M1</strong> is already a complete, declarative, parallel database; the rest of the course is what happens around it. <strong>M2</strong> decides how rows live on disk. <strong>M3</strong> finds rows in milliseconds. <strong>M4</strong> keeps state correct when many users hit it at once. <strong>M5</strong> spreads one logical database across many machines. <strong>M6</strong> is where databases live in the wild: in your phone, inside an LLM, at the edge. See the <a href="#/page/Module0-Kickoff/sql-metro">course map</a> for how these connect to the projects and the careers they lead to.</p>
+</div>
+<h2>Where we start: three teardowns</h2>
+<p>We learn how the database is built by taking three real systems apart and finding the same primitive inside each one. In teaching order, from a laptop to the planet:</p>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<svg viewBox="0 0 1100 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="map-t map-d">
+  <title id="map-t">Three teardowns, one primitive</title>
+  <desc id="map-d">Three blue cards left to right: 0.1 small analytics (Pandas, the on-ramp and the RAM limit), 0.2 agent memory (no memory then local then global, the whole course in one example), and 0.3 a big service (UberEats, planet scale plus the offline edge). A grey scale axis underneath runs from one machine to many machines. Color key: blue is a teardown, the same database at growing scale.</desc>
+  <defs><marker id="ah-map" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="550" y="38" font-size="24" font-weight="700" fill="#0E0E10" text-anchor="middle">Three teardowns, one primitive</text>
+  <text x="550" y="64" font-size="14" fill="#6B7280" text-anchor="middle">The same SQL database, three settings. This course is the bridge.</text>
+
+  <!-- card 0.1 -->
+  <rect x="40" y="90" width="320" height="172" rx="12" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="40" y="90" width="320" height="6" rx="3" fill="#2563EB"/>
+  <text x="200" y="122" font-size="16" font-weight="700" fill="#2563EB" text-anchor="middle">0.1 &#183; Small analytics</text>
+  <text x="200" y="152" font-size="14" fill="#3F3F46" text-anchor="middle">Pandas and Polars on a laptop.</text>
+  <text x="200" y="174" font-size="14" fill="#3F3F46" text-anchor="middle">Fast, until it runs out of RAM.</text>
+  <text x="200" y="210" font-size="13" font-weight="600" fill="#0E0E10" text-anchor="middle">~16 GB on a laptop</text>
+  <text x="200" y="240" font-size="12" fill="#6B7280" text-anchor="middle" font-style="italic">the on-ramp</text>
+
+  <!-- card 0.2 -->
+  <rect x="390" y="90" width="320" height="172" rx="12" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="390" y="90" width="320" height="6" rx="3" fill="#2563EB"/>
+  <text x="550" y="122" font-size="16" font-weight="700" fill="#2563EB" text-anchor="middle">0.2 &#183; Agent memory</text>
+  <text x="550" y="152" font-size="14" fill="#3F3F46" text-anchor="middle">No memory, then local,</text>
+  <text x="550" y="174" font-size="14" fill="#3F3F46" text-anchor="middle">then global.</text>
+  <text x="550" y="210" font-size="13" font-weight="600" fill="#0E0E10" text-anchor="middle">1 user &#8594; 800 M users</text>
+  <text x="550" y="240" font-size="12" fill="#6B7280" text-anchor="middle" font-style="italic">the whole course in one example</text>
+
+  <!-- card 0.3 -->
+  <rect x="740" y="90" width="320" height="172" rx="12" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="740" y="90" width="320" height="6" rx="3" fill="#2563EB"/>
+  <text x="900" y="122" font-size="16" font-weight="700" fill="#2563EB" text-anchor="middle">0.3 &#183; A big service</text>
+  <text x="900" y="152" font-size="14" fill="#3F3F46" text-anchor="middle">UberEats: one database,</text>
+  <text x="900" y="174" font-size="14" fill="#3F3F46" text-anchor="middle">three sides, plus the edge.</text>
+  <text x="900" y="210" font-size="13" font-weight="600" fill="#0E0E10" text-anchor="middle">billions of orders, planet-wide</text>
+  <text x="900" y="240" font-size="12" fill="#6B7280" text-anchor="middle" font-style="italic">planet scale and the edge</text>
+
+  <!-- scale axis -->
+  <line x1="150" y1="285" x2="950" y2="285" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-map)"/>
+  <text x="150" y="305" font-size="13" fill="#6B7280" text-anchor="start">one machine</text>
+  <text x="950" y="305" font-size="13" fill="#6B7280" text-anchor="end">many machines</text>
+
+  <text x="550" y="338" font-size="13" text-anchor="middle"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = a teardown, the same database at growing scale</tspan></text>
+</svg>
+</div>
+
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The whole kickoff in one map. The same database in three settings, left to right from one machine to many. The numbers under each card are the working scale: a 16 GB laptop, then one user growing to 800 million, then billions of orders across the planet. Modules 1 through 6 build it.</p>
+</div>
+<p><strong><a href="#/page/Module0-Kickoff/case-study-pandas">0.1 Pandas: Deconstructing Small Analytics</a>.</strong> Pandas and Polars on a laptop, the world you already know. What happens when the data no longer fits in RAM?</p>
+<p><strong><a href="#/page/Module0-Kickoff/case-study-agent-memory">0.2 Claude &amp; OpenAI: Deconstructing Agent Memory</a>.</strong> One AI coding agent, the whole course in one example. Why does it hallucinate with no memory? Why is the context window the same memory limit? How does a local database fix it on one machine? How do you scale it to millions of users, each with their own memory?</p>
+<p><strong><a href="#/page/Module0-Kickoff/case-study-ubereats">0.3 UberEats: Deconstructing a Big Service</a>.</strong> UberEats at planet scale, plus the offline edge. How does one database serve billions? How do the driver apps work on a phone?</p>
+<p>The short version of all three: the context window, the DataFrame, the phone in a tunnel are short-term memory. Anything that has to outlast them lives in a database. Every serious product (ChatGPT, Stripe, Epic, Spotify) is built that way.</p>
+<p>Every product you use has a database underneath. By the end of this course, you can design one. Start with <a href="#/page/Module0-Kickoff/case-study-pandas">0.1 Pandas: Deconstructing Small Analytics</a>.</p>

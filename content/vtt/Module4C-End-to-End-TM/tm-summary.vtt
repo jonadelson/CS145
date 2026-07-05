@@ -1,0 +1,148 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.300
+We built each piece on its own.
+
+00:00:05.300 --> 00:00:08.600
+Schedules.
+
+00:00:08.600 --> 00:00:11.900
+Locks.
+
+00:00:11.900 --> 00:00:15.200
+Write-ahead logs.
+
+00:00:15.200 --> 00:00:18.500
+Recovery.
+
+00:00:18.500 --> 00:00:21.800
+Now look at how they coordinate.
+
+00:00:21.800 --> 00:00:25.100
+Five components sit inside one transaction manager, and each one owns an ACID guarantee.
+
+00:00:25.100 --> 00:00:28.400
+The scheduler interleaves operations into a conflict-serializable order.
+
+00:00:28.400 --> 00:00:31.699
+That is consistency.
+
+00:00:31.699 --> 00:00:34.999
+The lock manager enforces two-phase locking on the tuples transactions share, with O of one hash lookups.
+
+00:00:34.999 --> 00:00:38.299
+That is isolation.
+
+00:00:38.299 --> 00:00:41.599
+The WAL logs every change before the data page moves.
+
+00:00:41.599 --> 00:00:44.899
+That is durability.
+
+00:00:44.899 --> 00:00:48.199
+The deadlock detector watches the waits-for graph and aborts a victim when it finds a cycle.
+
+00:00:48.199 --> 00:00:51.499
+The recovery manager runs analysis, redo, and undo after a crash.
+
+00:00:51.499 --> 00:00:54.799
+That is atomicity.
+
+00:00:54.799 --> 00:00:58.099
+Five subsystems, and together they turn many concurrent transactions into one consistent state.
+
+00:00:58.099 --> 00:01:01.246
+Now watch them run together.
+
+00:01:01.246 --> 00:01:04.394
+Mickey buys Premium.
+
+00:01:04.394 --> 00:01:07.541
+Minnie updates her profile.
+
+00:01:07.541 --> 00:01:10.689
+Daffy adds a song.
+
+00:01:10.689 --> 00:01:13.836
+Three transactions arriving at the same instant, and they touch different tuples.
+
+00:01:13.836 --> 00:01:16.983
+The scheduler routes each one to its own thread.
+
+00:01:16.983 --> 00:01:20.131
+The lock manager grants all three locks at once, because the rows do not overlap, so no one waits.
+
+00:01:20.131 --> 00:01:23.278
+The WAL logs every change before its commit becomes durable.
+
+00:01:23.278 --> 00:01:26.426
+So far so good.
+
+00:01:26.426 --> 00:01:29.573
+Five components are wired in.
+
+00:01:29.573 --> 00:01:32.721
+On a clean run like this one, how many actually fire?
+
+00:01:32.721 --> 00:01:35.868
+Four.
+
+00:01:35.868 --> 00:01:39.015
+The deadlock detector stays quiet on this trace, because there is no waits-for cycle to break.
+
+00:01:39.015 --> 00:01:42.163
+The recovery manager stands by, ready only if the server crashes.
+
+00:01:42.163 --> 00:01:45.310
+The result is one consistent committed state.
+
+00:01:45.310 --> 00:01:48.458
+Five components, four firing.
+
+00:01:48.458 --> 00:01:51.605
+ACID preserved.
+
+00:01:51.605 --> 00:01:56.093
+Why does this scale?
+
+00:01:56.093 --> 00:02:00.581
+Because most transactions never touch the same row.
+
+00:02:00.581 --> 00:02:05.068
+In a database with a million accounts, one account has nothing to do with the next.
+
+00:02:05.068 --> 00:02:09.556
+Out of a thousand transactions running at once, about nine hundred eighty are independent and never wait.
+
+00:02:09.556 --> 00:02:14.044
+Only ten to twenty actually conflict and need the lock manager to serialize them.
+
+00:02:14.044 --> 00:02:18.532
+Three design choices keep that cheap.
+
+00:02:18.532 --> 00:02:23.020
+The lock manager keeps a hash table, so every lock check is O of one at any scale.
+
+00:02:23.020 --> 00:02:27.508
+The WAL turns scattered updates into one sequential stream, the fastest pattern a disk has.
+
+00:02:27.508 --> 00:02:31.995
+And each component does one job behind a tiny interface.
+
+00:02:31.995 --> 00:02:36.483
+The scheduler never touches the disk.
+
+00:02:36.483 --> 00:02:40.971
+That separation of concerns is what lets a database run a million transactions per second on commodity hardware.
+
+00:02:40.971 --> 00:02:44.512
+That is the transaction manager.
+
+00:02:44.512 --> 00:02:48.053
+Five components, one coordination layer.
+
+00:02:48.053 --> 00:02:51.594
+Next we run a concrete trace of three transactions hitting shared data.
+
+00:02:51.594 --> 00:02:55.135
+Then we watch the recovery manager bring everything back after a crash.

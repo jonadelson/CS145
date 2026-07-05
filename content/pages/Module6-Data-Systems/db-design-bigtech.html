@@ -1,0 +1,119 @@
+<h1>Database Design at Big-Tech Scale</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> At big-tech scale the data stack splits into three systems: <strong>OLTP</strong> for user-facing writes, <strong>OLAP</strong> for analytics over billions of rows, and an <strong>ETL/CDC</strong> pipeline that moves data from one to the other. You never run heavy analytics on the live OLTP database.</p>
+<p><strong>Intuition.</strong> A Spotify play is one fast write to Postgres (OLTP). "Top genres this quarter" scans 50 billion rows, which would choke that same Postgres for hours, so a nightly Spark job (or a streaming capture of the write-ahead log) ships the data to BigQuery (OLAP), where the scan finishes in seconds. Same data, three systems, three latency budgets.</p>
+</div>
+<p><a id="three-worlds-fig"></a></p>
+<p><img src="assets/Module6-Data-Systems/svgs/db-bigtech-three-worlds.svg" alt="Three panels: OLTP (blue) handles user-facing writes at under 100 ms on Postgres/Aurora/Spanner, 100M-5B txns/day; an ETL/CDC bridge (grey) moves ~100 TB/day by nightly Spark batch or streaming WAL capture; OLAP (violet) scans billions of rows on BigQuery/Snowflake/Redshift, a 1 PB warehouse." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One workload split across three systems. OLTP (blue) takes the live writes and needs sub-100 ms latency; OLAP (violet) takes the analytical scans and needs to read billions of rows at once; the two have opposite access patterns, so they run on separate engines. The ETL/CDC bridge (grey) carries data from the first to the second, either as a nightly batch or as a streaming capture of the database's own log. The scale and cost numbers are the order of magnitude each layer operates at, not exact quotes.</p>
+</div>
+<hr />
+<h2>Why Not Just One Database?</h2>
+<p>You pushed startup Postgres to its limit earlier. Eventually a startup becomes an enterprise, and you stop running petabyte-scale analytics on the <strong>OLTP</strong> system that handles user clicks. The reason is not lock contention: Postgres uses <strong>MVCC</strong>, so a read-only analytical scan takes no row locks that block writers. The real problem is resource contention at three levels:</p>
+<ol>
+<li>
+<p>A long scan <strong>saturates CPU and disk I/O</strong>, slowing every user-facing query on the same primary.</p>
+</li>
+<li>
+<p>It <strong>pollutes the cache</strong>, evicting the hot user-facing pages in memory to make room for cold analytical ones.</p>
+</li>
+<li>
+<p>It <strong>runs so long that routine cleanup stalls</strong> behind it, so the database slowly bloats. (Concretely: the scan holds one read snapshot open the whole time, which keeps <code>VACUUM</code> from reclaiming dead rows.)</p>
+</li>
+</ol>
+<p>So you load raw data into a cheap <strong>Data Lake</strong> (object storage) and move cleaned slices into an <strong>OLAP</strong> warehouse built for fast scans over billions of rows.</p>
+<hr />
+<h2>OLTP: User-Facing Speed</h2>
+<p>Every click, update, and "add to playlist" is OLTP. A Spotify play:</p>
+<pre><code><span class="sql-comment">-- User plays &quot;Anti-Hero&quot; by Taylor Swift</span>
+BEGIN TRANSACTION;
+<span class="sql-keyword">INSERT</span> <span class="sql-keyword">INTO</span> <span class="sql-table">listens</span> (user_id, song_id, timestamp)
+<span class="sql-keyword">VALUES</span> (<span class="sql-number">123</span>, <span class="sql-number">789</span>, NOW());
+<span class="sql-keyword">UPDATE</span> <span class="sql-table">users</span> <span class="sql-keyword">SET</span> last_active <span class="sql-operator">=</span> NOW() <span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">123</span>;
+<span class="sql-keyword">UPDATE</span> <span class="sql-table">songs</span> <span class="sql-keyword">SET</span> play_count <span class="sql-operator">=</span> play_count <span class="sql-operator">+</span> <span class="sql-number">1</span> <span class="sql-keyword">WHERE</span> song_id <span class="sql-operator">=</span> <span class="sql-number">789</span>;
+COMMIT;
+</code></pre>
+<p>Sub-100 ms latency, thousands of queries per second, single-row updates. One Postgres node handles about 5K transactions/sec for around $500/month; past that you reach for Aurora (200K/sec) or Spanner (50K/sec per region).</p>
+<hr />
+<h2>OLAP: Analytics at Scale</h2>
+<p>"What's trending? How are we doing?" is OLAP:</p>
+<pre><code><span class="sql-comment">-- Which genres are growing fastest this quarter?</span>
+<span class="sql-keyword">SELECT</span>
+    s.genre,
+    DATE_TRUNC(<span class="sql-string">'week'</span>, l.listen_time) <span class="sql-keyword">AS</span> week,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-keyword">DISTINCT</span> l.user_id) <span class="sql-keyword">AS</span> unique_listeners,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> total_plays
+<span class="sql-keyword">FROM</span> <span class="sql-table">listens</span> l
+<span class="sql-keyword">JOIN</span> <span class="sql-table">songs</span> s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">WHERE</span> l.listen_time &gt; <span class="sql-string">'2024-01-01'</span>
+<span class="sql-keyword">GROUP BY</span> s.genre, week
+<span class="sql-keyword">ORDER BY</span> week, unique_listeners DESC;
+</code></pre>
+<p>This scans 5 TB (50 billion rows) in about 15 seconds on BigQuery; on a single Postgres node it would take hours. The reason is parallelism:</p>
+<pre><code class="language-text">1 machine scanning 1 TB:   200 s  (SSD at 5 GB/s)
+100 machines in parallel:    2 s  (each scans 10 GB)
+</code></pre>
+<p>Same total work, 100 machines, 100x faster.</p>
+<hr />
+<h2>ETL/ELT: Moving Data Between Worlds</h2>
+<p>The nightly job that feeds analytics:</p>
+<pre><code># Simplified Apache Spark ETL job
+def spotify_daily_etl():
+    # <span class="sql-number">1</span>. EXTRACT <span class="sql-keyword">FROM</span> OLTP (PostgreSQL replicas)
+    raw_listens <span class="sql-operator">=</span> spark.read.jdbc(
+        &quot;postgresql:<span class="sql-operator">/</span>/replica.spotify.com/<span class="sql-table">listens</span>&quot;,
+        query=&quot;<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">listens</span> <span class="sql-keyword">WHERE</span> date <span class="sql-operator">=</span> YESTERDAY&quot;
+    )
+    # <span class="sql-number">2</span>. TRANSFORM: aggregate <span class="sql-keyword">AND</span> enrich
+    daily_stats <span class="sql-operator">=</span> raw_listens \
+        .<span class="sql-keyword">JOIN</span>(songs_dim, &quot;song_id&quot;) \
+        .<span class="sql-keyword">JOIN</span>(users_dim, &quot;user_id&quot;) \
+        .groupBy(&quot;genre&quot;, &quot;country&quot;, &quot;age_group&quot;) \
+        .agg(
+            <span class="sql-keyword">COUNT</span>(&quot;<span class="sql-operator">*</span>&quot;).alias(&quot;play_count&quot;),
+            countDistinct(&quot;user_id&quot;).alias(&quot;unique_users&quot;),
+            <span class="sql-keyword">AVG</span>(&quot;listen_duration&quot;).alias(&quot;avg_duration&quot;)
+        )
+    # <span class="sql-number">3</span>. LOAD to OLAP (BigQuery)
+    daily_stats.write \
+        .mode(&quot;append&quot;) \
+        .partitionBy(&quot;date&quot;) \
+        .bigquery(&quot;spotify_warehouse.daily_stats&quot;)
+</code></pre>
+<p><strong>ETL</strong> (Extract, Transform, Load) cleans data before loading: daily batches, GB to TB, Spark plus Airflow. <strong>ELT</strong> (Extract, Load, Transform) loads raw data into the lake first and transforms it later with dbt, so analytics teams reshape data on demand instead of waiting on one pipeline.</p>
+<hr />
+<h2>Change Data Capture: The Streaming Transport</h2>
+<p>Look at the Extract step above: <code>spark.read.jdbc(...)</code> runs a heavy <code>SELECT ... WHERE date = YESTERDAY</code> against the OLTP database on a schedule. That periodic pull has three problems. It runs the exact analytical scan against the primary that this whole page is trying to avoid. The data is only as fresh as the batch interval. And a <code>SELECT</code> cannot see rows that were <em>deleted</em>, so deletes never propagate.</p>
+<p><strong>Change Data Capture</strong> flips the direction. Instead of querying the tables, you tail the database's <strong>write-ahead log</strong>, the ordered stream of every insert, update, and delete the DB already writes for durability (see <a href="#/page/Module4B-Crash-Recovery/recovery-wal">Write-Ahead Logging</a>). Each committed change becomes an event the moment it lands, published onto Kafka where the warehouse, search indexes, and caches all subscribe.</p>
+<p>The payoff is direct: reading the WAL adds almost no load to the primary (the log is written anyway), latency drops from hours to seconds, and deletes propagate like any other change. CDC is how the OLTP to OLAP transport runs at big-tech scale.</p>
+<hr />
+<h2>The Complete Picture</h2>
+<pre><code class="language-text">Users → API → PostgreSQL (OLTP: handle clicks)
+                 ↓
+              Kafka (carry events reliably)
+                 ↓
+              Spark (ETL: transform)
+                 ↓
+            BigQuery (OLAP: answer &quot;what's trending?&quot;)
+                 ↓
+            Dashboards
+</code></pre>
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>Split into three.</strong> OLTP for users, OLAP for analytics, ETL/ELT to connect them.</p>
+</li>
+<li>
+<p><strong>Kafka ships the data.</strong> A durable log between systems means nothing is lost in transit.</p>
+</li>
+<li>
+<p><strong>It is all SQL.</strong> PostgreSQL (OLTP), Spark SQL (ETL/ELT), BigQuery (OLAP).</p>
+</li>
+<li>
+<p><strong>Use the right system per job.</strong> Decompose the problem instead of forcing one database to do everything.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/case-study-nosql">SQL vs NoSQL →</a></strong> You now split work across the right systems. But when is SQL itself the wrong system? The next two case studies are about when to leave SQL for NoSQL, and when not to.</p>

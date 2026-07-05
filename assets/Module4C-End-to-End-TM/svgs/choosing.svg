@@ -1,0 +1,94 @@
+<svg viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ch-t ch-d">
+  <title id="ch-t">Choosing a path by workload signature: each signature maps to one protocol, the real systems that use it, and a case study at scale</title>
+  <desc id="ch-d">Three rows, each reading left to right from a workload signature, to a protocol, to the real systems and a case study. Row one: fine-grained contention maps to micro-locking, used by Postgres, SQL Server, Oracle; the case is a video going viral with ten million users hitting one counter. Row two: write throughput maps to LSM trees and columnar stores, used by ClickHouse, BigQuery, Snowflake; the case is a song landing ten million plays in an hour. Row three: global ordering maps to timestamp ordering, used by Spanner; the case is ten thousand agents updating one shared graph. Color key: violet = the protocol chosen for each signature; blue = the real systems that ship it; grey = the workload signature you read off the system.</desc>
+  <defs>
+    <marker id="ch-ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="600" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The workload picks the protocol</text>
+  <text x="600" y="64" text-anchor="middle" font-size="16" fill="#3F3F46">Read the signature off the system, and the protocol falls out. Same theory underneath, different operating point.</text>
+
+  <!-- column headers -->
+  <text x="180" y="108" text-anchor="middle" font-size="13.5" font-weight="700" fill="#6B7280" letter-spacing="0.5">WORKLOAD SIGNATURE</text>
+  <text x="560" y="108" text-anchor="middle" font-size="13.5" font-weight="700" fill="#6B7280" letter-spacing="0.5">PROTOCOL</text>
+  <text x="1000" y="108" text-anchor="middle" font-size="13.5" font-weight="700" fill="#6B7280" letter-spacing="0.5">SHIPS IN / CASE STUDY</text>
+
+  <!-- ROW 1: fine-grained contention -> micro-locking -->
+  <g data-step="1">
+    <rect x="40" y="124" width="280" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="124" width="6" height="116" rx="3" fill="#D4D7DC"/>
+    <text x="64" y="154" font-size="16" font-weight="700" fill="#3F3F46">Fine-grained contention</text>
+    <text x="64" y="182" font-size="14" fill="#6B7280">High-value transactions where</text>
+    <text x="64" y="202" font-size="14" fill="#6B7280">every commit must be safe.</text>
+    <text x="64" y="228" font-size="13.5" fill="#6B7280" font-style="italic">TikTok: 10M users, one counter.</text>
+
+    <line x1="324" y1="182" x2="356" y2="182" stroke="#6B7280" stroke-width="2" marker-end="url(#ch-ah)"/>
+
+    <rect x="360" y="124" width="400" height="116" rx="8" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="360" y="124" width="400" height="6" rx="3" fill="#7C3AED"/>
+    <text x="380" y="160" font-size="17" font-weight="700" fill="#7C3AED">Micro-locking</text>
+    <text x="380" y="188" font-size="14" fill="#3F3F46">Field-level locks, smart deadlock detection.</text>
+    <text x="380" y="212" font-size="14" fill="#3F3F46">Maximum concurrency with safety guarantees.</text>
+
+    <line x1="764" y1="182" x2="796" y2="182" stroke="#6B7280" stroke-width="2" marker-end="url(#ch-ah)"/>
+
+    <rect x="800" y="124" width="360" height="116" rx="8" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+    <rect x="800" y="124" width="360" height="6" rx="3" fill="#2563EB"/>
+    <text x="980" y="172" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">Postgres &#183; SQL Server &#183; Oracle</text>
+    <text x="980" y="202" text-anchor="middle" font-size="14" fill="#3F3F46">Lock only the cell that is hot.</text>
+  </g>
+
+  <!-- ROW 2: write throughput -> LSM -->
+  <g data-step="2">
+    <rect x="40" y="256" width="280" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="256" width="6" height="116" rx="3" fill="#D4D7DC"/>
+    <text x="64" y="286" font-size="16" font-weight="700" fill="#3F3F46">Write throughput</text>
+    <text x="64" y="314" font-size="14" fill="#6B7280">Analytics: ingest billions of</text>
+    <text x="64" y="334" font-size="14" fill="#6B7280">events, read them back later.</text>
+    <text x="64" y="360" font-size="13.5" fill="#6B7280" font-style="italic">Spotify: 10M plays in an hour.</text>
+
+    <line x1="324" y1="314" x2="356" y2="314" stroke="#6B7280" stroke-width="2" marker-end="url(#ch-ah)"/>
+
+    <rect x="360" y="256" width="400" height="116" rx="8" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="360" y="256" width="400" height="6" rx="3" fill="#7C3AED"/>
+    <text x="380" y="292" font-size="17" font-weight="700" fill="#7C3AED">LSM trees / columnar</text>
+    <text x="380" y="320" font-size="14" fill="#3F3F46">Append-only writes, background compaction.</text>
+    <text x="380" y="344" font-size="14" fill="#3F3F46">Eliminate lock contention entirely.</text>
+
+    <line x1="764" y1="314" x2="796" y2="314" stroke="#6B7280" stroke-width="2" marker-end="url(#ch-ah)"/>
+
+    <rect x="800" y="256" width="360" height="116" rx="8" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+    <rect x="800" y="256" width="360" height="6" rx="3" fill="#2563EB"/>
+    <text x="980" y="304" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">ClickHouse &#183; BigQuery &#183; Snowflake</text>
+    <text x="980" y="334" text-anchor="middle" font-size="14" fill="#3F3F46">Writes that never conflict.</text>
+  </g>
+
+  <!-- ROW 3: global ordering -> timestamp ordering -->
+  <g data-step="3">
+    <rect x="40" y="388" width="280" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="388" width="6" height="116" rx="3" fill="#D4D7DC"/>
+    <text x="64" y="418" font-size="16" font-weight="700" fill="#3F3F46">Global ordering</text>
+    <text x="64" y="446" font-size="14" fill="#6B7280">Distributed systems where</text>
+    <text x="64" y="466" font-size="14" fill="#6B7280">global order is the hard part.</text>
+    <text x="64" y="492" font-size="13.5" fill="#6B7280" font-style="italic">10K agents, one shared graph.</text>
+
+    <line x1="324" y1="446" x2="356" y2="446" stroke="#6B7280" stroke-width="2" marker-end="url(#ch-ah)"/>
+
+    <rect x="360" y="388" width="400" height="116" rx="8" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="360" y="388" width="400" height="6" rx="3" fill="#7C3AED"/>
+    <text x="380" y="424" font-size="17" font-weight="700" fill="#7C3AED">Timestamp ordering</text>
+    <text x="380" y="452" font-size="14" fill="#3F3F46">Global ordering without distributed locks.</text>
+    <text x="380" y="476" font-size="14" fill="#3F3F46">First timestamp wins, late agents retry.</text>
+
+    <line x1="764" y1="446" x2="796" y2="446" stroke="#6B7280" stroke-width="2" marker-end="url(#ch-ah)"/>
+
+    <rect x="800" y="388" width="360" height="116" rx="8" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+    <rect x="800" y="388" width="360" height="6" rx="3" fill="#2563EB"/>
+    <text x="980" y="436" text-anchor="middle" font-size="17" font-weight="700" fill="#2563EB">Spanner</text>
+    <text x="980" y="466" text-anchor="middle" font-size="14" fill="#3F3F46">No deadlocks, deterministic results.</text>
+  </g>
+
+  <text x="600" y="540" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the protocol chosen&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = the real systems that ship it&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the workload signature</tspan></text>
+</svg>

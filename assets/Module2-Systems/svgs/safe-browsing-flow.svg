@@ -1,0 +1,70 @@
+<svg viewBox="0 0 1200 510" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="sbf-t sbf-d">
+  <title id="sbf-t">Chrome Safe Browsing: a local Bloom filter, a prefix to Google only on a maybe</title>
+  <desc id="sbf-d">A dashed privacy boundary splits your device (left) from Google (right). Your device holds a 125 MB Bloom filter, Google's 8 GB blocklist shrunk 64 times. A safe URL is answered locally and nothing is sent (green). A maybe URL sends only a 32-bit hash prefix across the boundary; Google returns the hashes sharing that prefix and the device finishes the check, blocking the threat (red). Color key: orange is your device and the filter, green is a guaranteed-safe local answer, red is a confirmed threat, grey is Google.</desc>
+  <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="600" y="40" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">Safe Browsing: check on-device, ask Google almost never</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">A 125 MB Bloom filter on every device. Only a maybe sends a hash prefix.</text>
+
+  <!-- privacy boundary (static stage) -->
+  <line x1="720" y1="100" x2="720" y2="460" stroke="#6B7280" stroke-width="2" stroke-dasharray="6,5"/>
+  <text x="720" y="94" text-anchor="middle" style="font-size:13px;font-style:italic;fill:#6B7280;">privacy boundary</text>
+
+  <!-- STEP 1: the shrink — filter on the device, blocklist at Google -->
+  <g data-step="1">
+  <text x="70" y="122" style="font-size:17px;font-weight:700;fill:#EA580C;">YOUR DEVICE &#8212; Chrome</text>
+  <text x="770" y="122" style="font-size:17px;font-weight:700;fill:#6B7280;">GOOGLE SAFE BROWSING</text>
+  <rect x="70" y="140" width="330" height="92" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="70" y="140" width="330" height="6" rx="3" fill="#EA580C"/>
+  <text x="88" y="170" style="font-size:15px;font-weight:700;fill:#EA580C;">Bloom filter &#183; 125 MB</text>
+  <rect x="88" y="180" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="112" y="180" width="20" height="20" rx="3" fill="#EA580C"/>
+  <rect x="136" y="180" width="20" height="20" rx="3" fill="#EA580C"/>
+  <rect x="160" y="180" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="184" y="180" width="20" height="20" rx="3" fill="#EA580C"/>
+  <rect x="208" y="180" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="232" y="180" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="256" y="180" width="20" height="20" rx="3" fill="#EA580C"/>
+  <rect x="280" y="180" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="304" y="180" width="20" height="20" rx="3" fill="#EA580C"/>
+  <rect x="328" y="180" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="88" y="222" style="font-size:13px;fill:#6B7280;">Google's 8 GB list, 64&#215; smaller</text>
+  <rect x="770" y="140" width="360" height="72" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="790" y="172" style="font-size:16px;font-weight:700;fill:#3F3F46;">Full blocklist</text>
+  <text x="790" y="196" style="font-size:14px;fill:#6B7280;">100M URLs &#183; ~8 GB</text>
+  </g>
+
+  <!-- STEP 2: a safe URL is answered locally, nothing sent -->
+  <g data-step="2">
+  <rect x="70" y="250" width="168" height="38" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="88" y="274" font-family="JetBrains Mono, monospace" style="font-size:14px;fill:#3F3F46;">google.com</text>
+  <line x1="242" y1="269" x2="344" y2="269" stroke="#6B7280" stroke-width="2" marker-end="url(#ah)"/>
+  <rect x="350" y="250" width="215" height="38" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="350" y="250" width="215" height="6" rx="3" fill="#16A34A"/>
+  <text x="370" y="277" style="font-size:14px;font-weight:700;fill:#16A34A;">definitely SAFE &#10003;</text>
+  <text x="70" y="316" style="font-size:14px;font-style:italic;fill:#16A34A;">Answered on-device. Nothing sent to Google.</text>
+  </g>
+
+  <!-- STEP 3: a maybe URL sends only a 32-bit prefix across the boundary -->
+  <g data-step="3">
+  <rect x="70" y="348" width="222" height="38" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="88" y="372" font-family="JetBrains Mono, monospace" style="font-size:14px;fill:#3F3F46;">phish-bank.ru/login</text>
+  <line x1="296" y1="367" x2="344" y2="367" stroke="#6B7280" stroke-width="2" marker-end="url(#ah)"/>
+  <rect x="350" y="348" width="120" height="38" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="370" y="372" style="font-size:14px;font-weight:700;fill:#0E0E10;">MAYBE</text>
+  <line x1="472" y1="367" x2="763" y2="367" stroke="#6B7280" stroke-width="2" marker-end="url(#ah)"/>
+  <text x="620" y="356" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#EA580C;">32-bit hash prefix only</text>
+  </g>
+
+  <!-- STEP 4: Google returns the prefix's hashes, the device finishes the check -->
+  <g data-step="4">
+  <line x1="763" y1="414" x2="550" y2="414" stroke="#6B7280" stroke-width="2" marker-end="url(#ah)"/>
+  <text x="620" y="404" text-anchor="middle" style="font-size:14px;fill:#6B7280;">hashes sharing that prefix</text>
+  <rect x="350" y="424" width="185" height="38" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="350" y="424" width="185" height="6" rx="3" fill="#DC2626"/>
+  <text x="370" y="451" style="font-size:14px;font-weight:700;fill:#DC2626;">BLOCKED &#10007;</text>
+  <text x="70" y="451" style="font-size:14px;font-style:italic;fill:#6B7280;">Google only saw the prefix, never your URL.</text>
+  </g>
+
+  <text x="600" y="498" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = your device + filter&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = safe, answered locally&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = a confirmed threat&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = Google</tspan></text>
+</svg>

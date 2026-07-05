@@ -1,0 +1,32 @@
+<h1>Three Transactions, Three Variables</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Run three concurrent transactions through the whole Transaction Manager at once and watch the components cooperate: the scheduler interleaves them for speed, the lock manager keeps them off each other's rows, and the WAL makes every change either durable or reversible.</p>
+<p><strong>Intuition.</strong> T1 and T2 both touch counter A, T3 touches B and C. Under <strong>Strict Two-Phase Locking</strong> each transaction holds its locks until it ends, so no one ever reads another's uncommitted data. When all three commit, the database advances to one new consistent state. When one aborts, only that one unwinds: the abort is contained, never cascading into the others.</p>
+</div>
+<p>The <a href="#/page/Module4C-End-to-End-TM/tm-summary">last page</a> laid out the architecture. This page runs it. We trace one interleaved schedule of T1, T2, T3 through two endings: all three commit, then T3 aborts while the other two commit.</p>
+<h2>The Setup: T1, T2, T3 Operating on A, B, C</h2>
+<p>Three transactions run concurrently. T1 and T2 both read and write counter A; T3 reads and writes B, then C. They share the lock manager, the WAL, and the disk, and that shared machinery is where coordination happens.</p>
+<p><strong>Strict Two-Phase Locking (S2PL)</strong> is what keeps the interleaving safe: each transaction holds every lock until it commits or aborts, so no one ever reads another's uncommitted data.</p>
+<p><a id="schedule-fig"></a></p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/tm-schedule.svg" alt="The interleaved schedule of T1, T2, T3 as a table of Transaction, Action, Variable, Step, and Value: T2 reads then writes A, T3 reads B, T1 reads A, T3 writes B, T1 writes A, T3 reads then writes C; reads in blue, writes in orange. The database starts at A=19, B=32, C=27 and, if all commit, ends at A=27.36, B=38.4, C=32.4." style="width:100%; max-width:880px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One interleaved schedule, eight reads and writes in step order. T1 and T2 share A, T3 owns B and C, so the scheduler is free to interleave them. Reads are blue, writes orange, and the Value column is the variable right after each step. Under Strict 2PL every lock is held until COMMIT or ABORT, which is what keeps this interleaving safe.</p>
+</div>
+<h2>Scenario 1: All Transactions Commit</h2>
+<p>The first ending is the clean one: all three commit. Walk the WAL. Each change is logged before it touches the data, so when a transaction reaches COMMIT its change is already on the log and therefore durable. Only then do its locks come off.</p>
+<p><a id="commit-fig"></a></p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/tm-commit.svg" alt="Write-ahead log for the all-commit run: T2 writes A then commits, T3 writes B, T1 writes A then commits, T3 writes C then commits; every write is logged before its commit record. A violet D circle marks Durability and the final state is A=27.36, B=38.4, C=32.4." style="width:100%; max-width:880px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Scenario 1: all three commit. Each write is logged to the WAL, then a COMMIT record follows, so the change is durable the moment the commit lands. Strict 2PL holds each lock until that COMMIT, so no transaction ever read another's uncommitted data. The database advances to one new consistent state: A=27.36, B=38.4, C=32.4, all durable (the violet <span class="acid-dot d">D</span> for Durability).</p>
+</div>
+<h2>Scenario 2: Mixed Outcomes, T3 Aborts</h2>
+<p>The second ending is the interesting one: T3 aborts partway through. The question is whether T1 and T2 have to roll back too. They do not. They commit normally, and only T3 unwinds.</p>
+<p><a id="abort-fig"></a></p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/tm-abort.svg" alt="Write-ahead log for the run where T3 aborts: T2 and T1 log their writes to A and commit, then T3's writes to C and B are undone by reading the WAL backward, reverting C from 32.4 to 27 and B from 38.4 to 32, then an abort record is written. A blue A circle marks Atomicity and the final state is A=27.36, B=32, C=27, with T1 and T2 not rolled back." style="width:100%; max-width:880px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Scenario 2: T3 aborts while T1 and T2 commit. The recovery manager reads T3's WAL entries backward and restores the old values, reverting C from 32.4 to 27 and B from 38.4 to 32, so T3 leaves no trace (the blue <span class="acid-dot a">A</span> for Atomicity). The final state is A=27.36, B=32, C=27.</p>
+</div>
+<p>This is the "strict" in Strict 2PL earning its name. T3 held its exclusive locks on B and C the entire time and never released them before aborting, so no other transaction could read B or C while T3 had them dirty. No one read uncommitted data, so no one inherits T3's failure. One abort unwinds one transaction; it does not cascade across the system.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4C-End-to-End-TM/problem-solving">Problem Solving: The Taylor Swift Ticket Disaster →</a></strong> You now have the whole transaction manager: scheduling, locking, logging, and recovery. Next we put it under real load and watch where it breaks.</p>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 540" role="img" aria-labelledby="co-t co-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="co-t">Why log-before-data makes a crash recoverable</title>
+  <desc id="co-d">Two orderings of the same two disk writes: the data page, drawn as a page block, and the log record, drawn as a WAL table row with columns Txn, Var, old value in orange and new value in green. On the left, data first: the crash hits before the log row lands, so the data page changed with no record of why, an unrecoverable state shown in red. On the right, log first as WAL demands: the crash hits before the data page moves, so the intent is in the durable log and recovery re-applies it, shown in green. Color key: red is the unrecoverable order, green is the recoverable WAL order, violet is the durable log.</desc>
+
+  <defs>
+    <marker id="ah-co" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+  </defs>
+
+  <text x="430" y="36" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Why log-before-data</text>
+  <text x="430" y="60" text-anchor="middle" font-size="14" fill="#6B7280">The same two writes, two orders. Only one survives a crash.</text>
+
+  <!-- LEFT: data first (unrecoverable) -->
+  <g data-step="1">
+    <rect x="40" y="92" width="380" height="400" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="40" y="92" width="380" height="6" rx="3" fill="#DC2626"/>
+    <text x="64" y="128" font-size="18" font-weight="700" fill="#DC2626">Data first</text>
+
+    <!-- element 1: data page block (landed) -->
+    <rect x="175" y="148" width="110" height="80" rx="6" fill="#FFFFFF" stroke="#16A34A" stroke-width="1.5"/>
+    <rect x="175" y="148" width="110" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="230" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#0E0E10">A</text>
+    <text x="230" y="214" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#16A34A">22.8</text>
+    <text x="230" y="246" text-anchor="middle" font-size="12" fill="#6B7280">data page, on disk</text>
+
+    <line x1="230" y1="254" x2="230" y2="272" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-co)"/>
+    <text x="230" y="292" text-anchor="middle" font-size="18" font-weight="700" fill="#DC2626">CRASH</text>
+    <line x1="230" y1="302" x2="230" y2="320" stroke="#6B7280" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#ah-co)"/>
+
+    <!-- element 2: WAL log row (never lands, faded) -->
+    <g opacity="0.45">
+      <rect x="110" y="326" width="240" height="64" rx="6" fill="#FFFFFF" stroke="#A78BFA" stroke-width="1.5"/>
+      <rect x="110" y="326" width="240" height="5" rx="2.5" fill="#A78BFA"/>
+      <text x="150" y="352" text-anchor="middle" font-size="12" font-weight="700" fill="#3F3F46">Txn</text>
+      <text x="205" y="352" text-anchor="middle" font-size="12" font-weight="700" fill="#3F3F46">Var</text>
+      <text x="262" y="352" text-anchor="middle" font-size="12" font-weight="700" fill="#D97706">old</text>
+      <text x="315" y="352" text-anchor="middle" font-size="12" font-weight="700" fill="#16A34A">new</text>
+      <line x1="122" y1="359" x2="338" y2="359" stroke="#D4D7DC"/>
+      <text x="150" y="380" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+      <text x="205" y="380" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">A</text>
+      <text x="262" y="380" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">19</text>
+      <text x="315" y="380" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">22.8</text>
+    </g>
+    <text x="230" y="410" text-anchor="middle" font-size="12" font-weight="700" fill="#DC2626">log row, never lands</text>
+
+    <text x="64" y="446" font-size="14" fill="#3F3F46">Data changed, nothing remembers why.</text>
+    <text x="64" y="474" font-size="15" font-weight="700" fill="#DC2626">Unrecoverable.</text>
+  </g>
+
+  <!-- RIGHT: log first (recoverable) -->
+  <g data-step="2">
+    <rect x="440" y="92" width="380" height="400" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="440" y="92" width="380" height="6" rx="3" fill="#16A34A"/>
+    <text x="464" y="128" font-size="18" font-weight="700" fill="#16A34A">Log first (WAL)</text>
+
+    <!-- element 1: WAL log row (landed) -->
+    <rect x="510" y="150" width="240" height="64" rx="6" fill="#FFFFFF" stroke="#A78BFA" stroke-width="1.5"/>
+    <rect x="510" y="150" width="240" height="5" rx="2.5" fill="#A78BFA"/>
+    <text x="550" y="176" text-anchor="middle" font-size="12" font-weight="700" fill="#3F3F46">Txn</text>
+    <text x="605" y="176" text-anchor="middle" font-size="12" font-weight="700" fill="#3F3F46">Var</text>
+    <text x="662" y="176" text-anchor="middle" font-size="12" font-weight="700" fill="#D97706">old</text>
+    <text x="715" y="176" text-anchor="middle" font-size="12" font-weight="700" fill="#16A34A">new</text>
+    <line x1="522" y1="183" x2="738" y2="183" stroke="#D4D7DC"/>
+    <text x="550" y="204" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="605" y="204" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">A</text>
+    <text x="662" y="204" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">19</text>
+    <text x="715" y="204" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">22.8</text>
+    <text x="630" y="246" text-anchor="middle" font-size="12" fill="#7C3AED">log row, on disk</text>
+
+    <line x1="630" y1="254" x2="630" y2="272" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-co)"/>
+    <text x="630" y="292" text-anchor="middle" font-size="18" font-weight="700" fill="#DC2626">CRASH</text>
+    <line x1="630" y1="302" x2="630" y2="320" stroke="#6B7280" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#ah-co)"/>
+
+    <!-- element 2: data page block (not yet moved, faded) -->
+    <g opacity="0.45">
+      <rect x="575" y="326" width="110" height="76" rx="6" fill="#FFFFFF" stroke="#16A34A" stroke-width="1.5"/>
+      <rect x="575" y="326" width="110" height="5" rx="2.5" fill="#16A34A"/>
+      <text x="630" y="364" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#0E0E10">A</text>
+      <text x="630" y="390" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#16A34A">22.8</text>
+    </g>
+    <text x="630" y="416" text-anchor="middle" font-size="12" fill="#6B7280">data page, not yet moved</text>
+
+    <text x="464" y="446" font-size="14" fill="#3F3F46">Intent is in the durable log, replay it.</text>
+    <text x="464" y="474" font-size="15" font-weight="700" fill="#16A34A">Recoverable.</text>
+  </g>
+
+  <!-- color key -->
+  <text x="40" y="520" font-size="14" fill="#6B7280">Color key  <tspan fill="#DC2626" font-weight="700">red</tspan> = the unrecoverable order  ·  <tspan fill="#16A34A" font-weight="700">green</tspan> = the recoverable WAL order  ·  <tspan fill="#7C3AED" font-weight="700">violet</tspan> = the durable log</text>
+</svg>

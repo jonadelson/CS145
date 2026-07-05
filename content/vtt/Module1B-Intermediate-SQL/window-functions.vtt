@@ -1,0 +1,157 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.279
+GROUP BY is great when you want one row per group.
+
+00:00:06.279 --> 00:00:10.558
+But often you want one row per listen, with a per-group number added as a column.
+
+00:00:10.558 --> 00:00:14.837
+Here are the nine Listens rows.
+
+00:00:14.837 --> 00:00:19.117
+GROUP BY collapses them into three summary rows, one average per user, and the individual listens are gone.
+
+00:00:19.117 --> 00:00:23.396
+A window function keeps all nine rows instead, in a new table, and attaches each user's average as a new column.
+
+00:00:23.396 --> 00:00:27.675
+Same averages.
+
+00:00:27.675 --> 00:00:31.954
+The window just preserves every row.
+
+00:00:31.954 --> 00:00:36.072
+Here is GROUP BY in full.
+
+00:00:36.072 --> 00:00:40.189
+SELECT user id, AVG of rating, FROM Listens, GROUP BY user id.
+
+00:00:40.189 --> 00:00:44.307
+The nine listens collapse to three rows, one per user.
+
+00:00:44.307 --> 00:00:48.425
+Mickey averages four point two, Minnie four point four, Daffy three point nine.
+
+00:00:48.425 --> 00:00:52.542
+You get each user's average, and you lose the individual rows.
+
+00:00:52.542 --> 00:00:56.660
+Detail in, aggregate out.
+
+00:00:56.660 --> 00:01:00.043
+Now the window version.
+
+00:01:00.043 --> 00:01:03.427
+Same average, but add OVER PARTITION BY user id.
+
+00:01:03.427 --> 00:01:06.810
+SELECT user id, song id, rating, then AVG of rating OVER PARTITION BY user id.
+
+00:01:06.810 --> 00:01:10.194
+Same nine listens, same averages.
+
+00:01:10.194 --> 00:01:13.577
+But every row stays, and each one carries its user's average in a new column.
+
+00:01:13.577 --> 00:01:16.961
+Keep the rows, add the aggregate.
+
+00:01:16.961 --> 00:01:20.344
+That is the whole idea.
+
+00:01:20.344 --> 00:01:26.242
+The most common window function is ranking.
+
+00:01:26.242 --> 00:01:32.140
+Here is the query, and the three steps stay side by side so you can watch each clause do its job.
+
+00:01:32.140 --> 00:01:38.038
+RANK OVER, PARTITION BY user id, ORDER BY rating descending.
+
+00:01:38.038 --> 00:01:43.935
+Step one, partition by user id: each user gets their own scoring lane, ranked independently.
+
+00:01:43.935 --> 00:01:49.833
+Step two, order by rating descending: highest rating first, and NULL sorts last, so Daffy's four point nine jumps above his two point nine.
+
+00:01:49.833 --> 00:01:55.731
+Step three, assign the rank: the top rating in each lane gets one, the next two, the next three.
+
+00:01:55.731 --> 00:02:01.629
+Partition, order, number.
+
+00:02:01.629 --> 00:02:06.233
+Imagine Mickey had a fourth listen rated four point five, tied with his existing four point five.
+
+00:02:06.233 --> 00:02:10.837
+Sort that partition descending, and two rows tie for first.
+
+00:02:10.837 --> 00:02:15.441
+ROW_NUMBER does not care: one, two, three, four.
+
+00:02:15.441 --> 00:02:20.046
+RANK shares the tied number, then skips: one, one, three, four.
+
+00:02:20.046 --> 00:02:24.650
+DENSE_RANK shares, and stays packed: one, one, two, three.
+
+00:02:24.650 --> 00:02:29.254
+Same data, three different answers.
+
+00:02:29.254 --> 00:02:33.858
+Pick the function that matches what you mean.
+
+00:02:33.858 --> 00:02:38.425
+What makes a function a window function?
+
+00:02:38.425 --> 00:02:42.991
+One thing: the OVER clause.
+
+00:02:42.991 --> 00:02:47.558
+AVG of rating is GROUP-BY style, it collapses.
+
+00:02:47.558 --> 00:02:52.125
+AVG of rating OVER something is a window, it keeps every row.
+
+00:02:52.125 --> 00:02:56.691
+That is the whole tell.
+
+00:02:56.691 --> 00:03:01.258
+And almost any aggregate works inside a window, plus position-aware functions like LAG and LEAD that reference the previous or next row in the partition.
+
+00:03:01.258 --> 00:03:05.046
+Ranking is just one shape.
+
+00:03:05.046 --> 00:03:08.834
+Window functions cover a whole family, all built on the same OVER skeleton.
+
+00:03:08.834 --> 00:03:12.622
+Running totals, with SUM over an ordered window.
+
+00:03:12.622 --> 00:03:16.411
+Moving averages, over a sliding rows window.
+
+00:03:16.411 --> 00:03:20.199
+LAG and LEAD, to compare a row to the one before or after it.
+
+00:03:20.199 --> 00:03:23.987
+And NTILE, to bucket rows into percentiles.
+
+00:03:23.987 --> 00:03:27.775
+Learn the skeleton once, and these all fall out of it.
+
+00:03:27.775 --> 00:03:36.348
+Three ways window queries go wrong, and all of them are silent: the query runs, the answer is just wrong.
+
+00:03:36.348 --> 00:03:44.921
+First, missing PARTITION BY: leave it out and you rank across the whole table, not per group, so you get one global number one, not one per user.
+
+00:03:44.921 --> 00:03:53.493
+Second, wrong ORDER BY direction: ASC versus DESC flips the ranking, so the wrong direction makes your worst row number one.
+
+00:03:53.493 --> 00:04:02.066
+Third, forgetting how NULLs sort: they go first or last depending on the database, so be explicit.
+
+00:04:02.066 --> 00:04:10.639
+Get those three right, and window functions are just this: pick a partition, pick a function, attach a column.

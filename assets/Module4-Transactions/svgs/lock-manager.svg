@@ -1,0 +1,67 @@
+<svg viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="lm-t lm-d">
+  <title id="lm-t">The lock manager: the component that decides who waits and who runs</title>
+  <desc id="lm-d">Three transactions each send a lock request to a central
+  component, the lock manager. The lock manager holds a lock table showing who
+  holds each row and who is waiting. It does three jobs: it grants or queues each
+  request by checking shared/exclusive compatibility; the order it grants locks is
+  the microschedule, the time-ordered record of who runs when; and it tracks the
+  WaitsFor graph, aborting a victim if a cycle appears, which is deadlock.</desc>
+
+  <defs><marker id="ah-lm" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="480" y="32" text-anchor="middle" font-size="23" font-weight="700" fill="#0E0E10">The lock manager: who waits, who runs</text>
+  <text x="480" y="55" text-anchor="middle" font-size="13.5" fill="#6B7280">Every transaction asks it for locks. It grants them, queues them, and watches for deadlock.</text>
+
+  <!-- transactions -->
+  <g data-step="1">
+    <rect x="150" y="76" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="225" y="100" text-anchor="middle" font-size="13.5" fill="#0E0E10"><tspan font-weight="700">T1</tspan>  Req(A)</text>
+    <rect x="405" y="76" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="480" y="100" text-anchor="middle" font-size="13.5" fill="#0E0E10"><tspan font-weight="700">T2</tspan>  Req(A)</text>
+    <rect x="660" y="76" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="735" y="100" text-anchor="middle" font-size="13.5" fill="#0E0E10"><tspan font-weight="700">T3</tspan>  Req(B)</text>
+    <line x1="225" y1="116" x2="320" y2="150" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-lm)"/>
+    <line x1="480" y1="116" x2="480" y2="150" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-lm)"/>
+    <line x1="735" y1="116" x2="640" y2="150" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-lm)"/>
+  </g>
+
+  <!-- lock manager + lock table -->
+  <g data-step="2">
+    <rect x="150" y="152" width="660" height="92" rx="9" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <text x="174" y="180" font-size="14" font-weight="700" fill="#7C3AED" letter-spacing="1">LOCK MANAGER &#183; THE LOCK TABLE</text>
+    <rect x="174" y="192" width="612" height="36" rx="5" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="188" y="215" font-size="13" fill="#3F3F46"><tspan font-weight="700" fill="#0E0E10">Row A</tspan>  held by T1 (X)  &#183;  waiting: T2, T3        <tspan font-weight="700" fill="#0E0E10">Row B</tspan>  free &#8594; granted to T3</text>
+  </g>
+
+  <!-- the three jobs -->
+  <g data-step="3">
+    <rect x="44" y="278" width="280" height="158" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="44" y="278" width="280" height="6" rx="3" fill="#7C3AED"/>
+    <circle cx="72" cy="312" r="13" fill="#7C3AED"/><text x="72" y="317" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">1</text>
+    <text x="96" y="317" font-size="15" font-weight="700" fill="#0E0E10">Grant or queue</text>
+    <text x="68" y="350" font-size="13" fill="#3F3F46">Checks shared/exclusive</text>
+    <text x="68" y="370" font-size="13" fill="#3F3F46">compatibility, then hands</text>
+    <text x="68" y="390" font-size="13" fill="#3F3F46">out the lock or makes you</text>
+    <text x="68" y="410" font-size="13" fill="#3F3F46">wait in line.</text>
+
+    <rect x="340" y="278" width="280" height="158" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="340" y="278" width="280" height="6" rx="3" fill="#7C3AED"/>
+    <circle cx="368" cy="312" r="13" fill="#7C3AED"/><text x="368" y="317" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">2</text>
+    <text x="392" y="317" font-size="15" font-weight="700" fill="#0E0E10">Builds the schedule</text>
+    <text x="364" y="350" font-size="13" fill="#3F3F46">The order it grants locks</text>
+    <text x="364" y="370" font-size="13" fill="#3F3F46">is the <tspan font-weight="700" fill="#7C3AED">microschedule</tspan>: the</text>
+    <text x="364" y="390" font-size="13" fill="#3F3F46">time-ordered record of</text>
+    <text x="364" y="410" font-size="13" fill="#3F3F46">who runs when.</text>
+
+    <rect x="636" y="278" width="280" height="158" rx="9" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="636" y="278" width="280" height="6" rx="3" fill="#DC2626"/>
+    <circle cx="664" cy="312" r="13" fill="#DC2626"/><text x="664" y="317" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">3</text>
+    <text x="688" y="317" font-size="15" font-weight="700" fill="#0E0E10">Detects deadlock</text>
+    <text x="660" y="350" font-size="13" fill="#3F3F46">Tracks the <tspan font-weight="700" fill="#DC2626">WaitsFor</tspan> graph.</text>
+    <text x="660" y="370" font-size="13" fill="#3F3F46">If a cycle appears, it</text>
+    <text x="660" y="390" font-size="13" fill="#3F3F46">aborts a victim to break</text>
+    <text x="660" y="410" font-size="13" fill="#3F3F46">it.</text>
+  </g>
+</svg>

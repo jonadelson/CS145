@@ -1,0 +1,75 @@
+<svg viewBox="0 0 1200 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="td-flow-t td-flow-d" font-family="Inter, sans-serif">
+    <title id="td-flow-t">Ticketdisaster.com checkout flow under Eras Tour load</title>
+    <desc id="td-flow-d">A five-step flow read left to right. Virtual Queue holds no lock, grey. Zone Selection locks 1000-plus seats and starts a 5-minute timer, amber. Seat Browsing keeps the lock held, amber. Payment Entry runs the timer critical, red. Timeout releases the lock and kicks the user out, red. A dashed loop sends the user back to the 2-hour queue. Color key: grey = no lock yet, out of focus; amber = lock acquired and held; red = the failure, lock lost.</desc>
+    <defs>
+        <marker id="ar-td-grey" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#6B7280"/></marker>
+        <marker id="ar-td-warn" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#D97706"/></marker>
+        <marker id="ar-td-danger" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto"><polygon points="0 0, 12 5, 0 10" fill="#DC2626"/></marker>
+    </defs>
+
+    <text x="600" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#0E0E10">Ticketdisaster.com user flow</text>
+    <text x="600" y="58" text-anchor="middle" font-size="14" fill="#6B7280">The 5-minute lock timer starts the moment a zone is picked, and the lock is held through payment</text>
+
+    <!-- Step 1: Virtual Queue (grey, no lock) -->
+    <rect x="40" y="100" width="200" height="210" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="100" width="200" height="5" rx="2.5" fill="#D4D7DC"/>
+    <text x="140" y="138" text-anchor="middle" font-size="17" font-weight="700" fill="#3F3F46">Virtual Queue</text>
+    <text x="140" y="172" text-anchor="middle" font-size="13.5" fill="#3F3F46">Wait 2 to 3 hours</text>
+    <text x="140" y="192" text-anchor="middle" font-size="13.5" fill="#3F3F46">behind 50k+ users</text>
+    <line x1="64" y1="222" x2="216" y2="222" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="140" y="252" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#059669">no lock yet</text>
+    <text x="140" y="276" text-anchor="middle" font-size="12" fill="#6B7280">timer not started</text>
+
+    <path d="M 250 205 L 286 205" stroke="#6B7280" stroke-width="3" marker-end="url(#ar-td-grey)"/>
+
+    <!-- Step 2: Zone Selection (amber, lock acquired) -->
+    <rect x="288" y="100" width="200" height="210" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="288" y="100" width="200" height="5" rx="2.5" fill="#D97706"/>
+    <text x="388" y="138" text-anchor="middle" font-size="17" font-weight="700" fill="#D97706">Zone Selection</text>
+    <text x="388" y="172" text-anchor="middle" font-size="13.5" fill="#3F3F46">User picks a zone</text>
+    <text x="388" y="192" text-anchor="middle" font-size="13.5" fill="#3F3F46">(e.g. Zone 5)</text>
+    <line x1="312" y1="222" x2="464" y2="222" stroke="#FDEBE0" stroke-width="1"/>
+    <text x="388" y="252" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#D97706">LOCK · 1000+ seats</text>
+    <text x="388" y="276" text-anchor="middle" font-size="12" fill="#6B7280">timer starts at 5:00</text>
+
+    <path d="M 488 205 L 524 205" stroke="#D97706" stroke-width="3" marker-end="url(#ar-td-warn)"/>
+
+    <!-- Step 3: Seat Browsing (amber, lock held) -->
+    <rect x="526" y="100" width="200" height="210" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="526" y="100" width="200" height="5" rx="2.5" fill="#D97706"/>
+    <text x="626" y="138" text-anchor="middle" font-size="17" font-weight="700" fill="#D97706">Seat Browsing</text>
+    <text x="626" y="172" text-anchor="middle" font-size="13.5" fill="#3F3F46">User scans the map,</text>
+    <text x="626" y="192" text-anchor="middle" font-size="13.5" fill="#3F3F46">picks 4 seats</text>
+    <line x1="550" y1="222" x2="702" y2="222" stroke="#FDEBE0" stroke-width="1"/>
+    <text x="626" y="252" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#D97706">LOCK still held</text>
+    <text x="626" y="276" text-anchor="middle" font-size="12" fill="#6B7280">timer 4:30 to 2:00</text>
+
+    <path d="M 726 205 L 762 205" stroke="#DC2626" stroke-width="3" marker-end="url(#ar-td-danger)"/>
+
+    <!-- Step 4: Payment Entry (red, critical) -->
+    <rect x="764" y="100" width="200" height="210" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="764" y="100" width="200" height="5" rx="2.5" fill="#DC2626"/>
+    <text x="864" y="138" text-anchor="middle" font-size="17" font-weight="700" fill="#DC2626">Payment Entry</text>
+    <text x="864" y="172" text-anchor="middle" font-size="13.5" fill="#3F3F46">User enters card,</text>
+    <text x="864" y="192" text-anchor="middle" font-size="13.5" fill="#3F3F46">billing, confirms</text>
+    <line x1="788" y1="222" x2="940" y2="222" stroke="#FCEBEA" stroke-width="1"/>
+    <text x="864" y="252" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#DC2626">LOCK · timer critical</text>
+    <text x="864" y="276" text-anchor="middle" font-size="12" fill="#6B7280">timer 2:00 to 0:30</text>
+
+    <path d="M 964 205 L 1000 205" stroke="#DC2626" stroke-width="3" marker-end="url(#ar-td-danger)"/>
+
+    <!-- Step 5: Timeout (red, failure) -->
+    <rect x="1002" y="100" width="160" height="210" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+    <text x="1082" y="146" text-anchor="middle" font-size="19" font-weight="800" fill="#DC2626">TIMEOUT</text>
+    <text x="1082" y="180" text-anchor="middle" font-size="13.5" fill="#3F3F46">Payment failed</text>
+    <line x1="1022" y1="222" x2="1142" y2="222" stroke="#FCEBEA" stroke-width="1"/>
+    <text x="1082" y="252" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12.5" font-weight="700" fill="#DC2626">lock released</text>
+    <text x="1082" y="276" text-anchor="middle" font-size="12" fill="#6B7280">user kicked out</text>
+
+    <!-- Restart loop -->
+    <path d="M 1082 330 Q 600 440 140 330" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="8,5" fill="none" marker-end="url(#ar-td-danger)"/>
+    <text x="600" y="408" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">Restart cycle, back to the 2-hour queue</text>
+
+    <!-- Visible color key -->
+    <text x="600" y="452" text-anchor="middle" font-size="12.5" fill="#6B7280">Color key  <tspan fill="#6B7280">grey = no lock yet</tspan>  ·  <tspan fill="#D97706">amber = lock acquired and held</tspan>  ·  <tspan fill="#DC2626">red = the failure, lock lost</tspan></text>
+</svg>

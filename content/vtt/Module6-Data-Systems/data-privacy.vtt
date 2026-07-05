@@ -1,0 +1,67 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.793
+In two thousand six, Netflix released a hundred million movie ratings for a million-dollar prize.
+
+00:00:05.793 --> 00:00:09.585
+Names stripped, random I Ds in their place.
+
+00:00:09.585 --> 00:00:13.378
+Anonymous, they said.
+
+00:00:13.378 --> 00:00:17.273
+Start with the Netflix rows, anonymous, just random I Ds.
+
+00:00:17.273 --> 00:00:21.169
+The public IMDB reviews are separate, people posting under their real names.
+
+00:00:21.169 --> 00:00:25.064
+Each looks safe alone.
+
+00:00:25.064 --> 00:00:28.959
+So can the join really undo the anonymity?
+
+00:00:28.959 --> 00:00:32.854
+Yes.
+
+00:00:32.854 --> 00:00:36.750
+Match on the same movies, ratings, and dates, and the anonymous ID snaps to a real name.
+
+00:00:36.750 --> 00:00:40.645
+About eight rated movies make you ninety-nine percent unique.
+
+00:00:40.645 --> 00:00:44.593
+And it is not just movies.
+
+00:00:44.593 --> 00:00:48.540
+Date of birth, gender, and zip code identify eighty-seven percent of Americans.
+
+00:00:48.540 --> 00:00:52.488
+A handful of locations, or even login times, single you out.
+
+00:00:52.488 --> 00:00:56.435
+The attributes you leave behind are a fingerprint.
+
+00:00:56.435 --> 00:01:00.614
+So privacy is engineered with math.
+
+00:01:00.614 --> 00:01:04.794
+Differential privacy adds calibrated noise, so no single person changes the answer, while the totals stay accurate.
+
+00:01:04.794 --> 00:01:08.974
+A privacy budget, epsilon, tunes the noise.
+
+00:01:08.974 --> 00:01:13.153
+Lower epsilon, more privacy.
+
+00:01:13.153 --> 00:01:16.787
+So your data is a fingerprint, and anonymous is not private.
+
+00:01:16.787 --> 00:01:20.421
+Deleting names is not enough.
+
+00:01:20.421 --> 00:01:24.055
+Math is.
+
+00:01:24.055 --> 00:01:27.689
+To see it in the field, the case study covers how Google published COVID mobility reports without exposing anyone.

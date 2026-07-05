@@ -1,0 +1,32 @@
+<h1>Execution: Run It on Real Data</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Step two: execution. A one-shot query has no feedback, so a wrong table name or a bad join just fails, and the model never learns. Give the model an execution environment, a real database it reaches through a tool like MCP or a CLI, and it writes, runs, reads the error, and corrects. That loop is the difference between one-shot and multi-shot, and it explains much of the multi-shot gain on benchmarks like BIRD.</p>
+<p><strong>Intuition.</strong> It is the loop you run by hand: write a query, run it, read the error, fix it. The model just does it in seconds, many times over, until the query runs.</p>
+</div>
+<p>You <a href="#/page/Module1B-Intermediate-SQL/precision-lives-somewhere">defined the spec</a> on the last page. Now the model writes SQL against it. A single attempt rarely lands: the first query references a column that moved, or joins on the wrong key. With nowhere to run it, the model ships that query blind. With a database to run against, it iterates.</p>
+<h2>The Loop</h2>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/llm-sql-strategy.svg" alt="An English question goes to an LLM, which takes one of two paths. Grey: one blind shot with no feedback, so it may crash, be empty, or be wrong. Blue: with a database through a tool like MCP or a CLI, it writes, runs, reads the error, and fixes, repeating until a guess becomes a query that runs. The output is a query that runs, though running is not yet right." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A one-shot model emits SQL blind (grey) and ships whatever it wrote. Wired to a database through MCP (Model Context Protocol) or a CLI, it runs the query, reads the error, and corrects (blue), so a guess becomes a query that runs. The loop is only possible because it is SQL: you cannot run an English sentence. This is multi-shot.</p>
+</div>
+<h2>What It Catches, What It Misses</h2>
+<p><a id="catches-misses"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/execution-catches-misses.svg" alt="Execution catches mechanical errors for free (a missing column, a type mismatch, a join that returns nothing) and the model fixes them; it cannot catch a query that runs cleanly but counts the wrong thing, like a guessed definition of active users." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<p>Execution catches everything mechanical, for free, because the database does the checking: a missing column, a type mismatch, a join that returns nothing. The model sees the error and fixes it without you.</p>
+<p><a id="misses"></a></p>
+<p>It cannot catch a query that runs cleanly and returns a plausible but wrong number. The database has no opinion about what you meant; it runs what it is given. You defined the meaning with the spec, but runs ≠ correct. Verifying that is the next step.</p>
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>One-shot has no feedback; multi-shot iterates.</strong> An execution environment turns a single guess into a write-run-read-correct loop.</p>
+</li>
+<li>
+<p><strong>Execution catches mechanical failures.</strong> Crashes, type errors, and empty results all surface the moment the database runs the query.</p>
+</li>
+<li>
+<p><strong>It cannot catch a wrong-but-running query.</strong> The database has no view on your intent. That gap is the next step, verification.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module1B-Intermediate-SQL/verifying-machine-sql">Verification: Prove the Result →</a></strong> The model iterated to a query that runs. But runs ≠ correct. Third step: verification. Test the result, the way software trusts code, with unit tests and regression.</p>

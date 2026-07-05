@@ -1,0 +1,66 @@
+<svg viewBox="0 0 1120 486" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dhj-t dhj-d" font-family="Inter, sans-serif">
+  <title id="dhj-t">Distributed hash join: hash both tables on the join key user_id, so every row for a user_id meets on one machine, then join locally</title>
+  <desc id="dhj-d">Three stages left to right. First, two tables joined on user_id: Listens (user_id, song_id, rating) and Users (user_id, name, country), with rows colored by the user_id value (7 blue, 42 orange, 88 purple). Second, both tables are hashed on user_id, so every row with a given user_id, from either table, is routed to the same machine: user_id 7 to machine one, 42 to machine two, 88 to machine three. Third, each machine joins only its own slice on user_id and the partial results are unioned into the full join. No machine compares its rows against another machine's, so throughput scales with the cluster. Color key: the color is the user_id value (the join key); grey arrows route each row by its hashed user_id.</desc>
+  <defs>
+    <marker id="dhj-ar" markerWidth="11" markerHeight="8" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="560" y="30" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Distributed hash join</text>
+  <text x="560" y="54" text-anchor="middle" font-size="16" fill="#3F3F46">Hash both tables on the join key, and every row for one key meets on one machine</text>
+
+  <!-- Step 1: two source tables, join on user_id -->
+  <g data-step="1">
+    <text x="180" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="#6B7280">1 · Two tables, join on user_id</text>
+    <!-- Listens -->
+    <rect x="40" y="100" width="280" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="56" y="122" font-size="14" font-weight="700" fill="#3F3F46">Listens</text>
+    <text x="56" y="140" font-size="12" fill="#6B7280">user_id · song_id · rating</text>
+    <rect x="56" y="148" width="4" height="18" fill="#2563EB"/><text x="70" y="162" font-size="14" fill="#3F3F46"><tspan font-weight="700">7</tspan> · s_19 · 5</text>
+    <rect x="56" y="170" width="4" height="18" fill="#EA580C"/><text x="70" y="184" font-size="14" fill="#3F3F46"><tspan font-weight="700">42</tspan> · s_04 · 4</text>
+    <rect x="56" y="192" width="4" height="18" fill="#2563EB"/><text x="70" y="206" font-size="14" fill="#3F3F46"><tspan font-weight="700">7</tspan> · s_51 · 3</text>
+    <rect x="56" y="214" width="4" height="18" fill="#7C3AED"/><text x="70" y="228" font-size="14" fill="#3F3F46"><tspan font-weight="700">88</tspan> · s_23 · 5</text>
+    <!-- Users -->
+    <rect x="40" y="262" width="280" height="122" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="56" y="284" font-size="14" font-weight="700" fill="#3F3F46">Users</text>
+    <text x="56" y="302" font-size="12" fill="#6B7280">user_id · name · country</text>
+    <rect x="56" y="310" width="4" height="18" fill="#2563EB"/><text x="70" y="324" font-size="14" fill="#3F3F46"><tspan font-weight="700">7</tspan> · Mickey · US</text>
+    <rect x="56" y="332" width="4" height="18" fill="#EA580C"/><text x="70" y="346" font-size="14" fill="#3F3F46"><tspan font-weight="700">42</tspan> · Minnie · UK</text>
+    <rect x="56" y="354" width="4" height="18" fill="#7C3AED"/><text x="70" y="368" font-size="14" fill="#3F3F46"><tspan font-weight="700">88</tspan> · Daffy · US</text>
+  </g>
+
+  <!-- Step 2: hash on user_id -> machines -->
+  <g data-step="2">
+    <line x1="328" y1="240" x2="392" y2="240" stroke="#6B7280" stroke-width="1.5" marker-end="url(#dhj-ar)"/>
+    <text x="360" y="229" text-anchor="middle" font-size="12" fill="#6B7280">hash(user_id)</text>
+    <text x="560" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="#6B7280">2 · Same user_id, same machine</text>
+    <rect x="400" y="100" width="320" height="96" rx="8" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="416" y="122" font-size="14" font-weight="700" fill="#2563EB">Machine 1 · user_id 7</text>
+    <text x="416" y="144" font-size="13" fill="#3F3F46">7 · s_19 · 5    ·    7 · s_51 · 3</text>
+    <text x="416" y="164" font-size="13" fill="#3F3F46">7 · Mickey · US</text>
+    <rect x="400" y="208" width="320" height="72" rx="8" fill="#FFFFFF" stroke="#EA580C" stroke-width="1.5"/>
+    <text x="416" y="230" font-size="14" font-weight="700" fill="#EA580C">Machine 2 · user_id 42</text>
+    <text x="416" y="252" font-size="13" fill="#3F3F46">42 · s_04 · 4</text>
+    <text x="416" y="270" font-size="13" fill="#3F3F46">42 · Minnie · UK</text>
+    <rect x="400" y="292" width="320" height="72" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="416" y="314" font-size="14" font-weight="700" fill="#7C3AED">Machine 3 · user_id 88</text>
+    <text x="416" y="336" font-size="13" fill="#3F3F46">88 · s_23 · 5</text>
+    <text x="416" y="354" font-size="13" fill="#3F3F46">88 · Daffy · US</text>
+  </g>
+
+  <!-- Step 3: local join + union -->
+  <g data-step="3">
+    <line x1="728" y1="232" x2="792" y2="232" stroke="#6B7280" stroke-width="1.5" marker-end="url(#dhj-ar)"/>
+    <text x="760" y="221" text-anchor="middle" font-size="12" fill="#6B7280">join locally</text>
+    <text x="960" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="#6B7280">3 · Join each slice on user_id, union</text>
+    <rect x="800" y="112" width="310" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="816" y="136" font-size="14" font-weight="700" fill="#3F3F46">Each machine joins its own rows</text>
+    <rect x="816" y="148" width="4" height="18" fill="#2563EB"/><text x="830" y="162" font-size="13" fill="#3F3F46">Mickey · s_19 · 5,  s_51 · 3</text>
+    <rect x="816" y="172" width="4" height="18" fill="#EA580C"/><text x="830" y="186" font-size="13" fill="#3F3F46">Minnie · s_04 · 4</text>
+    <rect x="816" y="196" width="4" height="18" fill="#7C3AED"/><text x="830" y="210" font-size="13" fill="#3F3F46">Daffy · s_23 · 5</text>
+    <text x="816" y="240" font-size="13" fill="#3F3F46">Union the parts = full join</text>
+    <text x="955" y="306" text-anchor="middle" font-size="18" font-weight="800" fill="#0E0E10">Linear speedup</text>
+    <text x="955" y="330" text-anchor="middle" font-size="14" fill="#6B7280">no coordinator, no cross-machine join</text>
+  </g>
+
+  <text x="40" y="468" font-size="13" fill="#6B7280">Color key: the color is the user_id value (the join key) — 7 blue · 42 orange · 88 purple.   Grey arrows route each row by its hashed user_id.</text>
+</svg>

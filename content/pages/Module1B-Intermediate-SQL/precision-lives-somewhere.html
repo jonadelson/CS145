@@ -1,0 +1,59 @@
+<h1>Precision: Define the Answer</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Step one: precision. Runs ≠ correct, so before the model writes a line, you pin the precision somewhere: in the prompt, or in the SQL you write yourself. A vague prompt pins nothing, so the model picks one reading of your question and you cannot tell which. The spec decides which query is right.</p>
+<p><strong>Intuition.</strong> "Users who don't listen to Taylor Swift" is not one question. It has three reasonable readings that return different users, and the model commits to one without telling you which. Reading the result back takes knowing the SQL.</p>
+</div>
+<p>The <a href="#/page/Module1B-Intermediate-SQL/llm-debug">LLMs and SQL</a> page named three steps. This is the first: precision. The request looks exact, but it can be read more than one way:</p>
+<blockquote>
+<p><strong>"Find the users who don't listen to Taylor Swift."</strong></p>
+</blockquote>
+<p><a id="two-readings"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/taylor-ambiguity.svg" alt="One English question, find the users who don't listen to Taylor Swift, splits into two valid readings. The strict reading, never played a Taylor song, returns just Pluto. The broad reading, doesn't listen to only Taylor, returns all four users: Mickey, Minnie, Daffy, Pluto. The model commits to one silently, so you pin the meaning with a precise prompt or by writing the SQL, then verify the rows." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One question, two valid answers that split on Mickey, Minnie, and Daffy, who each play both Taylor and other artists. The model commits to one and never says which. Blue is the strict reading (just Pluto), orange the broad reading (all four).</p>
+</div>
+<p>The two readings differ on three users. Mickey, Minnie, and Daffy each play Taylor and other artists, so "never played a Taylor song" drops all three while "doesn't listen to only Taylor" keeps them: those three are the gap between the blue answer and the orange one, and Mickey is no different from the other two. Pluto sits in both: he never played Taylor, and he is not a Taylor-only listener either. The English settles none of it; the spec has to.</p>
+<h2>In the Prompt, or in the SQL</h2>
+<p>Take the prompt first. Here is the same request written two ways:</p>
+<p><a id="two-prompts"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/vague-vs-precise-prompt.svg" alt="The same request as two prompts. Left, grey: a vague one-liner, so the model can write Query A (LEFT JOIN, all four users) or Query B (NOT IN, only Pluto) and you can't tell which. Right, blue: a precise prompt with five numbered sections (engine, schema with join paths, definitions, edge cases, show your work) whose Definitions line fixes exactly Query B and {Pluto}." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> A vague prompt (grey) says almost nothing, so the model can write Query A (LEFT JOIN, all four users) or Query B (NOT IN, only Pluto) and you cannot tell which. The precise prompt (blue) numbers what the model must not guess: engine, schema and join paths, definition, edge case, and a show-your-work trace. Its <code>[Definitions]</code> line fixes Query B and {Pluto}.</p>
+<p><a id="why-each-line"></a></p>
+<p>Every numbered line blocks a guess the model would otherwise make. Drop one and you hand it room to hallucinate. That keeps the prompt minimal and sufficient, not merely long:</p>
+<ol>
+<li><strong><code>[Engine]</code></strong> pins the SQL dialect (<code>!=</code> vs <code>&lt;&gt;</code>, NULL and string behavior). Unspecified, the model picks one.</li>
+<li><strong><code>[Schema]</code></strong> gives exact table and column names so it cannot invent one. The join paths matter most: the key is often implicit, and the model will assume a foreign key or join on the wrong column. Writing <code>ON Listens.user_id = Users.user_id</code> removes that guess.</li>
+<li><strong><code>[Definitions]</code></strong> is the actual ask, the one line only you can supply.</li>
+<li><strong><code>[Edge cases]</code></strong> keep the no-listen user (Pluto), whom a careless query silently drops.</li>
+<li><strong><code>[Show your work]</code></strong> forces the step-by-step trace you check the result against.</li>
+</ol>
+</div>
+<p><a id="two-is-easy"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/fork-tree.svg" alt="A binary tree. One ambiguous question splits at three forks (inner vs LEFT JOIN, does a NULL count, rows vs DISTINCT), doubling each time into eight queries that all run. The spec traces one blue path to the single query you meant, returning {Pluto}; the other seven leaves stay grey." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Two readings is the easy case. Each independent ambiguity is a fork: inner vs LEFT JOIN, whether a NULL counts, rows vs DISTINCT. k binary forks make 2^k queries that all run, and a fork with more than two options (a join can be inner, left, right, or full) makes even more, so 2^k is the floor. The spec traces the one blue path to the query you meant; with no spec, the model picks a leaf for you.</p>
+</div>
+<p>Resolving those forks is the whole of precision. There are three ways to do it, and they all reach the same query:</p>
+<p><a id="three-routes"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/three-routes-one-query.svg" alt="Three lanes converging on one query box. Push: you write every fork into an English spec. Pull: the model interviews you, one question per fork. Write SQL: you write the query directly, precise by construction. All three reach Query B, returning {Pluto}; the SQL route is the shortcut." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Three routes to the same query. <strong>Push</strong> writes every fork into an English spec. <strong>Pull</strong> lets the model interview you, one clarifying question per fork. <strong>Write SQL</strong> skips the prose, since every fork is already a syntactic choice (<code>LEFT JOIN</code> vs <code>JOIN</code>, <code>COUNT(*)</code> vs <code>COUNT(DISTINCT)</code>). The English routes only reconstruct what the SQL states outright, so the spec is the price of staying in English.</p>
+</div>
+<p>What you cannot do is leave the forks open. A vague prompt does not erase them, it just hands every fork to the model to resolve silently. Something collapses that tree to one query no matter what. Your only choice is whether that something is you, in SQL or in English, or the model guessing alone.</p>
+<p>For this request, that one decision is Query B over Query A. State it in the prompt, draw it out through the model's questions, or just write Query B. The answer comes from you. The model still has to turn it into SQL that runs, which is the next step.</p>
+<h2>Takeaways</h2>
+<ol>
+<li>
+<p><strong>A vague prompt picks for you.</strong> One phrase, several queries that disagree, and the model chooses one silently.</p>
+</li>
+<li>
+<p><strong>Precision lives in the prompt or the SQL.</strong> Push it into an English spec, let the model interview you, or just write the query, which is precise by construction.</p>
+</li>
+<li>
+<p><strong>Define the answer before the model writes.</strong> Running the SQL and proving the result come next.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module1B-Intermediate-SQL/execution-environment">Execution: Run It on Real Data →</a></strong> You defined the spec, Query B. Second step: execution. The model writes the SQL and iterates against a real database until it works.</p>

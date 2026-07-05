@@ -1,0 +1,75 @@
+<svg viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="pg-t pg-d">
+  <title id="pg-t">The CPU works through cache and RAM, never the SSD, and data moves one page at a time</title>
+  <desc id="pg-d">Three tiers left to right. The CPU on the left works only out of its registers and L1, L2, L3 cache, which the hardware fills from RAM in 64-byte cache lines, in nanoseconds. RAM in the middle holds 16 GB divided by 64 MB, which is 256 fixed-size page slots, drawn as a small grid. The SSD on the right holds 128 GB divided by 64 MB, which is 2048 pages, drawn as a larger grid of the same-size cells; one is highlighted orange as it is paged into a free RAM slot, labelled one page, 64 MB, one IO, transfer-bound at about 5 GB per second so about 13 milliseconds. A page is 8 KB in classic Unix and databases, 64 MB in big-data systems. When RAM fills, a page is evicted and the next is paged in, so all 2048 SSD pages stream through the 256 RAM slots one page at a time. Color key: orange is a page in motion (the unit of one IO), grey is structure.</desc>
+  <defs>
+    <marker id="pgah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6B7280"/></marker>
+    <marker id="pgaho" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#EA580C"/></marker>
+  </defs>
+
+  <text x="600" y="38" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">The CPU never touches the SSD</text>
+  <text x="600" y="64" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">Pages move SSD &#8594; RAM one at a time (one page = one IO). The CPU works out of cache, filled from RAM.</text>
+  <text x="600" y="88" text-anchor="middle" style="font-size:13px;fill:#6B7280;">A page is 8 KB in classic Unix and databases, 64 MB in big-data systems (shown here).</text>
+
+  <!-- step 1: the three tiers -->
+  <g data-step="1">
+    <!-- CPU -->
+    <rect x="40" y="210" width="210" height="200" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="145" y="240" text-anchor="middle" style="font-size:19px;font-weight:700;fill:#0E0E10;">CPU</text>
+    <rect x="60" y="254" width="170" height="32" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="145" y="275" text-anchor="middle" style="font-size:13px;fill:#3F3F46;">registers &#183; sub-ns</text>
+    <rect x="60" y="292" width="170" height="48" rx="5" fill="#F4F4F6" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="145" y="312" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#0E0E10;">L1 / L2 / L3 cache</text>
+    <text x="145" y="330" text-anchor="middle" style="font-size:12px;fill:#6B7280;">~1 to 10 ns</text>
+    <text x="145" y="368" text-anchor="middle" style="font-size:11px;fill:#6B7280;">works here, never the SSD</text>
+
+    <!-- RAM -->
+    <rect x="470" y="225" width="180" height="195" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="560" y="255" text-anchor="middle" style="font-size:17px;font-weight:700;fill:#0E0E10;">RAM &#183; 16 GB</text>
+    <text x="560" y="275" text-anchor="middle" style="font-size:11px;fill:#6B7280;">16 GB &#247; 64 MB = 256 pages</text>
+    <g fill="#F4F4F6" stroke="#D4D7DC" stroke-width="1">
+      <rect x="515" y="290" width="40" height="28" rx="3"/>
+      <rect x="515" y="324" width="40" height="28" rx="3"/><rect x="565" y="324" width="40" height="28" rx="3"/>
+      <rect x="515" y="358" width="40" height="28" rx="3"/><rect x="565" y="358" width="40" height="28" rx="3"/>
+    </g>
+    <text x="560" y="406" text-anchor="middle" style="font-size:11px;fill:#6B7280;">6 of 256 slots shown</text>
+
+    <!-- SSD -->
+    <rect x="900" y="130" width="250" height="340" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="1025" y="162" text-anchor="middle" style="font-size:18px;font-weight:700;fill:#0E0E10;">SSD &#183; 128 GB</text>
+    <text x="1025" y="182" text-anchor="middle" style="font-size:11px;fill:#6B7280;">128 GB &#247; 64 MB = 2048 pages</text>
+    <g fill="#E7EAEE" stroke="#D4D7DC" stroke-width="1">
+      <rect x="980" y="200" width="40" height="28" rx="3"/><rect x="1030" y="200" width="40" height="28" rx="3"/><rect x="1080" y="200" width="40" height="28" rx="3"/>
+      <rect x="980" y="238" width="40" height="28" rx="3"/><rect x="1030" y="238" width="40" height="28" rx="3"/><rect x="1080" y="238" width="40" height="28" rx="3"/>
+      <rect x="930" y="276" width="40" height="28" rx="3"/><rect x="980" y="276" width="40" height="28" rx="3"/><rect x="1030" y="276" width="40" height="28" rx="3"/><rect x="1080" y="276" width="40" height="28" rx="3"/>
+      <rect x="930" y="314" width="40" height="28" rx="3"/><rect x="980" y="314" width="40" height="28" rx="3"/><rect x="1030" y="314" width="40" height="28" rx="3"/><rect x="1080" y="314" width="40" height="28" rx="3"/>
+      <rect x="930" y="352" width="40" height="28" rx="3"/><rect x="980" y="352" width="40" height="28" rx="3"/><rect x="1030" y="352" width="40" height="28" rx="3"/><rect x="1080" y="352" width="40" height="28" rx="3"/>
+      <rect x="930" y="390" width="40" height="28" rx="3"/><rect x="980" y="390" width="40" height="28" rx="3"/><rect x="1030" y="390" width="40" height="28" rx="3"/><rect x="1080" y="390" width="40" height="28" rx="3"/>
+    </g>
+    <text x="1025" y="444" text-anchor="middle" style="font-size:11px;fill:#6B7280;">24 of 2048 pages shown</text>
+  </g>
+
+  <!-- step 2: page one block SSD -> RAM (same-size cell moves) -->
+  <g data-step="2">
+    <rect x="930" y="238" width="40" height="28" rx="3" fill="#EA580C"/>
+    <rect x="565" y="290" width="40" height="28" rx="3" fill="#EA580C"/>
+    <path d="M 926 252 C 800 252, 700 300, 612 304" stroke="#EA580C" stroke-width="2.5" fill="none" marker-end="url(#pgaho)"/>
+    <text x="748" y="210" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#EA580C;">load 1 page = 1 IO</text>
+    <text x="748" y="230" text-anchor="middle" style="font-size:12px;fill:#3F3F46;">Mickey's listens &#183; 64 MB</text>
+    <text x="748" y="248" text-anchor="middle" style="font-size:12px;fill:#6B7280;">SSD ~5 GB/s = ~13 ms (transfer-bound)</text>
+  </g>
+
+  <!-- step 3: CPU works out of cache, filled from RAM in cache lines -->
+  <g data-step="3">
+    <path d="M 252 298 L 466 290" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#pgah)"/>
+    <path d="M 466 326 L 252 334" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#pgah)"/>
+    <text x="359" y="282" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#3F3F46;">cache lines &#183; 64 B</text>
+    <text x="359" y="354" text-anchor="middle" style="font-size:12px;fill:#6B7280;">~100 ns to RAM</text>
+  </g>
+
+  <!-- step 4: stream 2048 pages through 256 slots -->
+  <g data-step="4">
+    <text x="600" y="505" text-anchor="middle" style="font-size:15px;fill:#0E0E10;">When RAM fills, evict a page and load the next: <tspan font-weight="700" fill="#EA580C">all 2048 SSD pages stream through 256 RAM slots, one at a time.</tspan></text>
+  </g>
+
+  <text x="600" y="534" text-anchor="middle" style="font-size:13px;"><tspan style="fill:#0E0E10;font-weight:700;">Color key&#160;&#160;</tspan><tspan style="fill:#EA580C;font-weight:700;">orange</tspan><tspan style="fill:#3F3F46;"> = a page in motion (one IO)&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#6B7280;font-weight:700;">grey</tspan><tspan style="fill:#3F3F46;"> = structure</tspan></text>
+</svg>

@@ -1,0 +1,32 @@
+<h1>Case Study 3.2: How does Spotify support text search?</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Spotify supports text search across 100 million tracks using an <strong>inverted index</strong>, a per-word lookup table that maps each search term to the list of <code>song_id</code>s containing it.</p>
+<p><strong>Intuition.</strong> Without an index, a search for "Yesterday" would read every row in a 100-million-song Songs table. An inverted index looks up "Yesterday" once and returns a short list of matching <code>song_id</code>s, so the database only reads those few rows.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 3.2</span>
+<span>Reading Time: 6 mins</span></p>
+</div>
+<h2>The Solution: An Inverted Index</h2>
+<p>An inverted index looks like the index at the back of a textbook. Each <strong>term</strong> (word) is a key, and its value is a list of <strong>locations</strong> (track IDs) where that word appears. The figure walks the live <code>"Crazy Heart"</code> example.</p>
+<p><a id="inverted-index"></a></p>
+<p><img src="assets/Module3B-Indexing/svgs/inverted-index.svg" alt="Inverted index. A green B+Tree term dictionary on the left stores every unique word in the Songs table; Crazy and Heart are highlighted in purple. Each highlighted term points at its green postings list on the right, a packed array of song IDs. The red Bitwise-AND-intersection box runs in RAM, walking both lists in lockstep and keeping IDs that appear in both. Result: song IDs 12 and 108. About 10 IOs total versus 100 million for a full-table scan." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> An inverted index over the <code>Songs</code> table pairs a term dictionary on disk (a B+Tree of every unique word, green) with packed postings lists on disk (the sorted song IDs per word, green) and a runtime bitwise-AND intersection in RAM (red). For <code>"Crazy Heart"</code> the engine looks up each word, intersects their two sorted postings lists in memory to <code>{12, 108}</code>, and reads just those 2 data pages, about 10 IOs. A full-table scan would read all 100 million rows, so the index is roughly 10,000,000× fewer reads.</p>
+</div>
+<h2>Why a B+Tree for the Term Dictionary</h2>
+<p>One detail worth pulling out: <strong>the term dictionary is a B+Tree</strong>, which supports both exact and prefix lookups. Users often type prefixes ("Craz" before they finish typing "Crazy"); a hash index would scatter neighbouring terms to random buckets and could not auto-complete.</p>
+<h2>Beyond Keyword Matching</h2>
+<p>Inverted indexes get you the candidate songs fast. Real search engines then apply two more layers on top:</p>
+<p><a id="query-expansion"></a></p>
+<ul>
+<li><strong>Query expansion.</strong> A search for "happy" also checks related terms like "joyful" and "cheerful", broadening recall without forcing the user to guess synonyms.</li>
+</ul>
+<p><a id="ranking"></a></p>
+<ul>
+<li><strong>Ranking.</strong> Not all matches are equally relevant. Spotify scores each match on three signals: where the term appeared (title beats tag), overall popularity (a global hit beats a deep cut), and personal history (an artist you listen to often moves up).</li>
+</ul>
+<p><strong>Takeaway:</strong> An inverted index turns an O(N) row scan into an O(log N) term-dictionary lookup (a B+Tree, for exact and prefix), intersecting postings in RAM so the expensive random IO only fires for the rows you actually need.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/case-study-lsm-spotify">Case Study 3.3: Tracking High-Volume Activity →</a></strong> When the workload flips from read-heavy search to write-heavy event ingestion, the index type has to flip with it.</p>

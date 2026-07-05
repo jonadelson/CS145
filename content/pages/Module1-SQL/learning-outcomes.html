@@ -1,0 +1,114 @@
+<h1>SQL Learning Outcomes</h1>
+<style>
+  .lo-grid { display:flex; gap:1rem; margin:1.5rem 0; flex-wrap:wrap; }
+  .lo-grid > .lo-card { flex:1; min-width:240px; }
+  .lo-card {
+    background:#FFFFFF;
+    border:1px solid #D4D7DC;
+    border-top:4px solid #2563EB;
+    border-radius:8px;
+    padding:1.25rem;
+  }
+  .lo-card h3 { margin:0 0 0.6rem; font-size:1.05rem; color:#0E0E10; }
+  .lo-card ul { margin:0; padding-left:1.2rem; }
+  .lo-card li { color:#3F3F46; margin:0.3rem 0; line-height:1.45; }
+  .lo-note {
+    background:#ECF1FE;
+    border-radius:8px;
+    padding:0.8rem 0.95rem;
+    margin-top:1rem;
+  }
+  .lo-note .lo-note-h { font-size:0.95rem; font-weight:600; color:#0E0E10; margin:0; }
+  .lo-note .lo-note-k { font-size:0.85rem; font-weight:600; color:#6B7280; margin:0.55rem 0 0.2rem; }
+  .lo-note ul { margin:0; padding-left:1.2rem; }
+  .lo-note li { font-size:0.85rem; color:#6B7280; margin:0.25rem 0; line-height:1.45; }
+  .lo-wide { display:block; margin:1.5rem 0; }
+</style>
+
+<h2>What the industry expects</h2>
+<div class="lo-grid">
+<div class="lo-card">
+<h3>Use AI copilots</h3>
+<ul>
+<li>Engineers move <strong>10x faster</strong> with GPT and Claude.</li>
+<li>But firms pay for judgment, not just output.</li>
+<li>They need engineers who can check AI output and fix the logic that is wrong.</li>
+</ul>
+</div>
+<div class="lo-card">
+<h3>Semantic interviews</h3>
+<ul>
+<li><strong>50% of data interview questions</strong> are SQL logic.</li>
+<li>Whiteboard rounds have no AI: you write and reason about the query yourself.</li>
+<li>"Debug this query": right or wrong? Expensive or cheap? How to fix it?</li>
+</ul>
+</div>
+<div class="lo-card">
+<h3>Cloud-scale reality</h3>
+<ul>
+<li><strong>BigQuery</strong>, Snowflake, and Redshift are everywhere.</li>
+<li>Parallel execution across many machines.</li>
+<li>Cut cost with partitioning and filter placement.</li>
+</ul>
+</div>
+</div>
+<h2>What you'll do in CS145</h2>
+<div class="lo-grid">
+<div class="lo-card">
+<h3>Use your brain</h3>
+<ul>
+<li>Write SQL logic on paper or a whiteboard, no IDE.</li>
+<li>Use debug tables to trace semantics.</li>
+</ul>
+<div class="lo-note">
+<p class="lo-note-h">Prep for whiteboard interviews: ace Test 1 on paper (SQL is half the exam).</p>
+<p class="lo-note-k">Example anecdote 1</p>
+<ul>
+<li>Project 1: a NULL-values problem. Mismatches across COUNT(rating), COUNT(*), and COUNT(user_id).</li>
+<li>On the Project 1 dataset (far larger than the 9-row Spotify table): 50 NULL ratings. COUNT(column) skips NULLs; COUNT(*) counts all rows.</li>
+</ul>
+</div>
+</div>
+<div class="lo-card">
+<h3>Experiment with LLMs</h3>
+<ul>
+<li>Explore subqueries, window functions, and analysis.</li>
+<li>Project 1: find what works, and learn when AI misleads.</li>
+</ul>
+<div class="lo-note">
+<p class="lo-note-h">Prep for interviews: "What is your AI workflow for data pipelines?"</p>
+<p class="lo-note-k">Example anecdote 2</p>
+<ul>
+<li>Project 2: Claude built my 3-level CTE in seconds. But level 2 referenced level 3, which did not exist yet, and its LEFT JOIN with COUNT(*) counted NULLs.</li>
+<li>Fixed: reordered the CTEs, used COUNT(t2.id).</li>
+<li>Saved 30 min writing, spent 10 min debugging.</li>
+</ul>
+</div>
+</div>
+<div class="lo-card">
+<h3>Cloud databases</h3>
+<ul>
+<li>Query gigabytes of data on BigQuery.</li>
+<li>Understand parallel execution.</li>
+<li>Tune production queries for cost and speed.</li>
+</ul>
+<div class="lo-note">
+<p class="lo-note-h">Prep for interviews: build a data portfolio on BigQuery and Colab.</p>
+<p class="lo-note-k">Example anecdote 3</p>
+<ul>
+<li>Project 1: a query kept timing out at $10.50 per run.</li>
+<li>The execution plan scanned 2.1 TB before filtering. Moving the date filter before the JOIN triggered partition pruning.</li>
+<li>Now 73 GB, $0.37, 12 seconds, and a Colab to prove it.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="lo-card lo-wide">
+<h3>Project 1: practice all three skills</h3>
+<ul>
+<li>Build your BigQuery portfolio while mastering brain, AI, and cloud skills.</li>
+<li>You query real datasets and keep the notebooks as portfolio work.</li>
+</ul>
+</div>
+<h2>Why these topics?</h2>
+<p>You will use these skills in internships, interviews, and full-time work.</p>

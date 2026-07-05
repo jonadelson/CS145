@@ -1,0 +1,112 @@
+<h1>Multi-Version Concurrency Control (MVCC)</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Locking makes a reader wait for a writer to finish. MVCC takes the other route: instead of serializing access to one copy, it keeps several versions of each row, so a reader takes the version it is allowed to see and never waits. Each version is stamped with when its writer committed. Every transaction reads the version that was current as of its start. That is its own consistent view of the database without copying it, the same way git lets many engineers work on one repository without duplicating it or exposing half-done work. Readers and writers never block each other.</p>
+<p><strong>Intuition.</strong> Take one value, V. Mickey opens a 10-minute scan with a snapshot at 3:00. Minnie changes V and commits at 3:03, creating a second version of that one value. Mickey's snapshot is 3:00, so he keeps reading the version that was current then; a query that starts at 3:05 reads Minnie's new version. Only V has two versions. Every value nobody touched is stored once and shared. A snapshot is just this rule applied to every value at once: read the right version of each.</p>
+</div>
+<hr />
+<h2>A familiar example: git</h2>
+<p>You already use a system that solves this exact problem: git.</p>
+<p><img src="assets/Module4-Transactions/svgs/mvcc-git.svg"
+     alt="A left-to-right timeline of one repository: v1 is the base, Engineer B pulls and gets v1, Engineer C commits a change that creates v2 (v1 plus the diff, in violet), and Engineer D pulls afterward and gets v2 while B still holds v1, unaffected."
+     style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One repository changes over time, and your checkout is frozen at the moment you pulled. Engineer C commits a change, which adds v2 (v1 plus the diff, violet). Engineer D pulls afterward and gets v2; Engineer B pulled earlier, so B still has v1 and C's change does not touch B. Same repository, but when you pulled decides what you see.</p>
+</div>
+<p>Keep two terms straight. The <strong>repository</strong> is the shared store of the project's whole history, kept once. A <strong>working copy</strong> (your checkout) is the snapshot on your laptop that you edit. That split buys two things: everyone works in parallel without waiting on anyone, and storage holds the set of changes, not one full project per engineer. (MVCC predates git: Reed described it in the late 1970s, and git reached for the same trick in 2005.)</p>
+<h2>Reading the right version</h2>
+<p>A database running thousands of concurrent transactions faces git's two problems, and MVCC answers both the way git does, by keeping multiple committed versions instead of overwriting. That gives two rules you already believe:</p>
+<ol>
+<li>
+<p><strong>Read only committed values.</strong> Never a teammate's half-typed edit before they commit, never a write still in flight. While Minnie is mid-update, Mickey must keep seeing the old value. (Git won't show you someone's unsaved buffer either.)</p>
+</li>
+<li>
+<p><strong>Keep it compact.</strong> A private, consistent view can't mean duplicating the whole database per transaction. Store only the <strong>diff</strong> between versions, the way <code>git diff</code> does, so a value you never touch costs nothing.</p>
+</li>
+</ol>
+<p>That is the goal. One mechanism reaches it: the snapshot.</p>
+<hr />
+<h2>The snapshot</h2>
+<p>Your <strong>snapshot</strong> is a single timestamp, taken the moment your transaction begins. From then on you read every value as it stood at that instant: one consistent version of the whole database, frozen at your start, no copy.</p>
+<p>One test decides every read: is this version's writer committed at or before your snapshot? An uncommitted or aborted write carries no commit stamp, so you never see it, and there are no dirty reads. A version committed after your snapshot is too new, so a long-running transaction keeps its consistent view. When several versions qualify, you read the newest.</p>
+<p>Made concrete on one value V: Minnie's new write stays invisible until she commits, so any read that lands while it is in flight still gets the old value.</p>
+<p><img src="assets/Module4-Transactions/svgs/mvcc-versions.svg"
+     alt="A timeline of one value V: Minnie writes XY34 from 2:45 (uncommitted, dashed violet) and commits at 3:03. Pluto (snapshot 2:50) and Mickey (snapshot 3:00) fall inside the in-flight window and read AB1; a query at 3:05 reads XY34 after the commit."
+     style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Minnie updates V at 2:45 but does not commit XY34 until 3:03. In that in-flight window the committed value is still AB1, so Pluto (snapshot 2:50) and Mickey (snapshot 3:00) both read AB1, never the half-written XY34. Only a query whose snapshot falls after the commit, like 3:05, reads XY34. The write becomes visible at the commit, not when it starts.</p>
+</div>
+<p>And the snapshot stays nearly free: only a value you <em>write</em> gets a second version, so everything you don't touch is stored once and shared by every transaction.</p>
+<h2>Vacuum: reclaiming dead versions</h2>
+<p>Every write leaves the old value in place, so one row builds a chain of versions over time. Each is cheap, just a value and a timestamp, but they still accumulate. A version goes <strong>dead</strong> once no running transaction's snapshot is old enough to read it: no query can ever return it again. <strong>Vacuum</strong> is the garbage collector that reclaims the dead versions, so the chain never grows without bound.</p>
+<p><a id="vacuum-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/mvcc-vacuum.svg" alt="One row keeps four versions, each a value plus a commit timestamp. Two queries are still running: one opened at 2:50 and still reads v3, a newer one reads the current v4. No running query reads v1 or v2, so they are dead and vacuum deletes them, leaving v3 and v4." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> A version is one value plus a timestamp, not a copy of the row. MVCC must keep an old version while any running query still reads it: here the query that opened at 2:50 still reads v3, and newer queries read v4, but nothing reads v1 or v2. Vacuum deletes the versions no running query needs, so the chain does not grow forever.</p>
+</div>
+<hr />
+<div class="v5-callout v5-callout--warn">
+<p><strong>MVCC is the default mechanism; its default level is not serializable.</strong> Every modern database runs MVCC, but its everyday isolation levels (read committed, snapshot isolation) trade full serializability for speed. The gap they allow is <strong>write skew</strong>: two transactions each read from their own snapshot, each commit a change that is safe alone, yet together leave a state no serial order could produce. Picture a playlist that must keep at least one song: two editors each confirm others remain, each delete a different one, and it ends empty. That is the one place MVCC breaks the conflict-serializability standard the rest of this module holds to. An app that cannot tolerate it sets <code>ISOLATION LEVEL SERIALIZABLE</code>, turning on <strong>serializable snapshot isolation (SSI)</strong>, commit-time checks that abort a transaction about to break serializability. Most workloads accept the gap and stay on the faster default.</p>
+</div>
+<h2>Tech details</h2>
+<ul>
+<li>
+<p><strong>Do two readers of the same row block?</strong> No. Any number of transactions read the same row at once, each from its own snapshot.</p>
+</li>
+<li>
+<p><strong>Do a reader and a writer block each other?</strong> No. The writer adds a new version; readers keep seeing the old one until they take a newer snapshot.</p>
+</li>
+<li>
+<p><strong>Do two writers block?</strong> Yes, the one lock MVCC keeps. Two writes to the <em>same</em> row serialize: the second waits on a <strong>row lock</strong> until the first commits or aborts, and it touches just that one row.</p>
+</li>
+<li>
+<p><strong>Timestamp or transaction id?</strong> Either. The rule needs one number that always increases, larger meaning later. Postgres uses a transaction id, Spanner a real timestamp, Oracle a system change number. Same mechanism, different name.</p>
+</li>
+<li>
+<p><strong>What does an <code>UPDATE</code> do under the hood?</strong> <code>UPDATE Listens SET rating = 3.5 WHERE listen_id = 5</code> writes a new version stamped with your transaction and leaves the old one in place. Nobody sees it until you commit; if you abort, it never becomes visible.</p>
+</li>
+<li>
+<p><strong>What does all this versioning cost?</strong> Every UPDATE leaves a dead version behind (Postgres stamps each with hidden <code>xmin</code>/<code>xmax</code> columns: the transaction that created it and the one that replaced it). On a write-heavy table, dead versions can outnumber live rows within hours. VACUUM reclaims versions no active transaction can still see, the way <code>git gc</code> reclaims commits nothing points to.</p>
+</li>
+<li>
+<p><strong>What bites in production?</strong> VACUUM can only reclaim versions older than the <strong>xmin horizon</strong>, the oldest snapshot any running transaction still holds. One forgotten <code>BEGIN</code> left open for an hour pins that horizon; for that hour VACUUM frees nothing newer, even versions dead for 59 minutes. Tables bloat, indexes get sparser, every write degrades. The open transaction blocks cleanup, not the dead data.</p>
+</li>
+</ul>
+<hr />
+<h2>The payoff: why OLTP and OLAP get separated at scale</h2>
+<p>So why not run the year-end analytics on the production Postgres?</p>
+<p>It isn't lock contention. MVCC fixed that. A 10-minute analytical scan instead strains <strong>shared resources</strong>:</p>
+<ol>
+<li>
+<p><strong>CPU and IO</strong> saturate the bandwidth that user-facing 100ms queries need.</p>
+</li>
+<li>
+<p><strong>Buffer cache pollution.</strong> The scan evicts hot OLTP pages from <code>shared_buffers</code> in favor of cold analytical pages.</p>
+</li>
+<li>
+<p><strong>The xmin horizon.</strong> The 10-minute snapshot pins VACUUM for 10 minutes; tables bloat; writes degrade.</p>
+</li>
+</ol>
+<p>None of these is a lock problem. The fix is <strong>physical separation</strong>: replicate the data via change-data-capture (CDC) to a separate columnar warehouse (BigQuery, Snowflake, Redshift). The OLTP Postgres stays user-facing-only.</p>
+<p><img src="assets/Module4-Transactions/svgs/oltp-olap-split.svg" alt="MVCC ends the reader-writer lock fight, but a 10-minute analytical scan still saturates the OLTP database's CPU/IO, pollutes its cache, and pins VACUUM; the fix is to replicate via CDC to a separate columnar OLAP warehouse and keep the OLTP database user-facing only." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> MVCC removes the reader-writer lock contention, but a long analytical scan still strains shared resources on the production database: it saturates CPU and IO, pollutes the buffer cache, and pins VACUUM so tables bloat. None is a lock problem, so the fix is physical: replicate the data to a separate columnar warehouse for analytics and keep the OLTP database user-facing only.</p>
+</div>
+<hr />
+<h2>Key Takeaways</h2>
+<ul>
+<li>
+<p><strong>MVCC is git for your rows.</strong> Each transaction reads from its own snapshot, your writes are invisible until you commit, and only changed rows get a new version.</p>
+</li>
+<li>
+<p><strong>A snapshot is a time plus one rule: for each value, read the newest version committed at or before it.</strong> Apply that rule to every value at once and you get one consistent version of the whole database, no copy required. The stamp is one monotonic number (a transaction id in Postgres, a timestamp elsewhere).</p>
+</li>
+<li>
+<p><strong>Visibility needs a committed writer</strong>, so in-flight writes are never read (no dirty reads) and aborts are a status flip, not a rewrite. Two writers to one row still serialize on a lock.</p>
+</li>
+<li>
+<p><strong>At scale, the real reason to separate OLTP from OLAP isn't lock contention.</strong> MVCC solved that. It's resource contention and the xmin horizon pinning VACUUM.</p>
+</li>
+</ul>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4-Transactions/occ">Optimistic Concurrency Control →</a></strong> MVCC lets readers skip the wait. The last strategy skips locks entirely while running: race ahead, then validate at commit and redo on a clash.</p>

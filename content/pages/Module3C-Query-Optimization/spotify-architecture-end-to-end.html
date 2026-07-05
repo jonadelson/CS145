@@ -1,0 +1,86 @@
+<h1>Spotify End-to-End: How Everything Connects</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A single click on Spotify's play button is recorded, reshaped, and analyzed by three different storage strategies in turn: a write-optimized store for the click, a batch pipeline that reshapes it, and a scan-optimized warehouse that answers dashboards. Each stage uses the index and storage built for its workload.</p>
+<p><strong>Intuition.</strong> Mickey taps play. The click appends to an LSM events store in about 8 ms and returns. Overnight, a Spark ETL job reshapes a day of 8.6 billion events into a columnar warehouse. The next morning the "Top Artists" dashboard answers from that warehouse in about 2 seconds. Same event, three systems, three very different latency budgets.</p>
+</div>
+<h2>The Journey</h2>
+<p><img src="assets/Module3C-Query-Optimization/svgs/spotify-end-to-end.svg" alt="Spotify end-to-end architecture: one click triggers three systems. Act 1 OLTP (LSM tree write), Act 2 ETL (Spark hash partition, BigSort, broadcast join, columnar write), Act 3 OLAP (star schema query with broadcast and columnar scan)." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A single tap on play fans out into three systems in sequence. Act 1 is the OLTP write that appends the play to an LSM tree; Act 2 is the ETL pipeline where Spark hash-partitions and BigSorts the events, a broadcast join enriches them, and Spark writes the result columnar; Act 3 is the OLAP query that scans the columnar star schema with a broadcast join to answer the dashboard in about two seconds. Every block in this path is a primitive built earlier in the course, now wired end to end.</p>
+</div>
+<hr />
+<h2>Act 1 · The Click (OLTP)</h2>
+<p>You tap play. In ~8 ms, this happens:</p>
+<pre><code><span class="sql-keyword">INSERT</span> <span class="sql-keyword">INTO</span> <span class="sql-table">listens</span> (user_id, song_id, timestamp)
+<span class="sql-keyword">VALUES</span> (<span class="sql-number">123456</span>, <span class="sql-number">789</span>, NOW());
+</code></pre>
+<p>The write lands in an in-memory MemTable, returns instantly, and is flushed to disk later as part of an SSTable. No random disk I/O on the hot path. That's why Spotify can sustain 100 K writes/sec per node.</p>
+<p>→ Algorithm: <strong>LSM Tree</strong> (<a href="#/page/Module3C-Query-Optimization/lsm-indexes">lsm-indexes.html</a>)</p>
+<p><em>8 ms response · 100K writes/sec · 8.6B events/day</em></p>
+<hr />
+<h2>Act 2 · The Transform (ETL)</h2>
+<p>At 2 AM, Spark kicks in. 8.6 billion events from yesterday need processing into the analytics warehouse.</p>
+<pre><code class="language-python"># 1. Hash Partition  →  spread across 1000 nodes
+listens.repartition(1000, &quot;user_id&quot;)
+
+# 2. BigSort         →  sort within each partition
+       .sortWithinPartitions(&quot;timestamp&quot;)
+
+# 3. Broadcast Join  →  small dim tables to every node
+       .join(broadcast(songs), &quot;song_id&quot;)
+
+# 4. Write Columnar  →  compress 100 TB → 10 TB
+       .write.parquet(&quot;s3://warehouse/&quot;)
+</code></pre>
+<p>Each step is one of the algorithms from M3:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Algorithm</th>
+<th>Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repartition by <code>user_id</code></td>
+<td>Hash Partitioning</td>
+<td><a href="#/page/Module3C-Query-Optimization/hash-partitioning">hash-partitioning.html</a></td>
+</tr>
+<tr>
+<td>Sort within partitions</td>
+<td>BigSort</td>
+<td><a href="#/page/Module3C-Query-Optimization/big-sort">big-sort.html</a></td>
+</tr>
+<tr>
+<td>Join dim tables</td>
+<td>Broadcast Join</td>
+<td><a href="#/page/Module3C-Query-Optimization/distributed-query">distributed-query.html</a></td>
+</tr>
+<tr>
+<td>Write Parquet</td>
+<td>Columnar storage</td>
+<td><a href="#/page/Module3C-Query-Optimization/storage-layout">storage-layout.html</a></td>
+</tr>
+</tbody>
+</table>
+<p><em>3 hours total · 1000-node Spark cluster · 100 TB processed per day</em></p>
+<hr />
+<h2>Act 3 · The Dashboard (OLAP)</h2>
+<p>CEO opens the mobile app. The "Top Artists" dashboard renders in 2 seconds:</p>
+<pre><code><span class="sql-comment">-- &quot;Top Artists by Country This Month&quot;</span>
+<span class="sql-keyword">SELECT</span> artist, country, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> plays
+<span class="sql-keyword">FROM</span> fact_plays f
+<span class="sql-keyword">JOIN</span> dim_artists a <span class="sql-keyword">ON</span> f.artist_id <span class="sql-operator">=</span> a.artist_id   <span class="sql-comment">-- broadcast (10 MB)</span>
+<span class="sql-keyword">WHERE</span> f.date &gt;<span class="sql-operator">=</span> <span class="sql-string">'2024-01-01'</span>
+<span class="sql-keyword">GROUP BY</span> artist, country
+<span class="sql-keyword">ORDER BY</span> plays DESC
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">100</span>;
+</code></pre>
+<p>The 10 MB <code>dim_artists</code> is broadcast to all 1000 nodes (no shuffle). The 1 PB <code>fact_plays</code> is scanned columnar. Only <code>artist_id</code>, <code>country</code>, <code>date</code> are read out of 20 columns.</p>
+<p>→ Algorithms: <strong>Broadcast Join</strong> + <strong>Columnar Scan</strong> (<a href="#/page/Module3C-Query-Optimization/distributed-query">distributed-query.html</a>, <a href="#/page/Module3C-Query-Optimization/storage-layout">storage-layout.html</a>)</p>
+<p><em>2-second query · 3 of 20 columns scanned · 1 PB warehouse</em></p>
+<hr />
+<h2>The Pattern</h2>
+<p>One pipeline, opposite optimizations at each end. Act 1 needs blazing writes, so the click lands in an LSM tree with no random I/O and returns in under 10 ms. Act 3 needs blazing scans, so the dashboard reads compressed columnar storage and answers in about 2 seconds. Act 2 is the 3-hour nightly ETL that converts the first format into the second. No single structure wins everywhere; each stage uses the one built for its workload.</p>
+<p><strong>Next:</strong> <a href="#/page/Module3C-Query-Optimization/problem-solving-modular-systems">Module 3 Capstone</a> takes the same "right tool for the job" mindset and applies it to seven open-ended Spotify-style design problems.</p>

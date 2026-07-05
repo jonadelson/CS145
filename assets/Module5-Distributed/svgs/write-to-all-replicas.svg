@@ -1,0 +1,47 @@
+<svg viewBox="0 0 1040 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="wta-t wta-d" font-family="Inter, sans-serif">
+  <title id="wta-t">Option 1, write to all replicas: every copy must confirm, so one slow or dead replica stalls the write</title>
+  <desc id="wta-d">A client sends one write to all three replicas at once. Replica one and replica two acknowledge quickly (green checks). Replica three is slow or crashed (amber), so it never acknowledges. Because the write is only safe once every copy confirms, the client is blocked and cannot reply OK. The lesson: writing to all replicas has no fault tolerance, a single slow or dead copy stalls every write. Color key: green is a replica that acknowledged, amber is the slow or crashed replica that blocks the write, grey is the client and the write it sent.</desc>
+  <defs>
+    <marker id="wta-ar" markerWidth="11" markerHeight="8" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="520" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Option 1 — write to all replicas</text>
+  <text x="520" y="56" text-anchor="middle" font-size="16" fill="#3F3F46">Every copy must confirm, so one slow or dead replica stalls the write.</text>
+
+  <!-- Step 1: client fans the write to all three replicas -->
+  <g data-step="1">
+    <rect x="40" y="150" width="180" height="90" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="130" y="188" text-anchor="middle" font-size="16" font-weight="700" fill="#3F3F46">Client</text>
+    <text x="130" y="212" text-anchor="middle" font-size="14" fill="#6B7280">write x = 5</text>
+    <rect x="700" y="80" width="240" height="64" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="720" y="118" font-size="15" font-weight="700" fill="#3F3F46">Replica 1</text>
+    <rect x="700" y="164" width="240" height="64" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="720" y="202" font-size="15" font-weight="700" fill="#3F3F46">Replica 2</text>
+    <rect x="700" y="248" width="240" height="64" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="720" y="286" font-size="15" font-weight="700" fill="#3F3F46">Replica 3</text>
+    <line x1="224" y1="180" x2="696" y2="112" stroke="#6B7280" stroke-width="1.5" marker-end="url(#wta-ar)"/>
+    <line x1="224" y1="195" x2="696" y2="196" stroke="#6B7280" stroke-width="1.5" marker-end="url(#wta-ar)"/>
+    <line x1="224" y1="210" x2="696" y2="280" stroke="#6B7280" stroke-width="1.5" marker-end="url(#wta-ar)"/>
+    <text x="455" y="150" text-anchor="middle" font-size="13" fill="#6B7280">write to all three</text>
+  </g>
+
+  <!-- Step 2: two ack fast, one is slow or crashed -->
+  <g data-step="2">
+    <circle cx="915" cy="112" r="13" fill="#16A34A"/><path d="M 909 112 l 4 5 l 8 -9" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+    <text x="838" y="134" font-size="13" fill="#16A34A">acked</text>
+    <circle cx="915" cy="196" r="13" fill="#16A34A"/><path d="M 909 196 l 4 5 l 8 -9" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+    <text x="838" y="218" font-size="13" fill="#16A34A">acked</text>
+    <circle cx="915" cy="280" r="13" fill="#d97706"/><text x="915" y="285" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">!</text>
+    <text x="820" y="302" font-size="13" font-weight="700" fill="#d97706">slow / crashed</text>
+  </g>
+
+  <!-- Step 3: the write blocks -->
+  <g data-step="3">
+    <rect x="40" y="150" width="180" height="90" rx="8" fill="none" stroke="#d97706" stroke-width="2.5"/>
+    <text x="130" y="272" text-anchor="middle" font-size="14" font-weight="700" fill="#d97706">blocked, no OK</text>
+    <text x="130" y="292" text-anchor="middle" font-size="13" fill="#6B7280">waits for all three</text>
+    <text x="520" y="362" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">All-or-nothing: one slow or dead replica blocks every write. No fault tolerance.</text>
+  </g>
+
+  <text x="40" y="388" font-size="12" fill="#6B7280">Green: a replica that acknowledged  ·  amber: the slow or crashed replica that blocks the write  ·  grey: the client and its write.</text>
+</svg>

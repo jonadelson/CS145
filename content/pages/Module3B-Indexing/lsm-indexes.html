@@ -1,0 +1,80 @@
+<h1>LSM Tree Indexes</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> An LSM tree converts random writes into sequential disk writes by buffering inserts in a RAM MemTable, then flushing them as immutable SSTables that are merged in the background.</p>
+<p><strong>Intuition.</strong> When Spotify ingests 1 million listen events per second, a B+Tree can't keep up, because every insert is a random disk write. LSM trees absorb all writes into RAM first, then dump them to disk as a single sequential file. Reads check RAM first, then the on-disk SSTables.</p>
+</div>
+<p><strong>Prerequisites.</strong> <a href="#/page/Module3B-Indexing/sstables">SSTables</a> introduces the immutable file format LSM trees are built from.</p>
+<hr />
+<h2>What Gets Stored</h2>
+<p>Every record is a <code>(key, value, timestamp)</code> triple. For a song-play counter, that looks like:</p>
+<pre><code class="language-text">(S_102, +1, 13:42:05)
+</code></pre>
+<p>Song ID is the key, the increment is the value, and wall-clock time is the version. No row is ever updated in place. A new <code>(S_102, +1, …)</code> is appended for every play, and the "current state" of S<sub>102</sub> is whatever you get when you add all of its values together.</p>
+<hr />
+<h2>Writes: How Data Moves from RAM to Disk</h2>
+<p>Writes flow downward through three tiers. The caption below names each piece and walks the live S<sub>75</sub> example.</p>
+<p><img src="assets/Module3B-Indexing/svgs/lsm-production-path.svg" alt="LSM write path at 1:44 PM. Incoming plays accumulate in the red MemTable in RAM, flush every 15 minutes into green Level-0 SSTables (1:00, 1:15, and 1:30 .db) on disk, and merge hourly into a green compacted Level-1+ SSTable. Song S_75's purple play counts are spread across all three tiers." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> LSM write path at 1:44 PM, RAM on top and disk below, time flowing downward. Incoming plays land in the in-RAM MemTable (fast, no seek, lost on crash unless replayed from the WAL); every 15 minutes the engine flushes it to an immutable Level-0 SSTable on disk (<code>1:00</code>, <code>1:15</code>, <code>1:30</code>), and hourly compaction merges those into one larger sorted, de-duplicated Level-1+ file. Total plays for S<sub>75</sub> smear across tiers (<code>+2</code> in the MemTable, <code>+10</code> and <code>+8</code> in Level-0, <code>5,420</code> in compacted history) and the read path sums them to <b>5,440</b> (merge-on-read). The merge operator is configurable: "add" for counters, "newest wins" for last-write-wins keys, "set union" for tags, "max" for high-water-marks. The <a href="#merge-power">merge section</a> walks through more examples.</p>
+</div>
+<p>No write ever does a random seek. The MemTable is RAM, the flush is one sequential append, and compaction is a streaming merge. This is how an LSM tree sustains a million writes per second on commodity disks.</p>
+<hr />
+<h2>Reads: Merge on Read</h2>
+<p>The real state of a key isn't stored anywhere. It's <em>computed</em> by walking every tier that might hold the key and combining the results.</p>
+<p><img src="assets/Module3B-Indexing/svgs/lsm-merge-on-read.svg" alt="Merge-on-read. A query for total plays of S_75 gets +2 from the red MemTable, +18 from the three green Level-0 SSTables, and +5,420 from the green Level-1+ SSTable, summed in purple to 5,440 total plays at 1:44 PM." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Merge-on-read computes S<sub>75</sub>'s play count at read time instead of storing it, by summing every tier that holds a fragment. The live in-RAM MemTable (red) adds <code>+2</code>, the three flushed Level-0 SSTables on disk (green) add <code>+10 · +5 · +3 = +18</code>, and the compacted Level-1+ SSTable on disk (green) adds <code>+5,420</code>, for a total of <code>2 + 18 + 5,420 = 5,440</code> (the merge function is "add" because plays are a counter). Each SSTable carries a bloom filter, so the reader skips any tier that cannot hold the key with no disk read, making most reads far cheaper than this worst case.</p>
+</div>
+<p><a id="bloom-skip"></a></p>
+<p>A naïve read would touch every SSTable. In practice each SSTable carries a bloom filter, so tiers that can't possibly contain the key are skipped without a disk read. Hot keys in recent SSTables answer fast, and cold keys may walk deep.</p>
+<hr />
+<h2>How "Merge" Is Defined</h2>
+<p><a id="merge-basics"></a></p>
+<p>Because LSM reads compute state from fragments, the "merge" step is really an application-specific reduction. Four patterns cover most systems. The first two:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Merge logic</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Counter</strong></td>
+<td>sum(v₁, v₂, …)</td>
+<td>Song play counts. Sum the <code>+1</code> fragments.</td>
+</tr>
+<tr>
+<td><strong>Latest-wins</strong></td>
+<td>pick max(timestamp)</td>
+<td>User profile updates. Newest overwrites.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="merge-power"></a></p>
+<p>The other two keep partial state or filter by time:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Merge logic</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Statistical</strong></td>
+<td>sum(sums), sum(counts)</td>
+<td>Rolling averages. Keep running totals.</td>
+</tr>
+<tr>
+<td><strong>TTL / retention</strong></td>
+<td>filter(time &gt; now − window)</td>
+<td>Session logs. Drop events older than 24 hours.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/io-indexes">IO Cost &amp; Trade-offs →</a></strong> You now have all four index structures. The next page puts them on one cost model so you can decide which to pick for a given access pattern, before the case studies apply them to real systems.</p>

@@ -1,0 +1,139 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.864
+Locking and MVCC, done.
+
+00:00:06.864 --> 00:00:11.729
+Step back.
+
+00:00:11.729 --> 00:00:16.593
+This module built three things: a definition of correct, conflict-serializability; a protocol that produces it, strict two phase locking; and the primitive underneath, the lock.
+
+00:00:16.593 --> 00:00:21.458
+Together they run every relational database.
+
+00:00:21.458 --> 00:00:26.117
+The goal in one sentence: run thousands of transactions at once, and have the result act as if each ran alone.
+
+00:00:26.117 --> 00:00:30.777
+Theory told us what correct means.
+
+00:00:30.777 --> 00:00:35.436
+Now we make it run, faster than serving transactions one at a time.
+
+00:00:35.436 --> 00:00:38.260
+Here is the whole protocol in about twenty lines.
+
+00:00:38.260 --> 00:00:41.083
+A transaction has three operations.
+
+00:00:41.083 --> 00:00:43.907
+Reed asks for a shared lock, then reeds the value.
+
+00:00:43.907 --> 00:00:46.730
+Write asks for an exclusive lock, then writes.
+
+00:00:46.730 --> 00:00:49.553
+Commit is the one that matters.
+
+00:00:49.553 --> 00:00:52.377
+It releases every lock the transaction holds, all at once.
+
+00:00:52.377 --> 00:00:55.200
+That single rule is what makes it strict.
+
+00:00:55.200 --> 00:00:58.024
+Locks pile up while the transaction runs.
+
+00:00:58.024 --> 00:01:00.847
+They drop only at commit.
+
+00:01:00.847 --> 00:01:03.671
+Nothing reads a value before its writer commits.
+
+00:01:03.671 --> 00:01:07.105
+Now zoom all the way out.
+
+00:01:07.105 --> 00:01:10.539
+A real system has five pieces that cooperate.
+
+00:01:10.539 --> 00:01:13.973
+The application layer, where you write the transaction.
+
+00:01:13.973 --> 00:01:17.407
+The transaction manager, which coordinates it.
+
+00:01:17.407 --> 00:01:20.841
+The lock manager, which enforces two phase locking.
+
+00:01:20.841 --> 00:01:24.275
+The scheduler, which produces conflict-serializable schedules.
+
+00:01:24.275 --> 00:01:27.709
+And the recovery manager underneath, which makes durability real.
+
+00:01:27.709 --> 00:01:31.144
+Five parts.
+
+00:01:31.144 --> 00:01:34.578
+One contract.
+
+00:01:34.578 --> 00:01:38.012
+ACID.
+
+00:01:38.012 --> 00:01:41.446
+Atomicity, consistency, isolation, durability, delivered by parts you have now seen one at a time.
+
+00:01:41.446 --> 00:01:44.880
+So where do the speedups come from?
+
+00:01:44.880 --> 00:01:48.314
+The worked microschedule went from forty nine time units to thirty one.
+
+00:01:48.314 --> 00:01:51.748
+About thirty seven percent on two transactions.
+
+00:01:51.748 --> 00:01:55.182
+Ten to a hundred times at real scale.
+
+00:01:55.182 --> 00:01:58.616
+Idle waiting becomes useful work, and the schedule still passes the correctness test.
+
+00:01:58.616 --> 00:02:02.656
+Once those five pieces exist, the same protocol stretches.
+
+00:02:02.656 --> 00:02:06.697
+It distributes.
+
+00:02:06.697 --> 00:02:10.737
+One global transfer locks an account in New York, an account in San Francisco, and an audit log in Tokyo, and the manager holds two phase locking across all three.
+
+00:02:10.737 --> 00:02:14.777
+It recovers.
+
+00:02:14.777 --> 00:02:18.817
+The recovery manager replays the write-ahead log after a crash, so committed work survives.
+
+00:02:18.817 --> 00:02:22.858
+And it scales.
+
+00:02:22.858 --> 00:02:26.898
+Stock exchanges push millions of trades a second through this exact idea.
+
+00:02:26.898 --> 00:02:30.938
+Same core, different operating point.
+
+00:02:30.938 --> 00:02:34.653
+That is a transaction system: conflict-serializability defines correct, two phase locking enforces it.
+
+00:02:34.653 --> 00:02:38.368
+But every guarantee assumed machines stay up.
+
+00:02:38.368 --> 00:02:42.084
+They do not.
+
+00:02:42.084 --> 00:02:45.799
+Next is crash recovery, protecting committed work when the power goes out.
+
+00:02:45.799 --> 00:02:49.514
+Together they make ACID real.

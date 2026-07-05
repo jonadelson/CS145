@@ -1,0 +1,107 @@
+<h1>Window Functions: Calculations Without Collapsing</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Window functions compute aggregates across a partition defined by OVER, returning one result per input row instead of collapsing them like <code>GROUP BY</code>. The <code>OVER PARTITION BY</code> syntax adds derived metrics while preserving row granularity.</p>
+<p><strong>Intuition.</strong> <code>AVG(rating) OVER (PARTITION BY user_id)</code> computes Mickey's average alongside every one of Mickey's listen rows without collapsing them. The Listens table comes back at 9 rows, plus one new column.</p>
+</div>
+<h2>GROUP BY vs PARTITION BY</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/window-partition.svg" style="width:100%;height:auto;display:block;" alt="Two neutral panels over the same nine Listens rows: three Mickey (blue) 4.5, 4.2, 3.9; three Minnie (orange) 4.7, 4.6, 3.9; three Daffy (purple) 2.9, 4.9, NULL. Left, GROUP BY: the nine rows collapse into three summary rows, one average per user (Mickey 4.2, Minnie 4.4, Daffy 3.9). Right, PARTITION BY: all nine rows are kept, each gaining a user_avg column with that user's average. Color key: blue is Mickey, orange is Minnie, purple is Daffy."></p>
+</div>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same per-user average, two ways. GROUP BY collapses the nine listen rows into one summary row per user (Mickey 4.2, Minnie 4.4, Daffy 3.9), losing the detail. A window function, AVG(rating) OVER (PARTITION BY user_id), keeps all nine rows and attaches each user's average as a new column. Same math, but the window preserves row granularity.</p>
+</div>
+<p><a id="group-by-collapses"></a></p>
+<h3>GROUP BY: Collapses Rows</h3>
+<p><code>GROUP BY</code> collapses the detail rows into one summary row per group.</p>
+<pre><code><span class="sql-comment">-- One row per user; the per-row Listens detail is gone.</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id;
+</code></pre>
+<p><strong>9 rows → 3 rows.</strong> Mickey 4.2, Minnie 4.4, Daffy 3.9. Daffy's average ignores the NULL: <code>AVG(2.9, 4.9, NULL) = 7.8 / 2 = 3.9</code>.</p>
+<p><a id="partition-by-keeps-rows"></a></p>
+<h3>PARTITION BY: Keep All Rows</h3>
+<p><code>PARTITION BY</code> splits rows into groups, computes the aggregate within each group, and keeps every original row.</p>
+<pre><code><span class="sql-comment">-- All 9 listen rows preserved, with each user's avg attached as a new column.</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id, rating,
+       <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> user_id) <span class="sql-keyword">AS</span> user_avg
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">ORDER BY</span> user_id, song_id;
+</code></pre>
+<p><strong>9 rows → 9 rows (all kept).</strong> Each row keeps its rating and gains its user's average as a new <code>user_avg</code> column (Mickey 4.2, Minnie 4.4, Daffy 3.9). Daffy's NULL-rated row still shows 3.9: the window's <code>AVG</code> ignores the NULL, just as <code>GROUP BY</code> did.</p>
+<hr />
+<h2>Ranking Functions</h2>
+<p>Window functions can rank rows without collapsing them. Start with one function, <code>RANK</code>. It adds a <code>rank</code> column, ordered by rating within each user, highest first:</p>
+<p><a id="ranking-query"></a></p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/window-rank.svg" style="width:100%;height:auto;display:block;" alt="The RANK query, then the three steps side by side. Step 1, PARTITION BY user_id: three lanes in original order. Step 2, ORDER BY rating DESC: each lane sorted high to low with NULL last, so Daffy's 4.9 moves above 2.9. Step 3, assign the rank: each lane numbered 1, 2, 3 from the top."></p>
+</div>
+<pre><code><span class="sql-comment">-- Rank each user's listens by rating, highest first.</span>
+<span class="sql-keyword">SELECT</span>
+  user_id,
+  song_id,
+  rating,
+  <span class="sql-keyword">RANK</span>() <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> user_id <span class="sql-keyword">ORDER BY</span> rating DESC) <span class="sql-keyword">AS</span> <span class="sql-keyword">RANK</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>;
+</code></pre>
+<p>That is ranking: partition, then order, then number.</p>
+<p><a id="ranking-with-ties"></a></p>
+<h3>Handling ties</h3>
+<p><code>RANK</code> is one of three ranking functions. With no duplicate ratings they all produce the numbers above, so the choice only matters on a <strong>tie</strong>. The full query asks for all three at once:</p>
+<pre><code><span class="sql-keyword">SELECT</span> user_id, song_id, rating,
+  <span class="sql-keyword">ROW_NUMBER</span>() <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> user_id <span class="sql-keyword">ORDER BY</span> rating DESC) <span class="sql-keyword">AS</span> <span class="sql-keyword">ROW_NUMBER</span>,
+  <span class="sql-keyword">RANK</span>()       <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> user_id <span class="sql-keyword">ORDER BY</span> rating DESC) <span class="sql-keyword">AS</span> <span class="sql-keyword">RANK</span>,
+  <span class="sql-keyword">DENSE_RANK</span>() <span class="sql-keyword">OVER</span> (<span class="sql-keyword">PARTITION BY</span> user_id <span class="sql-keyword">ORDER BY</span> rating DESC) <span class="sql-keyword">AS</span> <span class="sql-keyword">DENSE_RANK</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>;
+</code></pre>
+<p>To see them diverge, imagine Mickey had a 4th listen rated 4.5, a tie with his existing 4.5:</p>
+<div style="width:100%;max-width:1000px;margin:2rem auto;">
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/window-ties.svg" style="width:100%;height:auto;display:block;" alt="Mickey's listens sorted by rating descending, with a hypothetical tie of two 4.5 ratings. Four rows: 4.5, 4.5, 4.2, 3.9. ROW_NUMBER is 1, 2, 3, 4, always unique. RANK is 1, 1, 3, 4: the tie shares rank 1, then RANK skips to 3 leaving a gap. DENSE_RANK is 1, 1, 2, 3: the tie shares rank 1, then DENSE_RANK stays packed with no gap. The two tied rows are shaded. Color key: blue is Mickey, the shaded band is the tie."></p>
+</div>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The three ranking functions agree until a tie. ROW_NUMBER is always unique (1, 2, 3, 4). RANK lets the tie share a rank then skips, leaving a gap (1, 1, 3, 4). DENSE_RANK lets the tie share a rank but stays packed, no gap (1, 1, 2, 3). The shaded band is Mickey's hypothetical 4.5 tie.</p>
+</div>
+<p>Three answers to one question:</p>
+<ul>
+<li>
+<p><strong>ROW_NUMBER</strong>: every row gets a unique number, ties broken arbitrarily. Use it for de-duplication and pagination.</p>
+</li>
+<li>
+<p><strong>RANK</strong>: ties share a rank, then it skips, leaving a gap. Use it for leaderboards where "joint 2nd, then 4th" is correct.</p>
+</li>
+<li>
+<p><strong>DENSE_RANK</strong>: ties share a rank with no gap. Use it when the next distinct value should be the next number.</p>
+</li>
+</ul>
+<hr />
+<h2>Key Rules</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/window-over.svg" style="width:100%;height:auto;display:block;" alt="What makes a function a window function is the OVER clause. AVG(rating) is GROUP BY style and collapses to one row per group. AVG(rating) OVER (PARTITION BY user_id) is a window function: one value per row, all rows kept. Any aggregate works in a window, plus LAG and LEAD to see the previous or next row."></p>
+</div>
+<ol>
+<li>
+<p><strong>No Row Reduction</strong>: Unlike GROUP BY, all rows survive.</p>
+</li>
+<li>
+<p><strong>PARTITION BY</strong>: Defines groups (optional - omit for whole table).</p>
+</li>
+<li>
+<p><strong>ORDER BY</strong>: Sets sequence within partitions (required for some functions).</p>
+</li>
+<li>
+<p><strong>NULL Handling</strong>: NULLs group together in PARTITION BY, sort first/last in ORDER BY.</p>
+</li>
+</ol>
+<hr />
+<h2>Common Patterns</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/window-patterns.svg" style="width:100%;height:auto;display:block;" alt="Five common window-function patterns sharing the OVER skeleton: ranking with ROW_NUMBER, RANK and DENSE_RANK; running totals with SUM OVER ORDER BY; moving averages with AVG over a ROWS window; LAG and LEAD to compare to the previous or next row; and NTILE or PERCENT_RANK for percentiles."></p>
+</div>
+<h2>Common Mistakes</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/window-mistakes.svg" style="width:100%;height:auto;display:block;" alt="Three common window-function mistakes, all silent. Missing PARTITION BY ranks across the whole table instead of per group. Wrong ORDER BY direction flips the ranking, so ASC makes your worst row number one. Forgetting NULLs in ORDER BY: NULLs sort first or last depending on the database, Postgres first and MySQL last."></p>
+</div>

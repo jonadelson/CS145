@@ -1,0 +1,80 @@
+<svg viewBox="0 0 1100 580" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="lsh-t lsh-d">
+  <title id="lsh-t">Three random cuts give every vector a code</title>
+  <desc id="lsh-d">A space crossed by three dashed cuts at clearly different angles, none axis-aligned. For every cut the rule is the same: a point above it reads 0, below it reads 1. The orange pair is above all three cuts, so both read 000 and share a bucket. Three light grey example points read 100, 010, and 111. The 000 pair and the 100 point differ by one bit because only cut 1 runs between them. Color key: orange is the reference pair, light grey is the other example points, grey dashed are the cuts.</desc>
+  <defs><marker id="ahl" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="550" y="38" font-size="24" font-weight="700" fill="#0E0E10"
+        text-anchor="middle">Three random cuts give every vector a code</text>
+  <text x="550" y="64" font-size="16" fill="#3F3F46" text-anchor="middle">Above a cut is 0. Below is 1. Read the three.</text>
+
+  <!-- the space (static frame) -->
+  <rect x="70" y="92" width="540" height="420" rx="8" fill="#FFFFFF"
+        stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- STEP 1: the close pair + the first cut + the rule -->
+  <g data-step="1">
+  <line x1="70" y1="150" x2="610" y2="447" stroke="#6B7280" stroke-width="2"
+        stroke-dasharray="6,5"/>
+  <text x="78" y="144" font-size="14" fill="#6B7280">cut 1</text>
+  <ellipse cx="180" cy="159" rx="38" ry="24" fill="none" stroke="#EA580C"
+           stroke-width="1.5" stroke-dasharray="5,4"/>
+  <circle cx="170" cy="165" r="6.5" fill="#EA580C"/>
+  <circle cx="190" cy="153" r="6.5" fill="#EA580C"/>
+  <text x="180" y="128" font-size="14" font-weight="700" fill="#EA580C"
+        text-anchor="middle">a close pair</text>
+  <rect x="660" y="110" width="400" height="86" rx="8" fill="#FFFFFF"
+        stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="660" y="110" width="400" height="6" rx="3" fill="#EA580C"/>
+  <text x="684" y="144" font-size="17" font-weight="700" fill="#EA580C">One cut: above 0, below 1</text>
+  <text x="684" y="170" font-size="15" fill="#3F3F46">Are you above or below the dashed line?</text>
+  <line x1="860" y1="200" x2="860" y2="226" stroke="#6B7280" stroke-width="2"
+        marker-end="url(#ahl)"/>
+  </g>
+
+  <!-- STEP 2: the other two cuts -->
+  <g data-step="2">
+  <line x1="70" y1="300" x2="610" y2="365" stroke="#6B7280" stroke-width="2"
+        stroke-dasharray="6,5"/>
+  <text x="78" y="294" font-size="14" fill="#6B7280">cut 3</text>
+  <line x1="70" y1="460" x2="610" y2="217" stroke="#6B7280" stroke-width="2"
+        stroke-dasharray="6,5"/>
+  <text x="78" y="454" font-size="14" fill="#6B7280">cut 2</text>
+  <rect x="660" y="232" width="400" height="86" rx="8" fill="#FFFFFF"
+        stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="660" y="232" width="400" height="6" rx="3" fill="#EA580C"/>
+  <text x="684" y="266" font-size="17" font-weight="700" fill="#EA580C">Three cuts, read in order</text>
+  <text x="684" y="292" font-size="15" fill="#3F3F46">Pair is above all three, so 000</text>
+  <line x1="860" y1="322" x2="860" y2="348" stroke="#6B7280" stroke-width="2"
+        marker-end="url(#ahl)"/>
+  </g>
+
+  <!-- STEP 3: the pair reads 000 -->
+  <g data-step="3">
+  <text x="180" y="106" font-size="14" font-weight="700" fill="#EA580C"
+        text-anchor="middle">above all 3 &#8594; 000</text>
+  </g>
+
+  <!-- STEP 4: other points, and the one-bit difference -->
+  <g data-step="4">
+  <circle cx="300" cy="300" r="6.5" fill="#6B7280"/>
+  <text x="316" y="304" font-size="14" font-weight="700" fill="#3F3F46">&#8594; 100</text>
+  <circle cx="520" cy="305" r="6.5" fill="#6B7280"/>
+  <text x="536" y="309" font-size="14" font-weight="700" fill="#3F3F46">&#8594; 010</text>
+  <circle cx="420" cy="420" r="6.5" fill="#6B7280"/>
+  <text x="436" y="424" font-size="14" font-weight="700" fill="#3F3F46">&#8594; 111</text>
+  <text x="340" y="540" font-size="14" font-weight="700" fill="#0E0E10"
+        text-anchor="middle">The 000 pair and the 100 point differ by one bit: only cut 1 runs between them</text>
+  <rect x="660" y="354" width="400" height="100" rx="8" fill="#FFFFFF"
+        stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="660" y="354" width="400" height="6" rx="3" fill="#EA580C"/>
+  <text x="684" y="388" font-size="17" font-weight="700" fill="#EA580C">A cut between you flips a bit</text>
+  <text x="684" y="414" font-size="15" fill="#3F3F46">The 100 point is below cut 1 only</text>
+  <text x="684" y="436" font-size="15" fill="#3F3F46">one bit flipped, different bucket</text>
+  </g>
+
+  <text x="550" y="568" font-size="14" fill="#6B7280" text-anchor="middle">
+    Color key  <tspan fill="#EA580C">orange = the reference pair, code 000</tspan>
+    · <tspan fill="#6B7280">grey = other example points, with codes</tspan>
+    · <tspan fill="#6B7280">grey dashed = the cuts</tspan></text>
+</svg>

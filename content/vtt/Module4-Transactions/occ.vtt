@@ -1,0 +1,88 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.853
+Two strategies so far.
+
+00:00:04.853 --> 00:00:07.705
+Locking makes you wait.
+
+00:00:07.705 --> 00:00:10.558
+Multiversion keeps versions so readers never block.
+
+00:00:10.558 --> 00:00:13.411
+The third is optimistic concurrency control, and it earns the name.
+
+00:00:13.411 --> 00:00:16.264
+Take no locks at all.
+
+00:00:16.264 --> 00:00:19.116
+Assume no one else touches your rows, run free, and check once, at commit.
+
+00:00:19.116 --> 00:00:21.969
+Usually you are right.
+
+00:00:21.969 --> 00:00:24.653
+Watch two transactions run with no locks.
+
+00:00:24.653 --> 00:00:27.336
+First, the read phase.
+
+00:00:27.336 --> 00:00:30.020
+T1 and T2 both reed what they need and compute on private copies.
+
+00:00:30.020 --> 00:00:32.703
+Nobody blocks.
+
+00:00:32.703 --> 00:00:35.387
+Second, the validate phase, at commit.
+
+00:00:35.387 --> 00:00:38.070
+One check.
+
+00:00:38.070 --> 00:00:40.754
+Did anything I reed get written by a transaction that committed since I started?
+
+00:00:40.754 --> 00:00:43.438
+T1 checks clean.
+
+00:00:43.438 --> 00:00:46.121
+T2 finds a row it reed was just written by T1, so it fails.
+
+00:00:46.121 --> 00:00:48.805
+Third, the write phase.
+
+00:00:48.805 --> 00:00:51.488
+T1 applies its writes and commits.
+
+00:00:51.488 --> 00:00:54.172
+T2 throws its work away and reruns.
+
+00:00:54.172 --> 00:00:56.855
+No one ever waited.
+
+00:00:56.855 --> 00:00:59.539
+T2 just ran twice.
+
+00:00:59.539 --> 00:01:04.864
+So when does optimism pay?
+
+00:01:04.864 --> 00:01:10.189
+When clashes are rare, almost nothing aborts and OCC runs lock-free.
+
+00:01:10.189 --> 00:01:15.514
+When the same hot rows clash again and again, transactions abort, retry, and burn work, and locking wins.
+
+00:01:15.514 --> 00:01:18.495
+Three strategies, one standard of correctness.
+
+00:01:18.495 --> 00:01:21.477
+Locking pays by waiting.
+
+00:01:21.477 --> 00:01:24.458
+Optimism pays by redoing.
+
+00:01:24.458 --> 00:01:27.440
+Multiversion skips the reader-writer wait with versions.
+
+00:01:27.440 --> 00:01:30.421
+Next, we connect all three into one transaction system.

@@ -1,0 +1,50 @@
+<svg viewBox="0 0 980 560" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="hb-t hb-d">
+  <title id="hb-t">HNSW is built in layers</title>
+  <desc id="hb-d">A hierarchical near-neighbour graph. Layer 0 holds every point, each linked to its nearest neighbours with short local links. A few points are promoted to layer 1, fewer to layer 2, with progressively longer links, the highways. Dashed verticals mark the same point appearing across layers. Color key: orange is points and their near-neighbour links, grey dashed is the same point across layers.</desc>
+  <defs><marker id="ahn" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#EA580C"/></marker></defs>
+  <text x="490" y="38" text-anchor="middle" style="font-size:23px;font-weight:700;fill:#0E0E10;">HNSW is built in layers</text>
+  <text x="490" y="64" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">Every point links to near neighbours. A few are promoted up, with longer links.</text>
+
+  <g data-step="1">
+  <line x1="120" y1="455" x2="260" y2="455" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="260" y1="455" x2="400" y2="455" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="400" y1="455" x2="540" y2="455" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="540" y1="455" x2="680" y2="455" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="680" y1="455" x2="820" y2="455" stroke="#D4D7DC" stroke-width="1.5"/>
+  <circle cx="120" cy="455" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="260" cy="455" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="400" cy="455" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="540" cy="455" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="680" cy="455" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="820" cy="455" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <text x="60" y="460" style="font-size:13px;font-weight:700;fill:#6B7280;">Layer 0</text>
+  <text x="490" y="510" text-anchor="middle" style="font-size:14px;fill:#3F3F46;">Layer 0: every point, linked to its nearest neighbours (short local links).</text>
+  </g>
+
+  <g data-step="2">
+  <line x1="260" y1="455" x2="260" y2="300" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="540" y1="455" x2="540" y2="300" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="680" y1="455" x2="680" y2="300" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="820" y1="455" x2="820" y2="300" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="260" y1="300" x2="540" y2="300" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="540" y1="300" x2="680" y2="300" stroke="#D4D7DC" stroke-width="1.5"/>
+  <line x1="680" y1="300" x2="820" y2="300" stroke="#D4D7DC" stroke-width="1.5"/>
+  <circle cx="260" cy="300" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="540" cy="300" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="680" cy="300" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="820" cy="300" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <text x="60" y="305" style="font-size:13px;font-weight:700;fill:#6B7280;">Layer 1</text>
+  </g>
+
+  <g data-step="3">
+  <line x1="260" y1="300" x2="260" y2="150" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="680" y1="300" x2="680" y2="150" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="260" y1="150" x2="680" y2="150" stroke="#D4D7DC" stroke-width="1.5"/>
+  <circle cx="260" cy="150" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <circle cx="680" cy="150" r="9" fill="#EA580C" stroke="#EA580C" stroke-width="1.5"/>
+  <text x="60" y="155" style="font-size:13px;font-weight:700;fill:#6B7280;">Layer 2</text>
+  <text x="490" y="110" text-anchor="middle" style="font-size:14px;fill:#3F3F46;">Fewer points up top, longer links: the express lanes.</text>
+  </g>
+
+  <text x="490" y="548" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = points + near-neighbour links&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey dashed</tspan><tspan fill="#3F3F46"> = the same point across layers</tspan></text>
+</svg>

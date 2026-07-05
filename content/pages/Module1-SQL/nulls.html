@@ -1,0 +1,293 @@
+<h1>NULL Values: The Unknown in SQL</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> <code>NULL</code> means "unknown," not 0 or empty. Any comparison with <code>NULL</code> returns <code>UNKNOWN</code>, a third truth value, so a <code>WHERE</code> test drops that row.</p>
+<p><strong>Intuition.</strong> Leave a listen's rating blank and SQL stores <code>NULL</code>. Ask "is rating &gt; 4?" about an unknown and the answer is <code>UNKNOWN</code>, not yes or no, so <code>WHERE</code> quietly drops the row and only <code>IS NULL</code> finds it.</p>
+</div>
+<div style="width: 100%; max-width: 1000px; margin: 2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/nulls-logic.svg" style="width:100%;height:auto;display:block;" alt="NULL adds a third truth value, UNKNOWN. Binary tests are TRUE (4.5 > 4.0) or FALSE (4.5 &gt; 5.0), but any comparison with NULL (4.5 &gt; NULL, NULL = NULL, rating = NULL) is UNKNOWN, shown grey with a question mark. WHERE keeps only TRUE rows, so UNKNOWN and NULL are gone; rating IS NULL is the only test that finds them."&gt;</p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> NULL is SQL's third truth value. In the binary world a comparison is TRUE or FALSE; compare anything with NULL and the answer is UNKNOWN. NULL needs its own rules because no comparison can pin down that third value.</p>
+</div>
+</div>
+<h2>Two-Valued Logic Refresher</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/nulls-truth.svg" style="width:100%;height:auto;display:block;" alt="Two-valued boolean logic truth tables. AND: only TRUE AND TRUE is TRUE; any FALSE makes it FALSE. OR: any TRUE makes it TRUE; only FALSE OR FALSE is FALSE. NOT flips TRUE to FALSE and FALSE to TRUE."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Boolean logic before NULL enters: AND needs both operands TRUE, OR needs at least one, NOT flips. Two values in, two values out.</p>
+</div>
+<p>In two-valued logic, every condition is TRUE or FALSE. Four operators:</p>
+<ul>
+<li>
+<p><strong>AND</strong>: <code>TRUE AND FALSE → FALSE</code>. Both must be TRUE.</p>
+</li>
+<li>
+<p><strong>OR</strong>: <code>TRUE OR FALSE → TRUE</code>. At least one must be TRUE.</p>
+</li>
+<li>
+<p><strong>NOT</strong>: <code>NOT TRUE → FALSE</code>. Flips the value.</p>
+</li>
+<li>
+<p><strong>= (equality)</strong>: <code>4 = 4 → TRUE</code>. Matches values.</p>
+</li>
+</ul>
+<hr />
+<h2>SQL Adds NULL: A Third Truth Value</h2>
+<p>A missing value is stored as <code>NULL</code>, meaning "unknown". That adds a third truth value beyond TRUE and FALSE: <strong>UNKNOWN</strong>.</p>
+<p><em>(SQL standard: NULL is the value, UNKNOWN is the truth value. Some databases like SQLite also use None/NaN.)</em></p>
+<hr />
+<h2>What Changes When NULL Enters</h2>
+<p><em>Read each example as a question. <code>4.5 &gt; NULL → NULL</code> asks "is 4.5 greater than NULL?" The answer is NULL because we don't know NULL's value.</em></p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/nulls-rules.svg" style="width:100%;height:auto;display:block;" alt="NULL's rules in two groups. Operators: a value dominates. FALSE AND NULL is FALSE (false wins), TRUE OR NULL is TRUE (true wins), TRUE AND NULL and FALSE OR NULL and NOT NULL are all NULL (NULL stays). Comparisons go UNKNOWN: 4.5 > NULL, 4 = NULL, NULL = NULL all NULL (NULL wins); only rating IS NULL returns a real TRUE or FALSE (the only real test)."&gt;</p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Two groups of rules. With operators a known value can dominate: FALSE wins an AND, TRUE wins an OR, so the result is sometimes definite. Comparisons never dominate: anything compared to NULL is UNKNOWN. Only <code>IS NULL</code> escapes the unknown and gives a real TRUE or FALSE.</p>
+</div>
+<p>Five patterns: a FALSE forces an AND to FALSE; a TRUE forces an OR to TRUE; NOT of NULL stays NULL; any comparison with NULL is UNKNOWN; only IS NULL gives a definite TRUE or FALSE.</p>
+<p><em>NULL also has its own quirks in aggregates and DISTINCT, covered in their own sections below. GROUP BY and JOINs handle NULL with similar quirks; those live on the GROUP BY and JOINs pages.</em></p>
+<hr />
+<h2>NULL in Comparisons</h2>
+<pre><code><span class="sql-comment">-- Test how NULL behaves with different comparison operators</span>
+<span class="sql-keyword">SELECT</span> 
+    listen_id,
+    rating,
+    rating <span class="sql-operator">=</span> <span class="sql-number">4.5</span>,
+    rating &gt; <span class="sql-number">4.0</span>,
+    rating <span class="sql-keyword">IS</span> <span class="sql-keyword">NULL</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> listen_id <span class="sql-keyword">IN</span> (<span class="sql-number">1</span>, <span class="sql-number">3</span>, <span class="sql-number">9</span>)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>listen_id</th>
+<th>rating</th>
+<th>rating = 4.5</th>
+<th>rating &gt; 4.0</th>
+<th>rating IS NULL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>4.5</td>
+<td>true</td>
+<td>true</td>
+<td>false</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3.9</td>
+<td>false</td>
+<td>false</td>
+<td>false</td>
+</tr>
+<tr>
+<td>9</td>
+<td>NULL</td>
+<td>null</td>
+<td>null</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+<p>Row 9 demonstrates rule 4: every comparison with NULL evaluates to NULL. To find that row you need <code>IS NULL</code> (rule 5).</p>
+<hr />
+<h2>NULL with AND/OR Logic</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/nulls-andor.svg" style="width:100%;height:auto;display:block;" alt="Daffy's row (user_id = 3, rating = NULL) under two operators. user_id = 3 is TRUE; rating > 4 is UNKNOWN. Under AND: TRUE AND UNKNOWN is UNKNOWN, so WHERE drops the row. Under OR: TRUE OR UNKNOWN is TRUE, so WHERE keeps it. Same row, two operators, two fates."&gt;</p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> One row, two operators. Daffy's <code>user_id = 3</code> is TRUE but <code>rating &gt; 4</code> is UNKNOWN. Under AND the UNKNOWN drops the row; under OR the TRUE keeps it. The operator decides whether a NULL survives.</p>
+</div>
+<pre><code><span class="sql-comment">-- Demonstrate three-valued logic with AND/OR operations</span>
+<span class="sql-keyword">SELECT</span> 
+    listen_id,
+    user_id,
+    rating,
+    (user_id <span class="sql-operator">=</span> <span class="sql-number">3</span> <span class="sql-keyword">AND</span> rating &gt; <span class="sql-number">4.0</span>) <span class="sql-keyword">AS</span> and_result,
+    (user_id <span class="sql-operator">=</span> <span class="sql-number">3</span> <span class="sql-keyword">OR</span> rating &gt; <span class="sql-number">4.0</span>) <span class="sql-keyword">AS</span> or_result
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> listen_id <span class="sql-keyword">IN</span> (<span class="sql-number">1</span>, <span class="sql-number">2</span>, <span class="sql-number">9</span>)
+</code></pre>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>listen_id</th><th>user_id</th><th>rating</th><th>and_result</th><th>or_result</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>1</td><td>4.5</td><td>false</td><td>true</td></tr><tr><td class="color-bar blue"></td><td>2</td><td>1</td><td>4.2</td><td>false</td><td>true</td></tr><tr><td class="color-bar purple"></td><td>9</td><td>3</td><td><span class="null-value">NULL</span></td><td><span class="null-value">NULL</span></td><td>true</td></tr>
+</tbody>
+</table>
+<p><strong>Logic Demonstration</strong></p>
+<ul>
+<li>
+<p>Rows 1 &amp; 2: user_id = 3 is FALSE, rating &gt; 4 is TRUE → AND returns FALSE, OR returns TRUE</p>
+</li>
+<li>
+<p>Row 9: TRUE AND NULL → NULL</p>
+</li>
+<li>
+<p>Row 9: TRUE OR NULL → TRUE (TRUE dominates in OR)</p>
+</li>
+</ul>
+<hr />
+<h2>NULL in WHERE Clause</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/nulls-queries.svg" style="width:100%;height:auto;display:block;" alt="The same NULL row across three WHERE filters, side by side. Query 1 WHERE rating IS NULL keeps row 9 (Daffy, NULL). Query 2 WHERE rating > 4.0 returns 5 rows and Query 3 WHERE rating &lt;= 4.0 returns 3 rows, both without row 9: every comparison with NULL is UNKNOWN, which WHERE drops."&gt;</p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 5.</strong> One NULL row, three filters. IS NULL (rule 5) returns TRUE and keeps row 9; both rating &gt; 4.0 and rating &lt;= 4.0 evaluate to UNKNOWN on a NULL, and WHERE keeps only TRUE rows, so the NULL is gone from both.</p>
+</div>
+<p><a id="is-null-query"></a></p>
+<p><strong>Query 1: Find the NULL ratings</strong></p>
+<pre><code><span class="sql-keyword">SELECT</span> listen_id, rating 
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> 
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">IS</span> <span class="sql-keyword">NULL</span>
+</code></pre>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>listen_id</th><th>rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar purple"></td><td>9</td><td><span class="null-value">NULL</span></td></tr>
+</tbody>
+</table>
+<p><em>1 row: Daffy's listen. <code>IS NULL</code> (rule 5) returns a definite TRUE for row 9, so WHERE keeps it.</em></p>
+<p><a id="null-vanish"></a></p>
+<p>The other two filters drop row 9.</p>
+<div class="side-by-side">
+<div><p><strong>Query 2: <code>WHERE rating &gt; 4.0</code></strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>listen_id</th><th>rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>4.5</td></tr><tr><td class="color-bar blue"></td><td>2</td><td>4.2</td></tr><tr><td class="color-bar orange"></td><td>4</td><td>4.7</td></tr><tr><td class="color-bar orange"></td><td>5</td><td>4.6</td></tr><tr><td class="color-bar purple"></td><td>8</td><td>4.9</td></tr>
+</tbody>
+</table>
+<p><em>5 rows. Row 9 missing.</em></p></div><div><p><strong>Query 3: <code>WHERE rating &lt;= 4.0</code></strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>listen_id</th><th>rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>3</td><td>3.9</td></tr><tr><td class="color-bar orange"></td><td>6</td><td>3.9</td></tr><tr><td class="color-bar purple"></td><td>7</td><td>2.9</td></tr>
+</tbody>
+</table>
+<p><em>3 rows. Row 9 missing again.</em></p></div>
+</div>
+<p>5 + 3 + 1 = 9 rows total. Daffy's NULL row drops from Queries 2 and 3:</p>
+<p><strong>How WHERE handles row 9 across all three filters:</strong></p>
+<table>
+<thead>
+<tr><th>filter</th><th>row 9 evaluates to</th><th class="annotation">WHERE action</th></tr>
+</thead>
+<tbody>
+<tr><td><code>rating IS NULL</code></td><td>TRUE</td><td class="annotation">keeps</td></tr><tr><td><code>rating &gt; 4.0</code></td><td><span class="null-value">NULL</span></td><td class="annotation">drops</td></tr><tr><td><code>rating &lt;= 4.0</code></td><td><span class="null-value">NULL</span></td><td class="annotation">drops</td></tr>
+</tbody>
+</table>
+<p>By rule 4, every comparison with NULL is NULL. WHERE keeps only TRUE rows, so the NULL is gone from both. Only <code>IS NULL</code> (rule 5) returns a definite TRUE and finds Daffy.</p>
+<hr />
+<h2>NULL in Aggregates</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/nulls-agg.svg" style="width:100%;height:auto;display:block;" alt="The Listens.rating column has nine values, one of them NULL. COUNT(*) returns 9: it counts every row, including the NULL. COUNT(rating) returns 8: it skips the NULL row. AVG(rating) returns 4.2, the sum of the eight known ratings, 33.6, divided by 8, not 9."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 6.</strong> The NULL row is counted once and skipped twice. <code>COUNT(*)</code> counts every row (9). <code>COUNT(rating)</code> and the math aggregates skip the NULL, so <code>AVG</code> divides by 8, not 9.</p>
+</div>
+<pre><code><span class="sql-comment">-- Compare how aggregates handle NULL values</span>
+<span class="sql-keyword">SELECT</span> 
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> total_rows,
+    <span class="sql-keyword">COUNT</span>(rating) <span class="sql-keyword">AS</span> rated_rows,
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating,
+    <span class="sql-keyword">SUM</span>(rating) <span class="sql-keyword">AS</span> sum_rating,
+    <span class="sql-keyword">MIN</span>(rating) <span class="sql-keyword">AS</span> min_rating,
+    <span class="sql-keyword">MAX</span>(rating) <span class="sql-keyword">AS</span> max_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+</code></pre>
+<table>
+<thead>
+<tr><th>total_rows</th><th>rated_rows</th><th>avg_rating</th><th>sum_rating</th><th>min_rating</th><th>max_rating</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td>9</td><td>8</td><td>4.2</td><td>33.6</td><td>2.9</td><td>4.9</td><td class="annotation">COUNT(*) counts all; others skip NULL</td></tr>
+</tbody>
+</table>
+<p><strong>Calculation Details:</strong></p>
+<ul>
+<li>
+<p><strong>COUNT(*)</strong>: All 9 rows in table</p>
+</li>
+<li>
+<p><strong>COUNT(rating)</strong>: Only 8 non-NULL values (row 9 has NULL)</p>
+</li>
+<li>
+<p><strong>AVG(rating)</strong>: (4.5+4.2+3.9+4.7+4.6+3.9+2.9+4.9)/8 = 4.2</p>
+</li>
+<li>
+<p><strong>SUM(rating)</strong>: Sum of 8 non-NULL values = 33.6</p>
+</li>
+<li>
+<p><strong>MIN(rating)</strong>: Minimum non-NULL value = 2.9</p>
+</li>
+<li>
+<p><strong>MAX(rating)</strong>: Maximum non-NULL value = 4.9</p>
+</li>
+</ul>
+<p><strong>Key Points</strong></p>
+<ul>
+<li>
+<p>COUNT(*) counts every row</p>
+</li>
+<li>
+<p>COUNT(column) skips NULLs</p>
+</li>
+<li>
+<p>AVG/SUM/MIN/MAX ignore NULLs</p>
+</li>
+<li>
+<p>AVG divides by non-NULL count</p>
+</li>
+</ul>
+<hr />
+<h2>NULL in DISTINCT</h2>
+<pre><code><span class="sql-comment">-- Get unique rating values (NULLs treated as one group)</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+</code></pre>
+<table>
+<thead>
+<tr><th>rating</th><th class="annotation">Annotations</th></tr>
+</thead>
+<tbody>
+<tr><td><span class="null-value">NULL</span></td><td class="annotation">NULL forms one unique value</td></tr><tr><td>2.9</td><td class="annotation">From listen_id 7</td></tr><tr><td>3.9</td><td class="annotation">Keeping only one (from listen_ids 3, 6)</td></tr><tr><td>4.2</td><td class="annotation">From listen_id 2</td></tr><tr><td>4.5</td><td class="annotation">From listen_id 1</td></tr><tr><td>4.6</td><td class="annotation">From listen_id 5</td></tr><tr><td>4.7</td><td class="annotation">From listen_id 4</td></tr><tr><td>4.9</td><td class="annotation">From listen_id 8</td></tr>
+</tbody>
+</table>
+<p>DISTINCT treats all NULLs as one unique value, even though <code>NULL = NULL</code> is NULL by rule 4. (GROUP BY behaves the same way; covered on the GROUP BY page.)</p>
+<hr />
+<h2>Common Mistakes</h2>
+<h3>The = NULL Trap</h3>
+<p><strong>Rule 4 violation (NULL wins).</strong> <code>rating = NULL</code> returns NULL on every row, and WHERE drops NULL.</p>
+<pre><code><span class="sql-comment">-- WRONG: rating = NULL always returns NULL (not TRUE)</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> <span class="sql-keyword">WHERE</span> rating <span class="sql-operator">=</span> <span class="sql-keyword">NULL</span>
+
+<span class="sql-comment">-- CORRECT: Use IS NULL to properly test for NULL</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> <span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">IS</span> <span class="sql-keyword">NULL</span>
+</code></pre>
+<h3>The NOT NULL Gotcha</h3>
+<p><strong>Rules 3 + 4 violation (NOT NULL stays NULL; comparisons with NULL produce NULL).</strong> When <code>rating</code> is NULL, <code>rating &gt; 4.0</code> is NULL, and <code>NOT NULL</code> is still NULL, so WHERE keeps only TRUE rows and the row is gone.</p>
+<pre><code><span class="sql-comment">-- WRONG: NOT (rating &gt; 4.0) still excludes NULLs</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> <span class="sql-keyword">WHERE</span> <span class="sql-keyword">NOT</span> (rating &gt; <span class="sql-number">4.0</span>)
+
+<span class="sql-comment">-- CORRECT: Explicitly include NULLs if you want them</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> 
+<span class="sql-keyword">WHERE</span> rating &lt;<span class="sql-operator">=</span> <span class="sql-number">4.0</span> <span class="sql-keyword">OR</span> rating <span class="sql-keyword">IS</span> <span class="sql-keyword">NULL</span>
+</code></pre>
+<h3>COUNT(*) vs COUNT(column)</h3>
+<p><strong>Aggregate behavior (separate from the logic rules above).</strong> <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>, and <code>COUNT(column)</code> all skip NULLs. Only <code>COUNT(*)</code> counts every row.</p>
+<pre><code><span class="sql-comment">-- COUNT(*) vs COUNT(column) behave differently with NULLs</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> all_rows,           <span class="sql-comment">-- Returns 9</span>
+       <span class="sql-keyword">COUNT</span>(rating) <span class="sql-keyword">AS</span> rated_rows      <span class="sql-comment">-- Returns 8</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+</code></pre>

@@ -1,0 +1,76 @@
+<svg viewBox="0 0 1000 508" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sstable-anatomy-t sstable-anatomy-d">
+  <title id="sstable-anatomy-t">SSTable anatomy: bloom filter + index block + data blocks all in one immutable file on disk; bloom filter is cached in RAM</title>
+  <desc id="sstable-anatomy-d">SSTable anatomy: bloom filter, index block, and data blocks all in one immutable file on disk; the bloom filter is also cached in RAM. Below: three SSTable files coexist on disk; the user_100 example in violet shows the newest version wins. Color key: green is the on-disk index and data blocks (persistent), red is the bloom filter held in RAM (the not-exists gatekeeper), violet follows user_100 across versions.</desc>
+    <text x="500" y="30" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="#0E0E10">SSTable anatomy</text>
+    <text x="500" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-style="italic" fill="#6B7280">one immutable file · many files coexist on disk</text>
+
+    <g data-step="1">
+    <text x="70" y="92" text-anchor="start" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#3F3F46">1 · one SSTable file, three sections</text>
+
+    <rect x="70" y="104" width="900" height="140" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="70" y="104" width="900" height="6" rx="10" fill="#059669"/>
+    </g>
+
+    <g data-step="2">
+    <rect x="90" y="120" width="200" height="110" rx="6" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.8"/>
+    <rect x="90" y="120" width="200" height="6" rx="6" fill="#DC2626"/>
+    <text x="190" y="146" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#DC2626">Bloom filter</text>
+    <text x="190" y="162" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">held in RAM, the gatekeeper</text>
+    <text x="105" y="180" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">fast "not-exists" check</text>
+    <text x="105" y="196" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">~1% false positive</text>
+    <text x="105" y="212" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">skips useless reads</text>
+    <text x="105" y="228" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">~1 KB per million keys</text>
+    </g>
+
+    <g data-step="3">
+    <rect x="320" y="120" width="200" height="110" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.8"/>
+    <text x="420" y="142" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#059669">Index block</text>
+    <text x="420" y="158" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">on disk</text>
+    <text x="335" y="180" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">sparse (every Nth key)</text>
+    <text x="335" y="196" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">key<tspan baseline-shift="sub" font-size="0.72em">100</tspan> → 4096</text>
+    <text x="335" y="212" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">key<tspan baseline-shift="sub" font-size="0.72em">200</tspan> → 8192</text>
+    <text x="335" y="228" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">key<tspan baseline-shift="sub" font-size="0.72em">300</tspan> → 12288</text>
+    </g>
+
+    <g data-step="4">
+    <rect x="540" y="120" width="410" height="110" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.8"/>
+    <text x="745" y="142" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#059669">Data blocks · sorted by key</text>
+    <text x="745" y="158" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">on disk · compressed · read by offset</text>
+    <text x="555" y="182" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">key<tspan baseline-shift="sub" font-size="0.72em">100</tspan> · v1 · {…}</text>
+    <text x="555" y="198" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">key<tspan baseline-shift="sub" font-size="0.72em">101</tspan> · v1 · {…}</text>
+    <text x="555" y="214" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">key<tspan baseline-shift="sub" font-size="0.72em">150</tspan> · v1 · {…}</text>
+    <text x="555" y="230" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">key<tspan baseline-shift="sub" font-size="0.72em">200</tspan> · v1 · {…}</text>
+    </g>
+
+    <g data-step="5">
+    <text x="70" y="284" text-anchor="start" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#3F3F46">2 · many SSTables with overlapping keys; newest wins</text>
+
+    <rect x="70" y="296" width="900" height="170" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="70" y="296" width="900" height="6" rx="10" fill="#059669"/>
+
+    <rect x="90" y="312" width="860" height="40" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="105" y="330" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">sstable_3.db</text>
+    <text x="105" y="345" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">newest · 1 hr ago</text>
+    <text x="240" y="338" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">[ </text>
+    <text x="252" y="338" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">user<tspan baseline-shift="sub" font-size="0.72em">100</tspan>:v3</text>
+    <text x="350" y="338" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46"> · user<tspan baseline-shift="sub" font-size="0.72em">150</tspan>:v1 · user<tspan baseline-shift="sub" font-size="0.72em">200</tspan>:v2 · … · user<tspan baseline-shift="sub" font-size="0.72em">400</tspan>:v1 ]</text>
+
+    <rect x="90" y="358" width="860" height="40" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="105" y="376" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">sstable_2.db</text>
+    <text x="105" y="391" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">2 hr ago</text>
+    <text x="240" y="384" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">[ user<tspan baseline-shift="sub" font-size="0.72em">050</tspan>:v1 · </text>
+    <text x="372" y="384" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">user<tspan baseline-shift="sub" font-size="0.72em">100</tspan>:v2</text>
+    <text x="470" y="384" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46"> · user<tspan baseline-shift="sub" font-size="0.72em">200</tspan>:v1 · … · user<tspan baseline-shift="sub" font-size="0.72em">350</tspan>:v1 ]</text>
+
+    <rect x="90" y="404" width="860" height="40" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="105" y="422" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#059669">sstable_1.db</text>
+    <text x="105" y="437" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">oldest · 3 hr ago</text>
+    <text x="240" y="430" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">[ user<tspan baseline-shift="sub" font-size="0.72em">001</tspan>:v1 · </text>
+    <text x="372" y="430" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">user<tspan baseline-shift="sub" font-size="0.72em">100</tspan>:v1</text>
+    <text x="470" y="430" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46"> · user<tspan baseline-shift="sub" font-size="0.72em">150</tspan>:v1 · … · user<tspan baseline-shift="sub" font-size="0.72em">600</tspan>:v1 ]</text>
+
+    <text x="500" y="460" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">user<tspan baseline-shift="sub" font-size="0.72em">100</tspan> (violet) appears in all three; the v3 in sstable_3 wins on read</text>
+    </g>
+
+    <text x="500" y="492" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = on-disk blocks&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = bloom filter in RAM&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = user<tspan baseline-shift="sub" font-size="0.72em">100</tspan> across versions, newest wins</tspan></text>
+</svg>

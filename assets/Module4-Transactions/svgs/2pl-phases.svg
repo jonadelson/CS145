@@ -1,0 +1,28 @@
+<svg viewBox="0 -34 360 234" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:360px; display:block; margin:0.5rem auto;" role="img" aria-labelledby="2pl-phases-t 2pl-phases-d">
+  <title id="2pl-phases-t">2PL: locks held rise during the growing phase, peak, then fall during the shrinking phase</title>
+  <desc id="2pl-phases-d">A lock-count curve over the life of one transaction. Locks held (violet) climb step by step through the growing phase, peak, then fall step by step through the shrinking phase. A dashed divider marks the first unlock, the moment the protocol crosses from growing to shrinking. Color key: violet is the locks-held curve.</desc>
+    <text x="185" y="-14" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#0E0E10">Two-Phase Locking (2PL)</text>
+    <g data-step="1">
+                <!-- axes -->
+                <line x1="40" y1="160" x2="330" y2="160" stroke="#D4D7DC" stroke-width="1.5"/>
+                <line x1="40" y1="160" x2="40"  y2="30"  stroke="#D4D7DC" stroke-width="1.5"/>
+                <text x="40"  y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#6B7280">begin</text>
+                <text x="335" y="180" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#6B7280">commit</text>
+                <text x="18" y="95" text-anchor="middle" transform="rotate(-90 18 95)" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#6B7280">Number of Locks</text>
+                <text x="185" y="195" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#6B7280">time →</text>
+    </g>
+    <g data-step="2">
+                <!-- staircase up (growing) to the peak -->
+                <polyline points="40,160 70,160 70,140 110,140 110,115 150,115 150,90 190,90" fill="none" stroke="var(--m4, #7C3AED)" stroke-width="2.5"/>
+                <text x="115" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="var(--m4, #7C3AED)">growing phase</text>
+                <text x="115" y="65" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#6B7280">acquire only</text>
+    </g>
+    <g data-step="3">
+                <!-- first unlock divider, then staircase down (shrinking) -->
+                <line x1="190" y1="30" x2="190" y2="160" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,3"/>
+                <text x="190" y="22" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#6B7280">first unlock</text>
+                <polyline points="190,90 190,115 220,115 220,140 260,140 260,160 300,160" fill="none" stroke="var(--m4, #7C3AED)" stroke-width="2.5"/>
+                <text x="245" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="var(--m4, #7C3AED)">shrinking phase</text>
+                <text x="245" y="65" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#6B7280">release only</text>
+    </g>
+</svg>

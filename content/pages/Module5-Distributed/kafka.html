@@ -1,0 +1,45 @@
+<h1>Apache Kafka: Real-Time Event Streaming</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Kafka is a durable, partitioned, replicated commit log: producers append events to per-topic partitions, consumers read them at their own pace, and the log itself is the source of truth, so multiple downstream systems can independently replay the same stream of events.</p>
+<p><strong>Intuition.</strong> When Mickey hits play, the Spotify client emits a <code>play_started</code> event to the <code>plays</code> topic. Kafka appends it to one of the topic's partitions (chosen by <code>hash(user_id)</code>), replicates it to 3 brokers, and now both the recommendation pipeline and the royalty-payout pipeline can read that exact event independently, at their own speed, replaying as far back as the retention window allows.</p>
+</div>
+<hr />
+<h2>A Worked Example: One Play, Two Pipelines</h2>
+<p>Trace what happens when Mickey hits play on a Taylor Swift track.</p>
+<ol>
+<li>
+<p><strong>Produce.</strong> The client builds a <code>play_started</code> event and sends it to a Kafka producer, which hashes <code>user_id</code> to pick a partition of the <code>plays</code> topic and appends the event to that partition's log.</p>
+</li>
+<li>
+<p><strong>Replicate.</strong> The partition lives on three brokers (1 leader, 2 followers); the leader waits for followers to acknowledge, so the event survives any single broker dying.</p>
+</li>
+<li>
+<p><strong>Consume independently.</strong> The recommendation pipeline reads Mickey's event within milliseconds and updates "Up Next"; the royalty pipeline reads it later in its nightly batch. Each tracks its own offset and never blocks the other.</p>
+</li>
+<li>
+<p><strong>Replay on demand.</strong> Ship a bug in the model, rewind the consumer to yesterday's offset, and re-read the same events with fixed code. The log is the durable source of truth, so the replay is bit-identical.</p>
+</li>
+</ol>
+<p><a id="kafka-figure"></a></p>
+<div style="width: 100%; max-width: 900px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/kafka-log.svg" alt="The producer hashes user_id to pick one of three pink topic partitions P0 to P2, each replicated 3x; two independent grey consumers read at their own offsets, the recommendation pipeline at offset 16 in real time and royalty at offset 12 nightly, and can replay any past offset" style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Kafka is a partitioned, replicated commit log. The producer hashes each event's key (here <code>user_id</code>) to pick a partition, so one user's events stay in order; the topic's 3 partitions each replicate 3× across brokers, giving parallelism and ordering from partitions and durability from replicas. Two independent consumers, Recommendations and Royalty, track their own offsets and read at their own pace, and because events stay until retention expires, either can rewind and re-read. Typical scale: millions of events per second, under 10 ms end to end, retained for days or longer.</p>
+</div>
+<hr />
+<h2>Queue vs Log</h2>
+<p>People call Kafka "a message queue." It is really a <strong>log</strong>, and that one difference is why a new consumer can join later for free.</p>
+<p>A <strong>queue consumes on read</strong>: once a consumer pops a message, it is gone, so adding a second downstream system means re-publishing everything. A <strong>log persists after read</strong>: every event sits in the log until retention expires (days, sometimes forever), so a new analytics team, ML pipeline, or fraud detector can join years later and read the entire history without disturbing existing consumers.</p>
+<hr />
+<h2>Delivery, in One Line</h2>
+<p>Delivery is tunable, <em>at-most-once</em> (may drop, never duplicate), <em>at-least-once</em> (never drop, may duplicate), or <em>exactly-once</em> (via the transactional API). In practice almost everyone runs <strong>at-least-once with idempotent consumers</strong>, and reaches for exactly-once only when money is on the line.</p>
+<hr />
+<h2>Where Kafka Fits in the Big Picture</h2>
+<p>Kafka is not a competitor to MapReduce or Spark, it is the connective tissue that feeds them. Producers append events, consumers read them at their own pace, and that is the whole job: a durable pipe between the systems that produce data and the systems that process it. MapReduce and Spark work on data that already exists in storage; Kafka is the piece that gets it there in the first place, in real time, and keeps it replayable.</p>
+<hr />
+<h2>Real-World Use</h2>
+<p>LinkedIn (where Kafka was born) runs about <strong>1 trillion messages a day</strong>; Netflix about <strong>4 million events a second</strong>. Most high-volume event pipelines at large internet companies run on Kafka.</p>
+<hr />
+<h2>Wrap-up</h2>
+<p>Across this module you walked every layer of the modern data stack: storage that survives failure (GFS, DFS), computation that scales (MapReduce, Spark), and now an event substrate that moves data in real time (Kafka). All three rest on the same primitives: hash partitioning, replication, and consensus. Next time you hear "we built it on Kafka" or "we run Spark on S3," you can decompose the architecture into those primitives.</p>

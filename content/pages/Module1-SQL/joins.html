@@ -1,0 +1,184 @@
+<h1>JOINs: Combining Tables</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A JOIN pairs rows from two tables on a predicate. The join type (INNER, LEFT, RIGHT, FULL) decides what happens to rows that find no match.</p>
+<p><strong>Intuition.</strong> INNER JOIN of Users and Listens on <code>user_id</code> returns one row per matching pair, so Mickey's 3 listens become 3 rows. LEFT JOIN keeps every user even if they have no listens; INNER drops them.</p>
+</div>
+<div class="v5-callout v5-callout--warn">
+<p><strong>Note on ordering:</strong> The visual examples show one possible ordering. Without ORDER BY, your results may appear in any order, even different each time you run the query.</p>
+</div>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/joins-inner.svg" style="width:100%;height:auto;display:block;" alt="Users joined to Listens on user_id: Mickey, Minnie and Daffy each match three listens, giving nine inner-join rows; Pluto has no listens and is dropped."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> User names live in the Users table; every play lives in a separate Listens table. A join pairs each Users row with its matching Listens rows on user_id. It does not intersect the tables. Mickey has 3 rows in Listens, so the join produces 3 Mickey rows, one per play. That is the ×3. INNER JOIN keeps only matched pairs, so it drops Pluto, who has zero plays: 9 rows.</p>
+</div>
+<h2>INNER JOIN</h2>
+<div class="side-by-side">
+<div><h3>Users Table (4 rows)</h3>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>name</th><th>email</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>mickey@example.com</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>minnie@example.com</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>daffy@example.com</td></tr><tr><td class="color-bar cyan"></td><td>4</td><td>Pluto</td><td>pluto@example.com</td></tr>
+</tbody>
+</table></div><div><h3>Listens Table (9 rows)</h3>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>listen_id</th><th>user_id</th><th>song_id</th><th>rating</th><th>listen_time</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>1</td><td>1</td><td>4.5</td><td>2024-08-30 14:35:00</td></tr><tr><td class="color-bar blue"></td><td>2</td><td>1</td><td>2</td><td>4.2</td><td><span class="null-value">NULL</span></td></tr><tr><td class="color-bar blue"></td><td>3</td><td>1</td><td>6</td><td>3.9</td><td>2024-08-29 10:15:00</td></tr><tr><td class="color-bar orange"></td><td>4</td><td>2</td><td>2</td><td>4.7</td><td><span class="null-value">NULL</span></td></tr><tr><td class="color-bar orange"></td><td>5</td><td>2</td><td>7</td><td>4.6</td><td>2024-08-28 09:20:00</td></tr><tr><td class="color-bar orange"></td><td>6</td><td>2</td><td>8</td><td>3.9</td><td>2024-08-27 16:45:00</td></tr><tr><td class="color-bar purple"></td><td>7</td><td>3</td><td>1</td><td>2.9</td><td><span class="null-value">NULL</span></td></tr><tr><td class="color-bar purple"></td><td>8</td><td>3</td><td>2</td><td>4.9</td><td>2024-08-26 12:30:00</td></tr><tr><td class="color-bar purple"></td><td>9</td><td>3</td><td>6</td><td><span class="null-value">NULL</span></td><td><span class="null-value">NULL</span></td></tr>
+</tbody>
+</table></div>
+</div>
+<p><a id="inner-query"></a></p>
+<pre><code><span class="sql-comment">-- Get all users with their listening history (excludes users without listens)</span>
+<span class="sql-keyword">SELECT</span> u.user_id, u.name, l.listen_id, l.song_id, l.rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Listens</span> l
+  <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> l.user_id
+<span class="sql-keyword">ORDER BY</span> u.user_id, l.listen_id;
+</code></pre>
+<h3>Output (9 rows)</h3>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>name</th><th>listen_id</th><th>song_id</th><th>rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>1</td><td>1</td><td>4.5</td></tr><tr><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>2</td><td>2</td><td>4.2</td></tr><tr><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>3</td><td>6</td><td>3.9</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>4</td><td>2</td><td>4.7</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>5</td><td>7</td><td>4.6</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>6</td><td>8</td><td>3.9</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>7</td><td>1</td><td>2.9</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>8</td><td>2</td><td>4.9</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>9</td><td>6</td><td><span class="null-value">NULL</span></td></tr>
+</tbody>
+</table>
+<ul>
+<li>INNER JOIN is a double for-loop: for each user, for each of their listens, emit one row. Unmatched users (Pluto) drop out.</li>
+</ul>
+<hr />
+<h2>Multiple JOINs</h2>
+<p><a id="multi-query"></a></p>
+<pre><code><span class="sql-comment">-- Get user + song details for high-rated listens (rating &gt; 4.0)</span>
+<span class="sql-keyword">SELECT</span> u.name, s.title, s.artist, l.rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> l.user_id
+<span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Songs</span>   s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">WHERE</span> l.rating &gt; <span class="sql-number">4.0</span>
+<span class="sql-keyword">ORDER BY</span> u.name, l.rating DESC;
+</code></pre>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>name</th><th>title</th><th>artist</th><th>rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar purple"></td><td>Daffy</td><td>Willow</td><td>Taylor Swift</td><td>4.9</td></tr><tr><td class="color-bar blue"></td><td>Mickey</td><td>Evermore</td><td>Taylor Swift</td><td>4.5</td></tr><tr><td class="color-bar blue"></td><td>Mickey</td><td>Willow</td><td>Taylor Swift</td><td>4.2</td></tr><tr><td class="color-bar orange"></td><td>Minnie</td><td>Willow</td><td>Taylor Swift</td><td>4.7</td></tr><tr><td class="color-bar orange"></td><td>Minnie</td><td>Yellow Sub</td><td>The Beatles</td><td>4.6</td></tr>
+</tbody>
+</table>
+<ul>
+<li>
+<p>Connect Users, Listens, and Songs.</p>
+</li>
+<li>
+<p>Apply WHERE after all JOINs.</p>
+</li>
+<li>
+<p>Chain joins to walk from Users to Songs through Listens; the WHERE filter runs once, after every join is built.</p>
+</li>
+</ul>
+<hr />
+<h2>Outer Joins: LEFT and RIGHT</h2>
+<h3>LEFT JOIN</h3>
+<pre><code><span class="sql-comment">-- Keep every user, even those with no listens</span>
+<span class="sql-keyword">SELECT</span> u.user_id, u.name, l.listen_id, l.rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">LEFT JOIN</span> <span class="sql-table">Listens</span> l
+  <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> l.user_id
+<span class="sql-keyword">ORDER BY</span> u.user_id, l.listen_id;
+</code></pre>
+<p>LEFT keeps every row of the <em>left</em> table. So Pluto, who never listened, returns as a tenth row with his listen columns NULL-filled.</p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/joins-combine.svg" style="width:100%;height:auto;display:block;" alt="Users LEFT JOIN Listens: Mickey, Minnie and Daffy match three listens each (nine rows); Pluto has no match, but LEFT JOIN keeps him as a tenth row, NULL-filled."></p>
+</div>
+<h3>RIGHT JOIN</h3>
+<p>RIGHT keeps every row of the <em>right</em> table, the mirror of LEFT. Keep all the <strong>Songs</strong>: not every song has a listen, so the unmatched rows show up on the right.</p>
+<pre><code><span class="sql-comment">-- Keep every song, even the ones nobody ever played</span>
+<span class="sql-keyword">SELECT</span> s.song_id, s.title, l.rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l
+<span class="sql-keyword">RIGHT JOIN</span> <span class="sql-table">Songs</span> s
+  <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">ORDER BY</span> s.song_id;
+</code></pre>
+<p><a id="right-query"></a>
+<a id="right-fk-intuition"></a></p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/joins-songs.svg" style="width:100%;height:auto;display:block;" alt="Ten songs joined to nine listens on song_id: five songs (Shape of You, Photograph, Shivers, Bad Blood, DJ Mix) were never played. INNER JOIN returns the nine played-song rows; RIGHT JOIN keeps all ten songs, adding the five unplayed ones NULL-filled, for fourteen rows."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Not every song has a listen: five were never played. INNER JOIN drops them; RIGHT JOIN keeps every song, NULL-filling the listen side for the five with no plays. Flip which table you keep, and the unmatched rows you preserve flip with it.</p>
+</div>
+<h3>FULL OUTER JOIN</h3>
+<p><a id="full-query"></a></p>
+<pre><code><span class="sql-comment">-- Keep every user AND every listen, padding with NULLs on either side</span>
+<span class="sql-keyword">SELECT</span> u.user_id, u.name, l.listen_id, l.rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+FULL OUTER <span class="sql-keyword">JOIN</span> <span class="sql-table">Listens</span> l
+  <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> l.user_id;
+</code></pre>
+<p><strong>FULL OUTER JOIN is the union of LEFT + RIGHT.</strong> Every row from both tables stays, NULL-padded where they don't match: it keeps the unmatched rows from <em>either</em> side at once. SQLite doesn't support it; combine a LEFT JOIN with <code>UNION</code> and a RIGHT JOIN instead.</p>
+<hr />
+<h2>Foreign Keys</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/joins-fk.svg" style="width:100%;height:auto;display:block;" alt="A foreign key (Listens.user_id references Users) means every listen has a user, so Users RIGHT JOIN Listens equals the inner join with no orphans; songs have no such rule, so five unplayed songs make RIGHT JOIN differ, at fourteen rows."></p>
+</div>
+<p>A <strong>foreign key</strong> forces every row on one side to have a match. <code>Listens.user_id</code> references <code>Users</code>, so every listen has a user. That is why <code>Users RIGHT JOIN Listens</code> came out identical to the inner join: there were no orphan listens to keep. An outer join only adds rows when the side it keeps has unmatched ones. Songs have no such rule, so five go unplayed, and a RIGHT JOIN on Songs surfaces them. <strong>On the foreign-key side, an outer join adds nothing; on the other side, it finds the orphans.</strong></p>
+<hr />
+<h2>JOIN ON: Beyond Simple Equality</h2>
+<p><strong>The ON clause accepts any boolean condition, not only equality. Combine predicates with AND/OR; it is evaluated for each candidate row pair.</strong></p>
+<hr />
+<h2>Key Rules</h2>
+<ol>
+<li>
+<p><strong>Join Condition</strong>: The ON clause defines the relationship (e.g., <code>Users.user_id = Listens.user_id</code>).</p>
+</li>
+<li>
+<p><strong>Join Order</strong>: Multiple JOINs are processed left-to-right, building intermediate results.</p>
+</li>
+<li>
+<p><strong>NULL Handling</strong>: Outer joins fill unmatched rows with NULLs.</p>
+</li>
+<li>
+<p><strong>Cartesian Product</strong>: A missing ON clause results in every possible combination, which is usually a mistake.</p>
+</li>
+<li>
+<p><strong>Column Ambiguity</strong>: Table aliases clarify which table a column belongs to.</p>
+</li>
+<li>
+<p><strong>Result Ordering</strong>: Without ORDER BY, rows return in an undefined order. Use ORDER BY for consistent results. (As we'll see later in Section 3, ordering incurs a performance cost due to sorting.)</p>
+</li>
+</ol>
+<h2>Common Patterns</h2>
+<ul>
+<li>
+<p><strong>One-to-Many</strong>: One user can have many listens (Users → Listens).</p>
+</li>
+<li>
+<p><strong>Many-to-Many</strong>: Users listen to songs via a junction table (Users → Listens → Songs).</p>
+</li>
+<li>
+<p><strong>Optional Relationships</strong>: LEFT JOIN keeps all users, even those without listens.</p>
+</li>
+<li>
+<p><strong>Chaining</strong>: Connect 3+ tables by joining results with the next table.</p>
+</li>
+</ul>
+<h2>Common Mistakes</h2>
+<div class="v5-callout v5-callout--danger">
+<p><strong>Cartesian product warning:</strong> a missing ON clause multiplies rows.<br>
+4 users × 9 listens = 36 rows (see example below)</p>
+</div>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/joins-cartesian.svg" style="width:100%;height:auto;display:block;" alt="Forgetting the ON clause pairs every user with every listen: a 4 by 9 grid of 36 cells, only 9 of which (matching user_id) are real matches; the other 27 are meaningless."></p>
+</div>
+<h3>Forgetting JOIN conditions</h3>
+<p><strong>Problem:</strong> Missing ON clause creates a cartesian product.</p>
+<h3>Wrong JOIN type for requirement</h3>
+<p><strong>Problem:</strong> INNER JOIN excludes non-matching rows.</p>
+<h3>Ambiguous column names</h3>
+<p><strong>Problem:</strong> Both tables have a <code>user_id</code> column.</p>

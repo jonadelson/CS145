@@ -1,0 +1,289 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:03.950
+We spent the last pages on what ACID means.
+
+00:00:03.950 --> 00:00:05.901
+Now watch it turn into code.
+
+00:00:05.901 --> 00:00:07.851
+Every transactional database gives you the same three words.
+
+00:00:07.851 --> 00:00:09.802
+Start.
+
+00:00:09.802 --> 00:00:11.752
+Make permanent.
+
+00:00:11.752 --> 00:00:13.703
+Undo.
+
+00:00:13.703 --> 00:00:15.653
+An entire field hides behind them.
+
+00:00:15.653 --> 00:00:19.659
+Here are the three.
+
+00:00:19.659 --> 00:00:23.664
+The first marks the start of a transaction.
+
+00:00:23.664 --> 00:00:27.669
+The second makes every change since the start permanent and visible to everyone else.
+
+00:00:27.669 --> 00:00:31.675
+The third throws all of it away, as if nothing happened.
+
+00:00:31.675 --> 00:00:35.680
+Rolling back like that is also called aborting the transaction, the word the rest of this module uses.
+
+00:00:35.680 --> 00:00:39.686
+Outside that block, every statement stands alone.
+
+00:00:39.686 --> 00:00:43.691
+Each one commits by itself.
+
+00:00:43.691 --> 00:00:47.697
+Inside the block, many statements become one logical operation, no matter how many there are.
+
+00:00:47.697 --> 00:00:52.140
+Each example shows the happy path, the statements that run when the purchase succeeds.
+
+00:00:52.140 --> 00:00:56.582
+If a check fails, not enough stock or money, the app rolls back every write since the start.
+
+00:00:56.582 --> 00:01:01.025
+A broken constraint does the same.
+
+00:01:01.025 --> 00:01:03.601
+Example one.
+
+00:01:03.601 --> 00:01:06.177
+Atomicity.
+
+00:01:06.177 --> 00:01:08.753
+Taylor Swift tickets drop at five p m.
+
+00:01:08.753 --> 00:01:11.328
+Alice clicks buy two tickets, and that one click touches two tables.
+
+00:01:11.328 --> 00:01:13.904
+Walk the block top to bottom.
+
+00:01:13.904 --> 00:01:16.480
+We begin the transaction.
+
+00:01:16.480 --> 00:01:19.056
+A select reads the open seats.
+
+00:01:19.056 --> 00:01:21.632
+An update reserves two of them.
+
+00:01:21.632 --> 00:01:24.208
+An insert writes Alice's order.
+
+00:01:24.208 --> 00:01:26.784
+Then commit makes all of it permanent at once.
+
+00:01:26.784 --> 00:01:29.360
+Now suppose that insert fails halfway.
+
+00:01:29.360 --> 00:01:31.935
+A crash.
+
+00:01:31.935 --> 00:01:34.511
+A full disk.
+
+00:01:34.511 --> 00:01:37.087
+Every change since begin rolls back, and the seats un-reserve.
+
+00:01:37.087 --> 00:01:39.663
+The purchase happens end to end, or it never happened at all.
+
+00:01:39.663 --> 00:01:42.058
+Example two.
+
+00:01:42.058 --> 00:01:44.453
+Consistency.
+
+00:01:44.453 --> 00:01:46.848
+Alice sends a hundred dollars to Bob.
+
+00:01:46.848 --> 00:01:49.243
+Walk the block.
+
+00:01:49.243 --> 00:01:51.638
+We begin the transaction.
+
+00:01:51.638 --> 00:01:54.033
+An update debits Alice a hundred.
+
+00:01:54.033 --> 00:01:56.428
+A second update credits Bob the same hundred.
+
+00:01:56.428 --> 00:01:58.823
+An insert records the transfer.
+
+00:01:58.823 --> 00:02:01.218
+Then commit.
+
+00:02:01.218 --> 00:02:03.613
+But there is a guard.
+
+00:02:03.613 --> 00:02:06.008
+The Accounts table carries a rule.
+
+00:02:06.008 --> 00:02:08.403
+No balance may go below zero.
+
+00:02:08.403 --> 00:02:10.798
+Say Alice has only fifty dollars and tries to send a hundred.
+
+00:02:10.798 --> 00:02:13.193
+The database rejects the debit.
+
+00:02:13.193 --> 00:02:15.588
+The rule fires, the whole transaction aborts, and Bob's credit rolls back with it.
+
+00:02:15.588 --> 00:02:17.983
+The balance can never go red.
+
+00:02:17.983 --> 00:02:20.549
+Example three.
+
+00:02:20.549 --> 00:02:23.115
+Isolation.
+
+00:02:23.115 --> 00:02:25.680
+Black Friday, midnight.
+
+00:02:25.680 --> 00:02:28.246
+One Labubu left.
+
+00:02:28.246 --> 00:02:30.812
+A thousand customers tap buy at the same instant.
+
+00:02:30.812 --> 00:02:33.378
+Without isolation, all thousand grab the last unit at once.
+
+00:02:33.378 --> 00:02:35.944
+Isolation lines them up.
+
+00:02:35.944 --> 00:02:38.510
+Walk one winner's block.
+
+00:02:38.510 --> 00:02:41.075
+We begin the transaction.
+
+00:02:41.075 --> 00:02:43.641
+A select reads the quantity, and sees one.
+
+00:02:43.641 --> 00:02:46.207
+An update decrements it to zero.
+
+00:02:46.207 --> 00:02:48.773
+An insert records the order.
+
+00:02:48.773 --> 00:02:51.339
+Then commit.
+
+00:02:51.339 --> 00:02:53.904
+The database locked that Labubu row, so the other nine hundred ninety nine wait.
+
+00:02:53.904 --> 00:02:56.470
+By the time they get in, the quantity reads zero, and they roll back.
+
+00:02:56.470 --> 00:02:59.036
+Exactly one Labubu walks out the door.
+
+00:02:59.036 --> 00:03:01.563
+Example four.
+
+00:03:01.563 --> 00:03:04.090
+Isolation again, sharper.
+
+00:03:04.090 --> 00:03:06.617
+A celebrity posts, and ten thousand likes land in five seconds.
+
+00:03:06.617 --> 00:03:09.144
+Two things must stay in sync.
+
+00:03:09.144 --> 00:03:11.671
+The Likes table, one row per like.
+
+00:03:11.671 --> 00:03:14.198
+And a single cached total on the post.
+
+00:03:14.198 --> 00:03:16.725
+Walk one like's block.
+
+00:03:16.725 --> 00:03:19.252
+We begin the transaction.
+
+00:03:19.252 --> 00:03:21.779
+An insert records the like.
+
+00:03:21.779 --> 00:03:24.306
+An update increments the counter by one.
+
+00:03:24.306 --> 00:03:26.834
+Then commit.
+
+00:03:26.834 --> 00:03:29.361
+Without the wrapper, two likes both read the total at five hundred.
+
+00:03:29.361 --> 00:03:31.888
+Both write five hundred one.
+
+00:03:31.888 --> 00:03:34.415
+Two likes landed, so where is the counter?
+
+00:03:34.415 --> 00:03:36.942
+Five hundred one.
+
+00:03:36.942 --> 00:03:39.469
+One like vanished.
+
+00:03:39.469 --> 00:03:41.996
+The lost update.
+
+00:03:41.996 --> 00:03:44.523
+With the wrapper, the update locks the counter row, and likes queue.
+
+00:03:44.523 --> 00:03:47.050
+Each reads, adds one, writes back.
+
+00:03:47.050 --> 00:03:49.577
+Ten thousand likes.
+
+00:03:49.577 --> 00:03:52.104
+Ten thousand increments.
+
+00:03:52.104 --> 00:03:54.631
+Every time.
+
+00:03:54.631 --> 00:03:58.351
+Four scenarios, one move.
+
+00:03:58.351 --> 00:04:02.072
+Wrap your statements between start and make permanent whenever you touch more than one row or table.
+
+00:04:02.072 --> 00:04:05.792
+Inside that block, your reads and writes see one consistent world, and the database serializes everyone else around you.
+
+00:04:05.792 --> 00:04:09.512
+You write the business logic.
+
+00:04:09.512 --> 00:04:13.233
+The database keeps it correct.
+
+00:04:13.233 --> 00:04:16.953
+So you know how to write one transaction.
+
+00:04:16.953 --> 00:04:20.673
+The deeper question comes when thousands of them interleave on the same rows.
+
+00:04:20.673 --> 00:04:24.394
+What makes that result correct?
+
+00:04:24.394 --> 00:04:28.114
+That is what the next section works out, starting with a quick graph refresher.

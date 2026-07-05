@@ -1,0 +1,9 @@
+<h1>The Data Systems Architect</h1>
+<p>You can write SQL. This module is about where that SQL actually runs: how real data systems are built, scaled, and defended once one machine stops being enough.</p>
+<p><a id="m6-three-problems-fig"></a></p>
+<p><img src="assets/Module6-Data-Systems/svgs/m6-three-problems.svg" alt="Three cyan panels naming what Module 6 solves: Scale (data outgrows one machine, spread it across a cluster), Architecture (structure dictates capability, relational/JSONB/vector and one stack or many systems), and Trust (data is a liability, keep attackers out and people anonymous)." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The module's three problems. <strong>Scale:</strong> a dataset outgrows one machine, so it spreads across a cluster and the engine you pick follows the physics of that scale. <strong>Architecture:</strong> how you structure data (relational, JSONB, vector; one system or several) decides what the business can build on it. <strong>Trust:</strong> at scale the data is also a liability, so you defend it from attackers and protect the people inside it. Each panel names the pages that work through it.</p>
+</div>
+<p>We follow the scale journey from the smallest sensible setup upward.</p>
+<p><strong><a href="#/page/Module6-Data-Systems/db-design-startup">DB Design for a Startup →</a></strong> Start with one boring, safe Postgres node and see how far it carries you.</p>

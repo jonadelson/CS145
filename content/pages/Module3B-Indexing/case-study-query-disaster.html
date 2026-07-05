@@ -1,0 +1,169 @@
+<h1>Putting It All Together: Saving $550,000 on One Query</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A single unindexed weekly aggregation query running 100 times a day on a 1 TB table can cost a company $550,000 a year in cloud compute. Stacking the right optimizations (index, columnar storage, compression) drops the bill to under $400.</p>
+<p><strong>Intuition.</strong> A naive Hash Partition Join across a full 1 TB of listen history costs ~49,200 IOs per run. Adding a B+Tree index on <code>listen_time</code> prunes the query to the 1% of rows in this week's range, which cuts the cost to ~554 IOs. Switching to columnar storage reads only the 4 columns the query actually touches, cutting further to ~60 IOs. Compression shrinks those columns to ~35 IOs. A 1,400× improvement overall.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Putting It All Together</span>
+<span>Reading Time: 15 mins</span></p>
+</div>
+<h2>The Bill</h2>
+<p><strong>Goal: Understand how indexing, columnar storage, and compression stack to tackle a costly query disaster.</strong></p>
+<p>An unoptimized weekly "Trending Genres" aggregation query runs 100 times daily at 9 hours per run, costing <strong>$1,500 a day</strong> (about $550,000 a year) in AWS compute.</p>
+<hr />
+<h2>System Archeology: The Schema</h2>
+<p>To optimize the workload, we start by laying out the physical schema.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Stats</th>
+<th style="text-align: left;">Disk footprint (64 MB pages)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Songs table</strong></td>
+<td style="text-align: left;">~50 M songs</td>
+<td style="text-align: left;"><strong>400 pages</strong> (25 GB)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Listens table</strong></td>
+<td style="text-align: left;">~10 B listens</td>
+<td style="text-align: left;"><strong>16,000 pages</strong> (1 TB)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Weekly scope</strong></td>
+<td style="text-align: left;">Oct 21–27 filter</td>
+<td style="text-align: left;"><strong>150 pages</strong> (~1% of data)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Memory (B)</strong></td>
+<td style="text-align: left;">Buffer pool</td>
+<td style="text-align: left;"><strong>20 pages</strong> (1.28 GB)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>All calculations below use a 64 MB page size.</p>
+</blockquote>
+<hr />
+<h3>Problem 0: The Baseline Investigation</h3>
+<p><strong>Problem.</strong> The weekly trending report takes 9 hours. Before optimizing, we need the baseline cost. What is the IO cost of a Hash Partition Join (HPJ) on these two tables? Should the optimizer choose a Block Nested Loop Join (BNLJ) instead?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<p><strong>Option 1: Block Nested Loop Join (BNLJ)</strong></p>
+<p>If the optimizer picked BNLJ, it would be a catastrophe.</p>
+<ul>
+<li>
+<p>Formula: <code>M + (M / B) × N</code>  (M = outer = Songs pages, N = inner = Listens pages)</p>
+</li>
+<li>
+<p>Math: <code>400 + (400 / 20) × 16,000 = 320,400 IOs</code></p>
+</li>
+<li>
+<p>Why: BNLJ scans the 1 TB Listens table once for every block of the 25 GB Songs table. This is the "disaster scenario" for big-data joins.</p>
+</li>
+</ul>
+<p><strong>Option 2: Hash Partition Join (HPJ)</strong></p>
+<p>HPJ is better, but still wasteful.</p>
+<ul>
+<li>
+<p>Formula: <code>3 × (M + N)</code></p>
+</li>
+<li>
+<p>Math: <code>3 × (400 + 16,000) = 49,200 IOs</code></p>
+</li>
+<li>
+<p>Why: HPJ is efficient for joining two large tables, but here we only need 1% of the data. Scanning the entire 1 TB to find that 1% is massive waste.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 1: The Index Win</h3>
+<p><strong>Problem.</strong> Only about 150 of the 16,000 Listens pages contain data for Oct 21–27. How do we skip the other pages, and what is the new IO cost?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Logic.</strong> Create a B+Tree index on <code>Listens(listen_time)</code>.</p>
+</li>
+<li>
+<p><strong>Design.</strong> The index allows a targeted scan instead of a full join.</p>
+</li>
+<li>
+<p><strong>IO math:</strong></p>
+<ul>
+<li>Scan Songs: 400 IOs</li>
+<li>Index lookup: ~4 IOs</li>
+<li>Fetch filtered Listens: 150 IOs</li>
+<li><strong>Total: ~554 IOs</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Why.</strong> Indexes prune the search space. By jumping directly to the start date and reading only the 1% target data, we get a <strong>90× improvement</strong> over plain HPJ.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 2: The Column Store Win</h3>
+<p><strong>Problem.</strong> Even with an index, row-based storage loads the whole 150-byte row just to read the 24 bytes we actually need (<code>song_id</code>, <code>user_id</code>, <code>listen_time</code>, <code>duration</code>). How do we eliminate this column waste, and what is the estimated IO savings?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Logic.</strong> Switch to a columnar store (BigQuery, Parquet).</p>
+</li>
+<li>
+<p><strong>Design.</strong> Each column is physically stored in its own set of pages. The engine reads only the columns referenced in the <code>SELECT</code> and <code>WHERE</code> clauses, ignoring IP addresses, device IDs, and anything else.</p>
+</li>
+<li>
+<p><strong>IO math:</strong></p>
+<ul>
+<li>We read only 1/6th of the row width.</li>
+<li><strong>Total: ~60 IOs</strong> (Listens 25 + Songs 35)</li>
+</ul>
+</li>
+<li>
+<p><strong>Why.</strong> Columnar storage is optimized for aggregation. Reading only the relevant columns cuts IO by another <strong>9×</strong>.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 3: The Compression Win</h3>
+<p><strong>Problem.</strong> How do we further shrink the <code>genre</code> and <code>rating</code> columns without losing data?</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Technique 1 (Dictionary encoding).</strong> Map the 200 unique genres to 1-byte IDs (16 pages down to <strong>1 page</strong>).</p>
+</li>
+<li>
+<p><strong>Technique 2 (Bit packing).</strong> Ratings are 1–5, so store them in 4 bits instead of a 32-bit integer (7 pages down to <strong>1 page</strong>).</p>
+</li>
+<li>
+<p><strong>Technique 3 (Run-length encoding).</strong> Since the data is sorted, compress repeating user IDs (13 pages down to <strong>5 pages</strong>).</p>
+</li>
+<li>
+<p><strong>Final result:</strong> <strong>~35 IOs, 20 seconds per run, ~$400 a year.</strong></p>
+</li>
+<li>
+<p><strong>Why.</strong> Domain-specific compression. The more you know about the shape of your data, the more of it you can throw away.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h2>Summary: The Compound ROI</h2>
+<p>Three independent optimizations <strong>multiplied</strong> together take a $550,000 disaster down to $400.</p>
+<p><a id="waterfall-figure"></a>
+<img src="assets/Module3B-Indexing/svgs/query-disaster-waterfall.svg" alt="Four stages left to right: the red Baseline Hash Partition Join scans the full 1 TB at 49,200 IOs and about 550,000 dollars a year; adding a B+Tree index cuts rows scanned for a 90 times win (~554 IOs); columnar storage cuts columns read for a 9 times win (~60 IOs); compression cuts bytes stored for a 2 times win (~35 IOs), reaching the green optimized end at about 400 dollars a year. Because the three wins attack different, independent kinds of waste, they multiply: 90 times 9 times 2, roughly 1,400 times overall." style="width:100%; max-width:1120px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same weekly aggregation in four stages, left to right. The red baseline is the disaster: a Hash Partition Join scans the full 1 TB at 49,200 IOs and about $550,000 a year. Each optimization removes a different, independent kind of waste, an index cuts the rows scanned (×90), columnar storage cuts the columns read (×9), and compression cuts the bytes stored (×2), so the green final stage is roughly 1,400× cheaper at about $400 a year. Because the three wins attack different kinds of waste, they compound as a product rather than a sum.</p>
+</div>
+<p><strong>Total impact: 1,400× improvement.</strong></p>
+<p><a id="compound-roi-lesson"></a>
+The lesson isn't that any single technique is magic. It's that indexes, columnar storage, and compression are <strong>orthogonal</strong>: each one attacks a different kind of waste (scanning too many rows, reading too many columns, storing too many bytes), and they multiply when stacked.</p>
+<p><strong>Takeaway:</strong> One unindexed weekly aggregation can cost $550K a year; because an index, columnar storage, and compression attack independent waste, stacking them multiplies to a ~1,400x cut, the same query for under $400.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/indexing-quiz">Indexing Quiz →</a></strong> Apply the four index types and these optimizations to a few practice queries.</p>

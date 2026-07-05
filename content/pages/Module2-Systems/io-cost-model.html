@@ -1,0 +1,50 @@
+<h1>IO Cost Model: Algorithmic Complexity for Big Data</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> On data larger than RAM, total runtime is dominated by IO, not CPU; we model algorithm cost as <code>C_r × pages_read + C_w × pages_written</code> and ignore everything else.</p>
+<p><strong>Intuition.</strong> With Listens at a billion rows, a full table scan reads thousands of 64 MB pages and takes minutes on disk. The CPU work to compare <code>4.5 &gt; 4.0</code> is nearly free in comparison. Total runtime is <code>C_r × pages_read + C_w × pages_written</code>; everything else rounds to zero.</p>
+</div>
+<hr />
+<h2>IO Complexity Fundamentals</h2>
+<h3>Small Data vs Big Data: Different Worlds</h3>
+<p>In the land of small data, it's all about CPU complexity. Think O(n log n) for sorting n values. The assumption here? Everything fits in RAM, and the CPU is the bottleneck. The game is about finding faster algorithms, like opting for O(n log n) over O(n²). This world deals with datasets under 1GB.</p>
+<p>Now, step into the big data arena, where IO complexity reigns supreme. Here, the cost of moving data dwarfs CPU costs, by a factor of a million. It's not about crunching numbers faster; it's about minimizing how often you need to touch the disk. We're talking datasets over 100GB, where disk access patterns are the real optimization target.</p>
+<h2>Three Examples: Building Your Intuition</h2>
+<h3>Key Notation for IO Costs</h3>
+<p>For those who crave the details, check the <a href="#/page/Module2-Systems/io-reference">IO Reference Sheet</a> for complete formulas and device specs. Here's the shorthand:</p>
+<ul>
+<li>
+<p><strong>C_r, C_w</strong>: Time cost to read/write a page (access + transfer time)</p>
+</li>
+<li>
+<p><strong>T(R) = n</strong>: Number of tuples (rows) in table R</p>
+</li>
+<li>
+<p><strong>P(R)</strong>: Number of pages in table R</p>
+</li>
+<li>
+<p><strong>IO Cost</strong>: Total cost = numPages × C_r (or C_w)</p>
+</li>
+</ul>
+<h3>Example Algorithms</h3>
+<h4>Example 1: Basic Read/Write</h4>
+<p><strong>Algorithm A1</strong> reads and writes P(R) pages. The cost? Simple: </p>
+<p>$$ C_r \times P(R) + C_w \times P(R) $$</p>
+<h4>Example 2: Multi-Pass</h4>
+<p><strong>Algorithm A2</strong> reads P(R) pages seven times and writes them three times. CPU operations? 20 times T(R), but they're too fast to matter:</p>
+<p>$$ C_r \times 7 \times P(R) + C_w \times 3 \times P(R) $$</p>
+<h4>Example 3: Logarithmic</h4>
+<p><strong>Algorithm A3</strong> reads P(R) pages log P(R) times and writes 0.1×P(R) pages T(R) times. It's akin to binary search iterations:</p>
+<p>$$ C_r \times \log(P(R)) \times P(R) + C_w \times 0.1 \times P(R) \times T(R) $$</p>
+<hr />
+<h3>The Big Picture</h3>
+<ol>
+<li>
+<p><strong>Forget O(n log n)</strong> - That's for CPU complexity, not big data.</p>
+</li>
+<li>
+<p><strong>Count IOs: N, 2N, 3N</strong> - This is what really determines runtime.</p>
+</li>
+<li>
+<p><strong>Smart algorithms</strong> minimize disk access. Save one IO, and you've saved 10 million CPU/GPU operations.</p>
+</li>
+</ol>

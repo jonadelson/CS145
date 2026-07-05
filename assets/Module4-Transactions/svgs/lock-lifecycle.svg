@@ -1,0 +1,73 @@
+<svg viewBox="0 0 960 336" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ll-t ll-d">
+  <title id="ll-t">The lock lifecycle, in the schedule notation</title>
+  <desc id="ll-d">One transaction's lock cycle on a time axis, drawn in the same
+  notation the lock schedules ahead use. A green flag is a request (Req), a red flag
+  is the grant (Get), a light-blue box is the read, a light-orange box is the write,
+  and a purple flag pointing forward is the release (Unl). T1 requests seat A at time 1, gets it at 2,
+  reads then writes while holding it, and unlocks at 8. T2 requests the same lock at
+  time 2, waits the whole time T1 holds it, and gets it only after T1 unlocks.</desc>
+
+  <text x="480" y="28" text-anchor="middle" font-size="22" font-weight="700" fill="#0E0E10">The lock lifecycle</text>
+  <text x="480" y="50" text-anchor="middle" font-size="13" fill="#6B7280">One transaction's lock on a timeline, in the same flags the schedules ahead use.</text>
+
+  <!-- legend -->
+  <g font-size="12" fill="#3F3F46">
+    <line x1="150" y1="70" x2="150" y2="84" stroke="#16A34A" stroke-width="2.5"/><polygon points="150,70 150,80 140,75" fill="#16A34A"/>
+    <text x="158" y="81">Req</text>
+    <line x1="230" y1="70" x2="230" y2="84" stroke="#DC2626" stroke-width="2.5"/><polygon points="230,70 230,80 220,75" fill="#DC2626"/>
+    <text x="238" y="81">Get</text>
+    <rect x="312" y="71" width="14" height="12" rx="2" fill="#ECF1FE" stroke="#2563EB"/><text x="330" y="81">read</text>
+    <rect x="400" y="71" width="14" height="12" rx="2" fill="#FDEBE0" stroke="#EA580C"/><text x="418" y="81">write</text>
+    <line x1="492" y1="71" x2="492" y2="85" stroke="#7C3AED" stroke-width="2.5"/><polygon points="492,71 492,81 502,76" fill="#7C3AED"/><text x="508" y="81">Unl (release)</text>
+  </g>
+
+  <!-- T1 lane -->
+  <text x="64" y="176" font-size="13" font-weight="700" fill="#0E0E10">T1</text>
+  <line x1="108" y1="172" x2="884" y2="172" stroke="#E7EAEE" stroke-width="1.5"/>
+  <g data-step="1">
+    <text x="230" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#16A34A">Req(A)</text>
+    <line x1="230" y1="172" x2="230" y2="132" stroke="#16A34A" stroke-width="2.5"/><polygon points="230,132 230,146 215,139" fill="#16A34A"/>
+    <text x="230" y="192" text-anchor="middle" font-size="11" fill="#6B7280">1</text>
+  </g>
+  <g data-step="2">
+    <text x="284" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#DC2626">Get(A)</text>
+    <line x1="284" y1="172" x2="284" y2="132" stroke="#DC2626" stroke-width="2.5"/><polygon points="284,132 284,146 269,139" fill="#DC2626"/>
+    <text x="284" y="192" text-anchor="middle" font-size="11" fill="#6B7280">2</text>
+    <line x1="284" y1="206" x2="648" y2="206" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="2 3"/>
+    <text x="466" y="220" text-anchor="middle" font-size="12" fill="#7C3AED">T1 holds A</text>
+  </g>
+  <g data-step="3">
+    <text x="392" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#2563EB">Rs–Re</text>
+    <rect x="379" y="159" width="26" height="26" rx="3" fill="#ECF1FE" stroke="#2563EB"/>
+    <text x="392" y="192" text-anchor="middle" font-size="11" fill="#6B7280">4</text>
+    <text x="520" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#EA580C">Ws–We</text>
+    <rect x="507" y="159" width="26" height="26" rx="3" fill="#FDEBE0" stroke="#EA580C"/>
+    <text x="520" y="192" text-anchor="middle" font-size="11" fill="#6B7280">6</text>
+  </g>
+  <g data-step="4">
+    <text x="648" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#7C3AED">Unl(A)</text>
+    <line x1="648" y1="172" x2="648" y2="132" stroke="#7C3AED" stroke-width="2.5"/><polygon points="648,132 648,146 663,139" fill="#7C3AED"/>
+    <text x="648" y="192" text-anchor="middle" font-size="11" fill="#6B7280">8</text>
+  </g>
+
+  <!-- T2 lane -->
+  <text x="64" y="282" font-size="13" font-weight="700" fill="#0E0E10">T2</text>
+  <line x1="108" y1="278" x2="884" y2="278" stroke="#E7EAEE" stroke-width="1.5"/>
+  <g data-step="2">
+    <text x="284" y="236" text-anchor="middle" font-size="12.5" font-weight="700" fill="#16A34A">Req(A)</text>
+    <line x1="284" y1="278" x2="284" y2="244" stroke="#16A34A" stroke-width="2.5"/><polygon points="284,244 284,258 269,251" fill="#16A34A"/>
+    <line x1="284" y1="278" x2="648" y2="278" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="466" y="296" text-anchor="middle" font-size="12" fill="#DC2626">waits the whole time T1 holds A</text>
+  </g>
+  <g data-step="4">
+    <text x="672" y="236" text-anchor="middle" font-size="12.5" font-weight="700" fill="#DC2626">Get(A)</text>
+    <line x1="672" y1="278" x2="672" y2="244" stroke="#DC2626" stroke-width="2.5"/><polygon points="672,244 672,258 657,251" fill="#DC2626"/>
+    <text x="724" y="282" font-size="12" fill="#3F3F46">now its turn</text>
+  </g>
+
+  <!-- time axis -->
+  <line x1="108" y1="316" x2="884" y2="316" stroke="#D4D7DC" stroke-width="1.5"/>
+  <text x="884" y="312" text-anchor="end" font-size="11" fill="#9AA0AA">time</text>
+</svg>

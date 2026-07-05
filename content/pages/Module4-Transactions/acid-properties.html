@@ -1,0 +1,52 @@
+<h1>ACID Properties</h1>
+<p>A transaction gives you a unit of work bigger than one statement, the thing the Ticketmaster scale problem demanded. ACID is the contract that unit signs.</p>
+<div class="v5-concept">
+<p><strong>Concept.</strong> ACID names four guarantees that turn a sequence of database writes into a transaction: <strong>A</strong>tomicity (all-or-nothing), <strong>C</strong>onsistency (no broken invariants), <strong>I</strong>solation (concurrent transactions don't see each other's partial work), and <strong>D</strong>urability (committed work survives crashes).</p>
+<p><strong>Intuition.</strong> When Mickey buys Premium, Atomicity ensures the charge and the <code>is_premium = true</code> flag both happen or neither does; Consistency ensures his balance never goes negative; Isolation ensures Minnie's concurrent renewal doesn't leave Mickey's transaction reading her half-written charge; Durability ensures that if the server crashes a millisecond after Mickey gets the receipt, the upgrade still survives.</p>
+</div>
+<h2>Example: Transactions in a Ticketmaster-like App</h2>
+<h3>Alice's Ticket Purchase Flow</h3>
+<p><a id="alice-ticket-flow-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/alice-ticket-flow.svg" alt="Alice's purchase is one transaction wrapping three steps (check inventory, verify card, complete sale). Top row: all three succeed and the transaction commits. Bottom row: the card declines at step two, so the whole transaction rolls back and nothing happened, no seats reserved against a declined card." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Alice's purchase is one transaction around three steps: check inventory, verify the card, complete the sale. Atomicity binds them. All three commit as a unit, or a single failure rolls every one of them back, so a sale is never confirmed against a declined card or sold-out seats.</p>
+</div>
+<p>Atomicity is only the first guarantee Alice's purchase needs. She must not be charged for sold-out seats (consistency), her seat must not be sold to two fans at once (isolation), and her confirmed purchase must survive a crash (durability). Here are all four.</p>
+<hr />
+<h2>ACID for Data Trust</h2>
+<p><a id="acid-definitions-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/acid-definitions.svg" alt="The four ACID guarantees, each tagged with its colored letter circle: Atomicity (blue A, all writes commit together or none do), Consistency (green C, every commit leaves the rules satisfied), Isolation (orange I, transactions don't see each other's half-work), and Durability (violet D, once committed it survives any crash), each with a one-line example from Alice's ticket purchase." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The four guarantees, one color per letter (the same circle reused on every ACID figure in the module). Each is a rule plus what it looks like when Alice buys a ticket: a declined card rolls back cleanly (atomicity), seats and revenue move as one (consistency), Alice locks the last seat so Bob waits (isolation), and a confirmed ticket survives a crash (durability).</p>
+</div>
+<hr />
+<p>Drop any one of the four and a specific failure follows. Case Study 4.1 walks all four end to end at Stripe; the next example makes one concrete, how dropping isolation lets a bank create money from nothing.</p>
+<hr />
+<h2>Example 2: Banking Transfer Race Condition</h2>
+<p><strong>Scenario:</strong> At midnight on the last day of the month, two things happen simultaneously:</p>
+<ul>
+<li>
+<p>TransferTxn: Alice transfers $100 to Bob (11:59:59 PM)</p>
+</li>
+<li>
+<p>InterestTxn: Bank calculates 6% monthly interest on all accounts (12:00:00 AM)</p>
+</li>
+</ul>
+<p><strong>Initial State:</strong> Alice has $200, Bob has $100. Total money in system: $300</p>
+<p><a id="acid-isolation-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/acid-isolation.svg"
+     alt="Two columns from the same start state: without isolation the transfer and interest job interleave and end at $324, with isolation the interest job waits on the lock and ends at the correct $318."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Two transactions race at month-end from the same start state: Alice $200, Bob $100, total $300. On the left (red), the transfer credits Bob first, so Bob already shows $200 while Alice is not yet debited and still shows $200; the interest job reads that half-done state and pays 6% on $400, the moving $100 counted twice, and the books end at $324, with $6 created from nothing. On the right (green), the interest job waits on the transfer's lock, reads the settled $300, and ends at the correct $318, exactly $18. The deeper point: isolation makes concurrent transactions appear sequential, as if the interest job simply ran after the transfer, so total money is conserved.</p>
+</div>
+<div class="v5-callout">
+<h4>Isolation makes concurrent transactions appear sequential</h4>
+<p>Isolation forces the interest job to run as if it followed the transfer, never alongside it. The invariant the interleaving broke, total money conserved, holds again.</p>
+</div>
+<hr />
+<h2>Summary: ACID = Trust</h2>
+<div class="v5-callout">
+<h4>From the definition to a real system</h4>
+<p>ACID is the contract that turns stored bytes into a system you can trust with money. Case Study 4.1 watches all four guarantees hold at once inside a single Stripe payment, at a trillion dollars a year.</p>
+</div>

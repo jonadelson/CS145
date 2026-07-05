@@ -1,0 +1,91 @@
+<h1>Parallel Execution: The Engine Room at Scale</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> SQLite and BigQuery run the same hash-join, sort-merge, and aggregate algorithms; they differ in how many machines split the work, not in what work gets done.</p>
+<p><strong>Intuition.</strong> <code>SELECT user_id, COUNT(*) FROM Listens GROUP BY user_id</code> runs the same hash-aggregate algorithm on the 9-row Listens table in SQLite and on a 5.5-TB Listens table in BigQuery. The big version splits the table across about a hundred machines and runs the same algorithm on each shard.</p>
+</div>
+<h2>The Challenge</h2>
+<p><a id="challenge-fig"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/parallel-scale.svg" alt="The same SQL query runs single-threaded on one SQLite machine over a tiny table, or across about 100 BigQuery machines over 5.5 TB, returning the same answer in milliseconds. Same algorithm, only the data layout changes." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;">
+Process 5.5 TB of music streaming data to find the top 10 most-played songs since 2024.</p>
+<h2>The Query</h2>
+<pre><code><span class="sql-keyword">SELECT</span> s.title, s.artist, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> plays
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s 
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id
+<span class="sql-keyword">WHERE</span> l.listen_time &gt; <span class="sql-string">'2024-01-01'</span>
+<span class="sql-keyword">GROUP BY</span> s.title, s.artist
+<span class="sql-keyword">ORDER BY</span> plays DESC
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">10</span>;
+</code></pre>
+<h2>The Journey: From Text to Results in 47ms</h2>
+<div style="width: 100%; max-width: 1100px; margin: 2rem auto;">
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/parallel-journey.svg" style="width:100%;height:auto;display:block;" alt="A left-to-right pipeline. A SQL query is parsed, turned into a query plan, then a coordinator splits 5.5 TB into shards and fans the work out to roughly 100 machines that each scan one shard in parallel; the partial results merge into the top 10 in about 47 ms. Color key: grey is a pipeline stage, blue is the roughly 100-machine engine in focus, and the ink target marks the takeaway. It is the same algorithm SQLite runs on 9 rows, only split across machines."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One SQL query over 5.5 TB, about 100 machines, about 47 ms. The engine parses the query into a plan; a coordinator shards the data, runs the same algorithm on every shard in parallel, and merges the partial results. You write what you want; the engine parallelizes the how.</p>
+</div>
+</div>
+<h2>What You're Seeing</h2>
+<p><a id="seeing-fig"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/parallel-abstraction.svg" alt="A developer writes one SQL statement and gets one result; underneath, the engine splits the table into shards, runs 100 of them in parallel, then shuffles and merges the partial results into the global top 10." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<h3>Phase 1: Parsing (0-5ms)</h3>
+<p>The SQL text is tokenized and parsed into an Abstract Syntax Tree (AST). The query optimizer analyzes the AST to determine the most efficient execution strategy based on statistics about table sizes, indexes, and data distribution.</p>
+<h3>Phase 2: Tree Building (5-12ms)</h3>
+<p>The logical plan transforms into a physical execution tree. Each node represents a specific algorithmic operation. The tree structure determines the order of operations and data flow. Notice how LIMIT is at the top - we can stop processing once we have 10 results.</p>
+<h3>Phase 3: Distribution (12-15ms)</h3>
+<p>The execution tree is decomposed into tasks that can run in parallel. Hash partitioning ensures that related data (same song_id for joins, same grouping keys) ends up on the same machine. This minimizes network traffic during execution.</p>
+<h3>Phase 4: Parallel Execution (15-45ms)</h3>
+<p>100 machines work simultaneously, each processing their partition of the data:</p>
+<ul>
+<li>
+<p><strong>Green</strong>: Join operations matching songs with listens</p>
+</li>
+<li>
+<p><strong>Amber</strong>: Group by and aggregation counting plays</p>
+</li>
+<li>
+<p><strong>Purple</strong>: Sorting and filtering for top results</p>
+</li>
+</ul>
+<p>Each machine processes one shard, about 55 GB, a split-up slice of the 5.5 TB table, using the same algorithms we'll learn in CS145, distributed across multiple nodes. We cover how this distribution works in the next couple of modules; this page is a preview of how one query breaks into parallel steps.</p>
+<h3>Phase 5: Result Assembly (45-47ms)</h3>
+<p>Partial results from all machines converge to a coordinator node. The coordinator performs a final merge-sort to identify the global top 10 songs from the local top results of each machine.</p>
+<hr />
+<h2>Comparison: Single Machine vs Distributed</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Single Machine (SQLite)</th>
+<th>100 Machines (BigQuery)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data Size</td>
+<td>9 rows (a few KB)</td>
+<td>5.5 TB (≈55 GB per machine)</td>
+</tr>
+<tr>
+<td>Execution Time</td>
+<td>microseconds</td>
+<td>~47 ms</td>
+</tr>
+<tr>
+<td>Parallelism</td>
+<td>1 thread</td>
+<td>~800 cores</td>
+</tr>
+<tr>
+<td>Bottleneck</td>
+<td>CPU / memory</td>
+<td>Coordination</td>
+</tr>
+<tr>
+<td>Complexity</td>
+<td>Simple</td>
+<td>Distributed protocols</td>
+</tr>
+</tbody>
+</table>
+<p><strong> Key Takeaway: </strong> Same SQL query on one machine vs 100 machines. Just parallelized.</p>

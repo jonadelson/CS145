@@ -1,0 +1,53 @@
+<svg viewBox="0 0 1100 376" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="csa-t csa-d">
+  <title id="csa-t">The conflict-serializability test: build a conflict graph, then check for a cycle</title>
+  <desc id="csa-d">The test in three steps. First, one node per transaction (T1, T2, T3 as violet circles).
+  Second, a directed edge for every conflict, here forming the acyclic chain T3 to T1 to T2. Third, look
+  for a cycle: the two outcomes are shown as a green box, no cycle means conflict-serializable because a
+  serial order respects every edge, and a red box, a cycle means not conflict-serializable because two
+  edges demand opposite orders. Color key: violet is the graph, green is the safe outcome, red is the
+  unsafe outcome.</desc>
+
+  <defs>
+    <marker id="csa-ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="#7C3AED"/></marker>
+  </defs>
+
+  <text x="550" y="32" text-anchor="middle" font-size="23" font-weight="700" fill="#0E0E10">The conflict-serializability test</text>
+  <text x="550" y="56" text-anchor="middle" font-size="15" fill="#3F3F46">Build a graph from the conflicts, then look for a cycle.</text>
+
+  <!-- the graph builds: nodes, then edges -->
+  <g data-step="1">
+    <text x="290" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#7C3AED" font-family="JetBrains Mono, monospace">1 &#183; ONE NODE PER TRANSACTION</text>
+    <circle cx="300" cy="160" r="32" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2.5"/>
+    <text x="300" y="166" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED">T1</text>
+    <circle cx="180" cy="290" r="32" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2.5"/>
+    <text x="180" y="296" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED">T3</text>
+    <circle cx="420" cy="290" r="32" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2.5"/>
+    <text x="420" y="296" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED">T2</text>
+  </g>
+  <g data-step="2">
+    <line x1="203" y1="265" x2="277" y2="185" stroke="#7C3AED" stroke-width="2" marker-end="url(#csa-ah)"/>
+    <line x1="323" y1="185" x2="397" y2="265" stroke="#7C3AED" stroke-width="2" marker-end="url(#csa-ah)"/>
+    <text x="300" y="335" text-anchor="middle" font-size="14" fill="#6B7280">2 &#183; each conflict is a directed edge</text>
+  </g>
+
+  <!-- the verdict fork -->
+  <g data-step="3">
+    <text x="800" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46" font-family="JetBrains Mono, monospace">3 &#183; LOOK FOR A CYCLE</text>
+    <rect x="548" y="108" width="504" height="96" rx="9" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="548" y="108" width="504" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="572" y="140" font-size="16" font-weight="700" fill="#16A34A">&#10003; No cycle &#8594; conflict-serializable</text>
+    <text x="572" y="166" font-size="14" fill="#3F3F46">A topological order respects every edge,</text>
+    <text x="572" y="186" font-size="14" fill="#3F3F46">so it is a safe serial run.</text>
+    <rect x="548" y="218" width="504" height="96" rx="9" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="548" y="218" width="504" height="5" rx="2.5" fill="#DC2626"/>
+    <text x="572" y="250" font-size="16" font-weight="700" fill="#DC2626">&#10007; A cycle &#8594; not conflict-serializable</text>
+    <text x="572" y="276" font-size="14" fill="#3F3F46">Two edges demand opposite orders,</text>
+    <text x="572" y="296" font-size="14" fill="#3F3F46">so no serial order can satisfy them.</text>
+  </g>
+
+  <!-- color key -->
+  <text x="550" y="362" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the graph&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = no cycle, safe&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = a cycle, unsafe</tspan></text>
+</svg>

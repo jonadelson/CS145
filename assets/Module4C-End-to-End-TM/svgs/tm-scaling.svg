@@ -1,0 +1,74 @@
+<svg viewBox="0 0 1100 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tm-scale-t tm-scale-d" style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="tm-scale-t">Why the Transaction Manager scales: most transactions touch different data, so few of them ever conflict</title>
+  <desc id="tm-scale-d">Out of one thousand concurrent transactions, only ten to twenty actually conflict on shared rows. The rest touch independent data and never wait. Three design choices make that cheap: the lock manager uses a hash table for O(1) lock checks, the write-ahead log turns random writes into one sequential stream, and each component does one job and talks to the others through a tiny interface. The takeaway is that separation of concerns lets the manager run a million transactions per second on commodity hardware. Color key: green is the independent transactions that never wait; amber is the small set that actually conflicts; violet is the three design choices; ink is the takeaway.</desc>
+  <defs>
+    <marker id="ts-ah" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="550" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Why it scales: most transactions never touch the same row</text>
+  <text x="550" y="62" text-anchor="middle" font-size="14" fill="#6B7280">In a database with a million accounts, account #47893 has nothing to do with account #82456.</text>
+
+  <!-- the 1000 vs 10-20 split -->
+  <g data-step="1">
+    <rect x="40" y="96" width="500" height="170" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="96" width="500" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="60" y="128" font-size="16" font-weight="700" fill="#16A34A">~980 transactions · independent</text>
+    <text x="60" y="152" font-size="13.5" fill="#3F3F46">Touch different rows. Locks granted at once, no waiting.</text>
+    <!-- dot field: many green, a few amber -->
+    <g fill="#16A34A">
+      <circle cx="70" cy="186" r="5"/><circle cx="92" cy="186" r="5"/><circle cx="114" cy="186" r="5"/><circle cx="136" cy="186" r="5"/><circle cx="158" cy="186" r="5"/><circle cx="180" cy="186" r="5"/><circle cx="202" cy="186" r="5"/><circle cx="224" cy="186" r="5"/><circle cx="246" cy="186" r="5"/><circle cx="268" cy="186" r="5"/>
+      <circle cx="70" cy="208" r="5"/><circle cx="92" cy="208" r="5"/><circle cx="114" cy="208" r="5"/><circle cx="136" cy="208" r="5"/><circle cx="158" cy="208" r="5"/><circle cx="180" cy="208" r="5"/><circle cx="202" cy="208" r="5"/><circle cx="224" cy="208" r="5"/><circle cx="246" cy="208" r="5"/><circle cx="268" cy="208" r="5"/>
+      <circle cx="70" cy="230" r="5"/><circle cx="92" cy="230" r="5"/><circle cx="114" cy="230" r="5"/><circle cx="136" cy="230" r="5"/><circle cx="158" cy="230" r="5"/><circle cx="180" cy="230" r="5"/><circle cx="202" cy="230" r="5"/><circle cx="224" cy="230" r="5"/><circle cx="246" cy="230" r="5"/><circle cx="268" cy="230" r="5"/>
+    </g>
+  </g>
+
+  <g data-step="2">
+    <rect x="560" y="96" width="500" height="170" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="560" y="96" width="500" height="5" rx="2.5" fill="#D97706"/>
+    <text x="580" y="128" font-size="16" font-weight="700" fill="#D97706">~10–20 transactions · actually conflict</text>
+    <text x="580" y="152" font-size="13.5" fill="#3F3F46">Share a row. Only these queue and need the lock manager to serialize.</text>
+    <g fill="#D97706">
+      <circle cx="590" cy="200" r="6"/><circle cx="616" cy="200" r="6"/><circle cx="642" cy="200" r="6"/><circle cx="668" cy="200" r="6"/><circle cx="694" cy="200" r="6"/>
+      <circle cx="590" cy="226" r="6"/><circle cx="616" cy="226" r="6"/><circle cx="642" cy="226" r="6"/><circle cx="668" cy="226" r="6"/><circle cx="694" cy="226" r="6"/>
+    </g>
+    <text x="740" y="216" font-size="13.5" fill="#6B7280">two percent of the load does all the waiting</text>
+  </g>
+
+  <!-- three design choices -->
+  <g data-step="3">
+    <rect x="40" y="296" width="320" height="118" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="296" width="320" height="5" rx="2.5" fill="#7C3AED"/>
+    <text x="60" y="326" font-size="15" font-weight="700" fill="#7C3AED">O(1) lock checks</text>
+    <text x="60" y="350" font-size="13" fill="#3F3F46">The lock manager keeps a hash</text>
+    <text x="60" y="368" font-size="13" fill="#3F3F46">table, so checking a lock is</text>
+    <text x="60" y="386" font-size="13" fill="#3F3F46">constant time at any scale.</text>
+  </g>
+  <g data-step="4">
+    <rect x="390" y="296" width="320" height="118" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="390" y="296" width="320" height="5" rx="2.5" fill="#7C3AED"/>
+    <text x="410" y="326" font-size="15" font-weight="700" fill="#7C3AED">Sequential WAL</text>
+    <text x="410" y="350" font-size="13" fill="#3F3F46">Random updates everywhere become</text>
+    <text x="410" y="368" font-size="13" fill="#3F3F46">one append-only log stream, the</text>
+    <text x="410" y="386" font-size="13" fill="#3F3F46">fastest pattern a disk has.</text>
+  </g>
+  <g data-step="5">
+    <rect x="740" y="296" width="320" height="118" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="740" y="296" width="320" height="5" rx="2.5" fill="#7C3AED"/>
+    <text x="760" y="326" font-size="15" font-weight="700" fill="#7C3AED">Separation of concerns</text>
+    <text x="760" y="350" font-size="13" fill="#3F3F46">Each component does one job and</text>
+    <text x="760" y="368" font-size="13" fill="#3F3F46">talks through a tiny interface. The</text>
+    <text x="760" y="386" font-size="13" fill="#3F3F46">scheduler never touches the disk.</text>
+  </g>
+
+  <!-- takeaway -->
+  <g data-step="6">
+    <rect x="40" y="444" width="1020" height="74" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="512" width="1020" height="6" rx="3" fill="#0E0E10"/>
+    <text x="60" y="476" font-size="15" font-weight="700" fill="#0E0E10">&#8857; Takeaway</text>
+    <text x="60" y="500" font-size="14" fill="#3F3F46">Because conflicts are rare and each component is cheap and independent, the manager runs a million transactions per second on commodity hardware.</text>
+  </g>
+
+  <!-- color key -->
+  <text x="40" y="546" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the independent transactions that never wait&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#D97706" font-weight="700">amber</tspan><tspan fill="#3F3F46"> = the few that conflict&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the design choices&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#0E0E10" font-weight="700">ink</tspan><tspan fill="#3F3F46"> = the takeaway</tspan></text>
+</svg>

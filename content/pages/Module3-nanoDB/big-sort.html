@@ -1,0 +1,99 @@
+<h1>BigSort: Sorting TBs of Data with GBs of RAM</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> BigSort is external merge-sort. It sorts a table larger than RAM by reading RAM-sized chunks, sorting each chunk in memory, writing them back to disk, then merging the sorted chunks together.</p>
+<p><strong>Intuition.</strong> When you need to sort a 64 GB Listens table by <code>rating</code> on a 6.4 GB machine, read 6.4 GB at a time, sort each chunk in RAM, write each sorted chunk back, then merge the 10 sorted chunks. Cost: read every page once, write every page once, per pass.</p>
+</div>
+<h2>How External Merge Sort Uses Memory</h2>
+<p><a id="memory-model"></a>
+<img src="assets/Module3-nanoDB/svgs/external-merge-sort-memory.svg" alt="External merge sort as a memory model: pages stream from disk (green, persistent) through a small four-page RAM box (red, volatile) and back. Phase 1 reads four pages, quicksorts them, and writes a sorted run; Phase 2 reads the head of each run and emits the smallest, merging into one sorted file. Tiles are pages shaded light to dark by sort key." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> External merge sort never holds more than RAM. In Phase 1 it reads four pages into memory, quicksorts them in place, and writes the sorted run back to disk, repeating until the file is a handful of sorted runs. In Phase 2 it reads the head page of each run into memory and emits the smallest value over and over, merging the runs into one fully sorted file. Each tile is a page shaded by its sort key, light for small and dark for large, so a sorted run reads as a smooth light-to-dark gradient. The red box is RAM (volatile), the green is disk (persistent).</p>
+</div>
+<h3>Interactive: move every page yourself</h3>
+<p><a id="bigsort-animation"></a></p>
+<p><link rel="stylesheet" href="bigsort/big-sort-animation.css?v=g3"></p>
+<p>Sort 550 values across 58 pages with only a few pages of RAM. Each value is shaded by its rank, so a sorted run reads as a smooth light-to-dark gradient and the raw input reads as noise. Press Play to walk the four stages, or use the tabs to jump between the unsorted input, the Phase 1 sorted runs, and the two merge passes down to one sorted file.</p>
+<div id="bigsort-playground" style="margin:1.5rem 0; overflow-x:auto;"></div>
+
+
+
+
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The same sort on real data: 550 values across 58 pages, each shaded by rank. Press Play to watch Phase 1 build sorted runs and the merge passes combine them down to one sorted file.</p>
+</div>
+<hr />
+<h2>The BigSort Algorithm (aka External Sort)</h2>
+<h3>Core Idea</h3>
+<ol>
+<li>
+<p><strong>Divide</strong>: Create sorted runs that fit in memory.</p>
+</li>
+<li>
+<p><strong>Conquer</strong>: Merge those sorted runs into your final output.</p>
+</li>
+</ol>
+<p><a id="bigsort-pseudocode"></a></p>
+<div class="algo">
+<p class="algo-head">Algorithm · BigSort</p>
+<pre class="algo-code">
+<span class="sig">BigSort(file, B):</span>                 <span class="cmt">// B = total RAM pages available</span>
+
+    <span class="cmt phase">Phase 1: Create sorted runs</span>
+    runs = []
+    while not EOF:
+        chunk = read(B pages)
+        sort(chunk)               <span class="cmt">// quicksort in RAM</span>
+        write(chunk to run_i)
+        runs.add(run_i)
+
+    <span class="cmt phase">Phase 2: Merge runs</span>
+    while |runs| &gt; 1:
+        next_runs = []
+        for i = 0 to |runs| step B-1:
+            batch = runs[i : i+B-1]   <span class="cmt">// B-1 input buffers + 1 output buffer</span>
+            merged = KWayMerge(batch)
+            next_runs.add(merged)
+        runs = next_runs
+    return runs[0]
+</pre>
+</div>
+<hr />
+<h2>Why Sort?</h2>
+<p>Sorting is the backbone of a database. Every <code>ORDER BY</code>, every range scan on a B+Tree, every sort-merge join, every LSM compaction starts here. PostgreSQL, BigQuery, Spark all run the same operation underneath. Get sort right and the rest of the engine gets fast.</p>
+<hr />
+<h2>Example Problem: Break Big Sort Into Small Sorts</h2>
+<div class="metrics-grid">
+<div class="metric-card">
+<div class="metric-value">
+<p>64GB</p>
+</div>
+<div class="metric-label">
+<p>Unsorted table</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>6.4GB</p>
+</div>
+<div class="metric-label">
+<p>Available RAM</p>
+</div>
+</div>
+</div>
+<hr />
+<p><strong>SOLUTION.</strong> Apply BigSort to this 10× mismatch: split into 10 sorted runs of 6.4 GB each (Phase 1), then a single 10-way merge with 9 input buffers and 1 output buffer produces the fully sorted 64 GB file (Phase 2). Single merge pass, so cost is <code>4N</code> IOs total.</p>
+<hr />
+<h2>Cost Analysis</h2>
+<p><img src="assets/Module3-nanoDB/images/iocost-bigsorthp.png" alt="Reference table of per-pass IO costs: BigSort reads and writes every page once per pass at C_r times N plus C_w times N and grows with the number of merge passes; hash partitioning is a flat 2N single pass." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Per-pass IO costs for BigSort against the join algorithms. Each BigSort pass reads and writes every page once, so the cost accumulates one pass at a time as the data outgrows a single merge.</p>
+</div>
+<p>Each pass reads and writes every page once, so a pass costs <code>2N</code> (<code>C_r×N + C_w×N</code>). Phase 1 builds the sorted runs in one pass; Phase 2 merges, and each merge pass folds about <code>B−1</code> runs into one, so it takes <code>⌈log_{B−1}(N/B)⌉</code> merge passes. The total is <code>2N × (1 + ⌈log_{B−1}(N/B)⌉)</code> — <strong>two N times a logarithmic number of passes</strong>, so BigSort is <code>O(N log N)</code> in IO, not linear. The familiar <code>4N</code> is just the single-merge-pass case (small data, where every run fits in one merge); treat it as a best-case approximation, not the general cost. Hash partitioning, by contrast, is a single shot at a flat <code>2N</code>. The full side-by-side against the join algorithms is on the <a href="#/page/Module3-nanoDB/io-algorithms">IO Algorithms</a> page.</p>
+<div class="v5-callout v5-callout--info">
+<h4>In practice: runs of ~2B</h4>
+<p>The simple version above writes one RAM-sized run per chunk, giving <code>⌈N/B⌉</code> runs. Real systems do better with <strong>replacement selection</strong>: the input streams through an in-memory heap of <code>B</code> pages, and each time the smallest qualifying key is written out, a new page takes its slot. Incoming keys that are still larger than the last one written keep extending the current run, so a run grows to about <code>2B</code> pages on average instead of <code>B</code>. That roughly halves the run count to <code>⌈N/2B⌉</code> and can save a merge pass. The colab and exam cost equations use this <code>⌈N/2B⌉</code> form.</p>
+</div>
+<p>Sorting is half the big-data toolkit. The other half is the join, and the first join algorithm reuses exactly these RAM-sized blocks.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/block-nested-loop-join">Block Nested Loop Join →</a></strong> Joining two big tables is the first algorithm that combines everything so far: row access, RAM-sized blocks, and repeated scans.</p>

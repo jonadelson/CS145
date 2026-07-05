@@ -1,0 +1,199 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.204
+The simplest way to organize key plus page number pairs is a hash index.
+
+00:00:05.204 --> 00:00:08.409
+Hash the key, get the bucket, jump straight to that disk location.
+
+00:00:08.409 --> 00:00:11.613
+Constant time on the lookup.
+
+00:00:11.613 --> 00:00:14.817
+The catch is one line.
+
+00:00:14.817 --> 00:00:18.022
+WHERE user id equals forty-two is fast.
+
+00:00:18.022 --> 00:00:21.226
+A range gets no help at all.
+
+00:00:21.226 --> 00:00:24.168
+Here is the whole thing on screen.
+
+00:00:24.168 --> 00:00:27.110
+On the left, the data pages that hold the actual rows.
+
+00:00:27.110 --> 00:00:30.052
+On the right, the hash index pages.
+
+00:00:30.052 --> 00:00:32.993
+A hash index stores the same key plus page number pairs that any index does.
+
+00:00:32.993 --> 00:00:35.935
+The hash function picks which index page each pair lands in.
+
+00:00:35.935 --> 00:00:38.877
+A lookup does three things.
+
+00:00:38.877 --> 00:00:41.819
+Hash the search key in memory.
+
+00:00:41.819 --> 00:00:44.761
+Reed the right index page off disk.
+
+00:00:44.761 --> 00:00:47.703
+Follow the pointer to the data page.
+
+00:00:47.703 --> 00:00:50.645
+Two disk reeds, regardless of table size.
+
+00:00:50.645 --> 00:00:53.587
+Walk two cases.
+
+00:00:53.587 --> 00:00:56.528
+First, Alice.
+
+00:00:56.528 --> 00:00:59.470
+Hash of Alice lands in index page zero.
+
+00:00:59.470 --> 00:01:02.412
+The entry says Alice points to page two.
+
+00:01:02.412 --> 00:01:05.354
+Reed page two.
+
+00:01:05.354 --> 00:01:08.296
+Two I Os, done.
+
+00:01:08.296 --> 00:01:11.238
+Now Dan.
+
+00:01:11.238 --> 00:01:14.180
+Dan appears in three different data pages, zero, one, and four, because duplicate keys fan out.
+
+00:01:14.180 --> 00:01:17.122
+Hash of Dan lands in index page one, and that entry points to all three.
+
+00:01:17.122 --> 00:01:20.063
+Reed all three.
+
+00:01:20.063 --> 00:01:23.005
+Four I Os.
+
+00:01:23.005 --> 00:01:25.947
+The cost grows with duplicates of the search key, never with the size of the table.
+
+00:01:25.947 --> 00:01:28.889
+That is what constant time buys you.
+
+00:01:28.889 --> 00:01:32.288
+Two ways to organize the index itself.
+
+00:01:32.288 --> 00:01:35.688
+The basic version is one giant dictionary.
+
+00:01:35.688 --> 00:01:39.087
+Alice points to page two.
+
+00:01:39.087 --> 00:01:42.487
+Dan points to a list of pages.
+
+00:01:42.487 --> 00:01:45.886
+Simple, and it works until the dictionary stops fitting in RAM.
+
+00:01:45.886 --> 00:01:49.285
+One billion entries at sixteen bytes each is sixteen gigabytes.
+
+00:01:49.285 --> 00:01:52.685
+At that point every lookup starts with a disk reed.
+
+00:01:52.685 --> 00:01:56.084
+The fix is partitioning.
+
+00:01:56.084 --> 00:01:59.484
+Split the index across N pages, each one around sixty-four megabytes, each fitting comfortably.
+
+00:01:59.484 --> 00:02:02.883
+The extra hash step is free, and the semantics are unchanged.
+
+00:02:02.883 --> 00:02:06.141
+What hash indexes win on.
+
+00:02:06.141 --> 00:02:09.400
+WHERE user id equals forty-two.
+
+00:02:09.400 --> 00:02:12.659
+WHERE order id equals ABC dash one two three.
+
+00:02:12.659 --> 00:02:15.917
+Any predicate that resolves to a single key value.
+
+00:02:15.917 --> 00:02:19.175
+Equality, primary key, session id, cache key.
+
+00:02:19.175 --> 00:02:22.434
+What they break on.
+
+00:02:22.434 --> 00:02:25.692
+WHERE age greater than twenty-one.
+
+00:02:25.692 --> 00:02:28.951
+ORDER BY created at.
+
+00:02:28.951 --> 00:02:32.209
+WHERE name like A percent.
+
+00:02:32.209 --> 00:02:35.468
+Any predicate that spans a range, needs sorted order, or matches a prefix.
+
+00:02:35.468 --> 00:02:38.726
+The hash scatters neighbouring keys on purpose, so sorted access is impossible.
+
+00:02:38.726 --> 00:02:41.985
+For that, reach for a B-plus tree.
+
+00:02:41.985 --> 00:02:46.223
+The algorithm in two halves.
+
+00:02:46.223 --> 00:02:50.460
+Build.
+
+00:02:50.460 --> 00:02:54.698
+Pick a bucket count, often a prime.
+
+00:02:54.698 --> 00:02:58.936
+For each tuple, hash the key, mod by the bucket count, append the entry to that bucket's list.
+
+00:02:58.936 --> 00:03:03.173
+Lookup.
+
+00:03:03.173 --> 00:03:07.411
+Hash the search key, mod by the bucket count, scan that one bucket for a match, return the pointer.
+
+00:03:07.411 --> 00:03:11.648
+Average case is constant time.
+
+00:03:11.648 --> 00:03:15.886
+A poor hash clusters keys into a few buckets and degrades lookup to linear, so production databases use well-studied hashes like MurmurHash and xxHash.
+
+00:03:15.886 --> 00:03:19.628
+Constant time equality lookups.
+
+00:03:19.628 --> 00:03:23.369
+Two disk reeds for a unique key, a few more for duplicates.
+
+00:03:23.369 --> 00:03:27.111
+Hard to beat for point queries, and no help for ranges or sorts.
+
+00:03:27.111 --> 00:03:30.853
+Neighbouring keys scatter to random buckets on purpose.
+
+00:03:30.853 --> 00:03:34.595
+Partitioning keeps a huge index practical, each partition still fitting in RAM.
+
+00:03:34.595 --> 00:03:38.336
+Next, the index that handles both point lookups and range scans with one shape.
+
+00:03:38.336 --> 00:03:42.078
+B-plus trees.

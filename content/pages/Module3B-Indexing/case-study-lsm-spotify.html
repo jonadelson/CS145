@@ -1,0 +1,38 @@
+<h1>Case Study 3.3: Tracking High-Volume Activity with LSM Trees</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Spotify tracks billions of "like" and "play" events using LSM-tree-backed key-value stores (Cassandra, Bigtable), which sustain millions of writes per second by appending to an in-memory MemTable and flushing sequentially.</p>
+<p><strong>Intuition.</strong> When 700 million users all like and play songs continuously, a relational table cannot keep up with the write rate. Spotify routes the firehose into an LSM-backed cluster. Every event is buffered in RAM, then periodically flushed as an immutable SSTable. Reads aggregate across the MemTable and the SSTables.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 3.3</span>
+<span>Reading Time: 8 mins</span></p>
+</div>
+<p><a id="lsm-hero"></a>
+<img src="assets/Module3B-Indexing/svgs/lsm-spotify-hero.svg" alt="Spotify's LSM path: events append to an in-memory MemTable (red, the only volatile part), flush sequentially to immutable SSTables on disk (green), and a background compaction (grey) merges old files and drops superseded versions; a read scans newest to oldest." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Spotify keeps the write path fast by never seeking: every like, play, or pause is an append into an in-memory MemTable, and when it fills it flushes sequentially to an immutable SSTable on disk. A background compaction merges old SSTables through the merge function and reclaims superseded versions and tombstones. A read walks newest to oldest, MemTable first, and stops at the first match.</p>
+</div>
+<h2>The Bottleneck: Random Writes in B+Trees</h2>
+<p>In a B+Tree, each update requires a disk seek to find the right leaf node. Updating the play count for any of 100 million songs means descending the tree, loading the right page, and rewriting the value. Multiply that by millions of updates per second and the disk controller, not the CPU, becomes the limit.</p>
+<p>LSM trees side-step this by never doing a random write. Refer back to the <a href="#/page/Module3B-Indexing/lsm-indexes">LSM Tree Indexes</a> page for the machinery (MemTable, flush, compaction). The rest of this page focuses on <em>how Spotify actually uses</em> that machinery for three distinct workloads.</p>
+<hr />
+<h2>Use Case 1: Counters (Play Counts, Likes)</h2>
+<p>Every "Like" and every "Play" is appended to the MemTable as a fragment: <code>(song_id, +1, timestamp)</code>. To get the current total, the query sums matching fragments across the MemTable and every SSTable that might hold them. The merge function is simply <code>SUM</code>.</p>
+<p>This is the pattern the core LSM page uses as its running example. Nothing special about Spotify's implementation beyond scale.</p>
+<hr />
+<h2>Use Case 2: Latest-Wins (Last-Played Position)</h2>
+<p>When you pause a 3-hour podcast, Spotify has to save your exact timestamp. With millions of users pausing and resuming constantly, random B+Tree updates would saturate the disk. Instead, Spotify appends <code>(user_id, podcast_id, position)</code> to the MemTable. When you resume, it scans newest to oldest (MemTable first, then SSTables in reverse chronological order), grabs the first version it finds, and ignores every older timestamp buried in older files.</p>
+<p>The merge function here is <code>pick-latest</code>. Old versions aren't wrong, just superseded, and compaction eventually cleans them up.</p>
+<hr />
+<h2>Use Case 3: Immutable Events (Friend Activity Feed)</h2>
+<p>Spotify's Friend Activity feed tracks what your friends are listening to right now. These events are never updated, only appended. Every play is a fast memory write to the log. The dashboard renders the feed by doing a merge-on-read across the most recent SSTable segments.</p>
+<p>No write locks, no contention, no coordination. The same append-and-forget pattern that powers counters also powers timelines.</p>
+<hr />
+<h2>Use Case 4: Deletes via Tombstones</h2>
+<p>SSTables are immutable, so you can't erase data from a file that's already on disk. When you unlike a song, Spotify writes a <strong>tombstone</strong>, a special marker recording that the key was deleted. On read, if the system encounters a tombstone before the original entry, it returns "not found" even though the older Like still physically exists in a deeper SSTable. During the next <strong>compaction</strong>, the system matches the tombstone against the old log entry and permanently drops both from the merged file.</p>
+<p>The tombstone is the LSM equivalent of <code>DELETE</code>. It trades instant physical deletion for a delayed cleanup during compaction.</p>
+<hr />
+<p><strong>Takeaway:</strong> Spotify's counters and feeds stay fast because LSM treats storage as an append-only log, not an overwrite ledger; the merge function (SUM, pick-latest, append, tombstone) is the API, and compaction reclaims the old versions.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/case-study-wrapped-indexing">Case Study 3.4: Spotify Wrapped →</a></strong> When the read side needs to serve 700 million personalized summaries in a single day, the answer is to pre-aggregate everything overnight.</p>

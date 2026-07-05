@@ -1,0 +1,121 @@
+<h1>Block Nested Loop Join: The Simple Double Loop</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Block nested loop join reads the inner table once into a RAM-sized block, then scans the outer table once for each block, matching rows with the predicate as it goes.</p>
+<p><strong>Intuition.</strong> When you need to join a small Songs table to a big Listens table, load Songs into RAM in one block, then scan Listens once and check each listen against every song in the block. Cost: read Songs once, read Listens <code>⌈P(Songs)/B⌉</code> times.</p>
+</div>
+<hr />
+<h2>The Algorithm: Load Blocks, Scan Everything</h2>
+<p>A double-for-loop in disguise. Outer loop loads blocks of B pages from the smaller table; inner loop scans the entire larger table for each block; the join predicate fires on every pair.</p>
+<p><a id="bnlj-figure"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/bnlj-algorithm.svg" alt="Block Nested Loop Join: the smaller table R is loaded into RAM once. The larger table S is then streamed page-by-page; each S page is probed against the R block in RAM. Cost when R fits in 1 block: P(R) + P(S) page reads." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Block Nested Loop Join, <code>R ⋈ S</code>. The smaller table <code>R</code> is read from disk and held entirely in RAM for the whole join; the larger table <code>S</code> streams past in 4 pages, each loaded into a one-page slot, probed against <code>R</code>, then discarded, producing 8 joined rows (2 per <code>S</code> page here). Best case, when <code>R</code> fits in <code>B</code> pages, is <code>P(R) + P(S) + OUT</code>; if <code>R</code> is bigger than <code>B</code> it becomes <code>P(R) + ⌈P(R)/B⌉ × P(S) + OUT</code> because <code>S</code> is re-scanned once per <code>R</code>-block, so always make the smaller table the outer one.</p>
+</div>
+<p><a id="bnlj-pseudocode"></a></p>
+<div class="algo">
+<pre class="algo-code">
+<span class="sig">BNLJ(R, S, B):</span>                        <span class="cmt">// R = smaller table (outer), S = larger (inner), B = RAM pages</span>
+
+    <span class="cmt">// Outer loop: read R one block at a time</span>
+    for each block of B pages in R:
+        load the block into RAM
+
+        <span class="cmt">// Inner loop: scan all of S once for this block</span>
+        for each page s of S:
+            load s into RAM
+            for each row r in block, row t in s:
+                if r matches t:               <span class="cmt">// any predicate: equality, range, similarity</span>
+                    emit (r, t)
+</pre>
+</div>
+<hr />
+<h2>Example: Songs ⋈ Listens</h2>
+<p><strong>Find all listens for each song.</strong> P(Songs) = 100 pages, P(Listens) = 10,000 pages, buffer B = 10 pages. Put the smaller table (Songs) on the outer loop.</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>IOs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read Songs once</td>
+<td>100</td>
+</tr>
+<tr>
+<td>Blocks of Songs: ⌈100 / 10⌉</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Scan Listens, once per block: 10 × 10,000</td>
+<td>100,000</td>
+</tr>
+<tr>
+<td><strong>Total</strong> (plus OUT for the result)</td>
+<td><strong>100,100</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Compared to a row-by-row nested loop, which rereads Listens once per Songs row (millions of scans), block nested loop is orders of magnitude cheaper just by buffering a block at a time.</p>
+<h3>Wrong Choice: Listens as Outer</h3>
+<div class="v5-callout v5-callout--danger">
+<p>If we used BNLJ(Listens, Songs):</p>
+<ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+<li>Blocks: ⌈10,000/10⌉ = 1,000</li>
+<li>Scan Songs: 1,000 × 100 = 100,000</li>
+<li>Total: 110,000 IOs (10% worse)</li>
+</ul>
+</div>
+<hr />
+<h2>Non-Equality Joins: Where BNLJ Shines</h2>
+<div class="v5-callout v5-callout--info">
+<h4 style="margin-top: 0; color: #059669;">BNLJ handles any join condition</h4>
+<p>Unlike other JOIN algorithms, BNLJ supports:</p>
+<ul style="margin: 1rem 0; padding-left: 1.5rem;">
+<li><strong>Similarity:</strong> <code>similarity(s.features, a.style) &gt; 0.8</code></li>
+<li><strong>Complex conditions:</strong> <code>s.duration &gt; a.avg_length * 1.5 AND s.genre = a.genre</code></li>
+</ul>
+<h4 style="color: #059669;">Real Example: Find Songs Similar to Artist's Style</h4>
+<pre>
+<code class="language-sql">-- Find songs similar to what the artist usually makes
+SELECT s.song_id, a.artist_id
+FROM Songs s
+JOIN Artists a ON distance(s.audio_vector, a.style_vector) &lt; 0.2
+                  AND s.duration BETWEEN a.min_duration AND a.max_duration;
+
+-- Only BNLJ can handle this complex join!</code>
+</pre>
+</div>
+<hr />
+<h2>When BNLJ Wins</h2>
+<table>
+<thead>
+<tr>
+<th>Use BNLJ when</th>
+<th>Avoid BNLJ when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Non-equality joins (range, similarity, distance)</td>
+<td>Both tables are huge</td>
+</tr>
+<tr>
+<td>One table is small</td>
+<td>Simple equality join</td>
+</tr>
+<tr>
+<td>Large buffer available (few blocks, few scans)</td>
+<td>Tables already sorted</td>
+</tr>
+<tr>
+<td>No indexes exist</td>
+<td>Small buffer</td>
+</tr>
+</tbody>
+</table>
+<p>BNLJ rescans the inner table once per block of the outer, so when both tables dwarf RAM the cost turns quadratic. That is exactly the case the next algorithm removes.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/hash-partition-join">Hash Partition Join →</a></strong> When both tables are too big for BNLJ and the join is an equality, hash partitioning turns a quadratic problem into a linear one.</p>

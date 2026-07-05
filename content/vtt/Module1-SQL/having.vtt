@@ -1,0 +1,121 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.863
+HAVING filters GROUPS, after they are formed.
+
+00:00:06.863 --> 00:00:11.726
+Here is the query: SELECT user-ID, COUNT, AVG of rating, FROM Listens, GROUP BY user-ID, HAVING AVG of rating greater than four.
+
+00:00:11.726 --> 00:00:16.589
+First the groups form, one row per user: Mickey averages four point two, Minnie four point four, Daffy three point nine.
+
+00:00:16.589 --> 00:00:21.451
+Then HAVING checks each group's average against four.
+
+00:00:21.451 --> 00:00:26.314
+Mickey and Minnie pass.
+
+00:00:26.314 --> 00:00:31.177
+Daffy, at three point nine, is below four, so his whole group drops.
+
+00:00:31.177 --> 00:00:36.040
+Output: Mickey and Minnie.
+
+00:00:36.040 --> 00:00:39.224
+HAVING is not only about averages.
+
+00:00:39.224 --> 00:00:42.409
+Here we count plays.
+
+00:00:42.409 --> 00:00:45.593
+Group the listens by song, not by user.
+
+00:00:45.593 --> 00:00:48.778
+Each song gets a row with its play count.
+
+00:00:48.778 --> 00:00:51.962
+Then HAVING COUNT keeps only songs played at least twice.
+
+00:00:51.962 --> 00:00:55.147
+Songs seven and eight were played once, so they drop.
+
+00:00:55.147 --> 00:00:58.331
+Three songs survive: one, two, and six.
+
+00:00:58.331 --> 00:01:01.442
+You can test more than one thing.
+
+00:01:01.442 --> 00:01:04.554
+Combine conditions with AND.
+
+00:01:04.554 --> 00:01:07.665
+Here a user must have at least three listens, and an average above four.
+
+00:01:07.665 --> 00:01:10.777
+Group by user, compute both.
+
+00:01:10.777 --> 00:01:13.888
+Now both must pass.
+
+00:01:13.888 --> 00:01:17.000
+Mickey and Minnie clear both.
+
+00:01:17.000 --> 00:01:20.111
+Daffy has three listens, but his average is three point nine, so he fails the second test and his group drops.
+
+00:01:20.111 --> 00:01:23.590
+So how is HAVING different from WHERE?
+
+00:01:23.590 --> 00:01:27.069
+Timing.
+
+00:01:27.069 --> 00:01:30.548
+WHERE filters rows BEFORE grouping; HAVING filters groups AFTER.
+
+00:01:30.548 --> 00:01:34.027
+Watch both in one query.
+
+00:01:34.027 --> 00:01:37.506
+The query: WHERE rating greater than three point five, GROUP BY user-ID, HAVING COUNT greater than or equal to two.
+
+00:01:37.506 --> 00:01:40.986
+First WHERE runs on the raw rows, striking Daffy's two point nine and his NULL.
+
+00:01:40.986 --> 00:01:44.465
+Seven rows survive.
+
+00:01:44.465 --> 00:01:47.944
+Then they group: Mickey three, Minnie three, Daffy just one.
+
+00:01:47.944 --> 00:01:51.423
+Then HAVING drops any group with fewer than two rows.
+
+00:01:51.423 --> 00:01:54.902
+Daffy's single row goes.
+
+00:01:54.902 --> 00:01:58.381
+Output: Mickey and Minnie.
+
+00:01:58.381 --> 00:02:01.860
+WHERE picked the rows; HAVING picked the groups.
+
+00:02:01.860 --> 00:02:07.340
+The classic mistake: using HAVING for a row filter.
+
+00:02:07.340 --> 00:02:12.820
+HAVING rating greater than four looks reasonable, but HAVING runs after grouping, where individual row values are already gone.
+
+00:02:12.820 --> 00:02:18.300
+Filtering rows is WHERE's job.
+
+00:02:18.300 --> 00:02:23.780
+The rule of thumb: row conditions go in WHERE, aggregate conditions go in HAVING.
+
+00:02:23.780 --> 00:02:28.826
+WHERE before grouping, HAVING after.
+
+00:02:28.826 --> 00:02:33.873
+WHERE on row values, HAVING on aggregate values.
+
+00:02:33.873 --> 00:02:38.919
+Once the timing clicks, every group filter lands in the right place, and the "I cannot use this aggregate in WHERE" error stops surprising you.

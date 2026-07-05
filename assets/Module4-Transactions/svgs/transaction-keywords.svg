@@ -1,0 +1,50 @@
+<svg viewBox="0 0 900 350" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="tk-t tk-d">
+  <title id="tk-t">The three transaction keywords: BEGIN, COMMIT, ROLLBACK</title>
+  <desc id="tk-d">A transaction block opens with BEGIN, runs your statements, and ends one of
+  two ways: COMMIT makes every change since BEGIN permanent and visible to others, or ROLLBACK
+  undoes every change as if nothing happened (rolling a transaction back is also called aborting it; in Postgres, ABORT is the same command). Outside such a block, each statement runs in
+  autocommit mode as its own one-statement transaction. Color key: violet is the transaction
+  block, green is COMMIT, red is ROLLBACK.</desc>
+  <defs><marker id="ah-tk" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">One block, three keywords</text>
+  <text x="450" y="56" text-anchor="middle" font-size="14" fill="#6B7280">BEGIN opens it, your statements run, then COMMIT or ROLLBACK ends it.</text>
+
+  <!-- The block -->
+  <g data-step="1">
+  <rect x="40" y="90" width="430" height="170" rx="10" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="62" y="108" width="386" height="32" rx="5" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="78" y="129" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#7C3AED">BEGIN TRANSACTION</text>
+  <text x="470" y="129" text-anchor="end" font-size="13" fill="#6B7280" transform="translate(-12,0)">marks the start</text>
+  <rect x="62" y="148" width="386" height="30" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="78" y="168" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">UPDATE inventory ...</text>
+  <rect x="62" y="184" width="386" height="30" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="78" y="204" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">INSERT INTO orders ...</text>
+  <text x="255" y="240" text-anchor="middle" font-size="13" fill="#7C3AED">many statements, one logical operation</text>
+  </g>
+
+  <!-- The two endings -->
+  <g data-step="2">
+  <line x1="470" y1="130" x2="512" y2="130" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tk)"/>
+  <rect x="516" y="106" width="344" height="48" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+  <text x="536" y="127" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">COMMIT</text>
+  <text x="612" y="127" font-size="13" fill="#3F3F46">every change since BEGIN is permanent</text>
+  <text x="612" y="144" font-size="13" fill="#6B7280">and visible to other transactions</text>
+  <line x1="470" y1="196" x2="512" y2="196" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tk)"/>
+  <rect x="516" y="172" width="344" height="48" rx="8" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+  <text x="536" y="193" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#DC2626">ROLLBACK</text>
+  <text x="616" y="193" font-size="13" fill="#3F3F46">every change undone, as if nothing</text>
+  <text x="616" y="210" font-size="13" fill="#6B7280">happened</text>
+  <text x="688" y="242" text-anchor="middle" font-size="12.5" fill="#6B7280">ROLLBACK = abort the transaction (in Postgres, <tspan font-family="JetBrains Mono, monospace" fill="#3F3F46">ABORT</tspan>)</text>
+  </g>
+
+  <!-- Autocommit -->
+  <g data-step="3">
+  <text x="450" y="296" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Outside the block: autocommit</text>
+  <text x="450" y="316" text-anchor="middle" font-size="14" fill="#6B7280">each statement is its own one-statement transaction</text>
+  </g>
+
+  <text x="450" y="342" text-anchor="middle" font-size="13"><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the block&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = COMMIT&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = ROLLBACK</tspan></text>
+</svg>

@@ -1,0 +1,62 @@
+<h1>6.1 · DB Design for a Startup: Keep It Simple</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Most apps never outgrow one machine, so start with a managed single-node Postgres for its ACID guarantees, and when reads strain it, add read replicas long before you reach for sharding.</p>
+<p><strong>Intuition.</strong> Instagram rode Postgres to a billion-dollar exit and WhatsApp served 900 million users on it. A startup's real risk is corrupting its first users' data, not running out of scale. So ship on the boring, safe monolith; when reads pile up, copy the database into read replicas while the primary keeps taking every write.</p>
+</div>
+<div class="v5-callout">
+<h3>The Structured Monolith (10 - 100 GB)</h3>
+<p>95% of data apps will never exceed a single node. Start with managed PostgreSQL. Optimize for product velocity over distributed complexity.</p>
+</div>
+<h2>Start Simple: The Reality of Database Scale</h2>
+<p><strong>PostgreSQL on AWS RDS/Cloud SQL/Azure will handle your first 10 million users.</strong></p>
+<p>Here's why: PostgreSQL offers <strong>ACID guarantees</strong> right out of the gate. ACID, Atomicity, Consistency, Isolation, Durability, ensures that your data remains intact, even if the system hiccups. Think of it as the financial equivalent of ensuring a bank transfer doesn't magically create or lose money during a system crash. For a startup, the real threat isn't scaling; it's screwing up the data of your initial users. A structured monolith acts as your safety net.</p>
+<h2>Examples</h2>
+<table>
+<thead>
+<tr>
+<th>Company</th>
+<th>Exit Value</th>
+<th>Database Strategy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Instagram</strong></td>
+<td>$1B</td>
+<td>PostgreSQL until acquisition</td>
+</tr>
+<tr>
+<td><strong>WhatsApp</strong></td>
+<td>$19B</td>
+<td>PostgreSQL handled 900M users</td>
+</tr>
+<tr>
+<td><strong>Notion</strong></td>
+<td>$10B valuation</td>
+<td>Still on PostgreSQL + replicas</td>
+</tr>
+<tr>
+<td><strong>Stack Overflow</strong></td>
+<td>Still thriving</td>
+<td>4 SQL Servers, 1.3B pageviews/month</td>
+</tr>
+</tbody>
+</table>
+<h2>The First Scaling Move: Read Replicas</h2>
+<p>Most apps read far more than they write. When a single Postgres instance starts to strain, the first move is almost never sharding. It's adding <strong>read replicas</strong>: copies of the database that serve reads while the original, the <strong>primary</strong>, keeps taking every write.</p>
+<p><a id="read-replicas-fig"></a></p>
+<p><img src="assets/Module6-Data-Systems/svgs/read-replicas.svg"
+     alt="The application sends all writes to one primary database and reads to a pool of read replicas; the primary streams changes to the replicas asynchronously, which can briefly lag."
+     style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Writes go to the single primary (blue); reads spread across N replicas (violet). The primary streams its changes to the replicas asynchronously (dashed), so a replica can trail the primary by milliseconds. You scale reads by adding replicas without touching the write path.</p>
+</div>
+<p>The tradeoff is <strong>replica lag</strong>. Replication is asynchronous, so a read served by a replica may miss a write that just committed on the primary. Usually that is fine (a slightly stale follower count). When it isn't (a user must see their own just-saved edit), route that specific read back to the primary, the "read-your-writes" exception. This single pattern carries an app well past 100K daily users before sharding is worth the complexity.</p>
+<h2>Common Startup Mistakes to Avoid</h2>
+<h3>Over-Engineering from Day One</h3>
+<p>Reaching for sharding, microservices, or "web-scale" NoSQL before you have users is a classic distraction. Start with one Postgres instance, ship the product, and let real load data tell you what to scale next.</p>
+<h3>DIY Database Management</h3>
+<p>Every hour spent on database ops is an hour not spent on your product. Use AWS RDS, Cloud SQL, or Azure Database. Period.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module6-Data-Systems/sql-beyond-tables">SQL's Complex Types →</a></strong> Before you reach for anything bigger than one Postgres, see how much that single node already does: JSON, vectors, geo, even LLM calls, all in plain SQL.</p>

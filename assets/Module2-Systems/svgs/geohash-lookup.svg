@@ -1,0 +1,47 @@
+<svg viewBox="0 0 980 580" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="gl-t gl-d">
+  <title id="gl-t">Geo-hashing lookup: a radius query is a bounded handful of cell reads</title>
+  <desc id="gl-d">A within-2km query hashes the driver's location to one cell, then because the radius crosses cell borders it also reads the six neighbour cells. That is up to seven cell lookups, which may sit on seven different pages, so up to seven reads. Seven is constant: it does not grow with the ten million orders, unlike a full scan. Color key: orange is the query cell and its six neighbours and the up-to-seven page reads they cost, grey is the rest of the grid, the dashed circle is the 2km radius.</desc>
+  <text x="490" y="38" text-anchor="middle" style="font-size:23px;font-weight:700;fill:#0E0E10;">Step 2, the lookup: a radius query is a few cell reads</text>
+  <text x="490" y="64" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">The query cell plus its six neighbours: up to seven reads, constant, never the ten million.</text>
+
+  <polygon points="300.0,266.0 338.1,288.0 338.1,332.0 300.0,354.0 261.9,332.0 261.9,288.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="376.2,266.0 414.3,288.0 414.3,332.0 376.2,354.0 338.1,332.0 338.1,288.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="338.1,332.0 376.2,354.0 376.2,398.0 338.1,420.0 300.0,398.0 300.0,354.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="261.9,332.0 300.0,354.0 300.0,398.0 261.9,420.0 223.8,398.0 223.8,354.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="223.8,266.0 261.9,288.0 261.9,332.0 223.8,354.0 185.7,332.0 185.7,288.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="261.9,200.0 300.0,222.0 300.0,266.0 261.9,288.0 223.8,266.0 223.8,222.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="338.1,200.0 376.2,222.0 376.2,266.0 338.1,288.0 300.0,266.0 300.0,222.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+
+  <g data-step="1">
+  <circle cx="300" cy="310" r="108" fill="none" stroke="#0E0E10" stroke-width="1.5" stroke-dasharray="6,5"/>
+  <circle cx="300" cy="310" r="6" fill="#0E0E10"/>
+  <text x="300" y="192" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#0E0E10;">driver, within 2 km</text>
+  </g>
+
+  <g data-step="2">
+  <polygon points="300.0,266.0 338.1,288.0 338.1,332.0 300.0,354.0 261.9,332.0 261.9,288.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/>
+  <circle cx="300" cy="310" r="6" fill="#EA580C"/>
+  <text x="300" y="317" text-anchor="middle" style="font-size:12px;font-weight:700;fill:#EA580C;">1 cell</text>
+  </g>
+
+  <g data-step="3">
+  <polygon points="376.2,266.0 414.3,288.0 414.3,332.0 376.2,354.0 338.1,332.0 338.1,288.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/><polygon points="338.1,332.0 376.2,354.0 376.2,398.0 338.1,420.0 300.0,398.0 300.0,354.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/><polygon points="261.9,332.0 300.0,354.0 300.0,398.0 261.9,420.0 223.8,398.0 223.8,354.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/><polygon points="223.8,266.0 261.9,288.0 261.9,332.0 223.8,354.0 185.7,332.0 185.7,288.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/><polygon points="261.9,200.0 300.0,222.0 300.0,266.0 261.9,288.0 223.8,266.0 223.8,222.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/><polygon points="338.1,200.0 376.2,222.0 376.2,266.0 338.1,288.0 300.0,266.0 300.0,222.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/>
+  <polygon points="300.0,266.0 338.1,288.0 338.1,332.0 300.0,354.0 261.9,332.0 261.9,288.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/><circle cx="300" cy="310" r="6" fill="#EA580C"/>
+  <text x="300" y="460" text-anchor="middle" style="font-size:13px;fill:#EA580C;">the radius crosses borders: + 6 neighbours</text>
+  </g>
+
+  <g data-step="4">
+  <rect x="590" y="250" width="40" height="54" rx="4" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+  <rect x="638" y="250" width="40" height="54" rx="4" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+  <rect x="686" y="250" width="40" height="54" rx="4" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+  <rect x="734" y="250" width="40" height="54" rx="4" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+  <rect x="782" y="250" width="40" height="54" rx="4" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+  <rect x="830" y="250" width="40" height="54" rx="4" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+  <rect x="878" y="250" width="40" height="54" rx="4" fill="#FDEBE0" stroke="#EA580C" stroke-width="2"/>
+  <text x="730" y="240" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#0E0E10;">up to 7 reads</text>
+  <text x="730" y="332" text-anchor="middle" style="font-size:13px;fill:#3F3F46;">7 cell IDs, maybe 7 different pages.</text>
+  <text x="730" y="356" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#EA580C;">7, not 10,000,000. Constant for any N.</text>
+  </g>
+
+  <text x="490" y="566" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = the 7 cells and their reads&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the rest of the grid&#160;&#160;&#183;&#160;&#160;dashed = the 2km radius</tspan></text>
+</svg>

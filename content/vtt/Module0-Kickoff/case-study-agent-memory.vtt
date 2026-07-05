@@ -1,0 +1,121 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.054
+An AI agent with no memory hallucinates.
+
+00:00:07.054 --> 00:00:12.108
+That is panel one: the model alone, with only a context window, which is wiped when the session ends.
+
+00:00:12.108 --> 00:00:17.163
+Panel two: give it a local database, a file on disk, and it looks the answer up instead.
+
+00:00:17.163 --> 00:00:22.217
+Panel three: scale that same database across machines, and it holds one private memory for each of eight hundred million users.
+
+00:00:22.217 --> 00:00:27.271
+No-memory, then local, then global.
+
+00:00:27.271 --> 00:00:32.325
+That arc is the spine of this whole course.
+
+00:00:32.325 --> 00:00:35.576
+Start with the failure.
+
+00:00:35.576 --> 00:00:38.827
+Ask an agent about a function you wrote last week.
+
+00:00:38.827 --> 00:00:42.078
+With no memory, it does not look it up.
+
+00:00:42.078 --> 00:00:45.328
+It guesses.
+
+00:00:45.328 --> 00:00:48.579
+A plausible name, a plausible signature, and it is wrong.
+
+00:00:48.579 --> 00:00:51.830
+The context window held the real answer, but the window is gone.
+
+00:00:51.830 --> 00:00:55.081
+That is a hallucination, and it is the default state of a model that remembers nothing.
+
+00:00:55.081 --> 00:00:58.750
+Why not just keep everything in the context window?
+
+00:00:58.750 --> 00:01:02.419
+Because the window is small and temporary.
+
+00:01:02.419 --> 00:01:06.088
+It is working memory, and it resets every session.
+
+00:01:06.088 --> 00:01:09.756
+Anything that has to outlast the session, your preferences, past decisions, the shape of your codebase, cannot live there.
+
+00:01:09.756 --> 00:01:13.425
+It has to live somewhere durable.
+
+00:01:13.425 --> 00:01:17.094
+It has to live in a database.
+
+00:01:17.094 --> 00:01:23.001
+Local memory is the cure, and it is just SQL.
+
+00:01:23.001 --> 00:01:28.908
+The model writes facts to an embedded database with a SQL write, and reads them back with a SQL read, through a small rerank step.
+
+00:01:28.908 --> 00:01:34.816
+The database, claude-mem, is one file on your machine.
+
+00:01:34.816 --> 00:01:40.723
+It holds two indexes: a keyword index for what you said, and a vector index for what you meant.
+
+00:01:40.723 --> 00:01:46.630
+One file, no server, and the agent stops guessing.
+
+00:01:46.630 --> 00:01:50.119
+Now scale it.
+
+00:01:50.119 --> 00:01:53.608
+ChatGPT has eight hundred million users, each needing their own private memory.
+
+00:01:53.608 --> 00:01:57.096
+The pattern does not change, only the size.
+
+00:01:57.096 --> 00:02:00.585
+Every user's writes go to one Postgres primary.
+
+00:02:00.585 --> 00:02:04.074
+The primary streams its changes to about fifty read replicas.
+
+00:02:04.074 --> 00:02:07.562
+And all those reads fan out across the replicas.
+
+00:02:07.562 --> 00:02:11.051
+Same SQL write, same SQL read.
+
+00:02:11.051 --> 00:02:14.540
+One machine becomes many.
+
+00:02:14.540 --> 00:02:17.344
+One idea, twice.
+
+00:02:17.344 --> 00:02:20.147
+A database gives a model persistent memory.
+
+00:02:20.147 --> 00:02:22.951
+Local, it is a single file.
+
+00:02:22.951 --> 00:02:25.755
+Global, it is Postgres across many machines.
+
+00:02:25.755 --> 00:02:28.559
+The model keeps changing; the database is the constant infrastructure underneath.
+
+00:02:28.559 --> 00:02:31.362
+Local memory is Modules one to four.
+
+00:02:31.362 --> 00:02:34.166
+Global memory is Modules five and six.
+
+00:02:34.166 --> 00:02:36.970
+That is the course.

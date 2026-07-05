@@ -1,0 +1,92 @@
+<svg viewBox="0 0 1180 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tm-arch-t tm-arch-d" style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="tm-arch-t">Transaction Manager architecture: incoming transactions flow through five cooperating components into one consistent ACID database state</title>
+  <desc id="tm-arch-d">Incoming user transactions enter the Transaction Manager, a violet container that holds five components, each owning one ACID guarantee. The Scheduler interleaves operations for a conflict-serializable order (Consistency). The Lock Manager enforces 2PL with O(1) hash lookups (Isolation). The Write-Ahead Log records every change before the data page moves (Durability). The Deadlock Detector watches the waits-for graph and aborts a victim. The Recovery Manager runs Analysis, REDO, and UNDO after a crash (Atomicity). The output is a consistent database state. Color key: violet is the Transaction Manager and the scale axis; green is a durability or correctness guarantee; blue is the isolation boundary; amber is the deadlock caution; red is the atomicity rollback path; grey is out of focus.</desc>
+  <defs>
+    <marker id="tm-ah" markerWidth="11" markerHeight="8" refX="9" refY="4" orient="auto">
+      <polygon points="0 0, 11 4, 0 8" fill="#6B7280"/></marker>
+  </defs>
+
+  <!-- frame, input, container -->
+  <g data-step="1">
+    <text x="590" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The Transaction Manager: five components, one guarantee</text>
+    <text x="590" y="62" text-anchor="middle" font-size="14" fill="#6B7280">Each component owns one ACID property. Together they make concurrent transactions look serial and crash-proof.</text>
+
+    <!-- input -->
+    <rect x="40" y="300" width="150" height="120" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="300" width="6" height="120" rx="3" fill="#7C3AED"/>
+    <text x="115" y="332" text-anchor="middle" font-size="14" font-weight="700" fill="#7C3AED">Transactions</text>
+    <text x="115" y="360" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">T1, T2, T3 …</text>
+    <text x="115" y="384" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#6B7280">BEGIN</text>
+    <text x="115" y="402" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#6B7280">COMMIT / ABORT</text>
+    <line x1="194" y1="360" x2="234" y2="360" stroke="#6B7280" stroke-width="2.5" marker-end="url(#tm-ah)"/>
+
+    <!-- TM container frame -->
+    <rect x="240" y="92" width="700" height="540" rx="14" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2.5"/>
+    <text x="590" y="120" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED" letter-spacing="0.5">TRANSACTION MANAGER</text>
+  </g>
+
+  <!-- 1. Scheduler (Consistency, green = correct order) -->
+  <g data-step="2">
+    <rect x="270" y="142" width="640" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="270" y="142" width="640" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="290" y="172" font-size="16" font-weight="700" fill="#16A34A">1 · Scheduler</text>
+    <text x="290" y="196" font-size="13.5" fill="#3F3F46">Interleaves operations into a conflict-serializable order: the result equals some serial run.</text>
+    <text x="884" y="166" text-anchor="end" font-size="12" font-weight="700" fill="#16A34A">C</text>
+    <text x="884" y="184" text-anchor="end" font-size="11" fill="#6B7280">Consistency</text>
+  </g>
+
+  <!-- 2. Lock Manager (Isolation, blue boundary) -->
+  <g data-step="3">
+    <rect x="270" y="232" width="640" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="270" y="232" width="640" height="5" rx="2.5" fill="#2563EB"/>
+    <text x="290" y="262" font-size="16" font-weight="700" fill="#2563EB">2 · Lock Manager</text>
+    <text x="290" y="286" font-size="13.5" fill="#3F3F46">Enforces 2PL on shared tuples, hash table for O(1) lock lookups. Blocks only on overlap.</text>
+    <text x="884" y="256" text-anchor="end" font-size="12" font-weight="700" fill="#2563EB">I</text>
+    <text x="884" y="274" text-anchor="end" font-size="11" fill="#6B7280">Isolation</text>
+  </g>
+
+  <!-- 3. Write-Ahead Log (Durability, green) -->
+  <g data-step="4">
+    <rect x="270" y="322" width="640" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="270" y="322" width="640" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="290" y="352" font-size="16" font-weight="700" fill="#16A34A">3 · Write-Ahead Log</text>
+    <text x="290" y="376" font-size="13.5" fill="#3F3F46">Logs every change before the data page moves. Sequential writes, old and new values for undo and redo.</text>
+    <text x="884" y="346" text-anchor="end" font-size="12" font-weight="700" fill="#16A34A">D</text>
+    <text x="884" y="364" text-anchor="end" font-size="11" fill="#6B7280">Durability</text>
+  </g>
+
+  <!-- 4. Deadlock Detector (amber caution) -->
+  <g data-step="5">
+    <rect x="270" y="412" width="640" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="270" y="412" width="640" height="5" rx="2.5" fill="#D97706"/>
+    <text x="290" y="442" font-size="16" font-weight="700" fill="#D97706">4 · Deadlock Detector</text>
+    <text x="290" y="466" font-size="13.5" fill="#3F3F46">Watches the waits-for graph for a cycle, then aborts one victim to break the deadlock.</text>
+    <text x="884" y="436" text-anchor="end" font-size="12" font-weight="700" fill="#D97706">guard</text>
+  </g>
+
+  <!-- 5. Recovery Manager (Atomicity, red rollback path) -->
+  <g data-step="6">
+    <rect x="270" y="502" width="640" height="100" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="270" y="502" width="640" height="5" rx="2.5" fill="#DC2626"/>
+    <text x="290" y="532" font-size="16" font-weight="700" fill="#DC2626">5 · Recovery Manager</text>
+    <text x="290" y="556" font-size="13.5" fill="#3F3F46">After a crash: Analysis finds what was running, REDO replays committed work,</text>
+    <text x="290" y="576" font-size="13.5" fill="#3F3F46">UNDO reverses the incomplete transactions. All of a transaction, or none.</text>
+    <text x="884" y="526" text-anchor="end" font-size="12" font-weight="700" fill="#DC2626">A</text>
+    <text x="884" y="544" text-anchor="end" font-size="11" fill="#6B7280">Atomicity</text>
+  </g>
+
+  <!-- output -->
+  <g data-step="7">
+    <line x1="944" y1="360" x2="984" y2="360" stroke="#6B7280" stroke-width="2.5" marker-end="url(#tm-ah)"/>
+    <rect x="990" y="300" width="150" height="120" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="990" y="300" width="6" height="120" rx="3" fill="#16A34A"/>
+    <text x="1065" y="332" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">DB State</text>
+    <text x="1065" y="360" text-anchor="middle" font-size="13.5" fill="#3F3F46">ACID</text>
+    <text x="1065" y="382" text-anchor="middle" font-size="13.5" fill="#3F3F46">consistent</text>
+    <text x="1065" y="404" text-anchor="middle" font-size="12" fill="#6B7280">at every moment</text>
+  </g>
+
+  <!-- color key -->
+  <text x="40" y="668" font-size="13.5"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = a correctness or durability guarantee&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = the isolation boundary&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#D97706" font-weight="700">amber</tspan><tspan fill="#3F3F46"> = the deadlock guard</tspan></text>
+  <text x="40" y="690" font-size="13.5"><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the atomicity rollback path&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the Transaction Manager that holds them all</tspan></text>
+</svg>

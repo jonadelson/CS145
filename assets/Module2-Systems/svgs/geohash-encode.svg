@@ -1,0 +1,36 @@
+<svg viewBox="0 0 980 590" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="ge-t ge-d">
+  <title id="ge-t">Geo-hashing: a location becomes a cell code</title>
+  <desc id="ge-d">Order pins start as raw latitude and longitude. Lay H3's hexagons over the map and every pin falls in one hexagon, which has a cell code. Pins in the same hexagon, three Stanford buildings here, share one code; a far pin in San Francisco gets a different code. The hash is just which hexagon a point lands in. Color key: orange is a shared cell and the pins in it, grey is the hex grid, dark dots are orders.</desc>
+  <text x="490" y="38" text-anchor="middle" style="font-size:23px;font-weight:700;fill:#0E0E10;">Step 1, the hash: a location becomes a cell code</text>
+  <text x="490" y="64" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">Every order takes the code of the hexagon it falls in. Nearby orders land in the same hexagon.</text>
+
+  <g data-step="1">
+  <circle cx="278" cy="324" r="5" fill="#0E0E10"/><circle cx="302" cy="334" r="5" fill="#0E0E10"/><circle cx="290" cy="344" r="5" fill="#0E0E10"/><circle cx="670" cy="330" r="5" fill="#0E0E10"/>
+  <text x="290" y="470" text-anchor="middle" style="font-size:13px;fill:#6B7280;">3 Stanford orders</text>
+  <text x="670" y="410" text-anchor="middle" style="font-size:13px;fill:#6B7280;">SF order, far away</text>
+  </g>
+
+  <g data-step="2">
+  <polygon points="290.0,286.0 328.1,308.0 328.1,352.0 290.0,374.0 251.9,352.0 251.9,308.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="366.2,286.0 404.3,308.0 404.3,352.0 366.2,374.0 328.1,352.0 328.1,308.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="328.1,352.0 366.2,374.0 366.2,418.0 328.1,440.0 290.0,418.0 290.0,374.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="251.9,352.0 290.0,374.0 290.0,418.0 251.9,440.0 213.8,418.0 213.8,374.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="213.8,286.0 251.9,308.0 251.9,352.0 213.8,374.0 175.7,352.0 175.7,308.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="251.9,220.0 290.0,242.0 290.0,286.0 251.9,308.0 213.8,286.0 213.8,242.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="328.1,220.0 366.2,242.0 366.2,286.0 328.1,308.0 290.0,286.0 290.0,242.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="670.0,286.0 708.1,308.0 708.1,352.0 670.0,374.0 631.9,352.0 631.9,308.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  </g>
+
+  <g data-step="3">
+  <text x="290" y="200" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#3F3F46;">8828347417fffff</text>
+  <text x="670" y="262" text-anchor="middle" style="font-size:13px;font-weight:700;fill:#3F3F46;">88283082a1fffff</text>
+  </g>
+
+  <g data-step="4">
+  <polygon points="290.0,286.0 328.1,308.0 328.1,352.0 290.0,374.0 251.9,352.0 251.9,308.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/>
+  <circle cx="278" cy="324" r="5" fill="#EA580C"/><circle cx="302" cy="334" r="5" fill="#EA580C"/><circle cx="290" cy="344" r="5" fill="#EA580C"/>
+  <text x="490" y="528" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">Same hexagon, same code: nearby orders share a key. The hash is the cell.</text>
+  </g>
+
+  <text x="490" y="568" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = a shared cell and its orders&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the hex grid&#160;&#160;&#183;&#160;&#160;dark dots = orders</tspan></text>
+</svg>

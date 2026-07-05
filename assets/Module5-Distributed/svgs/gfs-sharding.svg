@@ -1,0 +1,53 @@
+<svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="gs-t gs-d">
+  <title id="gs-t">Sharding: capacity beyond one disk</title>
+  <desc id="gs-d">A 100 terabyte file cannot fit on a 1 terabyte disk, so GFS splits it into 64
+  megabyte chunks and scatters them across many machines. The figure shows the mismatch (file
+  far larger than a disk), the split into millions of fixed-size chunks, and the chunks spread
+  across machines so total capacity grows with the cluster. Color key: pink is the chunks and
+  the capacity that scales, grey is the file, disk, and machines.</desc>
+
+  <defs><marker id="ah-gs" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Sharding: Capacity Beyond One Disk</text>
+  <text x="450" y="54" text-anchor="middle" font-size="14" fill="#6B7280">Split the file into 64 MB chunks and scatter them across machines.</text>
+
+  <!-- the mismatch -->
+  <g data-step="1">
+    <rect x="70" y="86" width="470" height="40" rx="6" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="305" y="111" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">100 TB web crawl (one logical file)</text>
+    <rect x="640" y="86" width="90" height="40" rx="6" fill="#FFFFFF" stroke="#6B7280" stroke-width="1"/>
+    <text x="685" y="111" text-anchor="middle" font-size="13" fill="#3F3F46">1 TB disk</text>
+    <text x="590" y="111" text-anchor="middle" font-size="16" font-weight="700" fill="#DC2626">✗</text>
+    <text x="640" y="146" text-anchor="middle" font-size="12.5" fill="#6B7280">does not fit</text>
+  </g>
+
+  <!-- split into chunks -->
+  <g data-step="2">
+    <text x="450" y="184" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Split into 64 MB chunks — about 1.6 million of them</text>
+    <g fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5">
+      <rect x="86" y="198" width="50" height="30" rx="4"/><rect x="142" y="198" width="50" height="30" rx="4"/><rect x="198" y="198" width="50" height="30" rx="4"/><rect x="254" y="198" width="50" height="30" rx="4"/><rect x="310" y="198" width="50" height="30" rx="4"/><rect x="366" y="198" width="50" height="30" rx="4"/><rect x="422" y="198" width="50" height="30" rx="4"/><rect x="478" y="198" width="50" height="30" rx="4"/><rect x="534" y="198" width="50" height="30" rx="4"/><rect x="590" y="198" width="50" height="30" rx="4"/><rect x="646" y="198" width="50" height="30" rx="4"/><rect x="702" y="198" width="50" height="30" rx="4"/><rect x="758" y="198" width="50" height="30" rx="4"/>
+    </g>
+    <text x="833" y="218" font-size="14" font-weight="700" fill="#DB2777">…</text>
+  </g>
+
+  <!-- scatter across machines -->
+  <g data-step="3">
+    <line x1="200" y1="232" x2="160" y2="288" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-gs)"/>
+    <line x1="450" y1="232" x2="450" y2="288" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-gs)"/>
+    <line x1="700" y1="232" x2="740" y2="288" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-gs)"/>
+    <g fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1">
+      <rect x="70" y="292" width="170" height="76" rx="8"/><rect x="280" y="292" width="170" height="76" rx="8"/><rect x="490" y="292" width="170" height="76" rx="8"/><rect x="700" y="292" width="130" height="76" rx="8"/>
+    </g>
+    <g font-size="13" font-weight="700" fill="#0E0E10" text-anchor="middle"><text x="155" y="312">Machine 1</text><text x="365" y="312">Machine 2</text><text x="575" y="312">Machine 3</text><text x="765" y="312">…</text></g>
+    <g fill="#FBE3EE" stroke="#DB2777" stroke-width="1">
+      <rect x="86" y="326" width="34" height="24" rx="3"/><rect x="126" y="326" width="34" height="24" rx="3"/><rect x="166" y="326" width="34" height="24" rx="3"/>
+      <rect x="296" y="326" width="34" height="24" rx="3"/><rect x="336" y="326" width="34" height="24" rx="3"/><rect x="376" y="326" width="34" height="24" rx="3"/>
+      <rect x="506" y="326" width="34" height="24" rx="3"/><rect x="546" y="326" width="34" height="24" rx="3"/><rect x="586" y="326" width="34" height="24" rx="3"/>
+    </g>
+    <text x="450" y="392" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">Total capacity grows with every machine you add.</text>
+  </g>
+
+  <text x="450" y="418" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the 64 MB chunks &amp; the capacity that scales&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the file, disk &amp; machines</tspan></text>
+</svg>

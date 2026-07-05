@@ -1,0 +1,58 @@
+<h1>Hash Partition Join: Joining Tables Bigger Than RAM</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Hash partition join handles the case where neither table fits in RAM by hashing both tables on the join key into matching partitions, then joining each partition pair independently.</p>
+<p><strong>Intuition.</strong> When both Users and Listens are too big for RAM, hash <code>user_id % 16</code> to split each into 16 partitions. Mickey's Users row and Mickey's Listens rows land in the same partition, so join partition 1 with partition 1 in RAM, then 2 with 2, etc. Cost: 3(N+M) IOs. This same partition-by-key shuffle is exactly how Spark and Hadoop join across a cluster.</p>
+</div>
+<h2>When Both Tables Don't Fit in Memory</h2>
+<p>The query we want to run:</p>
+<pre><code><span class="sql-keyword">SELECT</span> u.name, l.song_id, l.rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Users</span> u
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> u.user_id <span class="sql-operator">=</span> l.user_id;
+</code></pre>
+<p>If Users is 100 GB and Listens is 800 GB but RAM is only 64 GB, neither side fits in memory. BNLJ would re-scan the larger side once per outer block, which is too slow. Sort-merge requires sorting both, which is also expensive. Hash Partition Join is the answer.</p>
+<hr />
+<h2>Hash Partition Join: The Solution</h2>
+<h3>Core Insight</h3>
+<p>Partition both tables using the <em>same</em> hash function on the join key. Rows from each side with the same key land in the same partition number, so matching can happen one partition at a time, in RAM.</p>
+<p><a id="hpj-figure"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/hpj-algorithm.svg" alt="Hash Partition Join: in Phase 1 both R and S are hashed on the join key into matching partitions (same key always lands in the same partition). In Phase 2 each partition pair is joined independently in RAM." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Hash Partition Join, <code>R ⋈ S</code> on <code>user_id</code>. Phase 1 hashes both tables with the <em>same</em> function so matching <code>user_id</code>s always land in the same partition number; Phase 2 then joins each <code>(Rᵢ, Sᵢ)</code> pair independently in RAM, building a hash table on <code>R</code> and probing with <code>S</code>, three parallelizable joins that yield 4 + 2 + 2 = 8 rows. Best-case cost is <code>3(N+M) + OUT</code> (read each table, write partitions, read them back, write the output); the worst case is hash skew, where a hot key overflows a partition past RAM and recursive re-partitioning or a sort-merge fallback adds another pass.</p>
+</div>
+<p><a id="hpj-pseudocode"></a></p>
+<div class="algo">
+<p class="algo-head">Algorithm · Hash Partition Join</p>
+<pre class="algo-code">
+<span class="sig">HashPartitionJoin(T1, T2, key):</span>       <span class="cmt">// assume |T1| &lt; |T2|</span>
+    B = √(|T2|/RAM)                   <span class="cmt">// partition count</span>
+
+    <span class="cmt phase">Phase 1: Partition both tables on the same hash</span>
+    for row in T1: write to T1_p[h(row.key) % B]
+    for row in T2: write to T2_p[h(row.key) % B]    <span class="cmt">// same hash!</span>
+
+    <span class="cmt phase">Phase 2: Join matching partitions in RAM</span>
+    for i in 0..B-1:
+        HT = hash_table(T1_p[i])      <span class="cmt">// build on the smaller side</span>
+        for row in T2_p[i]:           <span class="cmt">// probe with the larger</span>
+            if HT[row.key]: output matches
+</pre>
+</div>
+<hr />
+<p><a id="hpj-multi-table"></a></p>
+<h2>Multi-Table Joins</h2>
+<h3>Joining Three Tables: Users, Listens, Songs</h3>
+<div class="algo">
+<p class="algo-head">Algorithm · Three-Way Join</p>
+<pre class="algo-code">
+<span class="sig">ThreeWayJoin(U, L, S):</span>              <span class="cmt">// assume |U| &lt; |L| &lt; |S|</span>
+    temp   = HPJ(U, L, "user_id")   <span class="cmt">// U ⋈ L</span>
+    result = HPJ(temp, S, "song_id")   <span class="cmt">// temp ⋈ S</span>
+    return result
+</pre>
+</div>
+<hr />
+<h2>Handling Skew in HPJ</h2>
+<p>The figure assumes partitions are roughly balanced. In practice, hot keys break that. If <code>user_id = 1</code> (a system account) has 10M listens, partition 1 won't fit in RAM even though the others do. The fix is to detect oversized partitions during Phase 1 and recursively re-partition them with a different hash, until each piece fits.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/sort-merge-join">Sort-Merge Join →</a></strong> When data is already sorted (or will be useful sorted for later operations), sort-merge beats hash partition join.</p>

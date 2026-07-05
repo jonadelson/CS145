@@ -1,0 +1,61 @@
+<svg viewBox="0 0 1080 374" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="mvccver-t mvccver-d"
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"
+     font-family="Inter, sans-serif">
+  <title id="mvccver-t">An uncommitted write is invisible until it commits.</title>
+  <desc id="mvccver-d">A timeline of one value V. V holds AB1, committed at 2:00. Minnie starts writing XY34 at 2:45 but does not commit until 3:03, drawn as a dashed violet in-flight span above the line. Inside that window the committed value is still AB1, so Pluto with snapshot 2:50 and Mickey with snapshot 3:00 both read AB1, never the half-written XY34. A query with snapshot 3:05 reads XY34 after the commit. Color key: violet = Minnie's write and XY34 once it commits; grey = the old value AB1, what every read before the commit returns.</desc>
+
+  <text x="540" y="40" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">An uncommitted write is invisible until it commits</text>
+  <text x="540" y="66" text-anchor="middle" font-size="14" fill="#3F3F46">Minnie updates V at 2:45 and commits XY34 at 3:03. Until the commit, every read still returns AB1.</text>
+  <text x="540" y="342" text-anchor="middle" font-size="14" fill="#3F3F46">Color key: <tspan fill="#7C3AED" font-weight="700">violet</tspan> = Minnie's write and XY34 once it commits · <tspan fill="#6B7280" font-weight="700">grey</tspan> = AB1, what every read before the commit returns.</text>
+
+  <g data-step="1">
+  <text x="70" y="203" font-size="14" font-weight="700" fill="#7C3AED">Value V</text>
+  <line x1="150" y1="198" x2="1011" y2="198" stroke="#6B7280" stroke-width="1.5"/>
+  <polygon points="1017,198 1009,194 1009,202" fill="#6B7280"/>
+  <text x="1010" y="186" text-anchor="end" font-size="14" font-style="italic" fill="#6B7280">time →</text>
+  <rect x="180" y="150" width="120" height="32" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+  <text x="240" y="171" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">AB1 · 2:00</text>
+  <line x1="240" y1="182" x2="240" y2="198" stroke="#D4D7DC" stroke-width="1"/>
+  </g>
+
+  <g data-step="2">
+  <text x="352" y="113" text-anchor="end" font-size="14" fill="#6B7280">starts 2:45</text>
+  <rect x="360" y="92" width="400" height="32" rx="6" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="560" y="113" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Minnie writing XY34 (uncommitted)</text>
+  <line x1="760" y1="124" x2="760" y2="192" stroke="#6B7280" stroke-width="1.5"/>
+  <polygon points="760,197 755,189 765,189" fill="#6B7280"/>
+  <text x="772" y="150" font-size="14" fill="#6B7280">commits 3:03</text>
+  <line x1="360" y1="124" x2="360" y2="196" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,3"/>
+  </g>
+
+  <g data-step="3">
+  <line x1="400" y1="198" x2="400" y2="241" stroke="#6B7280" stroke-width="1.5"/>
+  <polygon points="400,246 395,238 405,238" fill="#6B7280"/>
+  <text x="416" y="221" font-size="14" fill="#6B7280">reads</text>
+  <rect x="300" y="247" width="200" height="50" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+  <rect x="300" y="247" width="6" height="50" rx="3" fill="#6B7280"/>
+  <text x="318" y="270" font-size="14" font-weight="700" fill="#0E0E10">Pluto · snapshot 2:50</text>
+  <text x="318" y="288" font-size="14" fill="#6B7280">reads AB1, write in flight</text>
+  <line x1="610" y1="198" x2="610" y2="241" stroke="#6B7280" stroke-width="1.5"/>
+  <polygon points="610,246 605,238 615,238" fill="#6B7280"/>
+  <text x="626" y="221" font-size="14" fill="#6B7280">reads</text>
+  <rect x="510" y="247" width="200" height="50" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+  <rect x="510" y="247" width="6" height="50" rx="3" fill="#6B7280"/>
+  <text x="528" y="270" font-size="14" font-weight="700" fill="#0E0E10">Mickey · snapshot 3:00</text>
+  <text x="528" y="288" font-size="14" fill="#6B7280">reads AB1, still uncommitted</text>
+  </g>
+
+  <g data-step="4">
+  <rect x="790" y="150" width="160" height="32" rx="6" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="870" y="171" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">XY34 · 3:03</text>
+  <line x1="870" y1="182" x2="870" y2="198" stroke="#7C3AED" stroke-width="1"/>
+  <line x1="910" y1="198" x2="910" y2="241" stroke="#6B7280" stroke-width="1.5"/>
+  <polygon points="910,246 905,238 915,238" fill="#6B7280"/>
+  <text x="926" y="221" font-size="14" fill="#6B7280">reads</text>
+  <rect x="810" y="247" width="205" height="50" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+  <rect x="810" y="247" width="6" height="50" rx="3" fill="#7C3AED"/>
+  <text x="828" y="270" font-size="14" font-weight="700" fill="#0E0E10">Query · snapshot 3:05</text>
+  <text x="828" y="288" font-size="14" fill="#6B7280">reads XY34, now committed</text>
+  </g>
+</svg>

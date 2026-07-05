@@ -1,0 +1,64 @@
+<h1>LLMs and SQL: Syntax and Semantics</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> LLMs solved SQL <em>syntax</em>. They have not solved <em>semantics</em>: whether the query means what you asked. Closing that gap is your job, and the work is SQL.</p>
+<p><strong>Intuition.</strong> A model writes SQL that compiles and returns rows. That says nothing about whether it answered your question. To know, you read the query, run it, and check the rows, which is exactly what you cannot do to an English sentence.</p>
+</div>
+<p><a href="#/page/Module1B-Intermediate-SQL/sql-query-equivalence">Query Equivalence</a> showed a query can match today's rows and still be wrong on other input. An LLM gives you that query: it runs, and you judge it on meaning, not on whether it fits the rows in front of you.</p>
+<h2>Syntax Is Solved, Semantics Isn't</h2>
+<p>The <a href="https://bird-bench.github.io/">BIRD benchmark</a> measures text-to-SQL. The same model that nails syntax misses meaning:</p>
+<div class="metrics-grid">
+<div class="metric-card">
+<div class="metric-value">
+<p>95%+</p>
+</div>
+<div class="metric-label">
+<p>Syntax accuracy</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>16–77%</p>
+</div>
+<div class="metric-label">
+<p>Semantic accuracy</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>runs ≠ correct</p>
+</div>
+<div class="metric-label">
+<p>The gap</p>
+</div>
+</div>
+</div>
+<p><a id="multi-shot"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/oneshot-multishot-gauge.svg" alt="A horizontal accuracy axis. One-shot, a single blind attempt, lands near 16%. Multi-shot, the run-read-error-retry loop, reaches about 77%; the blue band between them is the lift, from method not a bigger model. The grey gap from 77% to 100% is the distance to correct that more retries cannot close." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The same model spans 16% to 77% on BIRD semantics. One blind attempt (one-shot) lands at the bottom; the run-read-error-retry loop (multi-shot) reaches the top of the blue band, from method, not a bigger model. The grey gap to 100% is what more retries cannot close, and what the three steps close.</p>
+</div>
+<p>The two ends of that range are two ways of using the same model:</p>
+<ul>
+<li>
+<p><strong>One-shot:</strong> the model writes the query once, blind, with no feedback. Scores near 16%.</p>
+</li>
+<li>
+<p><strong>Multi-shot:</strong> the model runs the query, reads the error or the rows, and rewrites, looping until it works. Reaches about 77%.</p>
+</li>
+</ul>
+<p>Same model at both ends. The retry loop lifts the score, and it works only because SQL runs: each attempt errors or returns rows, and the model fixes the next from that signal. An English sentence never runs, so rewording it never tells you it was wrong. The model also never sees your data, so it guesses your domain logic unless you state it. Even multi-shot stops short of correct, because running a query for the wrong question just returns the wrong rows faster.</p>
+<p>Browse one real BIRD question and its gold SQL to see how much a single request has to pin down:</p>
+<div style="max-height: 600px; overflow: auto; border: 1px solid #D4D7DC; border-radius: 8px; margin: 1rem 0;">
+<iframe src="https://bird-bench.github.io/" title="BIRD text-to-SQL benchmark" width="100%" height="1600" scrolling="yes" style="border: 0; display: block;"></iframe>
+</div>
+
+<h2>Three Steps</h2>
+<p>The model does one thing: generate the query. You add three steps around it, each catching a different failure.</p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/three-levers.svg" alt="The model generates the SQL; three steps (blue) wrap that generation, each catching a different failure. Precision pins the spec and catches the wrong reading. Execution runs it on real data and catches crashes and empty results. Verification tests the result and catches subtle errors and drift. The model only generates; the three steps are yours, and all three are SQL." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The model generates the SQL; three steps around it catch three failures. <strong>Precision</strong> pins the spec and catches the wrong reading. <strong>Execution</strong> runs it on real data and catches crashes and empty results. <strong>Verification</strong> tests the result and catches subtle errors and drift. The model generates; the three steps are yours, and all three are SQL.</p>
+</div>
+<p>Precision, execution, verification, in that order. The next three pages take them one at a time.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module1B-Intermediate-SQL/precision-lives-somewhere">Precision: Define the Answer →</a></strong> First step: pin the meaning so the model writes the right query, worked through one ambiguous question and the queries it allows.</p>

@@ -1,0 +1,279 @@
+{
+  "module": "Module5-Distributed",
+  "title": "Distributed Systems",
+  "cards": [
+    {
+      "id": "m5-c01",
+      "front": "What problem does sharding solve, and what problem does replication solve?",
+      "back": "Sharding splits one logical dataset into disjoint slices across machines, solving <strong>capacity</strong>. Replication keeps multiple copies of each slice on different machines, solving <strong>availability</strong>. Production systems do both: shard, then replicate each shard.",
+      "page": "Module5-Distributed/sharding-replication",
+      "tags": ["sharding", "replication"]
+    },
+    {
+      "id": "m5-c02",
+      "front": "Can replication increase write capacity or storage capacity?",
+      "back": "No. Replication adds <strong>read throughput</strong> and availability only — every replica still holds the full copy, so a 10 TB dataset never fits on 1 TB disks no matter how many copies exist. Only sharding overcomes capacity limits.",
+      "page": "Module5-Distributed/sharding-replication",
+      "tags": ["replication", "sharding"]
+    },
+    {
+      "id": "m5-c03",
+      "front": "What is the storage cost of 3× replication, and what later cuts it?",
+      "back": "Three full copies mean <strong>200% storage overhead</strong>. Colossus's Reed-Solomon erasure coding delivers the same (better) durability at about <strong>50%</strong> overhead.",
+      "page": "Module5-Distributed/sharding-replication",
+      "tags": ["replication", "storage"]
+    },
+    {
+      "id": "m5-c04",
+      "front": "Describe the two phases of two-phase commit (2PC).",
+      "back": "<strong>Prepare:</strong> the coordinator asks every shard if it can commit; each durably logs its change and votes yes or no. <strong>Commit:</strong> only if every vote is yes, the coordinator logs the decision and tells all shards to commit. One no anywhere forces a global abort.",
+      "page": "Module5-Distributed/distributed-commit",
+      "tags": ["2pc", "transactions"]
+    },
+    {
+      "id": "m5-c05",
+      "front": "2PL vs 2PC — what does each provide?",
+      "back": "<strong>2PL</strong> (two-phase locking) orders conflicting operations <em>within</em> one node for serializability (isolation). <strong>2PC</strong> (two-phase commit) gets <em>separate</em> nodes to agree on one commit-or-abort outcome (atomicity). A multi-shard transaction needs both.",
+      "page": "Module5-Distributed/distributed-commit",
+      "tags": ["2pc", "2pl", "transactions"]
+    },
+    {
+      "id": "m5-c06",
+      "front": "What is the blocking problem in 2PC?",
+      "back": "If the coordinator crashes after shards prepare but before sending the decision, each prepared shard is stuck: it voted yes so it can't abort, has no decision so it can't commit. It holds its locks and waits, blocking other transactions. Fix: run the coordinator on a consensus group (e.g. Spanner on Paxos).",
+      "page": "Module5-Distributed/distributed-commit",
+      "tags": ["2pc", "fault-tolerance"]
+    },
+    {
+      "id": "m5-c07",
+      "front": "Does 2PC proceed with a majority of participants, like Raft?",
+      "back": "No. Plain 2PC needs <strong>every</strong> participant to vote yes, so one slow or dead shard stalls the transaction. Majority voting applies to consensus/leader election, not to 2PC's all-must-agree commit decision.",
+      "page": "Module5-Distributed/distributed-commit",
+      "tags": ["2pc", "consensus"]
+    },
+    {
+      "id": "m5-c08",
+      "front": "Why is 'write to all replicas' unusable in a large cluster?",
+      "back": "A write is safe only once <strong>every</strong> copy acknowledges, so a single slow or crashed replica stalls every write. In a cluster where machines fail routinely, waiting on all of them has no fault tolerance.",
+      "page": "Module5-Distributed/consensus-leader-election",
+      "tags": ["replication", "consensus"]
+    },
+    {
+      "id": "m5-c09",
+      "front": "What is the majority (quorum) formula, and what does a 5-node cluster tolerate?",
+      "back": "Majority = <code>⌊N/2⌋ + 1</code>. For 5 nodes that's 3, tolerating 2 failures (3 nodes → 2, tolerates 1; 7 nodes → 4, tolerates 3).",
+      "page": "Module5-Distributed/consensus-leader-election",
+      "tags": ["quorum", "consensus"]
+    },
+    {
+      "id": "m5-c10",
+      "front": "Why can two leaders never be elected in the same term (no split-brain)?",
+      "back": "Any two majorities of a cluster overlap in at least one node, and each node votes at most once per term — so the shared node can't put two candidates over the top. At most one candidate clears a majority per term.",
+      "page": "Module5-Distributed/consensus-leader-election",
+      "tags": ["leader-election", "split-brain"]
+    },
+    {
+      "id": "m5-c11",
+      "front": "Besides fault tolerance, why is a standing leader faster than voting on every write?",
+      "back": "One leader orders all writes, so there's no separate majority round per write: a fresh vote per write costs about 200 ms, while a standing leader drops it to about 50 ms. Production Raft systems (etcd, Consul) also elect a replacement within ~200 ms of a leader failure.",
+      "page": "Module5-Distributed/consensus-leader-election",
+      "tags": ["leader-election", "performance"]
+    },
+    {
+      "id": "m5-c12",
+      "front": "Synchronous vs asynchronous replication — what's the trade-off?",
+      "back": "<strong>Sync:</strong> leader waits for a follower's ack before replying OK — no committed write lost on failover, but a full round trip per write. <strong>Async:</strong> leader replies OK immediately and ships later — fast, but a leader crash can lose the un-shipped tail. Many systems do sync within a region, async across regions.",
+      "page": "Module5-Distributed/consensus-leader-election",
+      "tags": ["replication", "durability"]
+    },
+    {
+      "id": "m5-c13",
+      "front": "What is the read-your-writes trap on a read replica?",
+      "back": "You write to the leader, then immediately read from an async replica that hasn't received your write yet. The replica serves a <strong>consistent snapshot</strong> (MVCC), just an older one — the data is stale, not wrong.",
+      "page": "Module5-Distributed/consensus-leader-election",
+      "tags": ["replication", "consistency"]
+    },
+    {
+      "id": "m5-c14",
+      "front": "State the CAP theorem and the practical choice it leaves.",
+      "back": "A distributed database can guarantee at most two of Consistency, Availability, Partition tolerance. Since networks <em>will</em> partition, P is mandatory — so the real choice during a partition is C (reject what you can't verify) versus A (respond, risking stale/conflicting data).",
+      "page": "Module5-Distributed/cap-theorem",
+      "tags": ["cap", "consistency", "availability"]
+    },
+    {
+      "id": "m5-c15",
+      "front": "How do CP and AP systems each behave during a network partition?",
+      "back": "<strong>CP:</strong> stays consistent by rejecting requests it can't verify (e.g. stop accepting writes until reconnect). <strong>AP:</strong> stays available, keeps taking requests, and risks serving stale data or conflicts to reconcile later. Financial systems favor C; social feeds and analytics favor A.",
+      "page": "Module5-Distributed/cap-theorem",
+      "tags": ["cap", "trade-offs"]
+    },
+    {
+      "id": "m5-c16",
+      "front": "Why is hash partitioning called the backbone of distributed processing?",
+      "back": "It routes every row with the same key to the same machine, so joins and group-bys run locally in parallel with no cross-machine chatter. Cost is 2N IOs (one read, one write), and it scales to hundreds of machines.",
+      "page": "Module5-Distributed/distributed-sort-hash",
+      "tags": ["hash-partitioning"]
+    },
+    {
+      "id": "m5-c17",
+      "front": "Recipe for a distributed hash join?",
+      "back": "Hash <strong>both</strong> tables on the join key so every row for a given key (from either table) lands on the same machine; each machine joins its local slice; union the partial results. Linear speedup with more machines.",
+      "page": "Module5-Distributed/distributed-sort-hash",
+      "tags": ["joins", "hash-partitioning"]
+    },
+    {
+      "id": "m5-c18",
+      "front": "How does consistent hashing assign a key to a machine?",
+      "back": "Keys and machines both hash onto a ring over <code>0</code> to <code>2³²−1</code>; a key belongs to the <strong>first machine clockwise</strong> from its position. Used by Cassandra, DynamoDB, and memcached pools.",
+      "page": "Module5-Distributed/distributed-sort-hash",
+      "tags": ["consistent-hashing"]
+    },
+    {
+      "id": "m5-c19",
+      "front": "How much data moves when adding a machine: <code>hash % N</code> vs consistent hashing?",
+      "back": "<code>hash % N</code> reshuffles almost everything (3→4 machines: ~75%; 100→101: ~99%). Consistent hashing moves only the keys between the new node and its predecessor — about <strong>K/N</strong> on average.",
+      "page": "Module5-Distributed/distributed-sort-hash",
+      "tags": ["consistent-hashing", "scaling"]
+    },
+    {
+      "id": "m5-c20",
+      "front": "What are the three phases of a distributed sort?",
+      "back": "1) Each machine sorts its own partition locally. 2) The cluster <strong>samples</strong> the data to pick split points that divide the range evenly (balancing skew). 3) Rows redistribute by split point so each node owns one contiguous range — reading nodes in order gives a total order.",
+      "page": "Module5-Distributed/distributed-sort-hash",
+      "tags": ["distributed-sort"]
+    },
+    {
+      "id": "m5-c21",
+      "front": "How did GFS solve the capacity problem of a 100 TB crawl on 1 TB disks?",
+      "back": "Sharding: split the file into <strong>64 MB chunks</strong> (~1.6 million of them) scattered across Chunk Servers, so total capacity grows with every machine added.",
+      "page": "Module5-Distributed/case-study-gfs",
+      "tags": ["gfs", "sharding"]
+    },
+    {
+      "id": "m5-c22",
+      "front": "Walk through a GFS read: what do the Leader and Chunk Servers each do?",
+      "back": "Client sends (file name, byte offset) to the Leader, which turns the offset into a chunk index and looks up the chunk handle plus replica locations in its in-memory directory. The client then reads the chunk <strong>directly from a Chunk Server</strong> — data never streams through the Leader.",
+      "page": "Module5-Distributed/case-study-gfs",
+      "tags": ["gfs", "architecture"]
+    },
+    {
+      "id": "m5-c23",
+      "front": "What makes GFS 'self-healing' when a Chunk Server dies?",
+      "back": "Each chunk has 3 replicas on different servers (ideally different racks). On failure the Leader redirects requests to a surviving replica and copies the chunk to a healthy server, restoring three copies.",
+      "page": "Module5-Distributed/case-study-gfs",
+      "tags": ["gfs", "replication"]
+    },
+    {
+      "id": "m5-c24",
+      "front": "How did 2003 GFS keep its single master available, and what replaced that approach?",
+      "back": "External monitoring and fast restart — not consensus. Replacing the single master with Paxos/Raft-style leader election came later in practice; the single master remained a single point of failure and a metadata RAM ceiling.",
+      "page": "Module5-Distributed/case-study-gfs",
+      "tags": ["gfs", "leader-election"]
+    },
+    {
+      "id": "m5-c25",
+      "front": "How does HDFS relate to GFS, and what are its key parameters?",
+      "back": "HDFS is the open-source re-implementation of GFS: a single <strong>NameNode</strong> (master) plus DataNodes storing <strong>128 MB</strong> blocks (2× GFS's 64 MB), with 3× <strong>rack-aware</strong> replication. Same single-node metadata bottleneck, later sharded by HDFS Federation.",
+      "page": "Module5-Distributed/distributed-file-systems",
+      "tags": ["hdfs", "gfs"]
+    },
+    {
+      "id": "m5-c26",
+      "front": "How does S3's metadata design differ from GFS/HDFS, and what consistency does it offer?",
+      "back": "S3 has <strong>no central metadata leader</strong> — metadata lives in a distributed key-value store, so throughput scales without a master bottleneck. It offers 11 nines of durability across ≥3 availability zones and, since December 2020, <strong>strong read-after-write consistency</strong> (previously eventual).",
+      "page": "Module5-Distributed/distributed-file-systems",
+      "tags": ["s3", "consistency"]
+    },
+    {
+      "id": "m5-c27",
+      "front": "How does Reed-Solomon erasure coding (6 data + 3 parity) compare to 3× replication?",
+      "back": "Any 3 of the 9 blocks can be lost and rebuilt from the surviving 6: <strong>3 tolerated failures at ~50% overhead</strong>, versus 3× replication's 2 tolerated failures at 200% overhead. This is how Colossus cut storage cost without losing durability.",
+      "page": "Module5-Distributed/distributed-file-systems",
+      "tags": ["erasure-coding", "colossus"]
+    },
+    {
+      "id": "m5-c28",
+      "front": "What sets each DFS generation's scale ceiling: GFS/HDFS vs S3/Colossus?",
+      "back": "Metadata coordination. GFS and HDFS keep all metadata on one Master/NameNode → petabyte ceiling. S3 (leaderless, distributed metadata) scales effectively without limit; Colossus shards metadata across many servers → exabyte-plus, with sub-millisecond metadata ops.",
+      "page": "Module5-Distributed/distributed-file-systems",
+      "tags": ["metadata", "scaling"]
+    },
+    {
+      "id": "m5-c29",
+      "front": "What two functions does a MapReduce programmer write, and what does the framework add?",
+      "back": "<code>map(record) → (key, value)</code> and <code>reduce(key, list[value]) → result</code>. The framework distributes work across thousands of machines, hash-partitions the shuffle, restarts failed tasks (safe because tasks are deterministic), and load-balances.",
+      "page": "Module5-Distributed/mapreduce",
+      "tags": ["mapreduce"]
+    },
+    {
+      "id": "m5-c30",
+      "front": "What happens in the MapReduce shuffle phase, and why is it the bottleneck?",
+      "back": "Every (key, value) pair is hash-partitioned by key (<code>hash(key) % R</code>) so all values for one key reach the same reducer. Most wall-clock time goes here because shuffle moves data across the network and writes it to disk.",
+      "page": "Module5-Distributed/mapreduce",
+      "tags": ["mapreduce", "shuffle"]
+    },
+    {
+      "id": "m5-c31",
+      "front": "What two workloads pushed the industry past pure MapReduce by 2014?",
+      "back": "Iterative algorithms (ML makes many passes, and MR writes to disk between every pass) and interactive analytics (sub-minute answers needed, MR jobs take ~10 minutes). Root cause of both: materializing to disk between stages.",
+      "page": "Module5-Distributed/mapreduce",
+      "tags": ["mapreduce", "limitations"]
+    },
+    {
+      "id": "m5-c32",
+      "front": "What is an RDD?",
+      "back": "A <em>Resilient Distributed Dataset</em>: a collection split into partitions across the cluster, held in memory, built by chaining transformations, <strong>lazily evaluated</strong> (runs only when an action demands a result), and <strong>lineage-tracked</strong> for recovery.",
+      "page": "Module5-Distributed/spark",
+      "tags": ["spark", "rdd"]
+    },
+    {
+      "id": "m5-c33",
+      "front": "How does Spark recover a partition lost when a worker dies?",
+      "back": "It replays the <strong>lineage</strong> (the recorded chain of transformations) on the surviving upstream data instead of keeping replicas — storage stays 1× and only the lost partition is recomputed (for narrow transformations). This works because every transformation is deterministic.",
+      "page": "Module5-Distributed/spark",
+      "tags": ["spark", "fault-tolerance"]
+    },
+    {
+      "id": "m5-c34",
+      "front": "When does MapReduce still beat Spark?",
+      "back": "Datasets larger than cluster memory (if every stage spills, MR's disk design fits better), single-pass batch jobs (read once, write once — no benefit from in-memory pipelining), and cost-sensitive clusters where disk is cheaper than RAM.",
+      "page": "Module5-Distributed/spark",
+      "tags": ["spark", "mapreduce", "trade-offs"]
+    },
+    {
+      "id": "m5-c35",
+      "front": "What does 'decoupled storage and compute' mean in BigQuery?",
+      "back": "Storage is persistent compressed columnar files in Colossus (~$20/TB/month); compute is ephemeral 'slots' (~2,000 per query) that spin up, scan in parallel, and vanish, billed per byte scanned (~$6.25/TiB). The two scale and bill independently — no cluster exists between queries, which is what makes it serverless.",
+      "page": "Module5-Distributed/bigquery",
+      "tags": ["bigquery", "serverless"]
+    },
+    {
+      "id": "m5-c36",
+      "front": "Why did ELT replace ETL once storage and compute decoupled?",
+      "back": "Cheap warehouse storage means you load raw data first, then transform inside the warehouse with SQL (the same engine analysts use), and re-run transforms from raw source when logic changes — instead of cleaning in a brittle external pipeline before loading. Tools like dbt are built around this.",
+      "page": "Module5-Distributed/bigquery",
+      "tags": ["bigquery", "elt"]
+    },
+    {
+      "id": "m5-c37",
+      "front": "What is Kafka, in one sentence?",
+      "back": "A durable, partitioned, replicated <strong>commit log</strong>: producers append events to per-topic partitions (chosen by hashing the key), consumers read at their own pace tracking their own offsets, and the log is the source of truth that downstream systems can independently replay.",
+      "page": "Module5-Distributed/kafka",
+      "tags": ["kafka", "streaming"]
+    },
+    {
+      "id": "m5-c38",
+      "front": "Queue vs log: why does the difference matter for adding a new consumer?",
+      "back": "A queue <strong>consumes on read</strong> — a popped message is gone, so a new downstream system needs everything re-published. A log <strong>persists after read</strong> until retention expires, so a new pipeline can join later and replay the entire retained history without disturbing existing consumers.",
+      "page": "Module5-Distributed/kafka",
+      "tags": ["kafka", "log"]
+    },
+    {
+      "id": "m5-c39",
+      "front": "What are Kafka's three delivery guarantees, and what do most systems actually run?",
+      "back": "<em>At-most-once</em> (may drop, never duplicates), <em>at-least-once</em> (never drops, may duplicate), <em>exactly-once</em> (transactional API). In practice almost everyone runs <strong>at-least-once with idempotent consumers</strong>, reserving exactly-once for when money is on the line.",
+      "page": "Module5-Distributed/kafka",
+      "tags": ["kafka", "delivery-semantics"]
+    }
+  ]
+}

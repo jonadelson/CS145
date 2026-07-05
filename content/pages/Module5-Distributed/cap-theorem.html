@@ -1,0 +1,28 @@
+<h1>CAP Theorem</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> CAP says a distributed database can guarantee at most two of Consistency, Availability, and Partition tolerance, and since network partitions are a fact of life (P is mandatory), every real system trades off C against A.</p>
+<p><strong>Intuition.</strong> When a transatlantic cable cuts and Spotify's US and EU data centers can no longer talk, the system has to pick: either both regions stop accepting Premium upgrades until they reconnect (Consistency wins) or both keep taking writes that may conflict on reconnect (Availability wins). You don't get both during the partition; you only get to choose which one.</p>
+</div>
+<h2>Pick Two</h2>
+<div class="v5-callout">
+<h4>The network will partition</h4>
+<p style="margin: 0">In a single program you can assume the network works. In a distributed system you cannot: links drop, packets vanish, and nodes split into groups that cannot talk. Partition tolerance is mandatory.</p>
+</div>
+<!-- CAP Theorem Visualization -->
+<p><a id="cap-svg"></a></p>
+<div style="width: 100%; max-width: 800px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/cap-theorem.svg" alt="Three overlapping circles label Consistency, Availability, and Partition tolerance; partition tolerance is filled green to mark it as a mandatory given, leaving one choice inside it: CP stays consistent but may reject requests, or AP stays available but may serve stale reads." style="width:100%; max-width:800px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Partition tolerance is a given, not a choice. Consistency means every read sees the latest committed write; availability means every request gets a response even when some nodes are unreachable; partition tolerance means the system keeps operating when the network drops messages between groups of nodes. Real networks fail, so partition tolerance is mandatory (the green circle you always live inside), and during a partition your one choice is C or A: stay consistent and reject what you cannot verify (CP), or stay available and risk serving stale data until it reconciles (AP).</p>
+</div>
+<h2>Real Systems: It's a Spectrum</h2>
+<p>CAP is not a fixed label stamped on each database. During a partition, every distributed system makes the same choice, stay consistent or stay available, and many let you tune it per operation. The label matters far less than the behavior: what does this system do when the network splits? To see the trade-off a given system picked, and why it fits its workload, read that system's own documentation.</p>
+<hr />
+<h2>Key Takeaways</h2>
+<h3>1. CAP is a model, not a law</h3>
+<p>CAP is a framework for reasoning about trade-offs, not a strict rulebook. Most systems offer tunable consistency levels. Use CAP to predict how a system behaves once a partition hits.</p>
+<h3>2. P is not optional</h3>
+<p>Network failures are a given. The real decision is Consistency versus Availability. Design for partition tolerance first.</p>
+<h3>3. Choose based on requirements</h3>
+<p>Match the design to the business need. Financial systems demand Consistency. Social media favors Availability. Analytics tolerates stale data, so Availability wins there.</p>

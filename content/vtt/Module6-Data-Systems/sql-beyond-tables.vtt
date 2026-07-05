@@ -1,0 +1,64 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.743
+SQL is not just INT and TEXT.
+
+00:00:07.743 --> 00:00:13.486
+One engine queries maps, documents, DNA, and even an LLM, all through the same SELECT, FROM, WHERE.
+
+00:00:13.486 --> 00:00:19.229
+So you reach for a specialized database far later than you think.
+
+00:00:19.229 --> 00:00:22.705
+The query shape never changes.
+
+00:00:22.705 --> 00:00:26.182
+SELECT, FROM, WHERE, ORDER BY.
+
+00:00:26.182 --> 00:00:29.658
+Geographic queries test points within five kilometers, right in the WHERE.
+
+00:00:29.658 --> 00:00:33.135
+Genomic work runs edit distance on DNA.
+
+00:00:33.135 --> 00:00:36.611
+A flexible document is just a JSON column.
+
+00:00:36.611 --> 00:00:40.088
+And generative AI calls an LLM over each row.
+
+00:00:40.088 --> 00:00:43.564
+Same query, a new function each time.
+
+00:00:43.564 --> 00:00:47.699
+A little JSON, so you need a NoSQL cluster?
+
+00:00:47.699 --> 00:00:51.834
+No.
+
+00:00:51.834 --> 00:00:55.968
+One Postgres node with a JSON column gives you flexible documents plus ACID and joins.
+
+00:00:55.968 --> 00:01:00.103
+That carries an MVP far past where teams think they need MongoDB.
+
+00:01:00.103 --> 00:01:05.057
+The newest type is the model itself.
+
+00:01:05.057 --> 00:01:10.010
+One function runs an LLM over a column.
+
+00:01:10.010 --> 00:01:14.964
+Tag a song's mood, summarize its lyrics, translate its title, all in the same query that filters and sorts the rows.
+
+00:01:14.964 --> 00:01:19.713
+Every decade SQL added a type, never a new language.
+
+00:01:19.713 --> 00:01:24.461
+Numbers, then dates, then JSON, now vectors and LLM calls.
+
+00:01:24.461 --> 00:01:29.209
+The SELECT, FROM, WHERE you know already reaches them.
+
+00:01:29.209 --> 00:01:33.958
+Next, what happens when one node is finally not enough.

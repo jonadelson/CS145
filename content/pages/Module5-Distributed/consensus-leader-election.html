@@ -1,0 +1,84 @@
+<h1>Consistency in Replicas</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Replicas keep copies of the data on several machines, so it survives a dead disk or a dead node. The catch is keeping the copies in sync on every <strong>write</strong>, and there are only two ways to do it: broadcast the write to all the replicas, or funnel every write through one elected leader.</p>
+<p><strong>Intuition.</strong> When Spotify updates its "current Top 50", every copy has to end up with the same list. Broadcast the write to all copies and one slow machine stalls it; funnel it through a leader that needs only a majority to agree, and the cluster stays fast and keeps working when a machine dies. Which of those two you pick is the whole page.</p>
+</div>
+<hr />
+<h2>Option 1: Write to All Replicas</h2>
+<p>Reads are the easy half: any one copy can serve a read. The <strong>write</strong> is the hard part, and the obvious approach is to send each write to all the copies, then wait for every one to confirm before you call it safe.</p>
+<p><a id="write-to-all-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/write-to-all-replicas.svg" alt="A client sends one write to all three replicas; two acknowledge but the third is slow or crashed, so the write blocks and the client cannot reply OK, because every copy must confirm." style="width:100%; max-width:1040px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Writing to all replicas has no fault tolerance. A write is safe only once every copy acknowledges, so a single slow or crashed replica (amber) stalls every write while the client waits. In a cluster where machines fail routinely, waiting on all of them is unusable.</p>
+</div>
+<hr />
+<h2>Option 2: Write to a Leader</h2>
+<p>Instead of writing to all, the cluster elects <strong>one leader</strong> and routes every write through it. Two wins fall out. First, a write is safe once a <strong>majority</strong> confirms it, not all, so a minority can be down. Second, one leader orders every write, so there is no separate vote per write: running a fresh majority round on every write would cost about 200 ms each, while a standing leader drops that to about 50 ms. Fault-tolerant, and fast.</p>
+<h3>The Majority: What "Enough" Means</h3>
+<p>A write under Option 2 commits once a <strong>majority</strong> of the copies have it, ⌊N/2⌋ + 1. That single rule is what makes the leader both fault-tolerant (a minority can be down and a majority still forms) and safe (two majorities always overlap, so two leaders can never both win).</p>
+<table>
+<thead>
+<tr>
+<th>Nodes</th>
+<th>Majority</th>
+<th>Tolerate</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3</strong></td>
+<td>2</td>
+<td>1 failure</td>
+<td>Dev/Test</td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>3</td>
+<td>2 failures</td>
+<td>Production</td>
+</tr>
+<tr>
+<td><strong>7</strong></td>
+<td>4</td>
+<td>3 failures</td>
+<td>Critical</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Formula</strong>: Majority = ⌊N/2⌋ + 1</p>
+<p><a id="quorum-overlap-figure"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/quorum-overlap.svg" alt="Five nodes; one majority is any three of them, and any other majority must share at least one node, so a node that votes once per term cannot back two winners and split-brain is impossible." style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Why a majority is the magic number. Any two majorities of a five-node cluster must overlap on at least one node. Since each node casts one vote per term, that shared node cannot put two candidates over the top, so at most one leader is ever elected. This is the same overlap that lets a majority both tolerate failures and prevent split-brain.</p>
+</div>
+<h3>Replacing a Dead Leader</h3>
+<p>Routing every write through one leader raises the obvious worry: what happens when that leader dies? The survivors run a quick election, and the same majority rule guarantees only one winner.</p>
+<p><a id="leader-election-figure"></a></p>
+<!-- Election Timeline Visualization -->
+<div style="width: 100%; max-width: 900px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/leader-election.svg" alt="Leader election timeline: when the leader fails, followers detect, vote, and elect a new leader" style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Raft elects a new leader after the old one fails, and a majority vote keeps two nodes from both claiming the role. Each node votes at most once per term, so only one candidate can clear a majority, which rules out split-brain. The timeout that triggers the election is randomized per node, so followers rarely become candidates at the same instant. Production Raft systems like etcd and Consul elect a new leader within about 200 ms of the failure.</p>
+</div>
+<hr />
+<h3>Copying to Followers: Synchronous or Asynchronous</h3>
+<p>Option 2 routes every write through the leader, which leaves one last choice: <em>when</em> does the leader tell the client the write is safe? After a follower confirms it, or right away?</p>
+<p><a id="sync-async-figure"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/sync-async-replication.svg" alt="Synchronous replication waits for a follower to acknowledge before replying OK to the client, losing nothing on failover but adding latency; asynchronous replication replies OK immediately and ships to the follower later, which is fast but can lose the un-shipped tail if the leader fails." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> The two modes trade latency against durability. Synchronous replication forwards each write to a follower and waits for its acknowledgement before replying OK, so a failover to that follower loses no committed write, at the cost of a full round trip per write. Asynchronous replication replies OK as soon as the leader has the write and ships it to followers in the background, which is fast but means a leader crash can lose any writes that had not yet shipped. The gap between leader and follower is replication lag.</p>
+</div>
+<h3>Reading from a replica is stale, not wrong</h3>
+<p>Read replicas soak up read traffic, but an asynchronous replica is always a little behind. A query there sees a <strong>consistent snapshot</strong> (MVCC still gives it one self-consistent view), just an <strong>older</strong> one, as of whatever the replica has applied. The practical trap is <em>read-your-writes</em>: you write to the leader, immediately read from a replica, and your own write is not there yet because it has not replicated. The data is consistent, just not current.</p>
+<div class="v5-callout">
+<h4>Picking a mode</h4>
+<p>Need zero data loss on failover (payments, the system of record)? Replicate synchronously and pay the latency. Serving analytics or feeds where a few seconds behind is fine? Replicate asynchronously and read from replicas. Most large systems do both: synchronous within a region for durability, asynchronous across regions for reach.</p>
+</div>
+<hr />
+<h2>Key Takeaways</h2>
+<h3>1. Core Problem</h3>
+<p>Split-brain is the failure: two nodes both believe they lead and corrupt the data. Every node votes once per term, so two candidates can never both clear a majority, and at most one leader is ever elected for a term.</p>
+<h3>2. The Raft Way</h3>
+<p>Three states, Follower → Candidate → Leader, with one rule: win a majority to lead. But a majority only forms when enough machines can still reach each other. When the network splits, neither side may have one, and that is the CAP tradeoff on the next page.</p>

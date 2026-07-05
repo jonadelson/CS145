@@ -1,0 +1,52 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.495
+For years the rule was simple.
+
+00:00:05.495 --> 00:00:08.989
+Outgrow Postgres, drop SQL, go NoSQL.
+
+00:00:08.989 --> 00:00:12.483
+Then SQL caught up.
+
+00:00:12.483 --> 00:00:15.978
+Today one table holds rigid columns, flexible JSON, and AI vectors at once.
+
+00:00:15.978 --> 00:00:19.964
+A standard column, a JSON blob, and a vector, all for one user.
+
+00:00:19.964 --> 00:00:23.950
+Three databases?
+
+00:00:23.950 --> 00:00:27.936
+No.
+
+00:00:27.936 --> 00:00:31.922
+One Postgres table, three worlds in a single row.
+
+00:00:31.922 --> 00:00:35.908
+A rigid user ID, a flexible preferences blob in JSON, and an AI taste profile as a vector, side by side.
+
+00:00:35.908 --> 00:00:39.553
+So when do you actually leave SQL?
+
+00:00:39.553 --> 00:00:43.199
+Only for the narrow twenty percent.
+
+00:00:43.199 --> 00:00:46.845
+Sub-millisecond key-value lookups, or graph traversals like friend-of-a-friend.
+
+00:00:46.845 --> 00:00:50.490
+Start with SQL, and specialize when scale truly demands it.
+
+00:00:50.490 --> 00:00:53.230
+So the rule flipped.
+
+00:00:53.230 --> 00:00:55.970
+Start on SQL, lean on JSON and vectors, and reach for a specialized store only when you must.
+
+00:00:55.970 --> 00:00:58.710
+Next, the clearest specialized case.
+
+00:00:58.710 --> 00:01:01.450
+Key-value.

@@ -1,0 +1,106 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.591
+A query narrows the data step by step.
+
+00:00:05.591 --> 00:00:09.181
+Start with FROM Listens, all nine rows, every column.
+
+00:00:09.181 --> 00:00:12.771
+Then WHERE rating greater than four keeps only the rows that pass.
+
+00:00:12.771 --> 00:00:16.362
+It strikes the low ratings.
+
+00:00:16.362 --> 00:00:19.953
+Now the unrated listen, a NULL: does it pass the filter?
+
+00:00:19.953 --> 00:00:23.543
+No.
+
+00:00:23.543 --> 00:00:27.134
+A NULL comparison is unknown, never true, so it drops too.
+
+00:00:27.134 --> 00:00:30.724
+Five rows survive.
+
+00:00:30.724 --> 00:00:34.314
+Finally SELECT keeps only the columns you name, user-ID, song-ID, rating, dropping the rest.
+
+00:00:34.314 --> 00:00:37.905
+Rows first, then columns.
+
+00:00:37.905 --> 00:00:42.400
+Here is that as one query.
+
+00:00:42.400 --> 00:00:46.896
+SELECT user-ID, song-ID, rating, FROM Listens, WHERE rating greater than four.
+
+00:00:46.896 --> 00:00:51.391
+You write SELECT first, but the database runs it last.
+
+00:00:51.391 --> 00:00:55.887
+It needs the table from FROM and the surviving rows from WHERE before it can decide what to return.
+
+00:00:55.887 --> 00:01:00.382
+FWS: FROM, WHERE, SELECT, in that order.
+
+00:01:00.382 --> 00:01:04.583
+You combine conditions with AND and OR.
+
+00:01:04.583 --> 00:01:08.784
+The first query, on the left: WHERE user-ID equals one AND rating greater than four.
+
+00:01:08.784 --> 00:01:12.985
+AND keeps a row only when BOTH are true.
+
+00:01:12.985 --> 00:01:17.186
+So how many survive?
+
+00:01:17.186 --> 00:01:21.387
+Just two, Mickey's two high-rated listens.
+
+00:01:21.387 --> 00:01:25.588
+The rest are struck out.
+
+00:01:25.588 --> 00:01:29.789
+Now the same conditions with OR, on the right: WHERE user-ID equals one OR rating greater than four.
+
+00:01:29.789 --> 00:01:33.990
+OR keeps a row when EITHER holds, so six survive, all of Mickey plus anyone rated over four.
+
+00:01:33.990 --> 00:01:38.191
+Same conditions, opposite strictness.
+
+00:01:38.191 --> 00:01:42.649
+An alias renames a column with AS.
+
+00:01:42.649 --> 00:01:47.108
+Rating times two AS double-rating gives the output column a friendlier name.
+
+00:01:47.108 --> 00:01:51.566
+But here is the catch.
+
+00:01:51.566 --> 00:01:56.024
+Execution order is FROM, then WHERE, then SELECT, so the alias is created last, in SELECT.
+
+00:01:56.024 --> 00:02:00.482
+WHERE runs second, before the alias exists.
+
+00:02:00.482 --> 00:02:04.941
+So WHERE double-rating greater than eight fails, there is no such column yet.
+
+00:02:04.941 --> 00:02:09.399
+WHERE rating times two greater than eight works, because the expression already exists.
+
+00:02:09.399 --> 00:02:15.042
+That is the whole foundation.
+
+00:02:15.042 --> 00:02:20.684
+FROM picks the table, WHERE keeps the rows whose test is true, SELECT picks the columns.
+
+00:02:20.684 --> 00:02:26.327
+Every query you write this quarter, GROUP BY, JOIN, subqueries, all of it, clips onto this same FROM, WHERE, SELECT skeleton.
+
+00:02:26.327 --> 00:02:31.969
+Get this shape into muscle memory, and the rest of SQL is annotation.

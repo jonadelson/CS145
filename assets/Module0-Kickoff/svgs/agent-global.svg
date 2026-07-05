@@ -1,0 +1,56 @@
+<svg viewBox="0 0 1100 406" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="glob-t glob-d">
+  <title id="glob-t">Global memory: one Postgres primary, many read replicas, 800 million users</title>
+  <desc id="glob-d">On the left, two grey de-emphasized boxes that are a separate topic out of focus: 800 million ChatGPT users, and the GPT-5 model, OpenAI's LLM. They send SQL writes to one green Postgres primary inside a green shared-database region; the primary streams replication to about fifty read replicas that serve the SQL reads. Same SQL write and SQL read pattern as the local database, one machine versus many. Color key: grey is the users and the GPT-5 model, a separate topic out of focus; green is the shared Postgres database, what we care about.</desc>
+  <text x="550" y="38" font-size="24" font-weight="700" fill="#0E0E10" text-anchor="middle">Global memory: one logical database, many machines</text>
+  <text x="550" y="64" font-size="14" fill="#6B7280" text-anchor="middle">One primary takes every write; ~50 replicas fan the reads out to 800 million users.</text>
+  <g data-step="1">
+  <rect x="40" y="118" width="200" height="92" rx="12" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <text x="140" y="146" font-size="14" font-weight="700" fill="#6B7280" text-anchor="middle">ChatGPT users</text>
+  <text x="140" y="176" font-size="20" font-weight="700" fill="#6B7280" text-anchor="middle">&#215; 800M</text>
+  <text x="140" y="198" font-size="14" fill="#6B7280" text-anchor="middle">writes and reads</text>
+  <rect x="40" y="226" width="200" height="92" rx="12" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <text x="140" y="256" font-size="14" font-weight="700" fill="#6B7280" text-anchor="middle">GPT-5 model</text>
+  <text x="140" y="280" font-size="14" fill="#6B7280" text-anchor="middle">OpenAI's LLM</text>
+  <text x="140" y="300" font-size="14" fill="#6B7280" text-anchor="middle" font-style="italic">a separate topic</text>
+  </g>
+  <g data-step="2">
+  <rect x="320" y="104" width="540" height="256" rx="14" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="320" y="104" width="540" height="6" rx="3" fill="#059669"/>
+  <text x="590" y="134" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">Shared database &#183; Postgres / SQL</text>
+  <ellipse cx="430" cy="186" rx="64" ry="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="366" y="186" width="128" height="48" fill="#FFFFFF"/>
+  <line x1="366" y1="186" x2="366" y2="234" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="494" y1="186" x2="494" y2="234" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="430" cy="234" rx="64" ry="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="430" y="212" font-size="14" font-weight="700" fill="#3F3F46" text-anchor="middle">Primary</text>
+  <text x="430" y="262" font-size="14" fill="#6B7280" text-anchor="middle">takes all writes</text>
+  </g>
+  <g data-step="3">
+  <ellipse cx="624" cy="190" rx="40" ry="7" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="584" y="190" width="80" height="38" fill="#FFFFFF"/>
+  <line x1="584" y1="190" x2="584" y2="228" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="664" y1="190" x2="664" y2="228" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="624" cy="228" rx="40" ry="7" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="712" cy="190" rx="40" ry="7" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="672" y="190" width="80" height="38" fill="#FFFFFF"/>
+  <line x1="672" y1="190" x2="672" y2="228" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="752" y1="190" x2="752" y2="228" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="712" cy="228" rx="40" ry="7" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="800" cy="190" rx="40" ry="7" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="760" y="190" width="80" height="38" fill="#FFFFFF"/>
+  <line x1="760" y1="190" x2="760" y2="228" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="840" y1="190" x2="840" y2="228" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="800" cy="228" rx="40" ry="7" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="712" y="258" font-size="14" font-weight="700" fill="#3F3F46" text-anchor="middle">~50 read replicas</text>
+  <text x="712" y="278" font-size="14" fill="#6B7280" text-anchor="middle">serve all reads</text>
+  <line x1="500" y1="210" x2="578" y2="210" stroke="#059669" stroke-width="2"/><polygon points="578,210 569,214 569,206" fill="#059669"/>
+  <text x="539" y="200" font-size="14" fill="#059669" text-anchor="middle">replicate</text>
+  </g>
+  <g data-step="4">
+  <line x1="242" y1="186" x2="364" y2="186" stroke="#6B7280" stroke-width="2"/><polygon points="364,186 355,190 355,182" fill="#6B7280"/>
+  <text x="303" y="176" font-size="14" font-weight="700" fill="#6B7280" text-anchor="middle">SQL write</text>
+  <line x1="712" y1="320" x2="246" y2="320" stroke="#6B7280" stroke-width="2"/><polygon points="246,320 255,316 255,324" fill="#6B7280"/>
+  <text x="479" y="338" font-size="14" font-weight="700" fill="#6B7280" text-anchor="middle">SQL read &#183; fanned out from ~50 replicas</text>
+  </g>
+  <text x="550" y="388" font-size="14" text-anchor="middle"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the users and the GPT-5 model, out of focus&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the shared Postgres database</tspan></text>
+</svg>

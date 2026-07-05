@@ -1,0 +1,95 @@
+<svg viewBox="0 0 1100 470" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="hyb-t hyb-d">
+  <title id="hyb-t">Hybrid storage: row on write, columnar on read, split by data age</title>
+  <desc id="hyb-d">A time axis runs from newest, hot data on the left to oldest,
+  cold data on the right. On the left, fresh listens land as small grey
+  row-shaped parts that take inserts at about a million per second. A grey
+  background-merge arrow in the middle converts aged parts into the large green
+  columnar segments on the right, which answer analytics scans in about 100 ms
+  with roughly ten to one compression. A single green unified-query bar spans
+  the bottom: one SQL surface reads both layouts and merges the results. Color
+  key: green is the columnar result and the unified engine; grey is
+  the row parts and the scaffolding.</desc>
+  <defs><marker id="ah-hyb" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="550" y="38" font-size="24" font-weight="700" fill="#0E0E10"
+        text-anchor="middle">One table, two layouts, picked by data age</text>
+  <text x="550" y="64" font-size="16" fill="#3F3F46" text-anchor="middle">
+    Partition by listen_time. A background merge turns aged parts columnar.</text>
+
+  <!-- time axis -->
+  <line x1="70" y1="98" x2="1030" y2="98" stroke="#6B7280" stroke-width="2"
+        marker-end="url(#ah-hyb)"/>
+  <text x="80" y="90" font-size="14" fill="#6B7280">newest · hot (writes)</text>
+  <text x="1020" y="90" font-size="14" fill="#6B7280" text-anchor="end">oldest · cold (scans)</text>
+
+  <!-- HOT: row parts (grey) -->
+  <g data-step="1">
+  <rect x="70" y="118" width="300" height="230" rx="8" fill="#FFFFFF"
+        stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="70" y="118" width="300" height="6" rx="3" fill="#475569"/>
+  <text x="220" y="148" font-size="18" font-weight="700" fill="#475569"
+        text-anchor="middle">Recent partitions</text>
+  <rect x="100" y="166" width="240" height="30" rx="4" fill="#E7EAEE" stroke="#D4D7DC"/>
+  <rect x="100" y="202" width="240" height="30" rx="4" fill="#E7EAEE" stroke="#D4D7DC"/>
+  <rect x="100" y="238" width="240" height="30" rx="4" fill="#E7EAEE" stroke="#D4D7DC"/>
+  <text x="220" y="186" font-size="14" fill="#3F3F46" text-anchor="middle">row-shaped part</text>
+  <text x="220" y="222" font-size="14" fill="#3F3F46" text-anchor="middle">row-shaped part</text>
+  <text x="220" y="258" font-size="14" fill="#3F3F46" text-anchor="middle">row-shaped part</text>
+  <text x="220" y="300" font-size="15" font-weight="700" fill="#0E0E10"
+        text-anchor="middle">Inserts: ~1M/sec</text>
+  <text x="220" y="324" font-size="14" fill="#6B7280" text-anchor="middle">whole row written in one place</text>
+  </g>
+
+  <!-- background merge -->
+  <g data-step="2">
+  <line x1="380" y1="233" x2="490" y2="233" stroke="#6B7280" stroke-width="2.5"
+        marker-end="url(#ah-hyb)"/>
+  <text x="435" y="218" font-size="15" font-weight="700" fill="#3F3F46"
+        text-anchor="middle">background</text>
+  <text x="435" y="256" font-size="15" font-weight="700" fill="#3F3F46"
+        text-anchor="middle">merge</text>
+  <text x="435" y="284" font-size="14" fill="#6B7280" text-anchor="middle">when activity slows</text>
+  <rect x="416" y="300" width="13" height="38" rx="2" fill="#E7EAEE" stroke="#D4D7DC"/>
+  <rect x="441" y="334" width="13" height="4" rx="1" fill="#059669"/>
+  <text x="422" y="352" font-size="11" fill="#6B7280" text-anchor="middle">row</text>
+  <text x="448" y="352" font-size="11" font-weight="700" fill="#059669" text-anchor="middle">~10:1</text>
+  </g>
+
+  <!-- COLD: columnar segments (green) -->
+  <g data-step="3">
+  <rect x="500" y="118" width="530" height="230" rx="8" fill="#FFFFFF"
+        stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="500" y="118" width="530" height="6" rx="3" fill="#059669"/>
+  <text x="765" y="148" font-size="18" font-weight="700" fill="#059669"
+        text-anchor="middle">Aged partitions</text>
+  <rect x="530" y="166" width="200" height="120" rx="6" fill="#E1F4EC" stroke="#059669"/>
+  <rect x="800" y="166" width="200" height="120" rx="6" fill="#E1F4EC" stroke="#059669"/>
+  <g stroke="#059669" stroke-width="1">
+    <line x1="560" y1="176" x2="560" y2="276"/><line x1="590" y1="176" x2="590" y2="276"/>
+    <line x1="620" y1="176" x2="620" y2="276"/><line x1="650" y1="176" x2="650" y2="276"/>
+    <line x1="830" y1="176" x2="830" y2="276"/><line x1="860" y1="176" x2="860" y2="276"/>
+    <line x1="890" y1="176" x2="890" y2="276"/><line x1="920" y1="176" x2="920" y2="276"/>
+  </g>
+  <text x="630" y="226" font-size="14" fill="#0E0E10" text-anchor="middle">columnar segment</text>
+  <text x="900" y="226" font-size="14" fill="#0E0E10" text-anchor="middle">columnar segment</text>
+  <text x="765" y="312" font-size="15" font-weight="700" fill="#0E0E10"
+        text-anchor="middle">Scans: ~100 ms · ~10:1 compression</text>
+  <text x="765" y="336" font-size="14" fill="#6B7280" text-anchor="middle">one column read, the rest skipped</text>
+  </g>
+
+  <!-- unified query engine bar -->
+  <g data-step="4">
+  <rect x="70" y="372" width="960" height="46" rx="8" fill="#FFFFFF"
+        stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="70" y="372" width="960" height="6" rx="3" fill="#059669"/>
+  <text x="550" y="402" font-size="16" font-weight="700" fill="#0E0E10"
+        text-anchor="middle">Unified query engine: one SQL surface reads both layouts and merges the result</text>
+  </g>
+
+  <text x="550" y="450" font-size="14" fill="#6B7280" text-anchor="middle">
+    Color key  <tspan fill="#059669" font-weight="700">green = columnar result + unified engine</tspan>
+    · <tspan fill="#475569" font-weight="700">grey = row parts and scaffolding</tspan></text>
+</svg>

@@ -1,0 +1,121 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.773
+Block nested loop is fine for small-times-big joins.
+
+00:00:05.773 --> 00:00:09.546
+When both tables dwarf RAM and the join is an equality, its inner scan goes quadratic.
+
+00:00:09.546 --> 00:00:13.320
+Hash partition join turns that exact same join linear.
+
+00:00:13.320 --> 00:00:17.093
+Here is the trick.
+
+00:00:17.093 --> 00:00:21.254
+Phase one, partition.
+
+00:00:21.254 --> 00:00:25.415
+Take R, the Users table, and hash every row on the join key.
+
+00:00:25.415 --> 00:00:29.576
+Each row routes into one of a few partition files on disk, R zero, R one, R two.
+
+00:00:29.576 --> 00:00:33.737
+Now do the same to S, the Listens table, with the exact same hash function.
+
+00:00:33.737 --> 00:00:37.898
+That is the whole insight.
+
+00:00:37.898 --> 00:00:42.059
+Same hash means the same key always lands in the same partition number on both sides.
+
+00:00:42.059 --> 00:00:46.220
+Mickey hashes to one partition in Users and the matching partition in Listens.
+
+00:00:46.220 --> 00:00:50.381
+Phase two, join.
+
+00:00:50.381 --> 00:00:54.542
+For each partition number, load R's piece into RAM, build a hash table on the key, then probe with S's piece.
+
+00:00:54.542 --> 00:00:58.703
+Each pair joins independently, all in RAM.
+
+00:00:58.703 --> 00:01:02.864
+Add up the matches, eight output rows.
+
+00:01:02.864 --> 00:01:07.025
+The cost.
+
+00:01:07.025 --> 00:01:11.186
+Read each table, write the partitions, read them back, write the output.
+
+00:01:11.186 --> 00:01:15.347
+Three times the quantity N plus M, plus OUT.
+
+00:01:15.347 --> 00:01:19.508
+Linear.
+
+00:01:19.508 --> 00:01:22.294
+And in code, two passes.
+
+00:01:22.294 --> 00:01:25.081
+Partition both tables on the same hash, then join the matching buckets in RAM.
+
+00:01:25.081 --> 00:01:27.867
+No rescans.
+
+00:01:27.867 --> 00:01:31.317
+Why bother.
+
+00:01:31.317 --> 00:01:34.767
+Look at the scale.
+
+00:01:34.767 --> 00:01:38.217
+Users at one hundred gigabytes, Listens at eight hundred, RAM at sixty-four.
+
+00:01:38.217 --> 00:01:41.666
+Neither side fits.
+
+00:01:41.666 --> 00:01:45.116
+Block nested loop would re-scan the larger table once per outer block, far too slow.
+
+00:01:45.116 --> 00:01:48.566
+Sort-merge would have to sort both, also expensive.
+
+00:01:48.566 --> 00:01:52.016
+When the join is an equality and neither side fits, hash partition join is the answer.
+
+00:01:52.016 --> 00:01:56.761
+It chains for more tables.
+
+00:01:56.761 --> 00:02:01.505
+Users, Listens, Songs.
+
+00:02:01.505 --> 00:02:06.250
+Hash partition the first two on user id.
+
+00:02:06.250 --> 00:02:10.995
+Take that intermediate result, then hash partition it and Songs on song id.
+
+00:02:10.995 --> 00:02:15.739
+Each step is the same two-phase pattern, and the cost grows linearly per join, not multiplicatively.
+
+00:02:15.739 --> 00:02:20.484
+As we will see later, these underpin most modern data systems, including Postgres, BigQuery, and Spark.
+
+00:02:20.484 --> 00:02:27.125
+Hash partition join lets you join tables far larger than RAM by reducing the whole problem to many small in-RAM joins.
+
+00:02:27.125 --> 00:02:33.766
+The one real failure mode is skew.
+
+00:02:33.766 --> 00:02:40.407
+If user id one is a system account with ten million listens, its partition overflows RAM while the others fit.
+
+00:02:40.407 --> 00:02:47.048
+Detect the hot bucket in phase one, re-partition it with a different hash, recurse, and you are fine.
+
+00:02:47.048 --> 00:02:53.689
+Next, when the data is already sorted, sort-merge beats hash partition join.

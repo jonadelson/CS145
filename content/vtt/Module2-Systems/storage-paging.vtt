@@ -1,0 +1,175 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.669
+How do you process a hundred and twenty-eight gigabytes of data on a machine with only sixteen gigabytes of RAM?
+
+00:00:05.669 --> 00:00:09.337
+The same way Unix did it in the seventies.
+
+00:00:09.337 --> 00:00:13.006
+You don't load all hundred and twenty-eight gigabytes into RAM.
+
+00:00:13.006 --> 00:00:16.675
+You reed sixty-four megabytes at a time.
+
+00:00:16.675 --> 00:00:20.344
+The disk hands you a fixed-size page on every IO.
+
+00:00:20.344 --> 00:00:24.012
+One byte or all sixty-four megabytes, same cost.
+
+00:00:24.012 --> 00:00:27.681
+So algorithms count pages, not bytes.
+
+00:00:27.681 --> 00:00:31.907
+Start with the picture.
+
+00:00:31.907 --> 00:00:36.133
+The CPU on the left never touches the SSD.
+
+00:00:36.133 --> 00:00:40.359
+It works out of its registers and its cashes, L one, L two, L three.
+
+00:00:40.359 --> 00:00:44.585
+The hardware fills those cashes from RAM in sixty-four byte cash lines, in nanoseconds.
+
+00:00:44.585 --> 00:00:48.811
+Pages live one level down.
+
+00:00:48.811 --> 00:00:53.037
+The SSD on the right holds all hundred and twenty-eight gigabytes, two thousand and forty-eight sixty-four megabyte pages.
+
+00:00:53.037 --> 00:00:57.263
+RAM in the middle holds only two hundred and fifty-six of those same pages.
+
+00:00:57.263 --> 00:01:01.489
+To work on data, you page it in.
+
+00:01:01.489 --> 00:01:05.715
+One block crosses from SSD to RAM.
+
+00:01:05.715 --> 00:01:09.941
+That is one IO.
+
+00:01:09.941 --> 00:01:14.167
+And even on a fast SSD it is transfer-bound.
+
+00:01:14.167 --> 00:01:18.393
+Moving sixty-four megabytes at five gigabytes a second takes about thirteen milliseconds, whether you wanted one row or the whole block.
+
+00:01:18.393 --> 00:01:22.619
+When RAM fills, you evict a page and load the next.
+
+00:01:22.619 --> 00:01:26.845
+That is the whole trick.
+
+00:01:26.845 --> 00:01:31.071
+All two thousand pages stream through two hundred and fifty-six slots, one page at a time.
+
+00:01:31.071 --> 00:01:34.159
+Why go to all this trouble?
+
+00:01:34.159 --> 00:01:37.248
+Because the gap is impossible to feel in nanoseconds.
+
+00:01:37.248 --> 00:01:40.336
+So rescale it.
+
+00:01:40.336 --> 00:01:43.424
+If one cache hit took one second, then RAM would be a minute and a half away.
+
+00:01:43.424 --> 00:01:46.512
+An SSD read, an afternoon.
+
+00:01:46.512 --> 00:01:49.600
+A hard disk read, four months.
+
+00:01:49.600 --> 00:01:52.689
+That is what paging fights.
+
+00:01:52.689 --> 00:01:55.777
+It keeps your working set in RAM, so a read is a short pause, not a whole season.
+
+00:01:55.777 --> 00:01:58.558
+The hierarchy goes like this.
+
+00:01:58.558 --> 00:02:01.338
+CPU registers and cashes at the top, nanoseconds.
+
+00:02:01.338 --> 00:02:04.119
+RAM in the middle, hundreds of nanoseconds.
+
+00:02:04.119 --> 00:02:06.900
+SSD next, microseconds.
+
+00:02:06.900 --> 00:02:09.680
+Spinning disk, milliseconds.
+
+00:02:09.680 --> 00:02:12.461
+Network storage at the bottom.
+
+00:02:12.461 --> 00:02:15.241
+Each tier is about a hundred times slower than the one above.
+
+00:02:15.241 --> 00:02:18.022
+And each is about ten times cheaper per byte.
+
+00:02:18.022 --> 00:02:21.327
+The cost model is simple.
+
+00:02:21.327 --> 00:02:24.632
+One IO fetches one page.
+
+00:02:24.632 --> 00:02:27.937
+A page is a fixed size, typically sixty-four megabytes in big-data systems.
+
+00:02:27.937 --> 00:02:31.242
+The cost of an algorithm is the pages it reeds plus the pages it writes.
+
+00:02:31.242 --> 00:02:34.547
+Comparisons, loops, arithmetic.
+
+00:02:34.547 --> 00:02:37.852
+Next to a disk reed, those are free.
+
+00:02:37.852 --> 00:02:41.156
+Today's hardware does not change the rule.
+
+00:02:41.156 --> 00:02:44.460
+A modern GPU does ten teraflops.
+
+00:02:44.460 --> 00:02:47.764
+But feeding it data still goes through the same storage hierarchy.
+
+00:02:47.764 --> 00:02:51.067
+The ten-million-times gap is still there.
+
+00:02:51.067 --> 00:02:54.371
+CPUs and GPUs are starving for data.
+
+00:02:54.371 --> 00:02:57.675
+The storage tier is what feeds them.
+
+00:02:57.675 --> 00:03:00.979
+So even modern AI workloads page data the same way classical databases did.
+
+00:03:00.979 --> 00:03:04.044
+Paging is the foundation under everything in this module.
+
+00:03:04.044 --> 00:03:07.109
+Hashing, indexing, sorting, joining.
+
+00:03:07.109 --> 00:03:10.174
+Every one of those algorithms gets measured in pages.
+
+00:03:10.174 --> 00:03:13.239
+Drive that count down and the algorithm gets faster.
+
+00:03:13.239 --> 00:03:16.304
+Drive it up and no amount of CPU helps.
+
+00:03:16.304 --> 00:03:19.369
+Next we make this counting precise.
+
+00:03:19.369 --> 00:03:22.434
+The IO cost model.

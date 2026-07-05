@@ -1,0 +1,40 @@
+<h1>Change Tracking: Log the Diff, Don't Copy</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A database keeps a log of what changed, never a copy of the whole database. Storing a full copy for every version is impossible when thousands of transactions modify the data at once, so the database logs each change instead and replays the log to reconstruct what was true at any past moment.</p>
+<p><strong>Intuition.</strong> A trading app can't snapshot millions of accounts on every trade, yet it must still show your exact balance at the instant you hit Sell. A hospital must show what a chart said the moment a drug was given. An exchange must replay its order book to the microsecond a crash hit. All of them need any past version, none can afford full copies. The fix is the one Google Docs and Git already use: log the change, not the whole thing.</p>
+</div>
+<h2>The Version Problem</h2>
+<p>Picture a trading app. Millions of users, thousands of trades landing every second, each one moving a balance. A user disputes a trade: the app showed $5,000 when they hit Sell, then it filled lower. To settle it, you have to show the exact state of that account at that instant, 10:31:04. Not now. Then.</p>
+<p>And it is not only the user. Regulators require the same history. The SEC can order a firm to reconstruct any trade, to prove there was no insider trading or manipulation, and record-keeping rules make it the law. Two things ride on knowing what was true at a moment: a user's trust, and staying on the right side of a regulator.</p>
+<p>Could you just copy the whole database and keep every version? You never know which account or which instant will be questioned, so you would keep a full snapshot at every instant. With millions of accounts changing thousands of times a second, that is billions of rows copied per second. Impossible.</p>
+<p>Same shape elsewhere. A hospital has to show what a patient's chart said the moment a drug was given, while staff edit charts all day. An exchange has to replay its order book to the microsecond a crash hit, out of millions of orders a second. Everyone needs a past version; nobody can copy the whole thing to keep one.</p>
+<p>That is the version problem: you need to know what was true at any moment, but you cannot keep full copies when thousands are changing the data at once. So stop copying and start logging. Save each change, not the whole database, and replay the changes to reach any version.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/version-problem.svg"
+     alt="Left, in red: snapshot every version means copying the whole database on every change, billions of rows per second, impossible. Right, in violet: log one small entry per change and replay the entries to rebuild what was true at any past moment, with no full copy stored."
+     style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Keeping every version by copying the whole database (red) is billions of rows a second under real load, impossible. Logging each change instead (violet) is a handful of small entries, and any past version replays from them, 10:31:04 included. You reach any moment without ever storing a full copy.</p>
+</div>
+<h2>You Already Use It</h2>
+<p>Every time you edit a document or commit to a repo, you use a change log. Two systems make it concrete, and both do the same two things: they don't copy, and they let you reach any version.</p>
+<h3>Google Docs</h3>
+<p><strong>Don't copy:</strong> Google Docs never keeps fifty full copies of your document, it logs each edit. <strong>Any version:</strong> it holds the current document plus that edit log, and snapshots itself now and then, so it never rebuilds from your first keystroke. To show the document as it was an hour ago, Docs starts from a recent snapshot and replays the edits forward to that moment; to undo, it steps back from where you are now. Replaying forward is exactly what a database calls redo, and stepping back is undo.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/gdocs-history.svg"
+     alt="Google Docs version history as an edit log: three appended entries (typed a sentence, deleted a paragraph, fixed a typo) replayed to reconstruct any past version, not three full document copies."
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Google Docs keeps periodic snapshots and logs every edit between them, violet, not a full copy of every version. Any past version replays from a nearby snapshot forward. The same move a database log makes: save the change, reach any version.</p>
+</div>
+<h3>Git</h3>
+<p><strong>Don't copy:</strong> a Git commit is a snapshot, but files that did not change are shared, not recopied, so history stays small without full copies. <strong>Any version:</strong> check out any commit to see exactly what the code was at that point, or revert to it.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/git-diffs.svg"
+     alt="Three git commits on a branch, each a snapshot that shares unchanged files (not a full copy); a green arrow moves forward to redo committed work, a red arrow moves backward to undo it."
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> A Git commit is a snapshot, not a full copy: files that did not change are shared, so history stays small. Moving forward to a later commit redoes work, green; reverting one undoes it, red. A database recovery log gives the same two moves.</p>
+</div>
+<h2>The Database Does Both</h2>
+<p>A database does exactly this, at the finest grain: it logs the old and the new value of every change, a handful of entries per transaction, never a table snapshot. From that log it rebuilds any past version. That one capability powers an audit, an undo, and, the focus of this module, recovery: after a crash, restore the correct state by redoing committed changes and undoing the rest. Crashes are rare, but the log earns its keep every day. Redo and undo are the next page.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4B-Crash-Recovery/recovery-concepts">The WAL Log →</a></strong> The database logs every change as <code>(old_value, new_value)</code>, with a COMMIT record to mark the finish line. Next: the log as a data structure, written twice on every update, the tiny log first and the big data page later.</p>

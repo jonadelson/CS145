@@ -1,0 +1,56 @@
+<svg viewBox="0 0 1180 312" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="gz-t gz-d">
+  <title id="gz-t">Method moves the score, not the model</title>
+  <desc id="gz-d">A horizontal accuracy axis for the same model on BIRD
+  semantics. One-shot, a single blind attempt with no feedback, lands near 16%.
+  Multi-shot, the run-read-error-retry loop, reaches about 77%. The blue band
+  between them is the lift, which comes from method, not a bigger model. The
+  grey stretch from 77% to 100% is the gap to correct that more retries cannot
+  close, the gap the three steps exist to close. Color key: blue is the lift
+  method buys, grey is the gap to correct it cannot close.</desc>
+
+  <text x="590" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Method moves the score, not the model</text>
+  <text x="590" y="56" text-anchor="middle" font-size="16" fill="#3F3F46">The same model on BIRD semantics: a blind shot lands low, the retry loop lifts it</text>
+
+  <!-- top labels -->
+  <text x="243" y="118" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">One-shot</text>
+  <text x="243" y="138" text-anchor="middle" font-size="14" fill="#3F3F46">one blind attempt</text>
+  <text x="243" y="156" text-anchor="middle" font-size="14" fill="#6B7280">no feedback</text>
+
+  <text x="865" y="118" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Multi-shot</text>
+  <text x="865" y="138" text-anchor="middle" font-size="14" fill="#3F3F46">run, read error, retry</text>
+
+  <text x="1100" y="118" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Correct</text>
+  <text x="1100" y="138" text-anchor="middle" font-size="14" fill="#6B7280">the three steps aim here</text>
+
+  <!-- method arrow -->
+  <line x1="262" y1="182" x2="848" y2="182" stroke="#6B7280" stroke-width="2" marker-end="url(#ahg)"/>
+  <defs><marker id="ahg" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+  <text x="555" y="176" text-anchor="middle" font-size="15" font-weight="700" fill="#60A5FA">method, not model</text>
+  <text x="982" y="176" text-anchor="middle" font-size="14" fill="#6B7280">gap method can't close</text>
+
+  <!-- bar -->
+  <rect x="80" y="200" width="1020" height="20" rx="10" fill="#F4F4F6" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="243" y="200" width="622" height="20" fill="#ECF1FE"/>
+  <rect x="243" y="200" width="622" height="3" fill="#60A5FA"/>
+
+  <!-- ticks -->
+  <g stroke="#6B7280" stroke-width="1.5">
+    <line x1="80" y1="196" x2="80" y2="224"/>
+    <line x1="243" y1="194" x2="243" y2="226"/>
+    <line x1="865" y1="194" x2="865" y2="226"/>
+    <line x1="1100" y1="196" x2="1100" y2="224"/>
+  </g>
+  <circle cx="243" cy="210" r="5" fill="#60A5FA"/>
+  <circle cx="865" cy="210" r="5" fill="#60A5FA"/>
+
+  <!-- percent labels -->
+  <text x="80" y="246" text-anchor="middle" font-size="14" fill="#3F3F46">0%</text>
+  <text x="243" y="246" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">16%</text>
+  <text x="865" y="246" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">77%</text>
+  <text x="1100" y="246" text-anchor="middle" font-size="14" fill="#3F3F46">100%</text>
+
+  <text x="590" y="292" text-anchor="middle" font-size="14"><tspan fill="#60A5FA" font-weight="700">blue</tspan><tspan fill="#3F3F46" dx="5">= the lift method buys, one-shot to multi-shot   ·</tspan><tspan fill="#6B7280" font-weight="700" dx="8">grey</tspan><tspan fill="#3F3F46" dx="5">= the gap to correct it can't close</tspan></text>
+</svg>

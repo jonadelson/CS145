@@ -1,0 +1,157 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.959
+What if you want to compare each user against themselves, against their own performance?
+
+00:00:07.959 --> 00:00:13.917
+That is exactly what a correlated subquery is for.
+
+00:00:13.917 --> 00:00:19.876
+Here are nine listens, three users.
+
+00:00:19.876 --> 00:00:25.834
+A regular subquery takes one global average, four point two, and uses that same number for everyone.
+
+00:00:25.834 --> 00:00:31.793
+But to judge each user by their own average, the query has to be correlated with each user themselves.
+
+00:00:31.793 --> 00:00:37.751
+A correlated subquery re-runs the inner query per user, on their own rows, so each gets their own average: Mickey four point two, Minnie four point four, Daffy three point nine.
+
+00:00:37.751 --> 00:00:43.710
+Each colored arrow links a user back to themselves.
+
+00:00:43.710 --> 00:00:48.844
+Here is the query: users with a rating above THEIR OWN average.
+
+00:00:48.844 --> 00:00:53.977
+The key is the highlighted line, and it is about scoping.
+
+00:00:53.977 --> 00:00:59.111
+Inside the inner query, l-two is its own scoped copy of Listens.
+
+00:00:59.111 --> 00:01:04.245
+But u-dot-user-ID is a variable from the OUTER query's scope.
+
+00:01:04.245 --> 00:01:09.379
+The inner query reaching out to the outer's variable is the correlation, and it scopes the average to only that one user's rows.
+
+00:01:09.379 --> 00:01:14.512
+So start with one row per rating, grouped by user.
+
+00:01:14.512 --> 00:01:19.646
+The inner AVG runs once per user, giving each their own average: Mickey four point two, Minnie four point four, Daffy three point nine.
+
+00:01:19.646 --> 00:01:24.780
+Now cross out every rating that is not above their own average.
+
+00:01:24.780 --> 00:01:29.914
+The rows that survive show who beat it: Mickey keeps one, Minnie keeps two, Daffy keeps one.
+
+00:01:29.914 --> 00:01:35.047
+Pluto has no ratings, nothing survives.
+
+00:01:35.047 --> 00:01:40.181
+Output: Mickey, Minnie, Daffy.
+
+00:01:40.181 --> 00:01:44.516
+Same shape, but a presence check: users with NO rating above four point five.
+
+00:01:44.516 --> 00:01:48.851
+Again, one row per rating, grouped by user.
+
+00:01:48.851 --> 00:01:53.186
+For each, does any rating clear four point five?
+
+00:01:53.186 --> 00:01:57.521
+Cross out every rating that does not.
+
+00:01:57.521 --> 00:02:01.857
+Mickey's all fall short, Minnie and Daffy each keep a high one, and Pluto has no listens.
+
+00:02:01.857 --> 00:02:06.192
+That splits the users into two complementary sets.
+
+00:02:06.192 --> 00:02:10.527
+EXISTS keeps the ones with a survivor: Minnie and Daffy.
+
+00:02:10.527 --> 00:02:14.862
+NOT EXISTS keeps the opposite, the ones with none: Mickey and Pluto.
+
+00:02:14.862 --> 00:02:19.197
+Never the same set, always opposites.
+
+00:02:19.197 --> 00:02:24.178
+Under the hood, both examples ran the same way: a double for-loop.
+
+00:02:24.178 --> 00:02:29.158
+The outer loop walks one user at a time.
+
+00:02:29.158 --> 00:02:34.139
+The inner query runs each pass.
+
+00:02:34.139 --> 00:02:39.120
+Now look at the pink link.
+
+00:02:39.120 --> 00:02:44.100
+Inside the inner query, l-two is the inner scope, its own Listens.
+
+00:02:44.100 --> 00:02:49.081
+But the inner reaches OUT to u, a variable from the outer loop.
+
+00:02:49.081 --> 00:02:54.061
+That cross-reference, the inner reading the outer's variable, is the correlation.
+
+00:02:54.061 --> 00:02:59.042
+Because u changes each pass, the inner average runs once per outer user, on their own rows: Mickey four point two, Minnie four point four, Daffy three point nine.
+
+00:02:59.042 --> 00:03:02.455
+Reach for a correlated subquery whenever the comparison changes per row.
+
+00:03:02.455 --> 00:03:05.869
+The clue is "their own" or "their." Above their own average.
+
+00:03:05.869 --> 00:03:09.282
+Top in their genre.
+
+00:03:09.282 --> 00:03:12.695
+Earning more than their manager.
+
+00:03:12.695 --> 00:03:16.109
+If the threshold is one global number, a regular subquery is enough.
+
+00:03:16.109 --> 00:03:19.522
+If it depends on the row, correlated.
+
+00:03:19.522 --> 00:03:23.353
+The cost is the catch.
+
+00:03:23.353 --> 00:03:27.184
+The outer query runs once and returns your users.
+
+00:03:27.184 --> 00:03:31.016
+But the inner query re-runs once per user.
+
+00:03:31.016 --> 00:03:34.847
+Ten thousand users means ten thousand inner queries, plus the one outer.
+
+00:03:34.847 --> 00:03:38.678
+N plus one: ten thousand and one round-trips.
+
+00:03:38.678 --> 00:03:42.510
+On a big table, catastrophic.
+
+00:03:42.510 --> 00:03:46.341
+The rescue: modern optimizers recognize the pattern and rewrite it as a single JOIN with a windowed aggregate.
+
+00:03:46.341 --> 00:03:50.172
+Same answer, one pass, one query.
+
+00:03:50.172 --> 00:03:56.240
+A correlated subquery references the outer query and runs once per outer row.
+
+00:03:56.240 --> 00:04:02.308
+Use it when the answer depends on each row individually: their own average, their own ranking, their own existence check.
+
+00:04:02.308 --> 00:04:08.376
+Read the inner query, plug in the outer row, and the rest follows.

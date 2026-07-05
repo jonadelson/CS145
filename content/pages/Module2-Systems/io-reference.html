@@ -1,0 +1,96 @@
+<h1>IO Cost Model Reference Sheet</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Reference values for <code>C_r</code>, <code>C_w</code>, page sizes, and the IO cost formulas of every algorithm in this module, across HDD / SSD / RAM tiers.</p>
+<p><strong>Intuition.</strong> Keep this page open. It's the cheat sheet for every cost calculation in Module 2.</p>
+</div>
+<h2>Official Formula Reference</h2>
+<p>This is your go-to guide for IO cost calculations in CS145. Stick to these formulas and notations for every problem and solution.</p>
+<div style="text-align: center; margin: 1.5rem 0;">
+<p><a href="assets/Module2-Systems/cs145_Equations.pdf" target="_blank" target="_blank" style="display: inline-block; padding: 0.75rem 1.5rem; background: #EA580C; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s;">
+  Download Formula Reference PDF
+</a></p>
+</div>
+<div style="max-width: 900px; margin: 2rem auto;">
+  <iframe src="assets/Module2-Systems/cs145_Equations.pdf" width="100%" height="800px" style="border: 2px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    Your browser doesn't support PDF viewing. <a href="assets/Module2-Systems/cs145_Equations.pdf" target="_blank">Download the PDF</a>.
+  </iframe>
+</div>
+
+<hr />
+<h2>Quick Reference</h2>
+<h3>Core Formula</h3>
+<p><strong>IO Cost per Page:</strong></p>
+<pre><code>C_r = Access Time + (Page Size ÷ Scan Speed)
+C_w = Access Time + (Page Size ÷ Scan Speed)
+</code></pre>
+<p><strong>Total IO Cost:</strong></p>
+<pre><code>Total Cost = numPages × C_r  (for reads)
+Total Cost = numPages × C_w  (for writes)
+</code></pre>
+<h3>Key Variables</h3>
+<ul>
+<li>
+<p><strong>numPages</strong>: Pages to read/write</p>
+</li>
+<li>
+<p><strong>C_r</strong>: Time cost to read one page</p>
+</li>
+<li>
+<p><strong>C_w</strong>: Time cost to write one page</p>
+</li>
+<li>
+<p><strong>Page Size</strong>: Typically 64 MB</p>
+</li>
+</ul>
+<h3>Device Specifications (2024)</h3>
+<p>These numbers are your baseline for problem sets and tests. Real-world figures vary by manufacturer.</p>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Access Time</th>
+<th>Scan Speed</th>
+<th>C_r (64MB page)</th>
+<th>C_w (64MB page)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RAM</strong></td>
+<td>100 ns</td>
+<td>100 GB/s</td>
+<td>0.00064s</td>
+<td>0.00064s</td>
+</tr>
+<tr>
+<td><strong>SSD</strong></td>
+<td>10 μs</td>
+<td>5 GB/s</td>
+<td>0.01281s</td>
+<td>0.01281s</td>
+</tr>
+<tr>
+<td><strong>HDD</strong></td>
+<td>10 ms</td>
+<td>100 MB/s</td>
+<td>0.65s</td>
+<td>0.65s</td>
+</tr>
+<tr>
+<td><strong>Network</strong></td>
+<td>1 μs</td>
+<td>10 GB/s</td>
+<td>0.00641s</td>
+<td>0.00641s</td>
+</tr>
+</tbody>
+</table>
+<h2>Unit Conventions</h2>
+<div class="v5-callout v5-callout--info">
+<p>• <strong>MB, GB</strong> = Decimal units (1000-based): 1 MB = 1,000,000 bytes, 1 GB = 1,000,000,000 bytes<br>
+• <strong>MiB, GiB</strong> = Binary units (1024-based): 1 MiB = 1,048,576 bytes, 1 GiB = 1,073,741,824 bytes<br>
+<br>
+<strong>All CS145 problems use MB/GB (decimal) consistently for calculations.</strong></p>
+</div>
+<hr />
+<p>This reference sheet is your constant companion for all system problems and solutions.</p>

@@ -1,0 +1,118 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.529
+Here is a question you have not asked about the Spotify database.
+
+00:00:05.529 --> 00:00:09.059
+Why is it three tables?
+
+00:00:09.059 --> 00:00:12.588
+Users, songs, listens.
+
+00:00:12.588 --> 00:00:16.118
+Why not one big table with everything in it?
+
+00:00:16.118 --> 00:00:19.647
+It turns out that one choice, where each fact lives, is most of what schema design is.
+
+00:00:19.647 --> 00:00:23.207
+Start with one big table.
+
+00:00:23.207 --> 00:00:26.768
+Every time Mickey plays a song you write a row, and his name and email ride along on every single one.
+
+00:00:26.768 --> 00:00:30.328
+The same email, copied over and over.
+
+00:00:30.328 --> 00:00:33.889
+Now watch what breaks.
+
+00:00:33.889 --> 00:00:37.449
+Mickey changes his email, so you fix every Mickey row, miss one, and now he has two.
+
+00:00:37.449 --> 00:00:41.010
+You cannot add a new song until someone plays it.
+
+00:00:41.010 --> 00:00:44.570
+Delete his last listen, and his email vanishes with it.
+
+00:00:44.570 --> 00:00:48.131
+Update, insert, delete.
+
+00:00:48.131 --> 00:00:51.691
+Three ways repetition bites you.
+
+00:00:51.691 --> 00:00:55.239
+The fix is simple.
+
+00:00:55.239 --> 00:00:58.787
+Pull the repeated facts into their own tables.
+
+00:00:58.787 --> 00:01:02.335
+A user's email lives once, in Users.
+
+00:01:02.335 --> 00:01:05.883
+A song's artist lives once, in Songs.
+
+00:01:05.883 --> 00:01:09.431
+Listens keeps only the events, and points at the other two by their keys.
+
+00:01:09.431 --> 00:01:12.979
+Now Mickey's email sits in exactly one place.
+
+00:01:12.979 --> 00:01:16.527
+Change it there, and every query sees the new one.
+
+00:01:16.527 --> 00:01:20.075
+Nothing can drift, because nothing is copied.
+
+00:01:20.075 --> 00:01:23.623
+This splitting has a name, normalization, and a strict version called Boyce Codd normal form.
+
+00:01:23.623 --> 00:01:27.171
+The idea underneath is just that every fact gets one home.
+
+00:01:27.171 --> 00:01:31.286
+And here is the part that ties the whole module together.
+
+00:01:31.286 --> 00:01:35.400
+Splitting the table is exactly why you join.
+
+00:01:35.400 --> 00:01:39.515
+When you separate facts to store them safely, a query has to put them back together to use them.
+
+00:01:39.515 --> 00:01:43.629
+Every join you wrote in Module one was recombining a normalized schema to answer one question.
+
+00:01:43.629 --> 00:01:47.744
+Pull apart to store, join to use.
+
+00:01:47.744 --> 00:01:52.187
+There is a trade-off.
+
+00:01:52.187 --> 00:01:56.630
+Normalized means each fact once, no anomalies, but you pay with a join every time you read.
+
+00:01:56.630 --> 00:02:01.073
+Sometimes that join is too slow, so you do the opposite on purpose.
+
+00:02:01.073 --> 00:02:05.515
+You copy facts back together so a read needs no join.
+
+00:02:05.515 --> 00:02:09.958
+That is denormalization.
+
+00:02:09.958 --> 00:02:14.401
+It reads faster, and now the copies can drift apart again, so you reach for it only when a real, measured cost forces you.
+
+00:02:14.401 --> 00:02:18.975
+So default to normalized.
+
+00:02:18.975 --> 00:02:23.550
+You will see the other side at scale in Module five, where copying data on purpose is how a system serves millions of reads.
+
+00:02:23.550 --> 00:02:28.124
+And here is the one rule to carry out of all of this.
+
+00:02:28.124 --> 00:02:32.698
+If a column repeats the same value down the rows, it probably wants a table of its own.

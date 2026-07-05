@@ -1,0 +1,34 @@
+<h1>Section 1: Intro to SQL &amp; The Declarative Shift</h1>
+<p>SQL solves three problems: writing queries declaratively, checking logic you did not write by hand, and running at cloud scale. This section covers each.</p>
+<hr />
+<h2>Three problems SQL solves</h2>
+<h3>1. The "How vs. What" Problem (Declarative Logic)</h3>
+<p>Process a large dataset with hand-written loops and you re-implement filtering, joining, and aggregation yourself, and you tune the execution by hand.</p>
+<ul>
+<li>
+<p><strong>The Problem:</strong> How do you extract complex insights without drowning in manual execution steps?</p>
+</li>
+<li>
+<p><strong>What SQL does:</strong> <strong>Declarative logic.</strong> You state what data you want; the query planner decides how to compute it (which scan, which join order). You do not write the execution steps.</p>
+</li>
+</ul>
+<h3>2. Checking AI-generated queries</h3>
+<p>An LLM produces syntactically valid SQL quickly, but the logic is often wrong.</p>
+<ul>
+<li>
+<p><strong>The Problem:</strong> How do you check that an AI-generated query returns the right rows, not just that it parses?</p>
+</li>
+<li>
+<p><strong>What SQL does:</strong> You need a mental model of query execution: trace JOIN behavior and use debug tables to verify generated code.</p>
+</li>
+</ul>
+<h3>3. The Cloud Scale Problem</h3>
+<p>A 5 MB CSV fits in your laptop's memory. 50 TB of live user events does not, so the query runs across a cluster.</p>
+<ul>
+<li>
+<p><strong>The Problem:</strong> How do you make the leap from local datasets to massive-scale infrastructure?</p>
+</li>
+<li>
+<p><strong>What SQL does:</strong> You'll learn to write queries for <strong>Cloud Data Warehouses</strong> like BigQuery, writing queries that run across a distributed cluster, where data layout and partition pruning decide cost.</p>
+</li>
+</ul>

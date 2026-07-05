@@ -1,0 +1,148 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.534
+The Eras Tour goes on sale.
+
+00:00:04.534 --> 00:00:07.067
+Fifty thousand fans hit one checkout in the same second.
+
+00:00:07.067 --> 00:00:09.601
+The transaction manager does everything right.
+
+00:00:09.601 --> 00:00:12.134
+Every lock honored.
+
+00:00:12.134 --> 00:00:14.668
+Every commit durable.
+
+00:00:14.668 --> 00:00:17.201
+And the site still falls over.
+
+00:00:17.201 --> 00:00:19.735
+The flow held one coarse lock for minutes at a time, and under that load it is fatal.
+
+00:00:19.735 --> 00:00:22.268
+Find the three bottlenecks.
+
+00:00:22.268 --> 00:00:24.802
+Then fix them.
+
+00:00:24.802 --> 00:00:28.323
+Here is the checkout that broke.
+
+00:00:28.323 --> 00:00:31.844
+You wait hours in a virtual queue.
+
+00:00:31.844 --> 00:00:35.365
+You pick a zone, and the instant you do, the site locks the whole zone, a thousand seats, and starts a five minute timer.
+
+00:00:35.365 --> 00:00:38.886
+Now you browse.
+
+00:00:38.886 --> 00:00:42.407
+Now you type your card.
+
+00:00:42.407 --> 00:00:45.928
+The lock is still held the whole time.
+
+00:00:45.928 --> 00:00:49.449
+One slow fan freezes a thousand seats for minutes.
+
+00:00:49.449 --> 00:00:52.970
+Three things make it worse.
+
+00:00:52.970 --> 00:00:56.491
+Serving the live seat counts to thousands of people at once is its own bottleneck.
+
+00:00:56.491 --> 00:01:00.012
+The zone lock blocks every other fan who wanted a seat in it.
+
+00:01:00.012 --> 00:01:03.533
+And the lock stays held through the entire payment, with those seats in limbo, neither sold nor free.
+
+00:01:03.533 --> 00:01:07.815
+Three fixes, and not one of them is a new lock.
+
+00:01:07.815 --> 00:01:12.097
+First, shrink what you lock.
+
+00:01:12.097 --> 00:01:16.378
+Before, one pick freezes the whole zone, a thousand seats, so nine hundred ninety nine other fans are blocked.
+
+00:01:16.378 --> 00:01:20.660
+After, you lock a single seat, and nobody else waits on you.
+
+00:01:20.660 --> 00:01:24.942
+Same protocol, finer grain, and a hundred times the fans browsing at once.
+
+00:01:24.942 --> 00:01:28.110
+Second, cut how long you hold the lock.
+
+00:01:28.110 --> 00:01:31.279
+The slowest step in checkout is a human typing.
+
+00:01:31.279 --> 00:01:34.447
+Card number.
+
+00:01:34.447 --> 00:01:37.615
+Billing address.
+
+00:01:37.615 --> 00:01:40.783
+The CVV.
+
+00:01:40.783 --> 00:01:43.952
+Slow, and none of it needs the lock.
+
+00:01:43.952 --> 00:01:47.120
+So ask yourself, what could you collect before you ever lock a seat?
+
+00:01:47.120 --> 00:01:50.288
+All of it.
+
+00:01:50.288 --> 00:01:53.456
+The card, the address, the preferences, pre-filled while you wait in the queue.
+
+00:01:53.456 --> 00:01:56.625
+When your turn comes, the locked step is only the final write.
+
+00:01:56.625 --> 00:01:59.793
+Thirty seconds instead of ten minutes, and a hundred fans become ten thousand.
+
+00:01:59.793 --> 00:02:04.716
+Third, when the load still beats the locks, stop blocking in real time.
+
+00:02:04.716 --> 00:02:09.638
+Before, fans wait hours in a queue, holding a lock the whole time.
+
+00:02:09.638 --> 00:02:14.561
+After, every request is stamped and submitted instantly.
+
+00:02:14.561 --> 00:02:19.483
+A background job works through them in order and emails the confirmation.
+
+00:02:19.483 --> 00:02:24.406
+The three hour queue becomes a sixty second submit, and about fifty thousand fans fit at once.
+
+00:02:24.406 --> 00:02:27.668
+Three moves, one lesson.
+
+00:02:27.668 --> 00:02:30.931
+Shrink how much you lock.
+
+00:02:30.931 --> 00:02:34.193
+Shorten how long you hold it, by pre-filling everything a human types before you take the lock.
+
+00:02:34.193 --> 00:02:37.456
+And when contention is unavoidable, fall back to a timestamp queue, and make the wait predictable.
+
+00:02:37.456 --> 00:02:40.718
+No new lock.
+
+00:02:40.718 --> 00:02:43.980
+No new protocol.
+
+00:02:43.980 --> 00:02:47.243
+The whole win is in how the application uses the one it already has.
+
+00:02:47.243 --> 00:02:50.505
+Next, we push past the protocol itself.

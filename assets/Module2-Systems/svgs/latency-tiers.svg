@@ -1,0 +1,61 @@
+<svg viewBox="0 0 1200 440" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="lt-t lt-d">
+  <title id="lt-t">One data center: seven orders of magnitude of latency</title>
+  <desc id="lt-d">Seven latency tiers on one axis, ordered fastest to slowest left to right: L1 cache 1 ns on-chip, RAM 100 ns on-board, SSD 100 microseconds same rack, network within the data center 500 microseconds an aisle away, spinning disk 10 milliseconds same rack, cross-region 50 milliseconds a continent away, cross-continent 100 milliseconds the other side of Earth. The span from end to end is 100 million times. An algorithm that reads from the wrong tier pays up to 10,000,000 times more. Color key: orange is a latency tier, grey is the fast-to-slow axis.</desc>
+  <defs><marker id="ah-lt" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="600" y="40" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">One data center: seven orders of magnitude</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">The same byte is 1 nanosecond or 100 milliseconds away, depending on its tier.</text>
+
+  <!-- axis -->
+  <line x1="70" y1="250" x2="1130" y2="250" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-lt)"/>
+  <text x="70" y="290" text-anchor="start" style="font-size:14px;font-weight:700;fill:#6B7280;">faster</text>
+  <text x="1120" y="290" text-anchor="end" style="font-size:14px;font-weight:700;fill:#6B7280;">slower</text>
+
+  <!-- 7 tiers: x = 110,275,440,605,770,935,1100 -->
+  <g>
+    <line x1="110" y1="244" x2="110" y2="256" stroke="#EA580C" stroke-width="3"/>
+    <text x="110" y="170" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">L1 cache</text>
+    <text x="110" y="192" text-anchor="middle" style="font-size:14px;fill:#6B7280;">on-chip</text>
+    <text x="110" y="226" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#EA580C;">1 ns</text>
+  </g>
+  <g>
+    <line x1="275" y1="244" x2="275" y2="256" stroke="#EA580C" stroke-width="3"/>
+    <text x="275" y="170" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">RAM</text>
+    <text x="275" y="192" text-anchor="middle" style="font-size:14px;fill:#6B7280;">on-board</text>
+    <text x="275" y="226" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#EA580C;">100 ns</text>
+  </g>
+  <g>
+    <line x1="440" y1="244" x2="440" y2="256" stroke="#EA580C" stroke-width="3"/>
+    <text x="440" y="170" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">SSD</text>
+    <text x="440" y="192" text-anchor="middle" style="font-size:14px;fill:#6B7280;">same rack</text>
+    <text x="440" y="226" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#EA580C;">100 µs</text>
+  </g>
+  <g>
+    <line x1="605" y1="244" x2="605" y2="256" stroke="#EA580C" stroke-width="3"/>
+    <text x="605" y="170" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">Network</text>
+    <text x="605" y="192" text-anchor="middle" style="font-size:14px;fill:#6B7280;">aisle away</text>
+    <text x="605" y="226" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#EA580C;">500 µs</text>
+  </g>
+  <g>
+    <line x1="770" y1="244" x2="770" y2="256" stroke="#EA580C" stroke-width="3"/>
+    <text x="770" y="170" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">Disk</text>
+    <text x="770" y="192" text-anchor="middle" style="font-size:14px;fill:#6B7280;">same rack</text>
+    <text x="770" y="226" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#EA580C;">10 ms</text>
+  </g>
+  <g>
+    <line x1="935" y1="244" x2="935" y2="256" stroke="#EA580C" stroke-width="3"/>
+    <text x="935" y="170" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">Cross-region</text>
+    <text x="935" y="192" text-anchor="middle" style="font-size:14px;fill:#6B7280;">continent away</text>
+    <text x="935" y="226" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#EA580C;">50 ms</text>
+  </g>
+  <g>
+    <line x1="1100" y1="244" x2="1100" y2="256" stroke="#EA580C" stroke-width="3"/>
+    <text x="1100" y="170" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">Cross-continent</text>
+    <text x="1100" y="192" text-anchor="middle" style="font-size:14px;fill:#6B7280;">across Earth</text>
+    <text x="1100" y="226" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#EA580C;">100 ms</text>
+  </g>
+
+  <text x="600" y="338" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">End to end is 100,000,000×. Read from the wrong tier and one access costs up to 10,000,000× more.</text>
+
+  <text x="600" y="404" text-anchor="middle" style="font-size:14px;"><tspan style="fill:#0E0E10;font-weight:700;">Color key&#160;&#160;</tspan><tspan style="fill:#EA580C;font-weight:700;">orange</tspan><tspan style="fill:#3F3F46;"> = a latency tier&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#6B7280;font-weight:700;">grey</tspan><tspan style="fill:#3F3F46;"> = the fast-to-slow axis</tspan></text>
+</svg>

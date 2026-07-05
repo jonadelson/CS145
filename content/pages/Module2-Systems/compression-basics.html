@@ -1,0 +1,30 @@
+<h1>Compression Basics: Making Data Smaller</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Columnar compression (run-length, dictionary, delta) exploits the fact that values in a single column repeat heavily, typically shrinking on-disk size 10× and cutting IO by the same factor.</p>
+<p><strong>Intuition.</strong> Mickey appears in 3 of 9 Listens rows. At a billion rows, his <code>user_id</code> might appear 100 million times in a stretch. Run-length encoding stores "Mickey × 100M" instead of repeating the string, Listens shrinks 10× and reads 10× fewer pages.</p>
+</div>
+<h2>When to Use What?</h2>
+<p><img src="assets/Module2-Systems/svgs/compression-techniques.svg"
+     alt="Four panels, one per technique: RLE (runs to value plus count, 10–100×, very fast, sorted repeated values), Dictionary (strings to integer codes, 5–20×, fast, low-cardinality strings), Delta (differences between sorted numbers, 5–10×, fast, timestamps), Bit packing (minimum bits for small ints, 4–8×, very fast, flags). Raw input grey, encoded result orange."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Four columnar techniques, same idea: a column repeats, so stop repeating it. RLE collapses runs into a value plus a count, dictionary swaps strings for small integer codes, delta stores differences between sorted numbers, bit packing uses the minimum bits. The raw input is grey, the encoded result orange. Ratios run from about 4x (bit packing) to 100x (RLE on sorted data); pick by what the column looks like.</p>
+</div>
+<p><a id="rle"></a></p>
+<h3>Run-Length Encoding (RLE)</h3>
+<p>The cleanest case. A sorted column with long runs of the same value. Instead of storing <code>Mickey, Mickey, Mickey, Mickey ...</code> a hundred million times, store <code>Mickey × 100M</code>. One value plus a count. Compression ratios of 10× to 100× are normal on <code>user_id</code> when the table is physically sorted by <code>user_id</code>, on <code>country</code> in a sorted log, on any column where the same value lingers. The runs come from the data's sort order on disk, not from a query.</p>
+<p><a id="dictionary"></a></p>
+<h3>Dictionary Encoding</h3>
+<p>When a column has a small set of distinct values, replace each value with a small integer index into a dictionary. Genre has maybe 50 distinct values; storing each as a 1-byte code instead of a 16-byte string is a 16× win. Country, currency, status flags, all good targets.</p>
+<p><a id="delta"></a></p>
+<h3>Delta Encoding</h3>
+<p>For sorted numeric columns, store the difference between consecutive values rather than the values themselves. Timestamps arriving microseconds apart turn into tiny deltas that pack into 1-byte ints instead of 8-byte longs. Auto-increment IDs and sensor readings benefit the same way.</p>
+<hr />
+<h2>Combining Techniques</h2>
+<p>You run the techniques in sequence, each one on what the previous step produced, so the savings compound. This works only under the condition that makes each step work: the column is physically sorted (or clustered) by <code>user_id</code> and has limited cardinality. Take a 1M-row Listens <code>user_id</code> column sorted by <code>user_id</code>, with about 25,000 active users:</p>
+<p><img src="assets/Module2-Systems/svgs/compression-pipeline.svg"
+     alt="A descending staircase of orange boxes: raw user_id 4 MB, then after RLE 200 KB, after dictionary 100 KB, after zstd 50 KB, ending in an ink result box reading 4 MB to 50 KB, 98.75% smaller. Grey labels name the step at each arrow."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Run in sequence, each step on the previous one's output, the techniques compound, given a 1M-row <code>user_id</code> column sorted by <code>user_id</code> with ~25,000 active users. RLE collapses the sorted runs (4 MB to 200 KB). Dictionary then shrinks each value: 25,000 ids need only a 2-byte code, not a 4-byte int (to 100 KB). zstd is different in kind, a general-purpose codec that entropy-codes whatever byte patterns the structural steps left (to 50 KB), a 98.75% reduction. Unsorted or high-cardinality, almost none of this happens.</p>
+</div>

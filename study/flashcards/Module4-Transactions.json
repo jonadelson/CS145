@@ -1,0 +1,286 @@
+{
+  "module": "Module4-Transactions",
+  "title": "Transactions",
+  "cards": [
+    {
+      "id": "m4-c01",
+      "front": "What is a transaction?",
+      "back": "A multi-step database operation that must run as if it were a single atomic unit, even when thousands of other transactions run on the same data simultaneously.",
+      "page": "Module4-Transactions/motivation",
+      "tags": ["transactions", "acid"]
+    },
+    {
+      "id": "m4-c02",
+      "front": "In the Ticketmaster Eras Tour on-sale, what held and what broke?",
+      "back": "The transactions held: no seat sold twice, bots got zero tickets, 2.4M tickets sold in a day. Availability broke under 4x the prior peak load: queues froze, sales were paused, payments timed out.",
+      "page": "Module4-Transactions/motivation",
+      "tags": ["case-study", "scale"]
+    },
+    {
+      "id": "m4-c03",
+      "front": "What do the four letters of ACID stand for?",
+      "back": "Atomicity (all-or-nothing), Consistency (no broken invariants), Isolation (concurrent transactions don't see each other's partial work), Durability (committed work survives crashes).",
+      "page": "Module4-Transactions/acid-properties",
+      "tags": ["acid"]
+    },
+    {
+      "id": "m4-c04",
+      "front": "What does isolation make concurrent transactions appear to be?",
+      "back": "Sequential: each transaction runs as if the others ran before or after it, never alongside. That's why the interest job reading a half-done transfer breaks money conservation without isolation.",
+      "page": "Module4-Transactions/acid-properties",
+      "tags": ["acid", "isolation"]
+    },
+    {
+      "id": "m4-c05",
+      "front": "Fastest test to tell a consistency failure from an isolation failure?",
+      "back": "Ask: \"Is this failure possible with one transaction at a time?\" If yes, it's consistency (a broken invariant); if it only happens under concurrency, it's isolation.",
+      "page": "Module4-Transactions/case-study-transactions",
+      "tags": ["acid", "consistency", "isolation"]
+    },
+    {
+      "id": "m4-c06",
+      "front": "Where do unreversible side effects (like charging a card) go relative to the database transaction?",
+      "back": "Outside it. Charge the card first (reversible via refund), wrap only the database's own writes in the transaction, and issue a refund if the transaction fails.",
+      "page": "Module4-Transactions/case-study-transactions",
+      "tags": ["transactions", "case-study"]
+    },
+    {
+      "id": "m4-c07",
+      "front": "What stops a double-submitted payment from charging twice: isolation or something else?",
+      "back": "An idempotency key, an app-level dedup mechanism, not isolation. Isolation prevents concurrent transactions from clobbering each other, not the same request arriving twice.",
+      "page": "Module4-Transactions/case-study-transactions",
+      "tags": ["case-study", "isolation"]
+    },
+    {
+      "id": "m4-c08",
+      "front": "What do <code>BEGIN</code>, <code>COMMIT</code>, and <code>ROLLBACK</code> each do?",
+      "back": "<code>BEGIN</code> marks the transaction's start; <code>COMMIT</code> makes every change since BEGIN permanent and visible; <code>ROLLBACK</code> (aborting) undoes every change since BEGIN as if nothing happened.",
+      "page": "Module4-Transactions/transaction-examples",
+      "tags": ["sql", "transactions"]
+    },
+    {
+      "id": "m4-c09",
+      "front": "What is autocommit mode?",
+      "back": "Anything outside a <code>BEGIN ... COMMIT</code> block runs as its own tiny one-statement transaction. A single UPDATE is atomic on its own; multiple statements are not, unless wrapped in a block.",
+      "page": "Module4-Transactions/transaction-examples",
+      "tags": ["sql", "transactions"]
+    },
+    {
+      "id": "m4-c10",
+      "front": "When is ROLLBACK triggered automatically?",
+      "back": "On any constraint violation (CHECK, UNIQUE, FOREIGN KEY), deadlock, crash, or unhandled application exception. You rarely write ROLLBACK by hand; failures propagate and undo the whole transaction.",
+      "page": "Module4-Transactions/transaction-examples",
+      "tags": ["sql", "transactions"]
+    },
+    {
+      "id": "m4-c11",
+      "front": "The oversell problem (1,000 buyers, 1 unit left): what goes wrong without isolation?",
+      "back": "All 1,000 transactions SELECT <code>quantity = 1</code> at the same instant, all decrement to 0, all insert orders. With isolation, row-level locking queues them so exactly one succeeds and 999 see 0 and roll back.",
+      "page": "Module4-Transactions/transaction-examples",
+      "tags": ["isolation", "locking"]
+    },
+    {
+      "id": "m4-c12",
+      "front": "Name the three anomalies of uncontrolled concurrency on one row.",
+      "back": "Lost update: two transactions both read 100, both write 101. Dirty read: reading an uncommitted write whose writer then aborts. Stale read: one transaction reads the same row twice and a committed write in between makes the reads disagree.",
+      "page": "Module4-Transactions/naive-concurrency",
+      "tags": ["anomalies", "concurrency"]
+    },
+    {
+      "id": "m4-c13",
+      "front": "Why are both naive concurrency strategies unusable?",
+      "back": "Serial execution is correct but slow: the CPU idles through every disk wait and one long transaction stalls the queue. No coordination is fast but corrupts data silently, with no error raised. Concurrency control is the middle: interleave only the safe swaps.",
+      "page": "Module4-Transactions/naive-concurrency",
+      "tags": ["concurrency", "scheduling"]
+    },
+    {
+      "id": "m4-c14",
+      "front": "What is a topological sort, and when does a directed graph have none?",
+      "back": "A listing of a DAG's nodes so that for every edge A&#8594;B, A comes before B. A graph with a cycle has no topological sort; a DAG usually has several.",
+      "page": "Module4-Transactions/graph-refresher",
+      "tags": ["graphs"]
+    },
+    {
+      "id": "m4-c15",
+      "front": "Define a conflict between two actions.",
+      "back": "Two actions from different transactions on the same row where at least one is a write. Their order changes the result, so they can never be swapped. Read-read is the only non-conflicting same-row pair.",
+      "page": "Module4-Transactions/correctness",
+      "tags": ["conflicts", "serializability"]
+    },
+    {
+      "id": "m4-c16",
+      "front": "Which anomaly corresponds to each conflict type?",
+      "back": "Read-write: stale read. Write-read: dirty read. Write-write: lost update. Each conflict becomes a directed edge in the conflict graph.",
+      "page": "Module4-Transactions/correctness",
+      "tags": ["conflicts", "anomalies"]
+    },
+    {
+      "id": "m4-c17",
+      "front": "How do you test a schedule for conflict-serializability?",
+      "back": "Build the conflict graph: one node per transaction, a directed edge Ti&#8594;Tj for every conflict where Ti's action precedes Tj's. The schedule is conflict-serializable exactly when the graph is acyclic; a topological sort gives the equivalent serial order.",
+      "page": "Module4-Transactions/correctness",
+      "tags": ["conflict-graph", "serializability"]
+    },
+    {
+      "id": "m4-c18",
+      "front": "Serial vs serializable: what's the difference?",
+      "back": "Serial: transactions never overlap in time. Serializable: an interleaved schedule whose result matches <em>some</em> serial order. Serializable schedules interleave freely; that's where the throughput comes from.",
+      "page": "Module4-Transactions/correctness",
+      "tags": ["serializability", "scheduling"]
+    },
+    {
+      "id": "m4-c19",
+      "front": "How do the schedule classes nest?",
+      "back": "Strict 2PL &#8834; 2PL &#8834; Conflict-Serializable &#8834; Serializable. The gap between serializable and CS is a few rare blind-write schedules; CS is the working standard because its cycle test is mechanical.",
+      "page": "Module4-Transactions/correctness",
+      "tags": ["serializability", "2pl"]
+    },
+    {
+      "id": "m4-c20",
+      "front": "Does the database guarantee any order between whole transactions?",
+      "back": "No. It runs them in any sequence the conflicts allow and never promises T1 before T2. If you need a guaranteed order, put both operations in one transaction so their actions form a single block.",
+      "page": "Module4-Transactions/correctness",
+      "tags": ["scheduling", "transactions"]
+    },
+    {
+      "id": "m4-c21",
+      "front": "What four layers does every <code>BEGIN TRANSACTION</code> run through?",
+      "back": "Your SQL code &#8594; the database's lock manager &#8594; the OS's mutexes &#8594; the hardware's atomic compare-and-swap instruction, the one indivisible step everything reduces to.",
+      "page": "Module4-Transactions/concurrency-stack",
+      "tags": ["locking", "architecture"]
+    },
+    {
+      "id": "m4-c22",
+      "front": "What can the database lock manager do that an OS mutex cannot?",
+      "back": "Lock at table/page/row granularity, support intent locks that announce a plan, scale to millions of transactions, and detect and resolve deadlock automatically. An OS mutex is one bit of state with no data awareness.",
+      "page": "Module4-Transactions/concurrency-stack",
+      "tags": ["locking", "lock-manager"]
+    },
+    {
+      "id": "m4-c23",
+      "front": "What is the lock table?",
+      "back": "The lock manager's running record of who holds each row and who is queued behind them. Every transaction asks the lock manager for its locks against this table.",
+      "page": "Module4-Transactions/concurrency-stack",
+      "tags": ["lock-manager"]
+    },
+    {
+      "id": "m4-c24",
+      "front": "What is the lifecycle of a single lock?",
+      "back": "Request &#8594; Get (granted) &#8594; read/write while holding it &#8594; Release. Anyone else who wants the row waits the entire time it is held.",
+      "page": "Module4-Transactions/lock-manager-cycle",
+      "tags": ["locking"]
+    },
+    {
+      "id": "m4-c25",
+      "front": "Shared (S) vs exclusive (X) locks: which combinations are compatible?",
+      "back": "Only S-with-S: many readers can hold S on one row at once, because reads don't conflict. Every pairing involving an X lock (S-X, X-S, X-X) forces the requester to wait.",
+      "page": "Module4-Transactions/lock-manager-cycle",
+      "tags": ["locking"]
+    },
+    {
+      "id": "m4-c26",
+      "front": "State the Two-Phase Locking (2PL) rule.",
+      "back": "Every transaction has a growing phase that only acquires locks, then a shrinking phase that only releases them. The first unlock flips the phase, and the transaction can never acquire a lock again. Following it guarantees conflict-serializable schedules.",
+      "page": "Module4-Transactions/db-locks-2pl",
+      "tags": ["2pl", "locking"]
+    },
+    {
+      "id": "m4-c27",
+      "front": "What is Strict 2PL and why do real databases ship it?",
+      "back": "Hold every lock until commit or abort, then release all at once. It prevents cascading aborts: no one can ever read uncommitted work, so one transaction's abort never forces another's.",
+      "page": "Module4-Transactions/db-locks-2pl",
+      "tags": ["2pl", "locking"]
+    },
+    {
+      "id": "m4-c28",
+      "front": "What is a cascading abort?",
+      "back": "Under regular 2PL, T1 releases a lock early, T2 reads T1's uncommitted write, then T1 aborts, so T2 must abort too. Strict 2PL prevents it by holding all locks to commit.",
+      "page": "Module4-Transactions/db-locks-2pl",
+      "tags": ["2pl", "aborts"]
+    },
+    {
+      "id": "m4-c29",
+      "front": "What is a microschedule?",
+      "back": "The time-ordered record of which operation runs when, built by the lock manager as it grants locks. Overlapping one transaction's IO waits with another's work is where the speedup comes from.",
+      "page": "Module4-Transactions/micro",
+      "tags": ["scheduling", "lock-manager"]
+    },
+    {
+      "id": "m4-c30",
+      "front": "What is the WaitsFor graph and what does a cycle in it mean?",
+      "back": "Each node is a transaction; each edge points from a waiter to the holder of the lock it needs. A cycle means deadlock: no one can proceed, and the lock manager aborts a victim to break it.",
+      "page": "Module4-Transactions/micro",
+      "tags": ["deadlock", "lock-manager"]
+    },
+    {
+      "id": "m4-c31",
+      "front": "How big is the interleaving speedup, and what drives it?",
+      "back": "In the worked example, 49 time units serial vs 31 interleaved; at scale roughly 10x-100x on IO-bound workloads. The speedup grows with IO lag and the number of concurrent transactions, because interleaving fills the idle disk waits.",
+      "page": "Module4-Transactions/micro",
+      "tags": ["performance", "scheduling"]
+    },
+    {
+      "id": "m4-c32",
+      "front": "What is a snapshot in MVCC?",
+      "back": "A single timestamp taken when the transaction begins, plus one rule: for each value, read the newest version whose writer committed at or before that timestamp. One consistent view of the whole database, no copy required.",
+      "page": "Module4-Transactions/mvcc",
+      "tags": ["mvcc", "snapshot"]
+    },
+    {
+      "id": "m4-c33",
+      "front": "Under MVCC, who blocks whom?",
+      "back": "Readers never block readers or writers, and writers never block readers, because each reader uses its own snapshot version. Only two writers to the <em>same</em> row block: the second waits on a row lock until the first commits or aborts.",
+      "page": "Module4-Transactions/mvcc",
+      "tags": ["mvcc", "locking"]
+    },
+    {
+      "id": "m4-c34",
+      "front": "What is VACUUM and what pins it?",
+      "back": "The garbage collector that reclaims dead versions no running transaction's snapshot can still read. It can only reclaim versions older than the xmin horizon, the oldest open snapshot, so one forgotten open transaction blocks cleanup and tables bloat.",
+      "page": "Module4-Transactions/mvcc",
+      "tags": ["mvcc", "vacuum"]
+    },
+    {
+      "id": "m4-c35",
+      "front": "What is write skew?",
+      "back": "Under snapshot isolation, two transactions each read from their own snapshot and each commit a change that is safe alone, yet together leave a state no serial order could produce (e.g., two editors each delete a different song from a playlist that must keep one). Fixed by SERIALIZABLE (SSI).",
+      "page": "Module4-Transactions/mvcc",
+      "tags": ["mvcc", "write-skew", "isolation-levels"]
+    },
+    {
+      "id": "m4-c36",
+      "front": "Why separate OLTP from OLAP at scale if MVCC already ended reader-writer blocking?",
+      "back": "Resource contention, not locks: a long analytical scan saturates CPU/IO, pollutes the buffer cache, and pins VACUUM via the xmin horizon. The fix is physical separation: replicate via CDC to a separate columnar warehouse.",
+      "page": "Module4-Transactions/mvcc",
+      "tags": ["mvcc", "oltp-olap"]
+    },
+    {
+      "id": "m4-c37",
+      "front": "What are OCC's three phases?",
+      "back": "Read (compute on a private copy, no locks), Validate (at commit, check whether any row read was written by a transaction that committed since it started), Write (apply changes if validation passed). A failed validation aborts and retries.",
+      "page": "Module4-Transactions/occ",
+      "tags": ["occ", "concurrency"]
+    },
+    {
+      "id": "m4-c38",
+      "front": "When does OCC win, and when does it lose?",
+      "back": "Wins under low contention: almost nothing aborts, so it runs at lock-free speed. Loses under high contention: transactions abort and retry repeatedly, burning work, and a hot row can starve. That's where pessimistic locking pulls ahead.",
+      "page": "Module4-Transactions/occ",
+      "tags": ["occ", "performance"]
+    },
+    {
+      "id": "m4-c39",
+      "front": "What four components run one transaction top to bottom?",
+      "back": "1. Application (issues BEGIN ... COMMIT), 2. Transaction Manager (coordinates), 3. Lock Manager or MVCC (grants locks / keeps versions), 4. Recovery Manager (makes commits survive crashes). Together they deliver ACID.",
+      "page": "Module4-Transactions/connecting-together",
+      "tags": ["architecture", "transactions"]
+    },
+    {
+      "id": "m4-c40",
+      "front": "Compare the correctness levels 2PL and MVCC deliver.",
+      "back": "2PL makes readers wait for writers and produces conflict-serializable executions. MVCC never blocks readers, but defaults to snapshot isolation (which permits write skew) and is conflict-serializable only at the SERIALIZABLE level.",
+      "page": "Module4-Transactions/connecting-together",
+      "tags": ["2pl", "mvcc", "isolation-levels"]
+    }
+  ]
+}

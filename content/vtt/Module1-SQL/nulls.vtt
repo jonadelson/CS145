@@ -1,0 +1,265 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.251
+You fill out a form and leave a field blank.
+
+00:00:05.251 --> 00:00:08.502
+In a database that blank is called NULL, and it does not mean zero or empty.
+
+00:00:08.502 --> 00:00:11.752
+It means unknown.
+
+00:00:11.752 --> 00:00:15.003
+In normal logic, every test is TRUE or FALSE.
+
+00:00:15.003 --> 00:00:18.254
+Four point five greater than four, true; greater than five, false.
+
+00:00:18.254 --> 00:00:21.505
+But the moment NULL enters, any comparison with it is UNKNOWN, a third truth value.
+
+00:00:21.505 --> 00:00:24.756
+Four point five greater than NULL?
+
+00:00:24.756 --> 00:00:28.007
+Unknown.
+
+00:00:28.007 --> 00:00:31.257
+NULL equals NULL?
+
+00:00:31.257 --> 00:00:34.508
+Still unknown.
+
+00:00:34.508 --> 00:00:37.759
+And here is the bite: WHERE keeps only TRUE rows, so UNKNOWN, and every NULL, drops silently.
+
+00:00:37.759 --> 00:00:41.010
+Only is null can find them.
+
+00:00:41.010 --> 00:00:44.267
+Before NULL, a quick refresher on ordinary logic, where every condition is true or false.
+
+00:00:44.267 --> 00:00:47.525
+AND needs both true: only true and true gives true.
+
+00:00:47.525 --> 00:00:50.782
+OR needs at least one: any true makes it true.
+
+00:00:50.782 --> 00:00:54.040
+And NOT just flips, true to false, false to true.
+
+00:00:54.040 --> 00:00:57.297
+Two values in, two values out.
+
+00:00:57.297 --> 00:01:00.555
+Predictable.
+
+00:01:00.555 --> 00:01:03.812
+NULL is about to break that.
+
+00:01:03.812 --> 00:01:06.145
+With NULL in play, the rules fall into two groups.
+
+00:01:06.145 --> 00:01:08.478
+First group: the operators.
+
+00:01:08.478 --> 00:01:10.811
+With AND, false wins.
+
+00:01:10.811 --> 00:01:13.145
+False and null is false.
+
+00:01:13.145 --> 00:01:15.478
+But true and null is null.
+
+00:01:15.478 --> 00:01:17.811
+With OR, true wins.
+
+00:01:17.811 --> 00:01:20.144
+True or null is true.
+
+00:01:20.144 --> 00:01:22.477
+But false or null is null.
+
+00:01:22.477 --> 00:01:24.810
+And NOT just passes the unknown through: not null is null.
+
+00:01:24.810 --> 00:01:27.144
+So under operators, a known value can still decide the answer.
+
+00:01:27.144 --> 00:01:29.477
+Second group: comparisons.
+
+00:01:29.477 --> 00:01:31.810
+Here nothing decides.
+
+00:01:31.810 --> 00:01:34.143
+Four point five greater than null?
+
+00:01:34.143 --> 00:01:36.476
+Null.
+
+00:01:36.476 --> 00:01:38.809
+Four equals null?
+
+00:01:38.809 --> 00:01:41.143
+Null.
+
+00:01:41.143 --> 00:01:43.476
+Null equals null itself?
+
+00:01:43.476 --> 00:01:45.809
+Still null.
+
+00:01:45.809 --> 00:01:48.142
+Every comparison with null is unknown.
+
+00:01:48.142 --> 00:01:50.475
+The one escape is is null.
+
+00:01:50.475 --> 00:01:52.808
+Is this value null?
+
+00:01:52.808 --> 00:01:55.142
+That returns a real true or false.
+
+00:01:55.142 --> 00:01:57.475
+It is the only test that finds a null.
+
+00:01:57.475 --> 00:01:59.808
+Five patterns to remember.
+
+00:01:59.808 --> 00:02:02.141
+False wins, true wins, null stays, null wins, is null tests.
+
+00:02:02.141 --> 00:02:05.406
+Watch one row decide its own fate.
+
+00:02:05.406 --> 00:02:08.670
+Focus on Daffy, row nine.
+
+00:02:08.670 --> 00:02:11.935
+Daffy's user-ID is three, so user-ID equals three is true.
+
+00:02:11.935 --> 00:02:15.200
+But Daffy's rating is null, so rating greater than four is unknown.
+
+00:02:15.200 --> 00:02:18.465
+Now the operator decides.
+
+00:02:18.465 --> 00:02:21.729
+Under AND, true and unknown is unknown, and WHERE drops the row.
+
+00:02:21.729 --> 00:02:24.994
+Daffy is gone.
+
+00:02:24.994 --> 00:02:28.259
+But under OR, true or unknown is true, and WHERE keeps the row.
+
+00:02:28.259 --> 00:02:31.523
+Daffy stays.
+
+00:02:31.523 --> 00:02:34.788
+Same row, two operators, two fates.
+
+00:02:34.788 --> 00:02:38.116
+So how do you find NULL rows, and why do they vanish?
+
+00:02:38.116 --> 00:02:41.444
+Three filters, side by side.
+
+00:02:41.444 --> 00:02:44.773
+Query one: WHERE rating is null.
+
+00:02:44.773 --> 00:02:48.101
+It returns row nine, Daffy's NULL listen.
+
+00:02:48.101 --> 00:02:51.429
+Is null, the test, gives a definite TRUE, so WHERE keeps it.
+
+00:02:51.429 --> 00:02:54.757
+Query two: WHERE rating greater than four.
+
+00:02:54.757 --> 00:02:58.085
+Five rows, but row nine is gone.
+
+00:02:58.085 --> 00:03:01.413
+Query three: WHERE rating less than or equal to four.
+
+00:03:01.413 --> 00:03:04.742
+Three rows, and row nine is gone again.
+
+00:03:04.742 --> 00:03:08.070
+Every comparison with NULL is UNKNOWN, and WHERE keeps only TRUE rows.
+
+00:03:08.070 --> 00:03:11.398
+So the NULL silently disappears from both comparisons.
+
+00:03:11.398 --> 00:03:14.726
+Only is null finds it.
+
+00:03:14.726 --> 00:03:17.447
+NULL does not just change comparisons.
+
+00:03:17.447 --> 00:03:20.169
+It changes math.
+
+00:03:20.169 --> 00:03:22.890
+Here is the rating column.
+
+00:03:22.890 --> 00:03:25.612
+Nine rows, and one of them is null.
+
+00:03:25.612 --> 00:03:28.333
+First, count star.
+
+00:03:28.333 --> 00:03:31.054
+It counts every row, including the null.
+
+00:03:31.054 --> 00:03:33.776
+So count star is nine.
+
+00:03:33.776 --> 00:03:36.497
+Now count of rating.
+
+00:03:36.497 --> 00:03:39.219
+It skips the null row.
+
+00:03:39.219 --> 00:03:41.940
+So count of rating is eight, not nine.
+
+00:03:41.940 --> 00:03:44.661
+And average.
+
+00:03:44.661 --> 00:03:47.383
+It sums the eight known ratings, thirty three point six, and divides by eight, not nine.
+
+00:03:47.383 --> 00:03:50.104
+So the average is four point two.
+
+00:03:50.104 --> 00:03:52.826
+Sum, min, and max all skip the null the same way.
+
+00:03:52.826 --> 00:03:55.547
+If you forget this, your averages quietly divide by a smaller number than you think.
+
+00:03:55.547 --> 00:03:59.906
+Four lines to remember.
+
+00:03:59.906 --> 00:04:04.264
+NULL means unknown, not zero.
+
+00:04:04.264 --> 00:04:08.623
+Any operation involving NULL returns NULL.
+
+00:04:08.623 --> 00:04:12.982
+WHERE drops NULL rows silently.
+
+00:04:12.982 --> 00:04:17.341
+And is null is the only way to test for it directly.
+
+00:04:17.341 --> 00:04:21.699
+Look at the trap on the slide: WHERE rating equals NULL is the wrong way, WHERE rating is null is the right way.
+
+00:04:21.699 --> 00:04:26.058
+Internalize those four lines and you have defeated half the SQL bugs that exist in production.

@@ -1,0 +1,69 @@
+<h1>Case Study 2.1: How Uber and Google Maps use Geo-hashing</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Geo-hashing converts a 2-D (lat, lng) coordinate into a 1-D grid key, turning "find drivers within 2 km" into a handful of cell lookups instead of a 10-million-row table scan. The grid is hexagonal, not square, because a hexagon's six neighbours are all the same distance away.</p>
+<p><strong>Intuition.</strong> Stamp every driver with a grid-cell code based on where they are parked. Same code means same neighbourhood. "Within 2 km" becomes a few cell lookups, the driver's cell plus the ring around it, instead of distance arithmetic across 10 million rows.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 2.1</span>
+<span>Reading Time: 6 mins</span></p>
+</div>
+<h2>The dumb way, and the obvious fix</h2>
+<p>Food delivery and mapping live or die on how fast you can group nearby orders and assign them to drivers. Picture a database of 10 million active orders with coordinates like these:
+<code>orders = [(37.788022, -122.399797), (37.788122, -122.399797), (37.788022, -122.398897)]</code></p>
+<p>When a driver opens the app and you want orders within 2 km, the naive query runs an <code>ST_Distance(driver_loc, order_loc)</code> calculation across all 10 million rows. That is a full table scan: 10 million IOs, on every request. During a lunch rush it saturates the database.</p>
+<p>The fix is to stop measuring distances and start grouping by location. Chop the map into a grid, give each cell a short code, and store orders by their cell. Nearby orders share a code, so "find nearby" becomes "find the same code." The only real question is what shape the grid cells should be, and that choice turns out to matter.</p>
+<h2>First idea: square cells</h2>
+<p>Start with the obvious shape, squares. This is the classic geo hash. Cut the world into a grid of squares, then cut each square into a smaller grid, again and again; each cut adds one character to the code. Close locations agree all the way down, so they keep a long shared prefix, and a prefix match finds the neighbourhood. At 5-character precision (37.788022, -122.399797) is <code>9q8yy</code>, a cell about 5 km across.</p>
+<p>Squares group points fine. The trouble shows up on the radius query. A point near a cell edge has close neighbours in the next cell over, so you can never read just the one cell; you read the cell plus its ring of neighbours. And a square's ring is uneven: its four edge-neighbours sit one cell away, but its four corner-neighbours are farther, by a factor of root two. The ring you are forced to read is lopsided, so "within 2 km" comes out sloppy at the corners.</p>
+<h2>Why hexagons, not squares</h2>
+<p><a id="why-hexagons"></a></p>
+<p><img src="assets/Module2-Systems/svgs/square-vs-hexagon.svg"
+     alt="A square cell has 8 neighbours at two distances (4 edges one cell away, 4 corners farther by root two), so its ring is lopsided; a hexagon has 6 neighbours all the same distance away, so its ring is even in every direction."
+     style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The shape of the cell decides the shape of the ring. A square has eight neighbours at two distances: four edge-neighbours one cell away, four corner-neighbours farther by a factor of root two, so the ring a radius query must read is lopsided. A hexagon has six neighbours, every one exactly the same distance from the centre, so the ring is even in all directions. That uniform neighbour distance is the whole reason map systems grid the world into hexagons.</p>
+</div>
+<p>A hexagon fixes the lopsided ring. Each of a hexagon's six neighbours is exactly the same distance from the centre, so the ring you read for a radius query is even in every direction. That one property, uniform neighbour distance, is why Uber and Google grid the world into hexagons rather than squares.</p>
+<h2>Uber H3: hexagons in practice</h2>
+<p>Uber's <strong>H3</strong> partitions the earth's surface into hexagons at a chosen resolution (see <a href="https://h3geo.org/docs/comparisons/s2/">H3 vs S2 comparison</a>). You pick the resolution from the precision you need: at resolution 8 close locations share a cell ID, while at resolution 12 buildings on one campus differ by a few characters.</p>
+<p><a id="h3-map-fig"></a></p>
+<div class="expandable-image-container">
+<p><img src="assets/Module2-Systems/images/h3-map.png" alt="Map of SF and Stanford locations" class="zoomable-image" onclick="this.classList.toggle('expanded')"></p>
+<p class="image-caption">Click to expand. SF Mission versus three Stanford buildings (NVidia, Packard, Gates): nearby pins keep nearly identical H3 codes at every zoom level; the far one does not.</p>
+</div>
+<p><a id="h3-codes-block"></a></p>
+<p>Here's how <code>h3.latlng_to_cell</code> converts coordinates into hexagonal cell IDs:</p>
+<pre><code class="language-python">import h3
+# lat/lngs from SF mission, Stanford NVidia, Packard, Gates Buildings
+locations = [(37.788022, -122.399797), (37.428226, -122.174722),
+             (37.429749, -122.1735490), (37.429761, -122.173290)]
+
+for res in [8, 12]:  # H3 resolutions
+    for l in locations:
+        cell_id = h3.latlng_to_cell(l[0], l[1], res)
+        print(f&quot;@res[{res}]: {cell_id}&quot;)
+</code></pre>
+<p><a id="h3-codes-fig"></a></p>
+<p><img src="assets/Module2-Systems/svgs/h3-codes.svg"
+     alt="Three Stanford campus buildings versus SF Mission. At res 8 the three campus buildings get the identical code 8828347417fffff while SF, 29 miles away, is a different cell; at res 12 the campus codes split into three different cells and SF stays different."
+     style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The three Stanford campus buildings versus SF Mission, computed with H3. At resolution 8 (zoomed out) the three campus buildings get the identical code <code>8828347417fffff</code>, one shared cell, while SF Mission, 29 miles away, is a different cell. Zoom in to resolution 12 and the three campus codes split into separate cells, differing in the fine digits at the end (orange); SF stays different. Nearby points share a cell and far ones do not, so a shared code works as a proximity test.</p>
+</div>
+<h2>The hash and the lookup</h2>
+<p>With hexagons chosen, the scheme is two steps: hash each location to its cell, then look up the query's cell plus the ring of neighbour cells the radius touches.</p>
+<p><a id="geohash-encode"></a></p>
+<p><img src="assets/Module2-Systems/svgs/geohash-encode.svg"
+     alt="Order pins start as raw lat/lng. Lay H3's hexagons over the map and each pin takes its hexagon's code; three Stanford orders share one code, a far SF order gets a different one."
+     style="width:100%; max-width:980px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> The first step is the hash. Ten million orders start as raw (lat, lng) pairs. Lay H3's hexagons over the map and every order takes the code of the hexagon it lands in. Nearby orders, like three buildings on one campus, share a code; a far order in SF gets a different one. The hash is just which cell a point falls in, and points that share a cell are stored together.</p>
+</div>
+<p><a id="geohash-lookup"></a></p>
+<p><img src="assets/Module2-Systems/svgs/geohash-lookup.svg"
+     alt="A within-2km query hashes the driver to one cell, then reads the six neighbour cells the radius crosses, up to seven cell lookups on up to seven pages, a constant count instead of scanning ten million rows."
+     style="width:100%; max-width:980px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> The second step is the lookup, and this is the part to get right: it is fast, but it is not one read. A radius query hashes the driver's location to one cell, then reads the six neighbour cells too, because the radius crosses cell borders. That is up to seven cell lookups, and those seven cell IDs can sit on seven different pages, so up to seven reads. The win is not that it is a single read; it is that seven is constant, the same whether there are ten thousand orders or ten million, instead of scanning all of them.</p>
+</div>
+<p><strong>Takeaway:</strong> Geo-hashing turns a 2-D (lat, lng) pair into a 1-D grid key, so "find drivers within 2 km" becomes a handful of cell lookups, the query cell plus its ring of neighbours, instead of distance math over millions of rows. That count stays around seven no matter how many millions of orders there are, and hexagons keep the ring even. It is an <em>exact</em> spatial hash; similarity hashing for high-dimensional data is LSH and vector hashing, next.</p>

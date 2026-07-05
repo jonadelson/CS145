@@ -1,0 +1,42 @@
+<svg viewBox="0 0 1000 540" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="sh-t sh-d">
+  <title id="sh-t">Why hexagons, not squares: a hexagon's neighbours are all the same distance</title>
+  <desc id="sh-d">Two grids compared. On the left a square cell has eight neighbours at two different distances: its four edge neighbours are one cell away, its four corner neighbours are farther by a factor of root two, so the ring a radius query must read is uneven. On the right a hexagon has six neighbours, every one exactly the same distance from the centre, so the ring is even in all directions. That uniform neighbour distance is why map systems grid the world into hexagons. Color key: orange is the query cell and, for the hexagon, its single even neighbour ring; grey is the grid; dashed circles are neighbour distances.</desc>
+  <text x="500" y="38" text-anchor="middle" style="font-size:23px;font-weight:700;fill:#0E0E10;">Why hexagons, not squares?</text>
+  <text x="500" y="64" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">A radius query reads a cell plus its neighbour ring. The ring is only even if the neighbours are.</text>
+
+  <g data-step="1">
+  <rect x="133" y="133" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="133" y="211" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="133" y="289" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="211" y="133" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="211" y="289" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="289" y="133" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="289" y="211" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="289" y="289" width="78" height="78" rx="3" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <rect x="211" y="211" width="78" height="78" rx="3" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/>
+  <circle cx="250" cy="250" r="78" fill="none" stroke="#6B7280" stroke-width="1.5" stroke-dasharray="5,5"/>
+  <circle cx="250" cy="250" r="110" fill="none" stroke="#6B7280" stroke-width="1.5" stroke-dasharray="5,5"/>
+  <text x="334" y="246" style="font-size:12px;fill:#6B7280;">edge: d</text>
+  <text x="356" y="378" text-anchor="middle" style="font-size:12px;fill:#6B7280;">corner: 1.4d</text>
+  <text x="250" y="125" text-anchor="middle" style="font-size:17px;font-weight:700;fill:#0E0E10;">Squares</text>
+  <text x="250" y="455" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#0E0E10;">8 neighbours, TWO distances</text>
+  <text x="250" y="477" text-anchor="middle" style="font-size:13px;fill:#3F3F46;">the ring is lopsided</text>
+  </g>
+
+  <g data-step="2">
+  <polygon points="840.5,192.0 890.7,221.0 890.7,279.0 840.5,308.0 790.2,279.0 790.2,221.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="790.2,279.0 840.5,308.0 840.5,366.0 790.2,395.0 740.0,366.0 740.0,308.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="689.8,279.0 740.0,308.0 740.0,366.0 689.8,395.0 639.5,366.0 639.5,308.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="639.5,192.0 689.8,221.0 689.8,279.0 639.5,308.0 589.3,279.0 589.3,221.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="689.8,105.0 740.0,134.0 740.0,192.0 689.8,221.0 639.5,192.0 639.5,134.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="790.2,105.0 840.5,134.0 840.5,192.0 790.2,221.0 740.0,192.0 740.0,134.0" fill="none" stroke="#D4D7DC" stroke-width="1.5"/>
+  <polygon points="740.0,192.0 790.2,221.0 790.2,279.0 740.0,308.0 689.8,279.0 689.8,221.0" fill="#FDEBE0" stroke="#EA580C" stroke-width="2.5"/>
+  <circle cx="740" cy="250" r="100" fill="none" stroke="#EA580C" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="844" y="246" style="font-size:12px;fill:#EA580C;">d</text>
+  <text x="740" y="125" text-anchor="middle" style="font-size:17px;font-weight:700;fill:#0E0E10;">Hexagons</text>
+  <text x="740" y="455" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#0E0E10;">6 neighbours, ONE distance</text>
+  <text x="740" y="477" text-anchor="middle" style="font-size:13px;fill:#3F3F46;">the ring is even all around</text>
+  </g>
+
+  <text x="500" y="520" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = the query cell and the even ring&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the grid&#160;&#160;&#183;&#160;&#160;dashed = neighbour distance</tspan></text>
+</svg>

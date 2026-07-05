@@ -1,0 +1,94 @@
+<h1>Hash Indexes</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A hash index maps a key to its page via a hash function, supporting O(1) equality lookups (<code>WHERE id = 42</code>) but no range scans (<code>WHERE id BETWEEN 10 AND 100</code>).</p>
+<p><strong>Intuition.</strong> When you query "find Mickey's user record" (<code>WHERE user_id = 1</code>), a hash index returns the page in one IO. But for "find users with <code>user_id</code> between 100 and 200," the hash gives no help, because neighbouring keys land on random pages.</p>
+</div>
+<p><strong>Prerequisites.</strong> <a href="#/page/Module3B-Indexing/index-fundamentals">Index Fundamentals</a> introduces what <code>(key, page#)</code> pairs are and how pointers work.</p>
+<hr />
+<h2>How a Hash Index Finds a Row</h2>
+<p>A hash index stores the same <code>(value, page#)</code> pairs any index does, but the bucket for each pair is chosen by a hash function. The caption below traces two lookups: a clean unique-key case (Alice) and a duplicate-key fan-out case (Dan).</p>
+<p><img src="assets/Module3B-Indexing/svgs/hash-index-layout.svg" alt="Hash index. Three green index pages on the right hold (value, page#) entries; five green data pages on the left hold the actual rows. Purple arrows trace two lookups: Alice resolves to data page 2; Dan fans out to three data pages (0, 1, 4) because duplicate keys land on multiple pages." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A hash index on <code>People.name</code> sits on top of the data pages and makes a lookup O(1) IOs regardless of table size. <code>hash(value)</code> picks an index page whose <code>(value, page#)</code> entry points at the data page: a unique key like Alice costs 2 IOs (one index, one data), while a duplicate key like Dan fans out to every page that holds it (here pages 0, 1, 4, so 4 IOs). The constant grows with the number of duplicates of the search key.</p>
+</div>
+<p>When a key has duplicates (Dan in the diagram), the index entry lists every page they live on, and the database reads each one in turn. That fan-out is the only cost that scales with anything other than the table size.</p>
+<hr />
+<h2>Two Ways to Organize a Hash Index</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 1.5rem 0;">
+<div>
+<h4 style="margin: 0 0 0.5rem; color: #0E0E10;">Basic: one giant dictionary</h4>
+<pre><code class="language-python">index = {
+  "Alice": 2,
+  "Bob":   0,
+  "Carol": 0,
+  "Dan":   [0, 1, 4],
+  # ... a billion more entries
+}
+
+page_num = index["Alice"]   # O(1)
+</code></pre>
+<p>Simple, and works fine until the dictionary stops fitting in RAM. One billion entries at 16 bytes each is <strong>16 GB</strong>, at which point every lookup starts with a disk read.</p>
+</div>
+<div>
+<h4 style="margin: 0 0 0.5rem; color: #0E0E10;">Partitioned: split across N pages (default)</h4>
+<pre><code class="language-python"># split into N=16 smaller indexes
+index_pages = [ {...}, {...}, ... ]   # 16 pages
+
+def lookup(key):
+    which = hash(key) % 16      # pick the page
+    return index_pages[which][key]
+</code></pre>
+<p>Each index page is about 64 MB and fits comfortably. The extra hash step is free, and the semantics are unchanged.</p>
+</div>
+</div>
+<hr />
+<h2>What Hash Indexes Are Good At, and What They Break On</h2>
+<p>The hash function both makes this fast and limits it. Hashing scatters neighbouring keys to random buckets, so any query that needs keys <em>in order</em> gets no help at all.</p>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+<div class="v5-callout v5-callout--info">
+<h4 style="margin-top: 0; color: #059669;">Works great</h4>
+<pre><code><span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">42</span>
+<span class="sql-keyword">WHERE</span> order_id <span class="sql-operator">=</span> <span class="sql-string">'ABC-123'</span>
+<span class="sql-keyword">WHERE</span> session_key <span class="sql-operator">=</span> <span class="sql-string">'xyz789'</span>
+</code></pre>
+<p>Any predicate that resolves to a single key value: equality, primary-key lookup, session ID, cache key.</p>
+</div>
+<div class="v5-callout v5-callout--danger">
+<h4 style="margin-top: 0; color: #7F1D1D;">Useless</h4>
+<pre><code><span class="sql-keyword">WHERE</span> age &gt; <span class="sql-number">21</span>
+<span class="sql-keyword">ORDER BY</span> created_at
+<span class="sql-keyword">WHERE</span> name <span class="sql-keyword">LIKE</span> <span class="sql-string">'A%'</span>
+<span class="sql-keyword">WHERE</span> price <span class="sql-keyword">BETWEEN</span> <span class="sql-number">10</span> <span class="sql-keyword">AND</span> <span class="sql-number">50</span>
+</code></pre>
+<p>Any predicate that spans a range of keys, requires sorted order, or matches a prefix. Reach for a B+Tree instead.</p>
+</div>
+</div>
+<hr />
+<h2>Algorithm</h2>
+<div class="algo">
+<p class="algo-head">Algorithm · Hash Index: Build &amp; Lookup</p>
+<pre class="algo-code">
+<span class="sig">Build(table, key_column):</span>
+    B = choose_bucket_count()             <span class="cmt">// often a prime</span>
+    index = array[B] of lists
+
+    for row in table:                     <span class="cmt">// one pass over the table</span>
+        key = row[key_column]
+        bucket = hash(key) % B
+        index[bucket].append((key, row_pointer))
+
+    return index
+
+<span class="sig">Lookup(index, search_key):</span>                <span class="cmt">// O(1) average</span>
+    bucket = hash(search_key) % B
+    for (key, pointer) in index[bucket]:  <span class="cmt">// scan only this bucket</span>
+        if key == search_key:
+            return pointer                <span class="cmt">// found</span>
+    return null                           <span class="cmt">// not found</span>
+</pre>
+</div>
+<p>Hash choice matters. A poor hash clusters keys into a few buckets and degrades lookup to O(N), so production databases use well-studied hashes like MurmurHash and xxHash.</p>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/btree-indexes">B+Tree Indexes →</a></strong> Keeps keys sorted, so the same index handles both point lookups and range scans.</p>

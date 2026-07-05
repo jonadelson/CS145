@@ -1,0 +1,200 @@
+<h1>Reading PostgreSQL EXPLAIN</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> <code>EXPLAIN</code> shows the physical plan a real optimizer chose for a query: every operator, every cost estimate, every row count, read bottom-up. Mapping each operator back to our cost formulas turns a 10-line EXPLAIN dump into a quick mental check of whether the plan makes sense.</p>
+<p><strong>Intuition.</strong> When PostgreSQL prints a line like <code>Hash Join (cost=startup..total rows=est)</code>, that is just our <code>HPJ(R, S)</code> with the optimizer's own estimate of total work and output cardinality. The same vocabulary you used to compare Plan #1 vs Plan #2 by hand applies. The only difference is that now the optimizer is doing the picking.</p>
+</div>
+<p>In <a href="#/page/Module3C-Query-Optimization/io-cost-summary">IO Cost Summary</a> you wrote cost formulas by hand to compare two plans. Here you'll go the other way: take a query through PostgreSQL's <code>EXPLAIN</code>, then read its operators back in the same cost-formula vocabulary.</p>
+<hr />
+<h2>Interactive Query Explainer</h2>
+<div class="v5-callout">
+<p>Run any SQL through a side-by-side cost calculator and see how the plan changes when you tweak page counts: <strong><a href="https://colab.research.google.com/drive/1o2uvzyob6klkYmtHk1fCaSshT-sbUWO0#scrollTo=6kBuQEGUyjin">Colab for Query Optimizer</a></strong>.</p>
+</div>
+<hr />
+<h2>Worked Example: What PostgreSQL Chose</h2>
+<p>Same shape as the queries on the previous page, swapped tables:</p>
+<pre><code><span class="sql-comment">-- Popular songs based on number of listens</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-table">Songs</span>.title, <span class="sql-table">Songs</span>.artist, <span class="sql-keyword">COUNT</span>(<span class="sql-table">Listens</span>.song_id) <span class="sql-keyword">AS</span> popular
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span>
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Listens</span> <span class="sql-keyword">ON</span> <span class="sql-table">Songs</span>.song_id <span class="sql-operator">=</span> <span class="sql-table">Listens</span>.song_id
+<span class="sql-keyword">GROUP BY</span> <span class="sql-table">Songs</span>.title, <span class="sql-table">Songs</span>.artist
+<span class="sql-keyword">ORDER BY</span> <span class="sql-keyword">COUNT</span>(<span class="sql-table">Listens</span>.song_id) DESC
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">10</span>;
+</code></pre>
+<h3>EXPLAIN output</h3>
+<p><a id="explain-plan"></a>
+<img src="assets/Module3C-Query-Optimization/svgs/postgres-explain-plan.svg" alt="PostgreSQL's verbatim EXPLAIN output for the popular-songs query: ten plan lines read bottom-up, a Seq Scan on songs feeding a Hash, a Seq Scan on listens probing the Hash Join on song_id, then a HashAggregate, a Sort, and a Limit, each operator in green with its cost and row estimate in grey." style="width:100%; max-width:1040px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> PostgreSQL's actual <code>EXPLAIN</code> output for the popular-songs query, reproduced verbatim from the course colab and read bottom-up: a <code>Seq Scan</code> on songs builds a hash, a <code>Seq Scan</code> on listens probes the <code>Hash Join</code> on <code>song_id</code>, a <code>HashAggregate</code> groups by title and artist, a <code>Sort</code> orders by count, and a <code>Limit</code> takes the top ten. Each line shows the operator (green) and the optimizer's own <code>cost=startup..total</code> and <code>rows=</code> estimate (grey); these are PostgreSQL's estimates on the loaded table, so the point is the shape of the plan.</p>
+</div>
+<hr />
+<h2>How to Read EXPLAIN</h2>
+<p>EXPLAIN is read <strong>bottom-up</strong>. Leaves are scanned first, and results bubble up to the root.</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cost=startup..total</code></td>
+<td>startup = cost before first row · total = cost for all rows</td>
+</tr>
+<tr>
+<td><code>rows=N</code></td>
+<td>estimated row count flowing out of this step</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Step-by-step on this plan:</strong></p>
+<ol>
+<li>
+<p><strong><code>[01]</code> Seq Scan on songs</strong>: <code>C_r × P(Songs)</code> to read the base table.</p>
+</li>
+<li>
+<p><strong><code>[02-03]</code> Build Hash + Seq Scan listens</strong>: <code>C_r × P(Listens)</code> to read the second table.</p>
+</li>
+<li>
+<p><strong><code>[04-05]</code> Hash Join</strong>: <code>HPJ(Songs, Listens)</code> on <code>song_id</code>.</p>
+</li>
+<li>
+<p><strong><code>[06-07]</code> HashAggregate</strong>: group BY <em>without</em> sorting (in-memory hash table).</p>
+</li>
+<li>
+<p><strong><code>[08-09]</code> Sort</strong>: <code>BigSort</code> for <code>ORDER BY count</code>.</p>
+</li>
+<li>
+<p><strong><code>[10]</code> Limit</strong>: negligible, just take the top 10.</p>
+</li>
+</ol>
+<h3>Mapping EXPLAIN → our IO cost formulas</h3>
+<table>
+<thead>
+<tr>
+<th>PostgreSQL operation</th>
+<th>Our formula</th>
+<th>Cost role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Seq Scan</code> (×2)</td>
+<td><code>C_r·P(Songs) + C_r·P(Listens)</code></td>
+<td>base scans</td>
+</tr>
+<tr>
+<td><code>Hash Join</code></td>
+<td><code>HPJ(Songs, Listens)</code></td>
+<td>join cost</td>
+</tr>
+<tr>
+<td><code>HashAggregate</code></td>
+<td><code>~C_r·P(input)</code> (no sort needed)</td>
+<td>aggregation</td>
+</tr>
+<tr>
+<td><code>Sort</code></td>
+<td><code>BigSort(grouped_data)</code></td>
+<td>final ORDER BY</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td>sum of the above</td>
+<td><strong>55.24 units</strong></td>
+</tr>
+</tbody>
+</table>
+<p><a id="hash-aggregate-detour"></a></p>
+<div class="v5-callout">
+<p><strong>HashAggregate vs. our model.</strong> Our simplified IO model assumes grouping requires sorting. Real optimizers also have <strong>HashAggregate</strong>: build an in-memory hash table keyed by group, accumulate counts, emit one row per group. Cost: <code>C_r·P(input)</code>, no sort. If the table doesn't fit in RAM, it spills to disk and falls back to a partition-based approach (an HPJ-style approach).</p>
+</div>
+<h3>Why PostgreSQL chose this plan</h3>
+<ul>
+<li>
+<p><strong>Hash Join</strong> beat SMJ because the inputs aren't pre-sorted.</p>
+</li>
+<li>
+<p><strong>HashAggregate</strong> beat sort-based grouping because the output (one row per <code>(title, artist)</code>) fits in memory.</p>
+</li>
+<li>
+<p><strong>One BigSort only</strong>, for the final <code>ORDER BY count</code>, not for grouping.</p>
+</li>
+<li>
+<p><strong>Total estimated 55.24.</strong> The optimizer searched alternatives and this was the cheapest.</p>
+</li>
+</ul>
+<p>The lesson: real optimizers have more tricks than our simplified model, and <code>HashAggregate</code> is the most common one to know about.</p>
+<hr />
+<h2>Common EXPLAIN Operations Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>What it does</th>
+<th>IO cost</th>
+<th>Output rows</th>
+<th>Output size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sort</strong></td>
+<td>Order rows</td>
+<td><code>BigSort</code> cost</td>
+<td>same as input</td>
+<td>= input</td>
+</tr>
+<tr>
+<td><strong>WindowAgg</strong></td>
+<td><code>ROW_NUMBER</code>, <code>RANK</code>, etc.</td>
+<td><code>C_r·P(input) + sort</code></td>
+<td>same as input</td>
+<td>slightly larger</td>
+</tr>
+<tr>
+<td><strong>CTE Scan</strong></td>
+<td>Reads <code>WITH</code> result</td>
+<td><code>C_r·P(CTE)</code></td>
+<td>= CTE rows</td>
+<td>= CTE size</td>
+</tr>
+<tr>
+<td><strong>Subquery Scan</strong></td>
+<td>Reads subquery output</td>
+<td><code>C_r·P(subquery)</code></td>
+<td>= subquery rows</td>
+<td>= subquery size</td>
+</tr>
+<tr>
+<td><strong>Index Scan</strong></td>
+<td>Uses index</td>
+<td><code>log(N) + matched rows</code></td>
+<td>filtered rows</td>
+<td>≪ input</td>
+</tr>
+<tr>
+<td><strong>Hash Join</strong></td>
+<td>Build hash, probe</td>
+<td><code>~3(P(R) + P(S))</code></td>
+<td>join matches</td>
+<td>varies</td>
+</tr>
+<tr>
+<td><strong>HashAggregate</strong></td>
+<td>Group via hash table</td>
+<td><code>C_r·P(input)</code></td>
+<td>one per group</td>
+<td>≪ input</td>
+</tr>
+<tr>
+<td><strong>Materialize</strong></td>
+<td>Cache result in memory</td>
+<td><code>C_w + n·C_r</code></td>
+<td>same as input</td>
+<td>= input</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Next:</strong> <a href="#/page/Module3C-Query-Optimization/distributed-query">Distributed Query Planning</a> extends the same cost-based reasoning across many machines, where shuffle (network hash partitioning) becomes the dominant cost.</p>

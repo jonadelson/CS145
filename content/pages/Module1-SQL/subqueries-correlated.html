@@ -1,0 +1,131 @@
+<h1>Correlated Subqueries: Row-by-Row Comparisons</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A correlated subquery references a column from the outer query, so it re-runs once per outer row instead of once for the whole query.</p>
+<p><strong>Intuition.</strong> "Users with a rating above their own average" recomputes each user's average for every row, because the comparison value depends on which user the row belongs to.</p>
+</div>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/corr-vs-regular.svg" style="width:100%;height:auto;display:block;" alt="A regular subquery runs once and compares every user to one global average of 4.2; a correlated subquery re-runs its inner query once per outer row, so Mickey is measured against 4.2, Minnie against 4.4, Daffy against 3.9. The comparison value is recomputed for each row."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The difference in one picture. A regular subquery computes one global number and compares every row against it. A correlated subquery re-runs its inner query once per outer row, parameterized by that row: it measures Mickey against 4.2, Minnie against 4.4, Daffy against 3.9. The comparison value is recomputed for each row, the double-for-loop model below.</p>
+</div>
+<hr />
+<h2>Example: Users Above Their Own Average</h2>
+<p><a id="corr-avg"></a></p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/corr-above-own.svg" style="width:100%;height:auto;display:block;" alt="Users above their own average: the query runs the inner AVG once per user (the correlation, WHERE l2.user_id = u.user_id). Mickey averages 4.2 and has 4.5 above it; Minnie 4.4 with 4.7; Daffy 3.9 with 4.9; all kept. Pluto has no ratings, so no average and nothing to beat, dropped. Output: Mickey, Minnie, Daffy."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Each user is measured against their own average. The inner query re-runs filtered to that user (the highlighted correlation line), giving Mickey 4.2, Minnie 4.4, Daffy 3.9. Everyone has at least one rating above their own average, so all three are kept; Pluto has no ratings, no average, and drops.</p>
+</div>
+<hr />
+<h2>Example: Existence Checks (EXISTS and NOT EXISTS)</h2>
+<p><a id="corr-notexists"></a></p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/corr-exists.svg" style="width:100%;height:auto;display:block;" alt="EXISTS and NOT EXISTS for any rating above 4.5: per user the inner query asks if any rating exceeds 4.5. Mickey no, Minnie yes (4.7), Daffy yes (4.9), Pluto no. NOT EXISTS keeps the users with none: Mickey and Pluto. EXISTS keeps the opposite: Minnie and Daffy."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> One correlated check answers both EXISTS and NOT EXISTS. For each user the inner query asks whether any rating beats 4.5. NOT EXISTS keeps the users with none (Mickey, whose top is exactly 4.5, and Pluto, who has no listens at all); EXISTS keeps the opposite pair, Minnie and Daffy.</p>
+</div>
+<hr />
+<h2>Mental Model: A Double For-Loop</h2>
+<p>The correlation: the inner query references a variable scoped to the outer row, so the database runs it once per outer row. The inner query has its own scope (here <code>l2</code>, its own copy of Listens), but it reaches out to a variable from the outer scope (<code>u</code>). That cross-reference is the correlation.</p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/corr-forloop.svg" style="width:100%;height:auto;display:block;" alt="A correlated subquery is a double for-loop: the outer loop runs once per user u; the inner SELECT AVG runs each pass over Listens l2 WHERE l2.user_id = u.user_id. An arrow links the inner reference u.user_id back to the outer loop variable u, which is the correlation. u is the outer scope (current user), l2 is the inner scope (this query's Listens). The inner re-runs per user: Mickey 4.2, Minnie 4.4, Daffy 3.9."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> The execution model. The outer loop walks one user <code>u</code> at a time; the inner query re-runs each pass. The correlation is the pink link: inside the inner query, <code>l2.user_id = u.user_id</code> reads <code>u</code> from the outer scope. So the inner average is computed only over that user's rows, and the inner query runs once per outer row.</p>
+</div>
+<p><strong>When to reach for this:</strong> whenever the comparison threshold changes per row. The clue is the word <em>their</em> or <em>its own</em>: "above <strong>their own</strong> average," "top in <strong>their</strong> genre," "better than <strong>their</strong> manager's salary." Each row supplies its own comparison value. If the threshold is a single global number, use a regular subquery; if it depends on the row, correlated.</p>
+<hr />
+<h2>Correlated vs Regular: Key Differences</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Regular Subquery</th>
+<th>Correlated Subquery</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Execution</strong></td>
+<td>Runs <em>once</em> total</td>
+<td>Runs <em>once per</em> outer row</td>
+</tr>
+<tr>
+<td><strong>Independence</strong></td>
+<td>Standalone query</td>
+<td>Depends on outer query</td>
+</tr>
+<tr>
+<td><strong>Use Case</strong></td>
+<td>Global comparisons</td>
+<td>Row-specific comparisons</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>Usually faster</td>
+<td>N+1 query problem</td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td>"Above global average"</td>
+<td>"Above <em>your</em> average"</td>
+</tr>
+</tbody>
+</table>
+<h2>When to Use Correlated Subqueries</h2>
+<p><strong>Good Use Cases:</strong></p>
+<ul>
+<li>
+<p>Personal comparisons (above <em>your</em> average)</p>
+</li>
+<li>
+<p>Relative rankings (best in <em>your</em> category)</p>
+</li>
+<li>
+<p>Row-specific existence checks (do <em>you</em> have...)</p>
+</li>
+<li>
+<p>Self-referential queries (employees earning more than their manager)</p>
+</li>
+</ul>
+<p><strong>Avoid When:</strong></p>
+<ul>
+<li>
+<p>Simple global comparisons suffice</p>
+</li>
+<li>
+<p>Performance is critical (consider JOIN alternatives)</p>
+</li>
+<li>
+<p>Query complexity becomes unreadable</p>
+</li>
+</ul>
+<h2>Common Patterns</h2>
+<ol>
+<li>
+<p><strong>Personal Aggregates</strong>: Compare to your own AVG/MAX/MIN</p>
+</li>
+<li>
+<p><strong>Existence per Entity</strong>: EXISTS with correlation</p>
+</li>
+<li>
+<p><strong>Ranking within Groups</strong>: Find top N per category</p>
+</li>
+<li>
+<p><strong>Self-Joins Alternative</strong>: often easier to read than the equivalent self-join.</p>
+</li>
+</ol>
+<h2>Common Mistakes with Correlated Subqueries</h2>
+<h3>Forgetting Correlation</h3>
+<p><strong>Problem:</strong> Without correlation, EXISTS checks globally instead of per-row</p>
+<h3>Performance Anti-Pattern (N+1 Problem)</h3>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/corr-nplus1.svg" style="width:100%;height:auto;display:block;" alt="The N+1 problem: the outer query runs once over Users, then the inner query re-runs once per user, so 1 outer plus N inner equals N+1 queries, 10,001 for 10,000 users. The optimizer can rewrite it as a single JOIN with a windowed average, one pass over the data, just 1 query."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 5.</strong> Running the inner query once per outer row costs 1 + N queries: 10,001 round-trips for 10,000 users, which scales linearly with the number of users and is far too slow on a large table. Modern optimizers (Postgres, MySQL, SQL Server) recognize the pattern and rewrite it as a single JOIN with a windowed aggregate, one pass over the data.</p>
+</div>
+<p><strong>Note:</strong> Explicit JOINs are still preferred when you want clarity and guaranteed performance, rather than relying on the optimizer to spot the rewrite.</p>

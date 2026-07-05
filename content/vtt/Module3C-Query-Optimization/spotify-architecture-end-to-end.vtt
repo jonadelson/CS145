@@ -1,0 +1,124 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.046
+You tap play on Anti-Hero.
+
+00:00:07.046 --> 00:00:12.093
+That one click sets off a chain reaction through every algorithm in this course.
+
+00:00:12.093 --> 00:00:17.139
+Three systems touch the path, each tuned for the opposite of the other two, and the whole thing finishes in about two seconds.
+
+00:00:17.139 --> 00:00:22.561
+Here is the whole journey on one canvas.
+
+00:00:22.561 --> 00:00:27.983
+The tap fans out into three systems in sequence.
+
+00:00:27.983 --> 00:00:33.404
+Act one is the OLTP click.
+
+00:00:33.404 --> 00:00:38.826
+The play appends to an LSM tree.
+
+00:00:38.826 --> 00:00:44.248
+It hits an in-memory memtable, the red block in RAM, returns in about eight milliseconds, and flushes to an SS Table on disk later.
+
+00:00:44.248 --> 00:00:49.670
+No random disk IO on the hot path, which is how one node sustains a hundred thousand writes a second.
+
+00:00:49.670 --> 00:00:55.092
+Act two is the ETL.
+
+00:00:55.092 --> 00:01:00.514
+At two AM, Spark hash-partitions a day of events across a thousand nodes, BigSorts each partition on timestamp, broadcast-joins the small dimension tables, and writes the result columnar as Parquet.
+
+00:01:00.514 --> 00:01:05.936
+One hundred terabytes shrink to ten.
+
+00:01:05.936 --> 00:01:11.357
+Act three is the OLAP query.
+
+00:01:11.357 --> 00:01:16.779
+The dashboard scans that columnar warehouse, reading three of twenty columns, and answers in two seconds.
+
+00:01:16.779 --> 00:01:22.201
+Every block on this path is a primitive you built earlier, now wired end to end.
+
+00:01:22.201 --> 00:01:27.950
+Look closer at act one.
+
+00:01:27.950 --> 00:01:33.699
+You tap play, and an INSERT INTO listens lands in about eight milliseconds.
+
+00:01:33.699 --> 00:01:39.449
+The write goes into the memtable in RAM, returns instantly, and flushes to an SS Table on disk later as a batch.
+
+00:01:39.449 --> 00:01:45.198
+No random disk IO on the hot path.
+
+00:01:45.198 --> 00:01:50.947
+That is the LSM tree from Module Three B, and it is why Spotify absorbs eight point six billion events a day without blinking.
+
+00:01:50.947 --> 00:01:55.604
+Act two reshapes a whole day at once.
+
+00:01:55.604 --> 00:02:00.262
+At two AM Spark takes yesterday's eight point six billion events and runs four steps you already know.
+
+00:02:00.262 --> 00:02:04.919
+Repartition by user id spreads them across a thousand nodes, the hash partitioning.
+
+00:02:04.919 --> 00:02:09.576
+Sort within each partition on timestamp, the BigSort.
+
+00:02:09.576 --> 00:02:14.233
+Broadcast the small dimension tables to every node, the broadcast join.
+
+00:02:14.233 --> 00:02:18.891
+Then write columnar Parquet, which compresses a hundred terabytes down to ten.
+
+00:02:18.891 --> 00:02:23.548
+Three hours on a thousand-node cluster.
+
+00:02:23.548 --> 00:02:28.371
+Act three is the payoff.
+
+00:02:28.371 --> 00:02:33.194
+The CEO opens the app and the Top Artists by Country dashboard renders in two seconds.
+
+00:02:33.194 --> 00:02:38.017
+It is a star-schema join.
+
+00:02:38.017 --> 00:02:42.841
+The dim artists table is ten megabytes, broadcast to all thousand nodes, so no shuffle.
+
+00:02:42.841 --> 00:02:47.664
+The fact plays table is one petabyte, scanned columnar.
+
+00:02:47.664 --> 00:02:52.487
+Only artist id, country, and date are reed off disk, three columns out of twenty.
+
+00:02:52.487 --> 00:02:57.310
+A two-second query against a petabyte warehouse, on a broadcast join plus a columnar scan.
+
+00:02:57.310 --> 00:03:01.981
+Eight algorithms, three systems, one click.
+
+00:03:01.981 --> 00:03:06.651
+Act one needs blazing writes, so the click lands in an LSM tree with no random IO.
+
+00:03:06.651 --> 00:03:11.322
+Act three needs blazing scans, so the dashboard reads compressed columnar storage.
+
+00:03:11.322 --> 00:03:15.992
+Act two is the nightly conversion between them.
+
+00:03:15.992 --> 00:03:20.663
+You never pick one structure.
+
+00:03:20.663 --> 00:03:25.333
+You pick the right one for each stage, and the optimizer is the glue that decides which runs where.
+
+00:03:25.333 --> 00:03:30.004
+That is how a billion clicks a day become a two-second dashboard.

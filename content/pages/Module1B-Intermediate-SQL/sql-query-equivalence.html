@@ -1,0 +1,84 @@
+<h1>Query Equivalence</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Two queries are equivalent if they return the same result for ANY input data. They are merely output-equivalent if they happen to agree on the data at hand.</p>
+<p><strong>Intuition.</strong> Two queries that both return "Mickey, Minnie, Daffy" against today's Listens look identical. Add Pluto with one rating tomorrow, and they may diverge. Real equivalence holds for any input, output equivalence is just today's coincidence.</p>
+</div>
+<h2>Important: Query Equivalence vs Output Equivalence</h2>
+<div style="width:100%;max-width:1100px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/equiv-concept.svg" style="width:100%;height:auto;display:block;" alt="Query equivalence vs output equivalence. Query equivalence (blue): same result for any input, like WHERE x BETWEEN 1 AND 5 versus x >= 1 AND x &lt;= 5; provably the same, a guarantee. Output equivalence (amber): same result for this data only, like WHERE rating &gt; 4.5 versus rating &gt;= 4.6; they agree until a row rates 4.55, then they split, a coincidence."&gt;</p>
+</div>
+<p>Running both queries and seeing the same rows only proves they agree on the rows you <em>have</em>. It never proves they agree on the rows you <em>don't</em>. For that you have to reason about what each query computes, as the three examples below do.</p>
+<hr />
+<h2>Example 1: Users Above Their Personal Average</h2>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/equiv-above-personal.svg" style="width:100%;height:auto;display:block;" alt="Two equivalent queries side by side (correlated subquery, CTE + JOIN). The teal bar marks where each computes a user's average rating; the pink bar marks where each keeps rows above it. Both produce Mickey, Minnie, Daffy."></p>
+</div>
+<p><strong>Problem:</strong> Find users who have at least one rating above their personal average.</p>
+<p>Both queries compute the <strong>same value</strong>, each user's average rating (teal), and keep anyone who beats it (pink). They differ only in <em>when</em> that average is computed: the correlated subquery re-derives it on every row; the CTE computes all of them once, up front. Computing a fixed number once or many times can't change it, so the two are equivalent for <strong>any</strong> input.</p>
+<hr />
+<h2>Example 2: Users Who Listen to Multiple Genres</h2>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/equiv-multiple-genres.svg" style="width:100%;height:auto;display:block;" alt="Two equivalent queries side by side (GROUP BY + HAVING, CTE). The teal bar marks where each counts distinct genres per user; the pink bar marks where each keeps users with 2 or more. In the HAVING form one clause does both (a split bar); the CTE names the count first, then filters. Both produce Mickey, Minnie, Daffy."></p>
+</div>
+<p><strong>Problem:</strong> Find users who have listened to songs from at least 2 different genres.</p>
+<p>The same two operations sit in both queries: count the <strong>distinct genres</strong> per user (teal), then keep anyone with two or more (pink). <code>HAVING COUNT(DISTINCT s.genre) &gt;= 2</code> fuses them into one clause, so its role bar is split teal-over-pink; the CTE gives the count a name, then filters on it a step later. The JOINs and <code>GROUP BY</code> are shared scaffolding. Naming a value can't change it, so the two are equivalent for <strong>any</strong> input.</p>
+<hr />
+<h2>Example 3: Top 3 Songs per User</h2>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/equiv-top-songs.svg" style="width:100%;height:auto;display:block;" alt="Two queries side by side (window function ROW_NUMBER, classical correlated count) for each user's top 3 songs. On three distinct ratings both keep all three. Add a fourth song tied at 3.9: ROW_NUMBER assigns it rank 4 and drops it (keeps 3), but only 2 songs rate higher so the counting version keeps it (keeps 4). The tie at the cutoff is where they split."></p>
+</div>
+<p><strong>Problem:</strong> Find each user's top 3 highest-rated songs.</p>
+<p>These two <strong>look</strong> equivalent and agree on our data, but they are not the same query. Both ask where a song ranks within its user: one with <code>ROW_NUMBER</code>, one by counting how many songs rate higher. On distinct ratings they match. Give one user a second song tied at the cutoff and they split: <code>ROW_NUMBER</code> assigns a strict rank and drops the fourth song, while the counting version still sees only two rated higher and keeps it (see <a href="#equiv-breaks">"Where the Look-Alikes Split"</a> below).</p>
+<hr />
+<h2>Where the Look-Alikes Split</h2>
+<p>The top-3 pair only <em>looks</em> equivalent: it agrees on our nine rows but splits on a tie. And <code>NOT IN</code>, a pattern you will reach for constantly, hides a related NULL trap. Here are the exact inputs that pull each apart.</p>
+<p><a id="equiv-breaks"></a></p>
+<div style="width:100%;max-width:1100px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/equiv-breaks.svg" style="width:100%;height:auto;display:block;" alt="Where the look-alike queries split. With four songs tied at 5.0, ROW_NUMBER keeps 3 rows while COUNT of higher-rated songs keeps 4. With a NULL in the exclude-list, NOT IN returns nothing while NOT EXISTS returns the right rows; on this schema user_id is NOT NULL, so it cannot happen here."></p>
+</div>
+<p><strong>The NULL is the subtle one.</strong> <code>NOT IN</code> asks "is this id different from <em>every</em> value in the list?" If the list holds a NULL, you are asking whether a known id differs from an <em>unknown</em> value, and SQL can never answer yes, so the whole result collapses to nothing. <code>NOT EXISTS</code> asks a plain existence question that a NULL cannot poison. On our schema this is blocked, because <code>Listens.user_id</code> is declared <code>NOT NULL</code>. Note that this is the <code>NOT NULL</code> constraint, <strong>not</strong> the foreign key. A foreign key still permits NULLs; it only requires non-null values to point at a real user.</p>
+<hr />
+<h2>When to Use Each Approach?</h2>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Best For</th>
+<th>Avoid When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Correlated Subquery</strong></td>
+<td>• Conceptual clarity<br>• Row-specific logic<br>• Small datasets</td>
+<td>• Large datasets<br>• Complex aggregations</td>
+</tr>
+<tr>
+<td><strong>CTEs</strong></td>
+<td>• Multi-step logic<br>• Reusable calculations<br>• Debugging complex queries<br>• Team readability</td>
+<td>• Simple one-off queries<br>• Older SQL versions (pre-2005)</td>
+</tr>
+<tr>
+<td><strong>Window Functions</strong></td>
+<td>• Rankings (top-N per group)<br>• Running totals<br>• Peer comparisons<br>• Modern SQL environments</td>
+<td>• Simple filters<br>• When debugging needed<br>• Older SQL versions</td>
+</tr>
+<tr>
+<td><strong>LEFT JOIN + NULL</strong></td>
+<td>• Finding non-matches<br>• Performance critical<br>• Complex exclusion logic</td>
+<td>• When readability important<br>• Team unfamiliar with pattern</td>
+</tr>
+<tr>
+<td><strong>GROUP BY + HAVING</strong></td>
+<td>• Simple aggregations<br>• Clear logic<br>• Direct approach</td>
+<td>• Need intermediate results<br>• Complex multi-step logic</td>
+</tr>
+</tbody>
+</table>
+<p><strong> Remember:</strong> Prioritize human readability over syntactic cleverness. Trust the query optimizer to handle execution performance.</p>
+<hr />
+<h2>The Takeaway</h2>
+<p><a id="equiv-takeaway"></a></p>
+<div style="width:100%;max-width:1100px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/equiv-takeaway.svg" style="width:100%;height:auto;display:block;" alt="Same answer today is not the same query. Real query equivalence holds for any input: equivalent queries agree on every possible table; NULLs, ties, and edge values are where look-alike queries diverge; when the logic matches, pick the clearest shape and trust the optimizer."></p>
+</div>

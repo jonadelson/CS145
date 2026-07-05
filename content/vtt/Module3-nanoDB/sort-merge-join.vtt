@@ -1,0 +1,109 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.062
+Hash partition join is the workhorse for equality joins on huge tables.
+
+00:00:07.062 --> 00:00:12.124
+But it loses in one case.
+
+00:00:12.124 --> 00:00:17.186
+When the data is already sorted on the join key, or the next operator needs sorted output anyway, this algorithm wins instead.
+
+00:00:17.186 --> 00:00:21.426
+Phase one already ran.
+
+00:00:21.426 --> 00:00:25.665
+BigSort left both tables sorted on user id, sitting on disk.
+
+00:00:25.665 --> 00:00:29.905
+Now phase two, the merge.
+
+00:00:29.905 --> 00:00:34.145
+Two pointers, both sorted on disk, one pointer on each run.
+
+00:00:34.145 --> 00:00:38.385
+Compare the keys under the pointers.
+
+00:00:38.385 --> 00:00:42.624
+If the left key is smaller, advance left.
+
+00:00:42.624 --> 00:00:46.864
+If larger, advance right.
+
+00:00:46.864 --> 00:00:51.104
+When they are equal you have a match, so emit every pair in that key group, then move both past it.
+
+00:00:51.104 --> 00:00:55.343
+Mickey's Users row meets Mickey's Listens rows at the same point in the walk.
+
+00:00:55.343 --> 00:00:59.583
+Watch it run, two pointers crossing the runs in a single pass.
+
+00:00:59.583 --> 00:01:03.823
+Each key lines up, the dashed links fire, eight output rows stream out.
+
+00:01:03.823 --> 00:01:08.062
+One linear pass per run.
+
+00:01:08.062 --> 00:01:12.302
+P of R plus P of S plus OUT, on top of the two sort costs.
+
+00:01:12.302 --> 00:01:16.542
+The output comes out already sorted on the key, so a following ORDER BY pays nothing.
+
+00:01:16.542 --> 00:01:20.782
+The catch is the worst case.
+
+00:01:20.782 --> 00:01:25.021
+If one mega-popular song dominates both sides, the merge degenerates into a per-key cross-product.
+
+00:01:25.021 --> 00:01:29.261
+P of R times P of S, plus OUT, and OUT itself can blow up.
+
+00:01:29.261 --> 00:01:33.093
+And in code, two passes.
+
+00:01:33.093 --> 00:01:36.924
+Sort both tables, then walk them with two pointers, emitting matches as the keys line up.
+
+00:01:36.924 --> 00:01:40.551
+Three tables, same idea.
+
+00:01:40.551 --> 00:01:44.179
+Users, Listens, Songs.
+
+00:01:44.179 --> 00:01:47.806
+Sort-merge join Users and Listens on user id.
+
+00:01:47.806 --> 00:01:51.434
+That result is already sorted, so feed it forward.
+
+00:01:51.434 --> 00:01:55.061
+Sort that result and Songs on song id.
+
+00:01:55.061 --> 00:01:58.689
+Sort-merge join again.
+
+00:01:58.689 --> 00:02:02.316
+The cost is one BigSort per input plus a linear merge per join.
+
+00:02:02.316 --> 00:02:05.944
+When the plan wants sorted output anyway, the sort cost amortizes across the whole chain.
+
+00:02:05.944 --> 00:02:09.571
+That is exactly when sort-merge beats hash partition join.
+
+00:02:09.571 --> 00:02:15.274
+Sort-merge join leaves the result already sorted on the join key, so the next operator that wants order pays nothing extra.
+
+00:02:15.274 --> 00:02:20.977
+Always carry the plus OUT term, because one dominant key turns the merge into a per-key cross-product.
+
+00:02:20.977 --> 00:02:26.679
+Storage, then three join strategies, block nested loop, hash partition, sort-merge.
+
+00:02:26.679 --> 00:02:32.382
+We have stopped counting pages and started picking algorithms.
+
+00:02:32.382 --> 00:02:38.085
+Indexing next, then the optimizer chooses for you.

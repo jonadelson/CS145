@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 470" role="img" aria-labelledby="tc-t tc-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="tc-t">Scenario 1: all three transactions commit</title>
+  <desc id="tc-d">A write-ahead log table for the all-commit run: each row is a logged write or a commit record, in order, with the old and new value of A, B, or C. T2 commits, then T1 commits, then T3 commits; every write is logged before the commit record. The final database state is A=27.36, B=38.4, C=32.4, all durable. The violet D circle marks Durability: once a commit record reaches the WAL, that transaction's changes survive a crash.</desc>
+
+  <text x="60" y="34" font-size="24" font-weight="700" fill="#0E0E10">Scenario 1: all three commit</text>
+  <text x="60" y="58" font-size="14" fill="#6B7280">Each change is logged to the WAL before COMMIT, so on commit the change is already durable.</text>
+
+  <!-- WAL header -->
+  <text x="60" y="92" font-size="15" font-weight="700" fill="#7C3AED">Write-Ahead Log</text>
+  <text x="150" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Txn</text>
+  <text x="300" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Record</text>
+  <text x="470" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Variable</text>
+  <text x="590" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">Old &#8594; New</text>
+  <line x1="100" y1="126" x2="720" y2="126" stroke="#D4D7DC"/>
+
+  <g data-step="1">
+    <text x="150" y="148" text-anchor="middle" font-size="13" fill="#0E0E10">T2</text>
+    <text x="300" y="148" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="148" text-anchor="middle" font-size="13" fill="#0E0E10">A</text>
+    <text x="590" y="148" text-anchor="middle" font-size="13" fill="#0E0E10">19 &#8594; 22.8</text>
+  </g>
+  <g data-step="2">
+    <rect x="100" y="156" width="620" height="26" rx="4" fill="#E1F4EC"/>
+    <rect x="100" y="156" width="4" height="26" fill="#16A34A"/>
+    <text x="150" y="174" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">T2</text>
+    <text x="300" y="174" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">COMMIT</text>
+    <text x="600" y="174" text-anchor="middle" font-size="12" fill="#6B7280">A is now durable</text>
+  </g>
+  <g data-step="3">
+    <text x="150" y="200" text-anchor="middle" font-size="13" fill="#0E0E10">T3</text>
+    <text x="300" y="200" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="200" text-anchor="middle" font-size="13" fill="#0E0E10">B</text>
+    <text x="590" y="200" text-anchor="middle" font-size="13" fill="#0E0E10">32 &#8594; 38.4</text>
+  </g>
+  <g data-step="4">
+    <text x="150" y="224" text-anchor="middle" font-size="13" fill="#0E0E10">T1</text>
+    <text x="300" y="224" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="224" text-anchor="middle" font-size="13" fill="#0E0E10">A</text>
+    <text x="590" y="224" text-anchor="middle" font-size="13" fill="#0E0E10">22.8 &#8594; 27.36</text>
+  </g>
+  <g data-step="5">
+    <rect x="100" y="232" width="620" height="26" rx="4" fill="#E1F4EC"/>
+    <rect x="100" y="232" width="4" height="26" fill="#16A34A"/>
+    <text x="150" y="250" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">T1</text>
+    <text x="300" y="250" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">COMMIT</text>
+    <text x="600" y="250" text-anchor="middle" font-size="12" fill="#6B7280">A is now durable</text>
+  </g>
+  <g data-step="6">
+    <text x="150" y="276" text-anchor="middle" font-size="13" fill="#0E0E10">T3</text>
+    <text x="300" y="276" text-anchor="middle" font-size="13" font-weight="700" fill="#EA580C">W</text>
+    <text x="470" y="276" text-anchor="middle" font-size="13" fill="#0E0E10">C</text>
+    <text x="590" y="276" text-anchor="middle" font-size="13" fill="#0E0E10">27 &#8594; 32.4</text>
+  </g>
+  <g data-step="7">
+    <rect x="100" y="284" width="620" height="26" rx="4" fill="#E1F4EC"/>
+    <rect x="100" y="284" width="4" height="26" fill="#16A34A"/>
+    <text x="150" y="302" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">T3</text>
+    <text x="300" y="302" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">COMMIT</text>
+    <text x="600" y="302" text-anchor="middle" font-size="12" fill="#6B7280">B and C now durable</text>
+  </g>
+
+  <!-- durable outcome panel -->
+  <g data-step="8">
+    <rect x="60" y="340" width="700" height="100" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="60" y="340" width="700" height="5" rx="2" fill="#7C3AED"/>
+    <circle cx="98" cy="384" r="20" fill="#7C3AED"/>
+    <text x="98" y="391" text-anchor="middle" font-size="20" font-weight="700" fill="#FFFFFF">D</text>
+    <text x="132" y="378" font-size="15" font-weight="700" fill="#7C3AED">Durability</text>
+    <text x="132" y="400" font-size="13.5" fill="#3F3F46">Three commit records reached the WAL, so all three changes survive a crash.</text>
+    <text x="132" y="426" font-size="14" font-weight="700" fill="#0E0E10">Final state:  A = 27.36,  B = 38.4,  C = 32.4</text>
+  </g>
+
+  <text x="60" y="462" font-size="12.5" fill="#6B7280">Color key:  <tspan fill="#EA580C" font-weight="700">W</tspan> = a logged write   ·   <tspan fill="#059669" font-weight="700">COMMIT</tspan> = the change is durable   ·   <tspan fill="#7C3AED" font-weight="700">D</tspan> = Durability</text>
+</svg>

@@ -1,0 +1,36 @@
+<svg viewBox="0 0 1100 502" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="local-vs-network-t local-vs-network-d">
+  <title id="local-vs-network-t">Reading one 64 MB page: local vs network</title>
+  <desc id="local-vs-network-d">Local RAM 0.00064s (green), local SSD 0.0128s (amber), local HDD 0.65s (red). A network RAM path, remote read 0.00064s plus 0.0064s transfer plus 0.00064s local write, totals 0.0077s (orange, the path in focus). Network RAM beats local SSD because transfer cost dominates locality. Color key: green fastest, amber SSD, red slow HDD, orange the network path in focus, grey structure.</desc>
+  <text x="550" y="40" text-anchor="middle" style="font-size: 24px; font-weight: 700; fill: #0E0E10;">Reading one 64 MB page: local vs network</text>
+  <text x="550" y="66" text-anchor="middle" style="font-size: 14px; fill: #6B7280;">Transfer cost matters more than the local-vs-remote intuition</text>
+  <rect x="60" y="90" width="470" height="360" fill="none" stroke="#D4D7DC" stroke-width="1.5" stroke-dasharray="6,4" rx="10"/>
+  <text x="80" y="116" style="font-size: 15px; font-weight: 700; fill: #6B7280;">Local machine</text>
+  <rect x="84" y="128" width="420" height="58" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="84" y="128" width="420" height="6" rx="3" fill="#059669"/>
+  <text x="294" y="158" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">Local RAM</text>
+  <text x="294" y="182" text-anchor="middle" style="font-size: 14px; fill: #3F3F46;">100 ns + transfer = 0.00064s</text>
+  <rect x="84" y="196" width="420" height="58" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="84" y="196" width="420" height="6" rx="3" fill="#D97706"/>
+  <text x="294" y="226" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">Local SSD</text>
+  <text x="294" y="250" text-anchor="middle" style="font-size: 14px; fill: #3F3F46;">10 &#181;s + transfer = 0.0128s</text>
+  <rect x="84" y="264" width="420" height="58" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="84" y="264" width="420" height="6" rx="3" fill="#DC2626"/>
+  <text x="294" y="294" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">Local HDD</text>
+  <text x="294" y="318" text-anchor="middle" style="font-size: 14px; fill: #3F3F46;">10 ms + transfer = 0.65s</text>
+  <rect x="84" y="332" width="420" height="104" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="84" y="332" width="420" height="6" rx="3" fill="#EA580C"/>
+  <text x="294" y="362" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">Network RAM path</text>
+  <text x="294" y="386" text-anchor="middle" style="font-size: 14px; fill: #3F3F46;">1. remote RAM read  0.00064s</text>
+  <text x="294" y="408" text-anchor="middle" style="font-size: 14px; fill: #3F3F46;">2. network transfer  0.0064s</text>
+  <text x="294" y="430" text-anchor="middle" style="font-size: 14px; fill: #0E0E10;">3. local RAM write  0.00064s  &#8594;  0.0077s</text>
+  <rect x="600" y="90" width="440" height="200" fill="none" stroke="#D4D7DC" stroke-width="1.5" stroke-dasharray="6,4" rx="10"/>
+  <text x="620" y="116" style="font-size: 15px; font-weight: 700; fill: #6B7280;">Remote machine</text>
+  <rect x="624" y="128" width="392" height="120" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="624" y="128" width="392" height="6" rx="3" fill="#059669"/>
+  <text x="820" y="158" text-anchor="middle" style="font-size: 16px; font-weight: 700; fill: #0E0E10;">Remote RAM</text>
+  <text x="820" y="182" text-anchor="middle" style="font-size: 14px; fill: #3F3F46;">64 MB page</text>
+  <text x="820" y="204" text-anchor="middle" style="font-size: 14px; fill: #059669;">read: 0.00064s</text>
+  <line x1="504" y1="384" x2="624" y2="200" stroke="#EA580C" stroke-width="2" stroke-dasharray="9,5"/>
+  <text x="560" y="300" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #EA580C;">10 GB/s network</text>
+  <text x="550" y="478" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = fastest&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#D97706" font-weight="700">amber</tspan><tspan fill="#3F3F46"> = SSD&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = slow HDD&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = network path</tspan></text>
+</svg>

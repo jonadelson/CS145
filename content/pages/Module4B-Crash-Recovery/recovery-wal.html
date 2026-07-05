@@ -1,0 +1,26 @@
+<h1>Undo for Aborts</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A running transaction can <strong>abort</strong>, by choice or by error, and the database has to take back every change it made so it is as if the transaction never ran. That is <strong>undo</strong>, and it delivers <strong>atomicity</strong>: all or nothing. Undo needs the value before each change, and the log already holds it, so undo walks the transaction's log rows and writes each <strong>old value</strong> back. The hard case is a long transaction whose uncommitted changes already reached disk, and the log handles that too.</p>
+<p><strong>Intuition.</strong> TLong runs for hours, updating far more counters than RAM can hold, so the buffer flushes some of its 64 MB pages to disk long before it commits. Then TLong aborts. One uncommitted value is already on disk, and no old copy of the page was kept. Undo does not need one: the log holds the old value, so it writes <code>A0</code> back from 22.8 to 19, and TLong leaves no trace.</p>
+</div>
+<p>A transaction aborts; undo reverses it. Redo, its mirror, replays committed work only after a crash.</p>
+<h2>How Undo Works</h2>
+<p><a id="undo-op-fig"></a></p>
+<p>To abort, undo reads each of the transaction's log rows and writes the <strong>old value</strong> back to the data page. While a transaction is still running, its recent rows are cached in RAM, so the database always knows what to undo without reading disk. But undo does more than fix the page: each reversal is itself appended to the log as a <strong>W-abort row</strong>, then an abort record closes the transaction. The log now records exactly how the transaction was unwound. This logged-undo approach, where undo writes its own steps to the log as it runs, is the ARIES algorithm, from IBM.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/undo-op.svg" alt="The same WAL rows as the WAL Log page: T1 wrote A from 19 to 22.8 and B from 23 to 27.6. When T1 aborts, undo appends its reversal to the log, newest first: a W-abort row for B from 27.6 back to 23, then A from 22.8 back to 19, then an abort record. The data page ends at A=19, B=23. Orange is the old value, green the new, red is undo's own W-abort rows." style="width:100%; max-width:760px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> T1's rows from the WAL Log page. When T1 aborts, undo does not just fix the data page, it appends its reversal to the log: a W-abort row for B (27.6 back to 23), then A (22.8 back to 19), then an abort record. The page ends at A=19, B=23. Because each reversal is itself a logged write, the log records the whole rollback, W-abort rows and all.</p>
+</div>
+<h2>The Hard Case: Uncommitted Data on Disk</h2>
+<p>Undo is easy while the change is still in RAM: overwrite it. But TLong can run for hours, touching far more than RAM can hold, so its pages are flushed to disk long before it commits. That is the hard case: when TLong aborts, A0's new value 22.8 is already on disk, no old copy of the page was kept, and it must still be undone. You do not need the old page, because the log already holds A0's old value 19.</p>
+<p>So trace the abort. The database walks the log backward, newest write first, writing each old value back as a fresh <strong>W-abort</strong> row: A1000 from 32.4 to 27, then A0 from 22.8 to 19, including the page that already flushed. A final ABORT record closes it. Because each undo is logged as its own row, the log records TLong's full rollback. TLong leaves no trace.</p>
+<p><a id="undo-trace-fig"></a></p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/trace-wal-long-abort.svg" alt="A log table for TLong aborting: after writing A0 to 22.8 and A1000 to 32.4, undo walks backward and logs a W-abort restoring A1000 from 32.4 to 27, then a W-abort restoring A0 from 22.8 to 19, then a final abort record. The old value column drives each undo." style="width:100%; max-width:1120px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> TLong aborts. Undo walks the log backward, newest write first, restoring A1000 from 32.4 to 27, then A0 from 22.8 to 19, reusing the old value each forward row recorded. Each undo becomes its own W-abort row (red), so the log records the rollback itself. A final abort record closes the transaction.</p>
+</div>
+<p><a id="takeaway"></a></p>
+<p>Undo gives atomicity off the log's old values, and it logs its own reversal as W-abort rows, so the log records every rollback in full. A single transaction aborts this way while the system runs. Next, a crash leaves many of them unfinished at once, and recovery replays the whole log, W-abort rows included, before undoing the losers.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4B-Crash-Recovery/recovery-postcrash">Post-Crash Recovery →</a></strong> An abort undoes one transaction while the database keeps running. A crash is worse: committed work missing from disk, uncommitted work stranded on it. Next: recovery replays the whole log to rebuild the crash state, then undoes the transactions that never committed, two passes over one log.</p>

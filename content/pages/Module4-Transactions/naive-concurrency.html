@@ -1,0 +1,52 @@
+<h1>Naive Concurrency</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A database runs many transactions at once, and the hard part is coordinating how they touch shared rows. The simplest rule, running <strong>one transaction at a time</strong>, keeps the data correct but leaves the server idle through every disk wait while the queue backs up. Drop the coordination to go faster and the opposite breaks: two writes to the same row overwrite each other, with no error raised. Concurrency control is the middle ground: run independent work in parallel, block only what would conflict.</p>
+<p><strong>Intuition.</strong> Mickey and Minnie both play song 42, which sits at 100. Run them one at a time and the play count correctly reaches 102, but everyone else is stuck behind one slow disk read. Drop the coordination and both read 100, both write 101, and one play disappears.</p>
+</div>
+<h2>Naive way 1: run them one at a time</h2>
+<p>The simplest approach: never overlap. Run each transaction from start to finish before the next one begins.</p>
+<pre><code class="language-python"># Serial: one transaction fully finishes before the next starts
+for txn in queue:
+    txn.run()        # no interleaving is even possible
+</code></pre>
+<p>Nothing interleaves, so nothing goes wrong. But it is slow, in two ways.</p>
+<p>First, a transaction spends most of its time waiting on a disk read, which takes thousands of times longer than the computing around it.</p>
+<p><img src="assets/Module4-Transactions/svgs/io-lag.svg"
+     alt="A short time axis for one disk read on row B: a read-start marker at time 6, a read-end marker at time 11, and a dashed span between them labelled about five units of CPU idle time."
+     style="width:100%; max-width:340px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One disk read (the dashed span between the two violet markers, its start and end) stalls the transaction far longer than the work around it. Under serial execution, nothing runs in that gap.</p>
+</div>
+<p>Second, because only one transaction runs at a time, that idle gap is pure waste, and a single long transaction blocks everyone behind it.</p>
+<p><a id="serial-queue-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/naive-serial-slow.svg"
+     alt="A timeline of one server running transactions one at a time: violet blocks where a transaction computes, wide grey blocks where the server sits idle on a disk read. A long T2 stretches its idle span, so T3 and T4 queued behind it wait far longer than their own work needs."
+     style="width:100%; max-width:1140px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Serial execution wastes every wait. The violet blocks are transactions computing; the grey blocks are the server idle on disk. Because no one else may run in a gap, a long transaction (T2) stalls the whole queue: T3 and T4 wait far longer than their own work needs. The Ticketmaster on-sale would serialize into one slow line, even across unrelated rows.</p>
+</div>
+<h2>Naive way 2: let them all run</h2>
+<p>To win back the parallelism, drop all coordination and let everything run at once. Two transactions on different rows never touch each other. Two on the same row collide: their reads and writes interleave, and the result depends on which one happens to write last.</p>
+<pre><code class="language-python"># No coordination: read, change, write back
+def play(song_id):
+    n = db.read(song_id, &quot;play_count&quot;)        # read the current count
+    db.write(song_id, &quot;play_count&quot;, n + 1)    # store one more
+</code></pre>
+<p>Nothing forces the read and the write to stay together. Slip another transaction between them and the data goes wrong, in more than one way.</p>
+<p><img src="assets/Module4-Transactions/svgs/naive-anomalies.svg"
+     alt="Three failure panels. Lost update: T1 and T2 both read 100, both write 101, count lands on 101 not 102. Dirty read: T1 writes 150, T2 reads it, T1 aborts, so T2 acted on a value that never committed. Stale read: T1 reads 20, T2 writes 30 and commits, T1 reads again and sees 30, disagreeing with itself."
+     style="width:100%; max-width:1140px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Uncontrolled concurrency corrupts one row three different ways. In a <strong>lost update</strong>, two transactions both read 100 and both write 101, so one play disappears. In a <strong>dirty read</strong>, one transaction reads another's uncommitted write and the writer then aborts, so the reader acted on a value that never existed. In a <strong>stale read</strong>, a transaction reads the same row twice and a committed write in between makes its two reads disagree.</p>
+</div>
+<p>No error is raised. Every transaction reports success, and the database holds a number that no one-at-a-time run could ever produce.</p>
+<h2>The middle: concurrency control</h2>
+<p>Neither extreme is usable. Every real database aims for the middle.</p>
+<p><a id="scheduling-spectrum-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/scheduling-spectrum.svg"
+     alt="A horizontal axis from Maximum Safety (slow) on the left to Maximum Performance (broken) on the right, with three points: SERIAL on the left (correct, no parallelism), NO COORDINATION on the right (fast, data corruption), and the violet-highlighted sweet spot CONCURRENCY CONTROL in the middle (interleave only the safe swaps, serial-correct at concurrent speed)."
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Concurrency control sits between the two naive ends, overlapping only the actions whose order does not matter. Serial (Naive 1), on the left, is correct but has no throughput; free-for-all (Naive 2), on the right, has throughput but corrupts data. The rest of this section makes "order does not matter" precise, then builds the engines that deliver it.</p>
+</div>
+<p>Two questions remain, and the module takes them in order: <strong>what makes an interleaving correct</strong>, and <strong>how does an engine deliver it</strong> without serializing everything? The next page starts on the first, with the conflict graph the test is built on.</p>

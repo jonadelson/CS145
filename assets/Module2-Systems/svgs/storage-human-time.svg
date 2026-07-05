@@ -1,0 +1,57 @@
+<svg viewBox="0 0 1200 440" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="sht-t sht-d">
+  <title id="sht-t">Why paging matters: the speed gap scaled to human time</title>
+  <desc id="sht-d">Four storage tiers left to right, each access time rescaled as if one L1 cache hit took 1 second. L1 cache is 1 second, RAM is 1.5 minutes (100 times slower), SSD is 3 hours (another 100 times), and a hard disk is 4 months (another 1000 times). The point: a disk read feels like a season when a RAM read feels like a short pause, which is why paging keeps the working set in the fast tiers. Color key: orange is a storage tier and its human-scaled wait, grey is the slowdown factor between tiers.</desc>
+  <defs><marker id="aht" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="600" y="40" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">Why paging matters: the speed gap, in human time</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">If one L1 cache hit took 1 second, here is how long each tier would feel.</text>
+
+  <!-- STEP 1: cache = 1 second -->
+  <g data-step="1">
+  <rect x="55" y="120" width="250" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="55" y="120" width="250" height="6" rx="3" fill="#EA580C"/>
+  <text x="180" y="152" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#EA580C;">L1 cache</text>
+  <text x="180" y="176" text-anchor="middle" style="font-size:14px;fill:#6B7280;">~1 ns</text>
+  <text x="180" y="224" text-anchor="middle" style="font-size:30px;font-weight:700;fill:#0E0E10;">1 second</text>
+  <text x="180" y="252" text-anchor="middle" style="font-size:14px;font-style:italic;fill:#3F3F46;">a blink</text>
+  </g>
+
+  <!-- STEP 2: RAM = 1.5 minutes -->
+  <g data-step="2">
+  <text x="325" y="182" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#EA580C;">&#215;100</text>
+  <line x1="308" y1="200" x2="342" y2="200" stroke="#6B7280" stroke-width="2" marker-end="url(#aht)"/>
+  <rect x="345" y="120" width="250" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="345" y="120" width="250" height="6" rx="3" fill="#EA580C"/>
+  <text x="470" y="152" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#EA580C;">RAM</text>
+  <text x="470" y="176" text-anchor="middle" style="font-size:14px;fill:#6B7280;">~100 ns</text>
+  <text x="470" y="224" text-anchor="middle" style="font-size:30px;font-weight:700;fill:#0E0E10;">1.5 minutes</text>
+  <text x="470" y="252" text-anchor="middle" style="font-size:14px;font-style:italic;fill:#3F3F46;">a short pause</text>
+  </g>
+
+  <!-- STEP 3: SSD = 3 hours -->
+  <g data-step="3">
+  <text x="615" y="182" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#EA580C;">&#215;100</text>
+  <line x1="598" y1="200" x2="632" y2="200" stroke="#6B7280" stroke-width="2" marker-end="url(#aht)"/>
+  <rect x="635" y="120" width="250" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="635" y="120" width="250" height="6" rx="3" fill="#EA580C"/>
+  <text x="760" y="152" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#EA580C;">SSD</text>
+  <text x="760" y="176" text-anchor="middle" style="font-size:14px;fill:#6B7280;">~10 &#181;s</text>
+  <text x="760" y="224" text-anchor="middle" style="font-size:30px;font-weight:700;fill:#0E0E10;">3 hours</text>
+  <text x="760" y="252" text-anchor="middle" style="font-size:14px;font-style:italic;fill:#3F3F46;">an afternoon</text>
+  </g>
+
+  <!-- STEP 4: hard disk = 4 months + the paging tie-in -->
+  <g data-step="4">
+  <text x="905" y="182" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#EA580C;">&#215;1000</text>
+  <line x1="888" y1="200" x2="922" y2="200" stroke="#6B7280" stroke-width="2" marker-end="url(#aht)"/>
+  <rect x="925" y="120" width="250" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="925" y="120" width="250" height="6" rx="3" fill="#EA580C"/>
+  <text x="1050" y="152" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#EA580C;">Hard disk</text>
+  <text x="1050" y="176" text-anchor="middle" style="font-size:14px;fill:#6B7280;">~10 ms</text>
+  <text x="1050" y="224" text-anchor="middle" style="font-size:30px;font-weight:700;fill:#0E0E10;">4 months</text>
+  <text x="1050" y="252" text-anchor="middle" style="font-size:14px;font-style:italic;fill:#3F3F46;">a whole season</text>
+  <text x="600" y="322" text-anchor="middle" style="font-size:16px;font-weight:700;fill:#0E0E10;">Paging keeps the working set in RAM, so a read is a 1.5-minute pause, not a 4-month wait.</text>
+  </g>
+
+  <text x="600" y="416" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = a storage tier and its human-scaled wait&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the slowdown between tiers</tspan></text>
+</svg>

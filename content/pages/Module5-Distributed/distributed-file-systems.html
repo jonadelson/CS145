@@ -1,0 +1,128 @@
+<h1>Distributed File Systems</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A distributed file system splits each large file into fixed-size chunks, replicates each chunk across many cheap commodity servers, and gives clients a single-namespace view, so the cluster delivers sequential read throughput proportional to its size while tolerating constant disk and machine failures.</p>
+<p><strong>Intuition.</strong> When Spotify stores a 64 GB audio-feature export, GFS splits it into 1,024 chunks of 64 MB each, places 3 copies of every chunk on different machines, and lets a job read all 1,024 chunks in parallel from 1,024 disks. Even if a disk dies mid-read, two other replicas of the dead chunk are already on standby.</p>
+</div>
+<hr />
+<h2>The Pattern, and What Changes Across Generations</h2>
+<p>The <a href="#/page/Module5-Distributed/case-study-gfs">GFS case study</a> already gave us the pattern: split each file into chunks, replicate them across cheap machines, and track it all on a <strong>single Master</strong> that holds every file's metadata in RAM. Every distributed file system since reuses that chunks-and-replicas substrate; what evolved is how each one escapes GFS's single-Master bottleneck, and that one choice cascades into scale, latency, and consistency.</p>
+<p><a id="dfs-evolution-figure"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/dfs-evolution.svg" alt="Four columns by year: GFS (2003) and HDFS (2006) keep all metadata on one pink Master or NameNode capped near petabyte scale; S3 (2006) spreads metadata across leaderless pink nodes scaling without limit; Colossus (2010+) shards metadata with Reed-Solomon to exabyte scale; grey boxes are the chunk servers underneath" style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Four generations share one chunks-and-replicas substrate but coordinate metadata differently, and that single choice sets each scale ceiling. GFS (2003) and HDFS (2006) keep all metadata on one Master or NameNode (64 MB / 128 MB chunks, 3× replication, CP), so the single leader caps them near petabyte scale. S3 (2006) drops the leader for distributed metadata (redundant across ≥3 availability zones, designed for 11 nines of durability) and scales effectively without limit; since 2020 it is strongly read-after-write consistent (earlier, eventually consistent). Colossus (2010+) shards metadata across many nodes with Reed-Solomon erasure coding (~50% overhead versus 200% for 3× replication, CP) and reaches exabyte scale.</p>
+</div>
+<hr />
+<h2>HDFS (2006): Open-Source GFS</h2>
+<p>HDFS is the open-source re-implementation of GFS. One <strong>NameNode</strong> plays the Master role; <strong>DataNodes</strong> store 128 MB blocks (twice GFS's chunk size). Replication is rack-aware, so a rack losing power never takes every copy of a block. Same architecture as GFS, so the same single-NameNode bottleneck, which HDFS Federation later sharded to push past.</p>
+<hr />
+<h2>S3 (2006): No Leader at All</h2>
+<p>Amazon S3 took a different turn. Instead of one Master, S3 has no central metadata coordinator. Every metadata operation hits a distributed key-value store, and the storage backend is a partitioned cluster spanning availability zones.</p>
+<ul>
+<li>
+<p><strong>No leader bottleneck.</strong> Throughput scales horizontally with cluster size.</p>
+</li>
+<li>
+<p><strong>11 nines of durability</strong> (99.999999999%) by keeping data redundant across ≥3 Availability Zones (erasure-coded, not literal full replicas).</p>
+</li>
+<li>
+<p><strong>Strong read-after-write consistency</strong> since December 2020. A <code>PUT</code> is immediately visible to every subsequent <code>GET</code>, <code>LIST</code>, and metadata read, automatically and at no extra cost. (Before 2020, S3 was eventually consistent: a write could take a few seconds to be visible to every reader.)</p>
+</li>
+<li>
+<p><strong>Effectively infinite scale.</strong> Customers store exabytes; the largest single buckets hold petabytes.</p>
+</li>
+</ul>
+<p>S3 stays leaderless, favoring availability and scale, with metadata distributed rather than parked on a single namenode. The 2020 change closed the old eventual-consistency window, so reads no longer have to tolerate stale writes.</p>
+<hr />
+<h2>Colossus (2010+): GFS Without the Bottleneck</h2>
+<p>Google replaced GFS with Colossus to break the Master bottleneck without giving up consistency.</p>
+<ul>
+<li>
+<p><strong>Distributed metadata.</strong> Metadata is sharded across many servers; no single node holds the full chunk map.</p>
+</li>
+<li>
+<p><strong>Reed-Solomon erasure coding</strong> instead of 3× replication, dropping storage overhead from 200% to ~50% for the same fault tolerance.</p>
+</li>
+<li>
+<p><strong>Sub-millisecond latencies</strong> for metadata operations.</p>
+</li>
+<li>
+<p><strong>Exabyte-plus scale</strong> at Google.</p>
+</li>
+</ul>
+<p><a id="reed-solomon-fig"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/reed-solomon.svg" alt="Colossus splits data into 6 data blocks and 3 parity blocks computed from them; any 3 of the 9 can be lost and rebuilt from the surviving 6, tolerating 3 failures at 50% storage overhead versus 200% for three copies." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Reed-Solomon erasure coding. Colossus splits data into data blocks and computes parity blocks from them, for example six data plus three parity. Any three of the nine can be lost and rebuilt from the six that survive, so it tolerates three failures at 50% storage overhead, where three full copies cost 200% and survive only two failures.</p>
+</div>
+<hr />
+<h2>Quick Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Year</th>
+<th>Metadata</th>
+<th>Chunk Size</th>
+<th>Replication</th>
+<th>CAP</th>
+<th>Scale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GFS</strong></td>
+<td>2003</td>
+<td>Single Master</td>
+<td>64 MB</td>
+<td>3×</td>
+<td>CP</td>
+<td>PB</td>
+</tr>
+<tr>
+<td><strong>HDFS</strong></td>
+<td>2006</td>
+<td>Single NameNode</td>
+<td>128 MB</td>
+<td>3× rack-aware</td>
+<td>CP</td>
+<td>PB</td>
+</tr>
+<tr>
+<td><strong>S3</strong></td>
+<td>2006</td>
+<td>Distributed</td>
+<td>Variable</td>
+<td>≥3 AZs (erasure-coded)</td>
+<td>Strong RAW since 2020 (earlier eventual)</td>
+<td>∞</td>
+</tr>
+<tr>
+<td><strong>Colossus</strong></td>
+<td>2010+</td>
+<td>Distributed</td>
+<td>Variable</td>
+<td>Reed-Solomon</td>
+<td>CP</td>
+<td>EB+</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Real-World Usage</h2>
+<div class="definition-cards">
+<div class="definition-card">
+<h4>HDFS</h4>
+<p>The open-source analytics storage layer of the 2010s. Facebook ran a 600 PB+ warehouse on it; Yahoo clusters reached 40,000+ nodes.</p>
+</div>
+<div class="definition-card">
+<h4>Amazon S3</h4>
+<p>The default cloud object store. Netflix and Spotify serve large catalogs from it, alongside peers like Google Cloud Storage and Azure Blob.</p>
+</div>
+<div class="definition-card">
+<h4>Google Colossus</h4>
+<p>Google's internal store for YouTube, Gmail, and BigQuery, holding exabytes behind sub-millisecond metadata.</p>
+</div>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module5-Distributed/mapreduce">MapReduce →</a></strong> Now that the storage layer can hold petabytes across cheap hardware, the next question is how to <em>compute</em> on that data without moving it across the network. MapReduce gives you a programming model that works directly on top of HDFS-style chunks.</p>

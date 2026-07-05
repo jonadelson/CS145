@@ -1,0 +1,66 @@
+<svg viewBox="0 0 1180 432" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="vrc-t vrc-d">
+  <title id="vrc-t">Each operation is one test</title>
+  <desc id="vrc-d">The left column (blue) is how the answer is built, as a
+  pipeline of relational operations: schema and definitions, then joins and
+  filters, then GROUP BY and COUNT, then the result, the number. The right
+  column is the question verifying asks at each layer: is this the governed
+  metric, do the right rows survive (remember Pluto), does it count the right
+  thing, does the number match the golden and sit in range. Each test targets
+  one relational operation; you settle it by running the query. Color key: blue is the
+  relational operation that builds the answer; the question beside it is the
+  test that reads it.</desc>
+  <defs><marker id="ah-vrc" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="590" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Each operation is one test</text>
+  <text x="590" y="56" text-anchor="middle" font-size="16" fill="#3F3F46">Every answer is built from relational operations. Verifying asks about each one.</text>
+
+  <text x="340" y="94" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">How the answer is built</text>
+  <text x="840" y="94" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">What verifying asks</text>
+
+  <!-- Row 1: schema -->
+  <rect x="150" y="110" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="150" y="110" width="380" height="4" rx="2" fill="#60A5FA"/>
+  <text x="340" y="138" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">Schema + definitions</text>
+  <text x="340" y="159" text-anchor="middle" font-size="14" fill="#6B7280">what "active user" means</text>
+  <rect x="650" y="110" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="840" y="147" text-anchor="middle" font-size="15" fill="#3F3F46">Is this the governed metric?</text>
+  <line x1="532" y1="141" x2="648" y2="141" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vrc)"/>
+
+  <!-- Row 2: joins -->
+  <rect x="150" y="186" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="150" y="186" width="380" height="4" rx="2" fill="#60A5FA"/>
+  <text x="340" y="214" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">Joins + filters</text>
+  <text x="340" y="235" text-anchor="middle" font-size="14" fill="#6B7280">which rows survive</text>
+  <rect x="650" y="186" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="840" y="223" text-anchor="middle" font-size="15" fill="#3F3F46">Do the right rows survive? (Pluto)</text>
+  <line x1="532" y1="217" x2="648" y2="217" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vrc)"/>
+
+  <!-- Row 3: aggregation -->
+  <rect x="150" y="262" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="150" y="262" width="380" height="4" rx="2" fill="#60A5FA"/>
+  <text x="340" y="290" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">GROUP BY + COUNT</text>
+  <text x="340" y="311" text-anchor="middle" font-size="14" fill="#6B7280">the aggregation</text>
+  <rect x="650" y="262" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="840" y="299" text-anchor="middle" font-size="15" fill="#3F3F46">Does it count the right thing?</text>
+  <line x1="532" y1="293" x2="648" y2="293" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vrc)"/>
+
+  <!-- Row 4: result -->
+  <rect x="150" y="338" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="150" y="338" width="380" height="4" rx="2" fill="#60A5FA"/>
+  <text x="340" y="366" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">Result: the number</text>
+  <text x="340" y="387" text-anchor="middle" font-size="14" fill="#6B7280">the answer returned</text>
+  <rect x="650" y="338" width="380" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="840" y="375" text-anchor="middle" font-size="15" fill="#3F3F46">Matches the golden? In range?</text>
+  <line x1="532" y1="369" x2="648" y2="369" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vrc)"/>
+
+  <!-- left pipeline down-arrows -->
+  <line x1="340" y1="172" x2="340" y2="184" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vrc)"/>
+  <line x1="340" y1="248" x2="340" y2="260" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vrc)"/>
+  <line x1="340" y1="324" x2="340" y2="336" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vrc)"/>
+
+  <!-- Color key -->
+  <text x="590" y="422" text-anchor="middle" font-size="14"><tspan fill="#60A5FA" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = the relational operation that builds the answer&#160;&#160;&#183;&#160;&#160;the question beside it = the test that reads it</tspan></text>
+</svg>

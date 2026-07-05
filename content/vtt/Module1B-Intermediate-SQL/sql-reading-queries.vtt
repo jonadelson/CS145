@@ -1,0 +1,88 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.365
+Reading a SQL query someone else wrote is harder than writing one yourself.
+
+00:00:06.365 --> 00:00:10.731
+The query is a single statement, but it runs in a specific order, and the order is not the order you read in.
+
+00:00:10.731 --> 00:00:15.096
+To understand a complex query, you have to mentally execute it the way the database does.
+
+00:00:15.096 --> 00:00:19.462
+There is a method for that.
+
+00:00:19.462 --> 00:00:23.827
+Two examples make it concrete.
+
+00:00:23.827 --> 00:00:31.830
+Example one: for each user, find genres they have two or more songs in.
+
+00:00:31.830 --> 00:00:39.833
+The query joins Listens to Songs to attach genre, drops songs with NULL genre, groups by user and genre, then keeps only groups with COUNT of star greater than or equal to two.
+
+00:00:39.833 --> 00:00:47.836
+Six clauses, but they execute in a specific order, and that order is the key to reading the query.
+
+00:00:47.836 --> 00:00:52.033
+Watch the table shrink as you walk.
+
+00:00:52.033 --> 00:00:56.230
+FROM Listens starts at nine rows.
+
+00:00:56.230 --> 00:01:00.427
+JOIN Songs adds genre to each row, still nine.
+
+00:01:00.427 --> 00:01:04.624
+WHERE genre IS NOT NULL drops nothing here, since every listen happens to point to a non-null-genre song.
+
+00:01:04.624 --> 00:01:08.821
+GROUP BY user id and genre collapses to six rows, one per user-genre pair.
+
+00:01:08.821 --> 00:01:13.018
+HAVING COUNT of star greater than or equal to two drops three of those, leaving three rows.
+
+00:01:13.018 --> 00:01:17.215
+SELECT picks the columns, ORDER BY sorts them.
+
+00:01:17.215 --> 00:01:21.412
+The query executed in your head.
+
+00:01:21.412 --> 00:01:27.635
+Example two: find the top-half users by average rating.
+
+00:01:27.635 --> 00:01:33.858
+The query has a common table expression for per-user metrics, a window function for percentile rank, and a final top-half filter.
+
+00:01:33.858 --> 00:01:40.081
+More moving parts than example one, but the same mental discipline applies.
+
+00:01:40.081 --> 00:01:45.422
+Walk it clause by clause.
+
+00:01:45.422 --> 00:01:50.762
+The first CTE builds per-user metrics: one row per user with their listen count and average rating.
+
+00:01:50.762 --> 00:01:56.103
+The second CTE adds a percentile rank using a window function over avg rating descending, so the highest rating gets rank zero.
+
+00:01:56.103 --> 00:02:01.444
+The outer query filters to the top half: rating rank less than zero point five.
+
+00:02:01.444 --> 00:02:06.784
+On our toy data with three users, that surfaces Minnie at four point four.
+
+00:02:06.784 --> 00:02:12.125
+Three nested layers, each one a small transformation, ending at the answer.
+
+00:02:12.125 --> 00:02:18.580
+Reading a query is mental execution.
+
+00:02:18.580 --> 00:02:25.036
+FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT, in that order, with the table looking different after each one.
+
+00:02:25.036 --> 00:02:31.491
+Once you can do this for someone else's query, you can also debug your own.
+
+00:02:31.491 --> 00:02:37.946
+The discipline applies whether the query is fifteen lines or fifty: walk it clause by clause and watch the data change.

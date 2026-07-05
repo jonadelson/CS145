@@ -1,0 +1,78 @@
+<svg viewBox="0 0 1200 356" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="pe-t pe-d">
+  <title id="pe-t">One query, 5.5 TB, about 100 machines, about 47 ms</title>
+  <desc id="pe-d">A left-to-right pipeline. A SQL query is parsed, turned into a query plan, then a coordinator splits 5.5 TB into shards and fans the work out to roughly 100 machines that each scan one shard in parallel; the partial results merge into the top 10 in about 47 ms. Color key: grey is a pipeline stage, blue is the roughly 100-machine engine in focus, and the ink target marks the takeaway. It is the same algorithm SQLite runs on 9 rows, only split across machines.</desc>
+  <defs>
+    <marker id="peArrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+  <text x="600" y="40" text-anchor="middle" style="font-size: 24px; font-weight: 700; fill: #0E0E10;">One query &#183; 5.5 TB &#183; ~100 machines &#183; ~47 ms</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size: 14px; fill: #6B7280;">Top 10 most-played songs since 2024, the same algorithm SQLite runs on 9 rows, only split across machines.</text>
+
+  <!-- S1: SQL query -->
+  <rect x="30" y="96" width="240" height="186" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="30" y="96" width="240" height="6" rx="3" fill="#6B7280"/>
+  <text x="46" y="126" style="font-size: 15px; font-weight: 700; fill: #0E0E10;">SQL query</text>
+  <text x="46" y="150" style="font-size: 13px; fill: #3F3F46;">SELECT s.title, COUNT(*)</text>
+  <text x="46" y="170" style="font-size: 13px; fill: #3F3F46;">FROM songs s JOIN listens l</text>
+  <text x="46" y="190" style="font-size: 13px; fill: #3F3F46;">WHERE l.ts &gt;= '2024-01-01'</text>
+  <text x="46" y="210" style="font-size: 13px; fill: #3F3F46;">GROUP BY s.title</text>
+  <text x="46" y="230" style="font-size: 13px; fill: #3F3F46;">ORDER BY 2 DESC LIMIT 10</text>
+  <text x="46" y="266" style="font-size: 13px; font-weight: 700; fill: #6B7280;">Parse &#183; 0&#8211;5 ms</text>
+
+  <path d="M 274 189 L 304 189" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#peArrow)"/>
+
+  <!-- S2: plan -->
+  <rect x="310" y="120" width="160" height="138" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="310" y="120" width="160" height="6" rx="3" fill="#6B7280"/>
+  <text x="390" y="152" text-anchor="middle" style="font-size: 15px; font-weight: 700; fill: #0E0E10;">Query plan</text>
+  <text x="390" y="178" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">operator tree:</text>
+  <text x="390" y="198" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">scan &#8594; join &#8594;</text>
+  <text x="390" y="216" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">group &#8594; sort</text>
+  <text x="390" y="244" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #6B7280;">Plan &#183; 5&#8211;12 ms</text>
+
+  <path d="M 474 189 L 504 189" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#peArrow)"/>
+
+  <!-- S3: coordinator -->
+  <rect x="510" y="120" width="180" height="138" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="510" y="120" width="180" height="6" rx="3" fill="#6B7280"/>
+  <text x="600" y="152" text-anchor="middle" style="font-size: 15px; font-weight: 700; fill: #0E0E10;">Coordinator</text>
+  <text x="600" y="178" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">splits 5.5 TB into</text>
+  <text x="600" y="196" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">~100 shards (~55 GB)</text>
+  <text x="600" y="244" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #6B7280;">Distribute &#183; 12&#8211;15 ms</text>
+
+  <path d="M 694 165 L 724 150" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#peArrow)"/>
+  <path d="M 694 189 L 724 189" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#peArrow)"/>
+  <path d="M 694 213 L 724 228" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#peArrow)"/>
+
+  <!-- S4: ~100 machines (the engine in focus) -->
+  <rect x="730" y="96" width="320" height="210" fill="#FFFFFF" stroke="#2563EB" stroke-width="2" rx="8"/>
+  <text x="890" y="122" text-anchor="middle" style="font-size: 15px; font-weight: 700; fill: #2563EB;">&#8776; 100 machines, in parallel</text>
+  <rect x="746" y="138" width="86" height="42" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="789" y="163" text-anchor="middle" style="font-size: 12px; fill: #6B7280;">scan shard</text>
+  <rect x="847" y="138" width="86" height="42" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="890" y="163" text-anchor="middle" style="font-size: 12px; fill: #6B7280;">scan shard</text>
+  <rect x="948" y="138" width="86" height="42" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="991" y="163" text-anchor="middle" style="font-size: 12px; fill: #6B7280;">scan shard</text>
+  <rect x="746" y="190" width="86" height="42" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="789" y="215" text-anchor="middle" style="font-size: 12px; fill: #6B7280;">scan shard</text>
+  <rect x="847" y="190" width="86" height="42" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="890" y="215" text-anchor="middle" style="font-size: 18px; font-weight: 700; fill: #6B7280;">&#8943;</text>
+  <rect x="948" y="190" width="86" height="42" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="4"/>
+  <text x="991" y="215" text-anchor="middle" style="font-size: 12px; fill: #6B7280;">scan shard</text>
+  <text x="890" y="262" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">each runs the same scan + group on ~55 GB</text>
+  <text x="890" y="288" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #6B7280;">Execute &#183; 15&#8211;45 ms</text>
+
+  <path d="M 1054 165 L 1084 178" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#peArrow)"/>
+  <path d="M 1054 237 L 1084 210" stroke="#6B7280" stroke-width="2" fill="none" marker-end="url(#peArrow)"/>
+
+  <!-- S5: merge / result -->
+  <rect x="1090" y="120" width="92" height="138" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1" rx="8"/>
+  <rect x="1090" y="120" width="92" height="6" rx="3" fill="#6B7280"/>
+  <text x="1136" y="152" text-anchor="middle" style="font-size: 14px; font-weight: 700; fill: #0E0E10;">Result</text>
+  <text x="1136" y="178" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">top 10</text>
+  <text x="1136" y="196" text-anchor="middle" style="font-size: 13px; fill: #3F3F46;">songs</text>
+  <text x="1136" y="236" text-anchor="middle" style="font-size: 13px; font-weight: 700; fill: #6B7280;">&#8594; 47 ms</text>
+
+  <!-- takeaway folded into the figure caption -->
+
+  <text x="600" y="336" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = a pipeline stage&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = the ~100-machine engine in focus</tspan></text>
+</svg>

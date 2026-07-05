@@ -1,0 +1,127 @@
+<h1>Case Study 2.2: How does Google Chrome protect 3 billion users using Bloom Filters?</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Chrome ships a Bloom filter of known-malicious URL hashes to every device (the classic Safe Browsing design). The filter answers "definitely safe" or "maybe dangerous" in constant time, and only the "maybe" case round-trips to Google for a real check.</p>
+<p><strong>Intuition.</strong> Google's full list of malicious URLs is too big to ship to your phone, so Chrome ships a probabilistic summary instead. It catches every dangerous URL and occasionally false-alarms on a safe one. A false alarm costs a network round-trip; missing a real threat would cost much more.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 2.2</span>
+<span>Reading Time: 6 mins</span></p>
+</div>
+<p><a id="safe-browsing-flow"></a></p>
+<p><img src="assets/Module2-Systems/svgs/safe-browsing-flow.svg"
+     alt="Your device holds a 125 MB Bloom filter, Google's 8 GB blocklist shrunk 64 times. A safe URL is answered locally and nothing is sent. A maybe URL sends only a 32-bit hash prefix across a privacy boundary to Google, which returns the hashes sharing that prefix so the device can finish the check and block the threat."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Your device carries a 125 MB Bloom filter, Google's 8 GB blocklist shrunk 64 times. It answers a safe URL locally and nothing leaves the phone; only a maybe sends a 32-bit hash prefix to Google, which returns the hashes sharing it so the device can finish the match. Google sees a prefix, never your URL, so 100M URLs and 3 billion users leak almost nothing.</p>
+</div>
+<h2>How does Google Chrome protect 3 billion users from malicious sites?</h2>
+<p>This is the Bloom filter from the previous page, deployed to 3 billion devices. Google's <strong>Safe Browsing</strong> service flags over 100 million malicious URLs, ranging from phishing to malware. The mission: shield every Chrome user from these threats. But two hurdles stand in the way: <strong>Scale</strong> and <strong>Privacy</strong>.</p>
+<hr />
+<h3>The Challenges: Scale and Privacy</h3>
+<ol>
+<li>
+<p><strong>Scale</strong>: Storing 100 million URLs, each averaging 80 characters, demands roughly 8 GB of storage. Expecting every device to download this blacklist is impractical.</p>
+</li>
+<li>
+<p><strong>Privacy</strong>: Constantly pinging Google's servers with every URL you visit raises privacy red flags. Nobody wants a tech giant tracking their every click.</p>
+</li>
+<li>
+<p><strong>Infrastructure</strong>: With 3 billion users online, querying Google's servers for each URL would flood the system with trillions of requests daily, straining bandwidth and risking server overload. A single point of failure isn't an option.</p>
+</li>
+</ol>
+<hr />
+<h3>The Solution: The 125 MB Local Filter</h3>
+<p>Chrome opts for a <strong>probabilistic</strong> method. Instead of the full list, it downloads a compressed <strong>Bloom filter</strong> of URL hashes.</p>
+<h4>The compression advantage</h4>
+<ul>
+<li>
+<p><strong>Raw list</strong>: 100M URLs × 80 bytes = <strong>8,000 MB (8 GB)</strong></p>
+</li>
+<li>
+<p><strong>Bloom filter</strong>: 100M items × 10 bits/item = 1,000M bits = <strong>125 MB</strong> (~1% false-positive rate)</p>
+</li>
+<li>
+<p><strong>Efficiency</strong>: the Bloom filter is about <strong>64x smaller</strong> than the raw list</p>
+</li>
+</ul>
+<hr />
+<h3>Technical Workflow: The Privacy-Preserving Check</h3>
+<p>The Bloom filter enables Chrome to assess "is this site bad?" directly on your device.</p>
+<ol>
+<li>
+<p><strong>Local Check</strong>: Chrome hashes the URL and checks against its local 125 MB Bloom filter.</p>
+</li>
+<li>
+<p><strong>Confidential Path</strong>: If the filter returns "Not in set," the URL is safe. <strong>Chrome doesn't inform Google</strong>, keeping your browsing history private.</p>
+</li>
+<li>
+<p><strong>"K-Anonymity" Trick</strong>: If the filter indicates "Maybe in set" (potential threat), Chrome sends only a <strong>prefix</strong> (e.g., first 32 bits) of the hash. Google responds with all malicious hashes sharing that prefix, and Chrome completes the check locally.</p>
+</li>
+</ol>
+<hr />
+<h3>Python Implementation: Malicious URL Filter</h3>
+<pre><code class="language-python">import math
+import mmh3 # MurmurHash3
+from bitarray import bitarray
+
+class SafeBrowsingFilter:
+    def __init__(self, expected_items, fpr):
+        # bits_per_item = -1.44 * log2(fpr); ~10 bits at 1% FPR
+        self.size = int(expected_items * -1.44 * math.log2(fpr))
+        self.bit_array = bitarray(self.size)
+        self.bit_array.setall(0)
+        self.hash_count = 7  # ~optimal for 1%
+
+    def add_malicious_url(self, url):
+        for seed in range(self.hash_count):
+            index = mmh3.hash(url, seed) % self.size
+            self.bit_array[index] = 1
+
+    def check_url(self, url):
+        for seed in range(self.hash_count):
+            index = mmh3.hash(url, seed) % self.size
+            if self.bit_array[index] == 0:
+                return &quot;SAFE&quot; # 100% Guaranteed 
+        return &quot;MAYBE_THREAT&quot; # Perform prefix-check validation
+
+# Setup filter for 1M malicious URLs
+sbf = SafeBrowsingFilter(1_000_000, 0.01)
+sbf.add_malicious_url(&quot;phish-bank.ru/login.html&quot;)
+
+# Instant local lookup
+print(f&quot;'google.com': {sbf.check_url('google.com')}&quot;)  # SAFE
+print(f&quot;'phish-bank.ru/login.html': {sbf.check_url('phish-bank.ru/login.html')}&quot;)  # MAYBE_THREAT
+</code></pre>
+<hr />
+<h3>Comparison: Why not just use a Database?</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Space (100M URLs)</th>
+<th style="text-align: left;">Privacy Level</th>
+<th style="text-align: left;">User Experience</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Full DB Download</strong></td>
+<td style="text-align: left;">~8 GB</td>
+<td style="text-align: left;"><strong>High</strong> (Local)</td>
+<td style="text-align: left;">Slow / Data Heavy</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Cloud Lookup</strong></td>
+<td style="text-align: left;">0 MB</td>
+<td style="text-align: left;"><strong>Zero</strong> (Google sees all)</td>
+<td style="text-align: left;">Network Lag</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Bloom Filter</strong></td>
+<td style="text-align: left;"><strong>~125 MB</strong></td>
+<td style="text-align: left;"><strong>High</strong> (Google sees &lt;1%)</td>
+<td style="text-align: left;"><strong>Instant</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Takeaway:</strong> A ~125 MB Bloom filter on every device answers "safe" locally for almost all browsing; only the rare "maybe" sends a hash prefix to Google, so 100M URLs and 3B users cost little bandwidth and leak almost nothing.</p>

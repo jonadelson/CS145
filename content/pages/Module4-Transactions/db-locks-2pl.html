@@ -1,0 +1,28 @@
+<h1>Two-Phase Locking</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A transaction holds many locks across its life, and <strong>Two-Phase Locking (2PL)</strong> is the discipline for using them: every transaction grows its lock set first and shrinks it second, never reacquiring. Follow that one rule and locking yields a conflict-serializable schedule, with no need to test it. <strong>Strict 2PL</strong>, the version real databases ship, holds every lock until commit.</p>
+<p><strong>Intuition.</strong> Locking one row at a time is not enough. When Mickey reads a balance, releases the lock, then writes it back, Minnie can slip into the gap and the result is garbage. 2PL closes that gap: Mickey holds every lock he takes until he is done acquiring, so no one can interleave between his read and his write. The transaction looks atomic to everyone else.</p>
+</div>
+<p>A lock protects one row, in two modes: shared for reads, exclusive for writes. But a transaction holds <em>many</em> locks across its life. Release one too early and another transaction slips into the gap, reading work that may still be undone. The rule that prevents it is Two-Phase Locking.</p>
+<h2>Two-Phase Locking (2PL): Growing then Shrinking</h2>
+<p>Locks are the primitive. The protocol for when to acquire and release them is Two-Phase Locking.</p>
+<p><strong>Two-Phase Locking (2PL)</strong> gives every transaction two phases: a <strong>growing</strong> phase that only acquires locks, then a <strong>shrinking</strong> phase that only releases them. The first unlock flips growing to shrinking, and the transaction can never acquire again.</p>
+<p><img src="assets/Module4-Transactions/svgs/2pl-phases.svg" alt="Two-Phase Locking: the lock count rises through the growing phase, peaks, then falls through the shrinking phase." style="width:100%; max-width:440px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> 2PL: the lock count only rises, then only falls. The peak is the moment the transaction holds everything it will ever need.</p>
+</div>
+<p><strong>Strict 2PL (S2PL)</strong> is the version real databases ship: hold every lock until commit or abort, then release them all at once.</p>
+<p><a id="strict-2pl-fig"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/s2pl-phases.svg" alt="Strict 2PL: the lock count rises through the growing phase, plateaus while the transaction runs, then drops to zero in one step at COMMIT." style="width:100%; max-width:440px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Strict 2PL: locks rise, plateau, then drop to zero in one step at commit. Nothing is released early.</p>
+</div>
+<p>The two-phase rule makes locking correct. As long as every transaction grows then shrinks, the resulting schedule is provably equivalent to some serial run. You don't have to verify schedules; you verify that everyone played by the rule. The proof that this yields a conflict-serializable schedule lives on <a href="#/page/Module4-Transactions/correctness">Correctness</a>; 2PL is the protocol that earns that guarantee.</p>
+<h2>The Cost of Releasing Early: Cascading Aborts</h2>
+<p>Why does Strict 2PL wait until commit to release anything? Because releasing early opens a failure that regular 2PL cannot stop.</p>
+<p><img src="assets/Module4-Transactions/svgs/cascading-abort.svg" alt="Two protocols. Under regular 2PL, T1 writes x and unlocks early, T2 reads the uncommitted value, T1 aborts, and T2 must abort too, a cascading abort. Under strict 2PL, T1 holds the lock to commit, T2 waits, and T2 only ever reads a committed value, so there is no cascade." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Release a lock early (regular 2PL) and another transaction can read work you later undo, so its abort cascades into theirs. Strict 2PL holds every lock to commit, so no one ever builds on uncommitted work. It is the sous-chef who hands over a sauce only once the head chef has approved it.</p>
+</div>
+<p><strong>What 2PL buys, and what it costs.</strong> It prevents lost updates and dirty reads, ships in Postgres, MySQL, SQL Server, and Oracle, and still lets non-conflicting transactions run in parallel. The costs: a transaction blocks on any conflicting lock, holding locks until commit is conservative, and two transactions can end up waiting on each other in a cycle.</p>
+<p>That last cost is the one new risk locks create. Two transactions, each holding a lock the other needs, wait forever. <a href="#/page/Module4-Transactions/micro">Microschedules &amp; Deadlock</a> is where that risk gets detected and broken.</p>

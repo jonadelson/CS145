@@ -1,0 +1,246 @@
+{
+  "module": "Module3-nanoDB",
+  "title": "nanoDB",
+  "questions": [
+    {
+      "id": "m3-q01",
+      "category": "Storage Layout",
+      "page": "Module3-nanoDB/storage-layout",
+      "difficulty": "intro",
+      "question": "Spotify runs <code>SELECT AVG(rating) FROM Listens</code> over a billion rows. Which storage layout minimizes the IO for this query, and why?",
+      "options": [
+        "Row-oriented, because all columns of each listen are packed together for fast reads",
+        "Columnar, because the query only needs to read the <code>rating</code> column's pages and can skip the rest",
+        "Row-oriented, because aggregates require reassembling whole rows anyway",
+        "Either layout costs the same, since every row must be visited to compute an average"
+      ],
+      "correct": 1,
+      "explanation": "Columnar storage puts all <code>rating</code> values together, so the aggregate reads one column file and skips <code>user_id</code>, <code>song_id</code>, and <code>listen_time</code>. Row layout would waste roughly 75% of the IO on this 4-column table because every page read drags along the unneeded columns."
+    },
+    {
+      "id": "m3-q02",
+      "category": "Storage Layout",
+      "page": "Module3-nanoDB/storage-layout",
+      "difficulty": "core",
+      "question": "In a slotted page, each slot stores an <code>(offset, length)</code> pointer to its row. What problem does this indirection solve when a row is updated and outgrows its original footprint?",
+      "options": [
+        "It lets the page compress the row so it never needs to move",
+        "It allows the page to move the row internally and just repoint the slot, so external references like <code>(page_id, slot_id)</code> stay valid",
+        "It automatically splits the row across two pages without any bookkeeping",
+        "It converts the row to columnar format to reclaim the space"
+      ],
+      "correct": 1,
+      "explanation": "The slot array is a level of indirection: the page can relocate a grown row and update only the slot's offset, so anything outside the page that refers to <code>(page_id, slot_id)</code> never breaks. Nothing about slotted pages compresses rows or changes the layout to columnar."
+    },
+    {
+      "id": "m3-q03",
+      "category": "Storage Layout",
+      "page": "Module3-nanoDB/storage-layout",
+      "difficulty": "core",
+      "question": "Parquet uses a PAX layout: rows are sliced into ~128 MB row-groups, and columns are stored contiguously <em>inside</em> each group. Why is this preferred over pure columnar (one file per column)?",
+      "options": [
+        "Row-groups compress better than whole-column files, since encoding runs can span group boundaries",
+        "Pure columnar cannot store min/max statistics, so predicates can never skip data",
+        "A single row stays local (no seek per column), the file count collapses, and footer min/max stats still let queries skip whole row-groups",
+        "PAX stores each row twice, once by row and once by column, so every query gets its ideal layout"
+      ],
+      "correct": 2,
+      "explanation": "Pure columnar wins the scan but makes one row a seek per column and explodes a wide partitioned table into ~100,000 tiny files. Parquet keeps the columnar scan-and-compression win inside row-groups while keeping rows local; the only cost is a sliver of compression because an encoding run cannot cross a row-group boundary (option A has it backwards)."
+    },
+    {
+      "id": "m3-q04",
+      "category": "BigQuery Scaling",
+      "page": "Module3-nanoDB/case-study-bigquery-scaling",
+      "difficulty": "intro",
+      "question": "Which three techniques combine to let BigQuery turn \"scan a petabyte\" into a seconds-long query?",
+      "options": [
+        "Columnar storage, heavy compression, and tree-based distributed execution",
+        "Row storage, B+Tree indexes, and a large buffer pool",
+        "In-memory caching, materialized views, and query rewriting",
+        "Hash partitioning, sort-merge joins, and replacement selection"
+      ],
+      "correct": 0,
+      "explanation": "BigQuery (Dremel) reads only the referenced columns, compresses them heavily (dictionary and run-length encoding), and shards the scan across thousands of on-demand workers whose results bubble up a tree. Indexes and buffer pools are the OLTP toolkit, not what makes Dremel-style analytics fast."
+    },
+    {
+      "id": "m3-q05",
+      "category": "BigQuery Scaling",
+      "page": "Module3-nanoDB/case-study-bigquery-scaling",
+      "difficulty": "core",
+      "question": "At Google, querying web-document trends by <code>Date</code> took hours on the original row-based storage. What was the root cause?",
+      "options": [
+        "The Date column was unindexed, so every query did a binary search per row",
+        "Dates compress poorly, so the scans were IO-bound on the Date column itself",
+        "Row storage cannot be distributed across multiple workers",
+        "Reading the tiny Date field dragged along the megabytes-per-row HTML Body stored in the same rows"
+      ],
+      "correct": 3,
+      "explanation": "In a row layout, all columns of a record live together, so fetching a few bytes of <code>Date</code> meant reading the heavyweight <code>Body</code> field too — hours of wasted IO at Google scale. Dremel fixed this by storing each column separately so a Date query never touches the Body."
+    },
+    {
+      "id": "m3-q06",
+      "category": "Hybrid Storage",
+      "page": "Module3-nanoDB/hybrid-storage-example",
+      "difficulty": "core",
+      "question": "ClickHouse's MergeTree sustains ~1M inserts/sec AND ~100 ms analytics on the same Listens table. How does the hybrid design achieve both?",
+      "options": [
+        "It keeps two full copies of the table, one row-oriented and one columnar, and applies every insert to both synchronously",
+        "It stores everything columnar but caches the last hour of data in RAM",
+        "Fresh writes land as small row-oriented parts for fast inserts, and a background merge converts aged parts into compressed columnar segments for fast scans",
+        "It routes OLTP queries to a replica and OLAP queries to the primary"
+      ],
+      "correct": 2,
+      "explanation": "Age picks the layout: recent data needs fast whole-row appends (row parts), old data needs fast column scans (columnar segments), and a background merge converts between them while one query engine reads both. Synchronously double-writing (option A) would drag inserts down to columnar speeds, which is exactly what hybrid avoids."
+    },
+    {
+      "id": "m3-q07",
+      "category": "Hash Partitioning",
+      "page": "Module3-nanoDB/hash-partitioning",
+      "difficulty": "intro",
+      "question": "A 64 GB Listens table must be processed on a machine with 6.4 GB of RAM. What does hash partitioning by <code>hash(user_id) % 16</code> accomplish?",
+      "options": [
+        "It splits the table into 16 RAM-sized partitions, with all rows for a given user guaranteed to land in the same partition",
+        "It sorts the table by <code>user_id</code> so later operators get sorted input",
+        "It removes duplicate rows so the table fits in RAM",
+        "It builds a 16-bucket index so point lookups become O(1)"
+      ],
+      "correct": 0,
+      "explanation": "Hashing routes every row with the same key to the same partition number, producing 16 partitions of ~4 GB that each fit in RAM and can be sorted, joined, or grouped independently. Hash partitioning does not sort anything — neighbouring keys scatter across partitions — and it builds partition files, not an index."
+    },
+    {
+      "id": "m3-q08",
+      "category": "BigSort",
+      "page": "Module3-nanoDB/big-sort",
+      "difficulty": "core",
+      "question": "In BigSort's merge phase with B buffer pages, each merge pass combines only about <code>B−1</code> runs at a time. Why not all B?",
+      "options": [
+        "One page must be reserved as the output buffer, leaving B−1 pages for run inputs",
+        "The last page holds the sort comparator's state",
+        "Merging B runs would make the algorithm quadratic instead of O(N log N)",
+        "One page is reserved for the write-ahead log so a crash can be replayed"
+      ],
+      "correct": 0,
+      "explanation": "A k-way merge needs one input buffer per run plus one buffer to accumulate output before flushing it to disk, so B pages of RAM support a (B−1)-way merge. There is no comparator state page or WAL page in the model — the reservation is purely for output."
+    },
+    {
+      "id": "m3-q09",
+      "category": "BigSort",
+      "page": "Module3-nanoDB/big-sort",
+      "difficulty": "stretch",
+      "question": "The familiar \"BigSort costs <code>4N</code>\" figure is a special case, not the general formula. When is 4N actually correct?",
+      "options": [
+        "Whenever the buffer has at least 3 pages, since a 2-way merge always finishes in one pass",
+        "Only when the table is already sorted, so Phase 1 can be skipped",
+        "When Phase 2 finishes in a single merge pass, i.e. all Phase-1 runs can be merged at once (roughly N/B ≤ B−1)",
+        "Never — the true cost is always 2N because each page is read and written once"
+      ],
+      "correct": 2,
+      "explanation": "Each pass reads and writes every page (2N), and the general cost is <code>2N × (1 + ⌈log_(B−1)(N/B)⌉)</code>; 4N is the case of one run-building pass plus exactly one merge pass, which requires the run count to fit within a single (B−1)-way merge. With a tiny buffer or huge file, extra merge passes push the cost past 4N — that's why BigSort is O(N log N) in IO, not linear."
+    },
+    {
+      "id": "m3-q10",
+      "category": "Block Nested Loop Join",
+      "page": "Module3-nanoDB/block-nested-loop-join",
+      "difficulty": "core",
+      "question": "You BNLJ-join Songs (100 pages) with Listens (10,000 pages) using B = 10 buffer pages. Putting Songs on the outer loop costs 100 + ⌈100/10⌉ × 10,000 = 100,100 IOs. Why is Songs the right choice for the outer table?",
+      "options": [
+        "The outer table is the one that gets a hash table built on it, and small tables hash faster",
+        "The number of blocks of the outer table determines how many times the inner table is fully re-scanned, so the smaller table should be outer",
+        "The outer table must fit entirely in RAM, and only Songs does",
+        "Order doesn't matter — swapping the tables gives exactly the same IO count"
+      ],
+      "correct": 1,
+      "explanation": "The inner table is re-scanned once per outer block, so minimizing outer blocks (⌈P(outer)/B⌉) minimizes the rescans: with Listens as outer you'd pay 1,000 × 100 = 100,000 scan IOs plus 10,000, totalling 110,000 — 10% worse. BNLJ builds no hash table, and the outer table only needs to fit one block at a time, not entirely in RAM."
+    },
+    {
+      "id": "m3-q11",
+      "category": "Block Nested Loop Join",
+      "page": "Module3-nanoDB/block-nested-loop-join",
+      "difficulty": "core",
+      "question": "A query joins Songs to Artists on <code>distance(s.audio_vector, a.style_vector) &lt; 0.2</code>. Which join algorithm can execute this, and why?",
+      "options": [
+        "Hash partition join — hashing the vectors sends similar songs to the same partition",
+        "Sort-merge join — sorting by vector distance lets the merge phase find close pairs",
+        "Block nested loop join — it evaluates an arbitrary predicate on every row pair, so it handles similarity and range conditions that hash and sort-merge cannot",
+        "None — similarity joins require a specialized vector database"
+      ],
+      "correct": 2,
+      "explanation": "BNLJ compares every pair of rows, so the predicate can be anything: similarity, distance, ranges, or compound conditions. Hash and sort-merge joins fundamentally rely on equality of the join key — hashing a vector doesn't put <em>near</em> vectors in the same bucket, and there is no single sort order that brings all close pairs together."
+    },
+    {
+      "id": "m3-q12",
+      "category": "Hash Partition Join",
+      "page": "Module3-nanoDB/hash-partition-join",
+      "difficulty": "core",
+      "question": "The best-case cost of Hash Partition Join is <code>3(N+M) + OUT</code>. Where do the three passes over the data come from?",
+      "options": [
+        "Read both tables, sort both tables, then merge them",
+        "Hash both tables, verify the hash function is collision-free, then join",
+        "Read the smaller table three times while streaming the larger table once",
+        "Read both tables to partition them, write the partitions out, then read the partitions back to join in RAM"
+      ],
+      "correct": 3,
+      "explanation": "Phase 1 reads each table once (1st pass) and writes every row into its partition file (2nd pass); Phase 2 reads each partition pair back to build and probe a hash table in RAM (3rd pass). Sorting is sort-merge join's cost, not HPJ's."
+    },
+    {
+      "id": "m3-q13",
+      "category": "Hash Partition Join",
+      "page": "Module3-nanoDB/hash-partition-join",
+      "difficulty": "stretch",
+      "question": "During an HPJ of Users and Listens, <code>user_id = 1</code> (a system account) has 10M listens, so partition 1 overflows RAM while all other partitions fit. What does the algorithm do?",
+      "options": [
+        "Fail the query, since HPJ requires every partition to fit in RAM",
+        "Silently fall back to BNLJ for the entire join",
+        "Increase the global partition count and re-run Phase 1 on both full tables",
+        "Detect the oversized partition and recursively re-partition just that partition with a different hash function until the pieces fit"
+      ],
+      "correct": 3,
+      "explanation": "Hash skew from hot keys is handled locally: only the overflowing partition is recursively re-partitioned (with a different hash, or handled by a sort-merge fallback), adding an extra pass for that data only. Re-running Phase 1 on everything would waste the work already done on the well-sized partitions."
+    },
+    {
+      "id": "m3-q14",
+      "category": "Sort-Merge Join",
+      "page": "Module3-nanoDB/sort-merge-join",
+      "difficulty": "core",
+      "question": "Beyond the join result itself, what useful property does Sort-Merge Join's output have that Hash Partition Join's output lacks?",
+      "options": [
+        "The output is already sorted on the join key, so a downstream operator that wants that order pays no extra sort",
+        "The output is deduplicated, so DISTINCT comes free",
+        "The output is smaller, because SMJ drops non-matching rows earlier than HPJ",
+        "The output is partitioned across disks for parallel reads"
+      ],
+      "correct": 0,
+      "explanation": "SMJ's merge walks two sorted runs in lockstep, so results stream out in join-key order — a following GROUP BY or ORDER BY on (a prefix of) that key is free. Both algorithms produce the same rows for an inner join; SMJ doesn't deduplicate (a key with m and n matches emits the full m × n cross-product for that group)."
+    },
+    {
+      "id": "m3-q15",
+      "category": "IO Cost Comparison",
+      "page": "Module3-nanoDB/io-algorithms",
+      "difficulty": "stretch",
+      "question": "For a fixed join, raising the write cost <code>C_w</code> from 1 to 10 inflates the SMJ and HPJ costs but leaves BNLJ untouched. Why?",
+      "options": [
+        "BNLJ writes its intermediates to RAM instead of disk",
+        "SMJ and HPJ must write intermediate data (sorted runs, partition files) to disk, while BNLJ only ever reads the base tables",
+        "BNLJ batches its writes into 64 MB pages, amortizing the cost to zero",
+        "The optimizer caps BNLJ's cost at the buffer size regardless of C_w"
+      ],
+      "correct": 1,
+      "explanation": "BNLJ is a pure-read algorithm: it scans blocks of the outer and re-scans the inner, never materializing intermediate files, so C_w never enters its formula. SMJ writes sorted runs during BigSort and HPJ writes partition files, so expensive writes widen BNLJ's lead — one reason BNLJ wins once the buffer is large."
+    },
+    {
+      "id": "m3-q16",
+      "category": "IO Cost Comparison",
+      "page": "Module3-nanoDB/io-algorithms",
+      "difficulty": "core",
+      "question": "Sweeping buffer size B for the same 100 GB × 1 TB join: at B = 10 pages HPJ wins, but at B = 10,000 pages BNLJ wins. What explains the crossover?",
+      "options": [
+        "HPJ's cost grows linearly with B, so big buffers make partitioning expensive",
+        "BNLJ becomes cache-oblivious at large B, eliminating all IO",
+        "HPJ's cost is flat (~3 passes regardless of B), while BNLJ's rescans of the inner table shrink dramatically as more of the outer table fits per block",
+        "At large B, sort-merge join subsumes BNLJ, so the optimizer relabels it"
+      ],
+      "correct": 2,
+      "explanation": "HPJ is roughly one read plus one write plus one read no matter how big the buffer is, so its cost stays flat; BNLJ's cost is dominated by ⌈P(outer)/B⌉ inner-table scans, which collapse as B grows (2.6M IOs at B=10 down to 18K at B=10,000). HPJ's cost doesn't grow with B — it just stops being the cheapest option."
+    }
+  ]
+}

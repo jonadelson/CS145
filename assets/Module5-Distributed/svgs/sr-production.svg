@@ -1,0 +1,48 @@
+<svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="srp-t srp-d">
+  <title id="srp-t">In production: shard, then replicate</title>
+  <desc id="srp-d">Production runs both mechanisms together. Spotify's 10 TB Listens table is
+  sharded ten ways for capacity, then each shard is replicated three times on different racks
+  for safety, so a user's shard sits on three machines and any one can serve the read. The
+  figure shows the ten shards, one shard fanned out to three replicas, and a read served by
+  any replica. Color key: pink is the shard in focus and its three replicas, grey is the other
+  shards and the machines.</desc>
+
+  <defs><marker id="ah-srp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+    <marker id="ah-srpp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#DB2777"/></marker></defs>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">In Production: Shard, Then Replicate</text>
+  <text x="450" y="54" text-anchor="middle" font-size="14" fill="#6B7280">Spotify's 10 TB Listens: 10 shards for size, 3 replicas each for safety.</text>
+
+  <!-- 10 shards -->
+  <g data-step="1">
+    <text x="450" y="86" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Sharded 10 ways — capacity</text>
+    <g fill="#FFFFFF" stroke="#6B7280" stroke-width="1">
+      <rect x="70" y="98" width="70" height="36" rx="4"/><rect x="146" y="98" width="70" height="36" rx="4"/><rect x="222" y="98" width="70" height="36" rx="4"/><rect x="298" y="98" width="70" height="36" rx="4"/><rect x="374" y="98" width="70" height="36" rx="4"/><rect x="450" y="98" width="70" height="36" rx="4"/><rect x="526" y="98" width="70" height="36" rx="4"/><rect x="602" y="98" width="70" height="36" rx="4"/><rect x="678" y="98" width="70" height="36" rx="4"/><rect x="754" y="98" width="70" height="36" rx="4"/>
+    </g>
+    <g font-size="13" fill="#3F3F46" text-anchor="middle"><text x="105" y="121">S1</text><text x="181" y="121">S2</text><text x="257" y="121">S3</text><text x="333" y="121">S4</text><text x="409" y="121">S5</text><text x="485" y="121">S6</text><text x="561" y="121">S7</text><text x="637" y="121">S8</text><text x="713" y="121">S9</text><text x="789" y="121">S10</text></g>
+  </g>
+
+  <!-- replicate one shard -->
+  <g data-step="2">
+    <rect x="222" y="98" width="70" height="36" rx="4" fill="#FBE3EE" stroke="#DB2777" stroke-width="2"/>
+    <text x="257" y="121" text-anchor="middle" font-size="13" font-weight="700" fill="#0E0E10">S3</text>
+    <text x="450" y="186" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Each shard → 3 replicas on different racks</text>
+    <line x1="257" y1="138" x2="200" y2="210" stroke="#DB2777" stroke-width="2" marker-end="url(#ah-srpp)"/>
+    <line x1="257" y1="138" x2="450" y2="210" stroke="#DB2777" stroke-width="2" marker-end="url(#ah-srpp)"/>
+    <line x1="257" y1="138" x2="700" y2="210" stroke="#DB2777" stroke-width="2" marker-end="url(#ah-srpp)"/>
+    <g fill="#FFFFFF" stroke="#DB2777" stroke-width="2"><rect x="90" y="214" width="220" height="56" rx="8"/><rect x="340" y="214" width="220" height="56" rx="8"/><rect x="590" y="214" width="220" height="56" rx="8"/></g>
+    <g text-anchor="middle"><text x="200" y="240" font-size="14" font-weight="700" fill="#0E0E10">S3 copy · Rack 1</text><text x="450" y="240" font-size="14" font-weight="700" fill="#0E0E10">S3 copy · Rack 2</text><text x="700" y="240" font-size="14" font-weight="700" fill="#0E0E10">S3 copy · Rack 3</text></g>
+    <g font-size="12.5" fill="#6B7280" text-anchor="middle"><text x="200" y="258">healthy</text><text x="450" y="258">healthy</text><text x="700" y="258">healthy</text></g>
+  </g>
+
+  <!-- any replica serves -->
+  <g data-step="3">
+    <line x1="450" y1="320" x2="450" y2="272" stroke="#DB2777" stroke-width="2.5" marker-end="url(#ah-srpp)"/>
+    <text x="450" y="342" text-anchor="middle" font-size="15" font-weight="700" fill="#DB2777">A read hits any one replica.</text>
+    <text x="450" y="364" text-anchor="middle" font-size="14" fill="#3F3F46">A user's shard sits on 3 machines, so a dead machine loses nothing.</text>
+  </g>
+
+  <text x="450" y="414" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the shard in focus &amp; its 3 replicas&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the other shards &amp; machines</tspan></text>
+</svg>

@@ -1,0 +1,157 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.797
+All of module three was building data structures, one at a time.
+
+00:00:04.797 --> 00:00:07.594
+AB-plus tree for ranges.
+
+00:00:07.594 --> 00:00:10.391
+An LSM tree for heavy writes.
+
+00:00:10.391 --> 00:00:13.188
+Plain hashing to partition across machines.
+
+00:00:13.188 --> 00:00:15.985
+Geo-hashing for maps.
+
+00:00:15.985 --> 00:00:18.782
+And vector hashing for similarity.
+
+00:00:18.782 --> 00:00:21.580
+Each one was the hero of its own page.
+
+00:00:21.580 --> 00:00:24.377
+But real systems are never one perfect structure.
+
+00:00:24.377 --> 00:00:27.174
+They are a toolbox.
+
+00:00:27.174 --> 00:00:29.971
+So here is the capstone question.
+
+00:00:29.971 --> 00:00:32.768
+A real problem lands on your desk.
+
+00:00:32.768 --> 00:00:35.565
+Which tool do you reach for?
+
+00:00:35.565 --> 00:00:38.362
+That judgment, picking the right one for each job, is the whole skill of module three.
+
+00:00:38.362 --> 00:00:41.167
+Take one Spotify service and seven jobs.
+
+00:00:41.167 --> 00:00:43.972
+One.
+
+00:00:43.972 --> 00:00:46.777
+Artists want date-range stats over trillions of listens.
+
+00:00:46.777 --> 00:00:49.582
+Ranges mean a B-plus tree.
+
+00:00:49.582 --> 00:00:52.387
+Keys stay sorted, so you jump to the start date and scan.
+
+00:00:52.387 --> 00:00:55.192
+Two.
+
+00:00:55.192 --> 00:00:57.997
+Cluster similar users and songs.
+
+00:00:57.997 --> 00:01:00.802
+That is similarity in high dimensions, where a tree falls apart, so reach for LSH.
+
+00:01:00.802 --> 00:01:03.607
+Similar vectors share a bucket.
+
+00:01:03.607 --> 00:01:06.412
+Three.
+
+00:01:06.412 --> 00:01:09.217
+Find hyper-local fan zones, over a hundred fans.
+
+00:01:09.217 --> 00:01:12.022
+That is geography.
+
+00:01:12.022 --> 00:01:14.826
+Map addresses to H three cells, then group by the cell.
+
+00:01:14.826 --> 00:01:17.631
+Four.
+
+00:01:17.631 --> 00:01:20.436
+A live drop, fifty thousand writes at once.
+
+00:01:20.436 --> 00:01:23.241
+AB-plus tree chokes on random writes, so an LSM tree takes the surge as sequential flushes.
+
+00:01:23.241 --> 00:01:26.046
+Five.
+
+00:01:26.046 --> 00:01:28.851
+A viral song floods the cluster.
+
+00:01:28.851 --> 00:01:31.656
+Hash partition on song i d to spread the load and dodge hot spots.
+
+00:01:31.656 --> 00:01:34.461
+Six.
+
+00:01:34.461 --> 00:01:37.266
+A privacy-safe API for outside apps.
+
+00:01:37.266 --> 00:01:40.071
+Differential privacy adds just enough noise that no single user shows through.
+
+00:01:40.071 --> 00:01:42.876
+Seven.
+
+00:01:42.876 --> 00:01:45.681
+Messy third-party feeds.
+
+00:01:45.681 --> 00:01:48.486
+Versioned tables let you roll back to the last known good.
+
+00:01:48.486 --> 00:01:51.229
+Look back at the seven.
+
+00:01:51.229 --> 00:01:53.973
+Not one of them is the best structure overall.
+
+00:01:53.973 --> 00:01:56.716
+Each is the best structure for exactly one access pattern.
+
+00:01:56.716 --> 00:01:59.459
+Ranges go to the B-plus tree.
+
+00:01:59.459 --> 00:02:02.202
+Similarity to LSH.
+
+00:02:02.202 --> 00:02:04.946
+Geography to H three.
+
+00:02:04.946 --> 00:02:07.689
+Write surges to LSM.
+
+00:02:07.689 --> 00:02:10.432
+Scale to hash partitioning.
+
+00:02:10.432 --> 00:02:13.176
+Privacy to differential privacy.
+
+00:02:13.176 --> 00:02:15.919
+And recovery to versioned tables.
+
+00:02:15.919 --> 00:02:18.662
+That is what all of module three was really teaching.
+
+00:02:18.662 --> 00:02:21.405
+Not any single structure, but how to read a workload and reach for the tool that fits it.
+
+00:02:21.405 --> 00:02:24.149
+Match the problem to the tool.
+
+00:02:24.149 --> 00:02:26.892
+Next, a short quiz to lock it in.

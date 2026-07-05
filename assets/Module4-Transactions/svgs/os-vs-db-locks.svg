@@ -1,0 +1,85 @@
+<svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ovd-t ovd-d">
+  <title id="ovd-t">OS lock vs database lock manager: same word, different layer</title>
+  <desc id="ovd-d">A two-column comparison. The left column, grey, is the OS
+  lock: a mutex or semaphore that is binary locked or unlocked, has no idea what
+  data it guards, coordinates threads, and leaves deadlock for you to detect by
+  hand. The right column, violet, is the database lock manager: it locks at
+  table, page, or row granularity, supports intent locks that announce a plan,
+  resolves deadlock automatically, and scales to millions of transactions. Color
+  key: grey is the OS lock, a mutex or semaphore; violet is the database lock
+  manager.</desc>
+  <defs>
+    <marker id="ah-ovd" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="480" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Same word, two layers on one machine</text>
+  <text x="480" y="62" text-anchor="middle" font-size="14" fill="#6B7280">The database lock manager is a software layer that sits above the OS&#8217;s mutex, not a replacement for it.</text>
+
+  <!-- LEFT: OS lock (grey) -->
+  <g data-step="1">
+    <rect x="48" y="92" width="416" height="392" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="48" y="92" width="416" height="6" rx="3" fill="#475569"/>
+    <text x="72" y="124" font-size="13" font-weight="700" fill="#475569" letter-spacing="1">OS LOCK &#183; MUTEX / SEMAPHORE</text>
+    <text x="72" y="146" font-size="14" fill="#6B7280">One lock bit, for thread coordination.</text>
+
+    <rect x="72" y="164" width="368" height="40" rx="6" fill="#0D1117"/>
+    <text x="88" y="189" font-family="JetBrains Mono, monospace" font-size="14" xml:space="preserve"><tspan fill="#79C0FF">mutex_lock</tspan><tspan fill="#E6EDF3">(&amp;latch)</tspan><tspan fill="#8B949E">  // taken or free</tspan></text>
+
+    <!-- binary scope -->
+    <rect x="72" y="224" width="368" height="56" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="88" y="246" font-size="14" font-weight="700" fill="#3F3F46">Binary scope</text>
+    <text x="88" y="267" font-size="13.5" fill="#6B7280">One bit: locked or unlocked. No shared mode.</text>
+
+    <!-- no data awareness -->
+    <rect x="72" y="290" width="368" height="56" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="88" y="312" font-size="14" font-weight="700" fill="#3F3F46">No data awareness</text>
+    <text x="88" y="333" font-size="13.5" fill="#6B7280">Guards a memory address. Knows nothing of rows.</text>
+
+    <!-- thread level -->
+    <rect x="72" y="356" width="368" height="56" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="88" y="378" font-size="14" font-weight="700" fill="#3F3F46">Thread-level</text>
+    <text x="88" y="399" font-size="13.5" fill="#6B7280">Coordinates threads inside one process.</text>
+
+    <!-- manual deadlock -->
+    <rect x="72" y="422" width="368" height="50" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="88" y="453" font-size="14" font-weight="700" fill="#3F3F46">Deadlock is your problem<tspan font-weight="400" fill="#6B7280">  &#183; detect by hand.</tspan></text>
+  </g>
+
+  <!-- center arrow -->
+  <line x1="478" y1="288" x2="494" y2="288" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-ovd)"/>
+
+  <!-- RIGHT: Database lock manager (violet) -->
+  <g data-step="2">
+    <rect x="496" y="92" width="416" height="392" rx="8" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="496" y="92" width="416" height="6" rx="3" fill="#7C3AED"/>
+    <text x="520" y="124" font-size="13" font-weight="700" fill="#7C3AED" letter-spacing="1">DATABASE LOCK MANAGER</text>
+    <text x="520" y="146" font-size="14" fill="#3F3F46">A coordinator that understands the data.</text>
+
+    <rect x="520" y="164" width="368" height="40" rx="6" fill="#0D1117"/>
+    <text x="536" y="189" font-family="JetBrains Mono, monospace" font-size="14" xml:space="preserve"><tspan fill="#79C0FF">lockManager</tspan><tspan fill="#E6EDF3">.acquire(likesRow, </tspan><tspan fill="#79C0FF">IX</tspan><tspan fill="#E6EDF3">)</tspan></text>
+
+    <!-- granularity -->
+    <rect x="520" y="224" width="368" height="56" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="536" y="246" font-size="14" font-weight="700" fill="#7C3AED">Table &#8594; page &#8594; row granularity</text>
+    <text x="536" y="267" font-size="13.5" fill="#3F3F46">Lock the whole table or one row, as needed.</text>
+
+    <!-- intent locks -->
+    <rect x="520" y="290" width="368" height="56" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="536" y="312" font-size="14" font-weight="700" fill="#7C3AED">Intent locks</text>
+    <text x="536" y="333" font-size="13.5" fill="#3F3F46">&#8220;I plan to write rows here.&#8221; Announce ahead.</text>
+
+    <!-- million txn scale -->
+    <rect x="520" y="356" width="368" height="56" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="536" y="378" font-size="14" font-weight="700" fill="#7C3AED">Transaction-level, million scale</text>
+    <text x="536" y="399" font-size="13.5" fill="#3F3F46">Coordinates millions of transactions at once.</text>
+
+    <!-- automatic deadlock -->
+    <rect x="520" y="422" width="368" height="50" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="536" y="453" font-size="14" font-weight="700" fill="#7C3AED">Deadlock resolved for you<tspan font-weight="400" fill="#3F3F46">  &#183; detect, abort a victim.</tspan></text>
+  </g>
+
+  <text x="480" y="516" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#475569" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the OS lock (mutex or semaphore)&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the database lock manager</tspan></text>
+</svg>

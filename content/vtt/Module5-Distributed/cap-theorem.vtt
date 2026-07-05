@@ -1,0 +1,76 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.683
+Across many machines, one picture governs every trade-off.
+
+00:00:05.683 --> 00:00:09.365
+The CAP theorem: three properties, consistency, availability, partition tolerance.
+
+00:00:09.365 --> 00:00:13.048
+Here is the catch.
+
+00:00:13.048 --> 00:00:16.731
+The cable linking your US and EU data centers can actually be cut, and when it is, the two sides cannot talk.
+
+00:00:16.731 --> 00:00:20.413
+You cannot just stop serving.
+
+00:00:20.413 --> 00:00:24.096
+So partition tolerance is not optional.
+
+00:00:24.096 --> 00:00:27.779
+It is a given, the green circle you always live inside.
+
+00:00:27.779 --> 00:00:31.462
+That leaves exactly one real choice.
+
+00:00:31.462 --> 00:00:35.144
+During a partition, consistency or availability.
+
+00:00:35.144 --> 00:00:38.827
+You cannot keep both.
+
+00:00:38.827 --> 00:00:43.248
+Say you pick consistency, the purple side.
+
+00:00:43.248 --> 00:00:47.669
+When a partition hits, the system refuses any request it cannot verify.
+
+00:00:47.669 --> 00:00:52.090
+Spotify's US and EU regions cannot talk, so Premium upgrades block on both sides until they reconnect.
+
+00:00:52.090 --> 00:00:56.511
+Nobody gets a wrong answer, but plenty of people get no answer.
+
+00:00:56.511 --> 00:01:00.932
+Consistency winning over availability.
+
+00:01:00.932 --> 00:01:04.601
+Now the blue side, availability.
+
+00:01:04.601 --> 00:01:08.270
+Both regions keep accepting writes, so nobody is blocked.
+
+00:01:08.270 --> 00:01:11.938
+But when the partition heals, the same account may have two versions, and you have to reconcile them.
+
+00:01:11.938 --> 00:01:15.607
+Sometimes automatic, sometimes manual, sometimes you lose data.
+
+00:01:15.607 --> 00:01:19.276
+Availability winning over consistency.
+
+00:01:19.276 --> 00:01:24.319
+CAP is not a limit you avoid.
+
+00:01:24.319 --> 00:01:29.363
+It is a choice you make, explicitly, for every distributed system: during a partition, consistency or availability.
+
+00:01:29.363 --> 00:01:34.406
+To see which one a given system picked, and why, read its own docs.
+
+00:01:34.406 --> 00:01:39.450
+So the machines agree, stay available, and survive splits.
+
+00:01:39.450 --> 00:01:44.493
+Next: how a single query runs across all of them, with hash and sort.

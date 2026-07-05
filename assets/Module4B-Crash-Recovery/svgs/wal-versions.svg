@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" role="img" aria-labelledby="wv-t wv-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="wv-t">The WAL log is the version history: replay it to any past state</title>
+  <desc id="wv-d">The log drawn top to bottom in time, each row an old-to-new change: T1 sets A to 22.8 and B to 27.6, then later T2 and T3 change them again. To see the state at any past moment, stop replaying the rows there. Stopping just after T1 gives the version A=22.8, B=27.6. Replaying forward uses the new values, stepping back uses the old, so the log reaches any version either way. Color key: orange is the old value, green is the new value, violet is the log.</desc>
+
+  <defs>
+    <marker id="ah-wv" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">The log is the version history</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">Every row holds old and new, so you can replay the log to any past state.</text>
+
+  <!-- step 1: the log over time -->
+  <g data-step="1">
+    <rect x="60" y="86" width="404" height="278" rx="8" fill="#FFFFFF" stroke="#A78BFA" stroke-width="2"/>
+    <rect x="60" y="86" width="404" height="6" rx="3" fill="#A78BFA"/>
+    <text x="110" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Txn</text>
+    <text x="192" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">Var</text>
+    <text x="308" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#D97706">old value</text>
+    <text x="416" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">new value</text>
+    <line x1="74" y1="128" x2="450" y2="128" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="110" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="192" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">A</text>
+    <text x="308" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">19</text>
+    <text x="416" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">22.8</text>
+    <text x="110" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T1</text>
+    <text x="192" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">B</text>
+    <text x="308" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">23</text>
+    <text x="416" y="188" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">27.6</text>
+    <text x="110" y="248" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T2</text>
+    <text x="192" y="248" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">A</text>
+    <text x="308" y="248" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">22.8</text>
+    <text x="416" y="248" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">30</text>
+    <text x="110" y="280" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">T3</text>
+    <text x="192" y="280" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#0E0E10">B</text>
+    <text x="308" y="280" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#D97706">27.6</text>
+    <text x="416" y="280" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#16A34A">33</text>
+    <text x="192" y="318" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#6B7280">&#8230;</text>
+    <text x="82" y="352" font-size="14" fill="#6B7280">time &#8595;</text>
+  </g>
+
+  <!-- step 2: pick a moment, replay to it -->
+  <g data-step="2">
+    <line x1="60" y1="208" x2="500" y2="208" stroke="#6B7280" stroke-width="2" stroke-dasharray="6,4"/>
+    <text x="474" y="203" font-size="14" font-weight="700" fill="#6B7280">replay up to here</text>
+    <line x1="500" y1="208" x2="556" y2="208" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-wv)"/>
+    <rect x="560" y="150" width="300" height="116" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+    <rect x="560" y="150" width="300" height="6" rx="3" fill="#16A34A"/>
+    <text x="710" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#16A34A">The version at that moment</text>
+    <text x="710" y="212" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#0E0E10">A = 22.8</text>
+    <text x="710" y="242" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700" fill="#0E0E10">B = 27.6</text>
+    <text x="710" y="298" text-anchor="middle" font-size="14" fill="#3F3F46">forward: redo the <tspan fill="#16A34A" font-weight="700">new</tspan> values</text>
+    <text x="710" y="320" text-anchor="middle" font-size="14" fill="#3F3F46">back: undo the <tspan fill="#D97706" font-weight="700">old</tspan> values</text>
+  </g>
+
+  <!-- color key -->
+  <text x="40" y="386" font-size="14" fill="#6B7280">Color key  <tspan fill="#D97706" font-weight="700">orange</tspan> = old value  ·  <tspan fill="#16A34A" font-weight="700">green</tspan> = new value  ·  <tspan fill="#7C3AED" font-weight="700">violet</tspan> = the log</text>
+</svg>

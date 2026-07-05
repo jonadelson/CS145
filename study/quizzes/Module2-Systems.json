@@ -1,0 +1,366 @@
+{
+  "module": "Module2-Systems",
+  "title": "Systems Basics",
+  "questions": [
+    {
+      "id": "m2-q01",
+      "category": "Data Centers",
+      "page": "Module2-Systems/data-centers",
+      "difficulty": "intro",
+      "question": "In a modern data center, the same byte can live in L1 cache (1 ns) or require a cross-continent round trip (100 ms). Roughly how large is this end-to-end latency gap?",
+      "options": [
+        "About 100x",
+        "About 10,000x",
+        "About 100,000,000x (eight orders of magnitude spanning seven tiers)",
+        "About 1,000x"
+      ],
+      "correct": 2,
+      "explanation": "1 ns to 100 ms is a 100,000,000x (10^8) gap across seven latency tiers. Guessing 100x or 1,000x captures only a single step of the ladder (e.g. cache to RAM), not the full end-to-end spread that every cost model in the course is priced against."
+    },
+    {
+      "id": "m2-q02",
+      "category": "Storage & Paging",
+      "page": "Module2-Systems/storage-paging",
+      "difficulty": "intro",
+      "question": "A big-data system uses 64 MB pages. You need a single 200-byte row that lives on a page on the SSD. What does the read cost, in IO terms?",
+      "options": [
+        "A tiny fraction of an IO, proportional to 200 bytes / 64 MB",
+        "One full IO — the disk hands you the entire 64 MB page whether you want one byte or all of it",
+        "Zero IOs, because single rows are served from cache lines",
+        "Two IOs: one to locate the row and one to read it"
+      ],
+      "correct": 1,
+      "explanation": "Data moves between SSD and RAM one fixed-size page at a time, so one page moved is one IO regardless of how many bytes you actually use. That's why algorithms minimize page count, not byte count — the fractional-cost answer is exactly the intuition the page model replaces."
+    },
+    {
+      "id": "m2-q03",
+      "category": "Storage & Paging",
+      "page": "Module2-Systems/storage-paging",
+      "difficulty": "core",
+      "question": "IO cost has two parts: a fixed access latency and a sustained transfer rate. For large 64 MB pages read from an SSD, which part dominates?",
+      "options": [
+        "Transfer time dominates — moving 64 MB at ~5 GB/s takes ~13 ms, far more than the 10 µs access latency",
+        "Access latency dominates, because SSDs have slow seek arms",
+        "They are always roughly equal by design",
+        "Neither — CPU processing time dominates all IO"
+      ],
+      "correct": 0,
+      "explanation": "For large pages, transfer time dominates access time (64 MB / 5 GB/s ≈ 12.8 ms vs 10 µs access); the balance flips only for small pages, where the fixed access cost dominates. SSDs have no mechanical seek arms — that distractor describes HDDs, and even there the 64 MB transfer at 100 MB/s (0.64 s) still dwarfs the 10 ms seek."
+    },
+    {
+      "id": "m2-q04",
+      "category": "Storage & Paging",
+      "page": "Module2-Systems/storage-paging",
+      "difficulty": "core",
+      "question": "Rescale the storage hierarchy so an L1 cache hit takes one second. On that human scale, roughly how long does a hard disk read take?",
+      "options": [
+        "About 15 minutes",
+        "About 3 hours",
+        "About a day",
+        "About 4 months"
+      ],
+      "correct": 3,
+      "explanation": "On the one-second-cache scale, RAM is a 1.5-minute pause, an SSD read is about 3 hours, and an HDD read is about 4 months. \"3 hours\" is tempting but that's the SSD tier — the HDD sits another ~1,000x below it, which is why a query that falls to disk on every page pays the four-month rate one page at a time."
+    },
+    {
+      "id": "m2-q05",
+      "category": "Storage & Paging",
+      "page": "Module2-Systems/storage-paging",
+      "difficulty": "stretch",
+      "question": "A team's GPU delivers 312 TFLOPS but their 1 TB dataset lives on an NVMe SSD, and scans are slow. They propose buying a server with a faster GPU. Why won't that help?",
+      "options": [
+        "GPUs cannot execute database comparison operations",
+        "Servers use slower SSDs than laptops",
+        "The bottleneck is the links that feed the processor — PCIe moves ~32 GB/s and the SSD ~5 GB/s, so reading 1 TB takes ~30+ seconds while the compute takes ~0",
+        "The dataset must first be converted to a columnar format before the GPU can read it"
+      ],
+      "correct": 2,
+      "explanation": "Inside one machine the processor is never the slow part: compute is effectively free at 312 TFLOPS, but the data path (SSD ~5 GB/s, PCIe ~32 GB/s) is narrow, and a server adds cores, RAM, and SSDs but never link speed. Buying more compute attacks the part of the pipeline that already takes approximately zero time."
+    },
+    {
+      "id": "m2-q06",
+      "category": "IO Cost Model",
+      "page": "Module2-Systems/io-cost-model",
+      "difficulty": "intro",
+      "question": "The IO cost model prices an algorithm as <code>C_r × pages_read + C_w × pages_written</code> and ignores CPU work entirely. Why is that a safe simplification for big data?",
+      "options": [
+        "Modern query engines precompute all CPU work at load time",
+        "Moving data costs about a million times more than CPU operations, so on data larger than RAM the CPU term rounds to zero",
+        "CPU cost is included inside C_r and C_w",
+        "Databases run comparisons on the disk controller, not the CPU"
+      ],
+      "correct": 1,
+      "explanation": "In the big-data regime (100 GB+), the cost of moving data dwarfs CPU cost by roughly a factor of a million — comparing <code>4.5 &gt; 4.0</code> is nearly free next to reading a 64 MB page. C_r and C_w cover access plus transfer time for a page, not CPU work; the CPU term is dropped because it's negligible, not because it's folded in."
+    },
+    {
+      "id": "m2-q07",
+      "category": "IO Cost Model",
+      "page": "Module2-Systems/io-cost-model",
+      "difficulty": "core",
+      "question": "Algorithm A2 reads all P(R) pages of table R seven times and writes them three times. It also performs 20 × T(R) CPU operations. What is its cost under the IO cost model?",
+      "options": [
+        "<code>C_r × 7 × P(R) + C_w × 3 × P(R)</code>",
+        "<code>C_r × 7 × P(R) + C_w × 3 × P(R) + 20 × T(R)</code>",
+        "<code>(7 + 3) × T(R) × C_r</code>",
+        "<code>C_r × P(R) + C_w × P(R)</code>, since repeated passes hit cache"
+      ],
+      "correct": 0,
+      "explanation": "Count page IOs and nothing else: 7 read passes and 3 write passes over P(R) pages. The 20 × T(R) CPU operations are too fast to matter, so adding them (option B) misapplies the model, and using T(R) tuples instead of P(R) pages confuses row count with page count — the model's unit is the page."
+    },
+    {
+      "id": "m2-q08",
+      "category": "IO Reference",
+      "page": "Module2-Systems/io-reference",
+      "difficulty": "core",
+      "question": "Using the course reference values (HDD: 10 ms access, 100 MB/s scan speed), what is C_r for one 64 MB page on HDD, and which component contributes most?",
+      "options": [
+        "0.01 s, dominated by access time",
+        "0.064 s, split evenly between access and transfer",
+        "0.65 s, dominated by the 0.64 s transfer time",
+        "6.4 s, dominated by rotational delay"
+      ],
+      "correct": 2,
+      "explanation": "C_r = access + page/scan speed = 10 ms + 64 MB / 100 MB/s = 0.01 + 0.64 = 0.65 s, so even on an HDD the 64 MB transfer dominates the seek. Option A is the classic mistake of counting only the famous 10 ms seek and forgetting that a big page also takes real time to stream off the platter."
+    },
+    {
+      "id": "m2-q09",
+      "category": "IO Problem Solving",
+      "page": "Module2-Systems/problems-io-cost",
+      "difficulty": "stretch",
+      "question": "You read 200 pages: RAM serves 90% of them, and of the 20 misses, 15 come from SSD and 5 from HDD. The totals are RAM check 0.128 s, SSD 0.192 s, HDD 3.25 s. What is the key lesson?",
+      "options": [
+        "A 90% cache hit rate guarantees the workload is RAM-bound",
+        "The 5 HDD pages — just 2.5% of requests — account for about 91% of total time, so the slowest tier dominates whenever anything falls through to it",
+        "The SSD fetches are the bottleneck because there are three times as many of them",
+        "The RAM check should be skipped to save 0.128 s"
+      ],
+      "correct": 1,
+      "explanation": "Total time is 3.57 s and the HDD tail alone is 3.25 s (91%), even though it serves only 5 of 200 pages. A high hit rate is not enough on its own — and you always pay the RAM check for all pages, because that check is how caching determines hits and misses in the first place."
+    },
+    {
+      "id": "m2-q10",
+      "category": "IO Problem Solving",
+      "page": "Module2-Systems/problems-io-cost",
+      "difficulty": "stretch",
+      "question": "Reading one 64 MB page: local RAM costs 0.00064 s, local SSD 0.0128 s, local HDD 0.65 s. Fetching a page from RAM on another machine (remote read + network transfer + local write) costs about 0.0077 s. What follows?",
+      "options": [
+        "Remote data is always slower than any local storage, so caches must be single-node",
+        "Network RAM beats local RAM, so machines should share one memory pool",
+        "Network RAM is only worthwhile for pages smaller than 1 MB",
+        "Network RAM (~0.0077 s) is faster than local SSD (~0.0128 s), which is why distributed in-memory caches like Memcached and Redis Cluster beat SSD-backed databases for hot reads"
+      ],
+      "correct": 3,
+      "explanation": "With modern 10 GB/s networks, transfer cost matters more than the local-versus-remote intuition: another machine's RAM is closer in time than your own SSD. It is still ~12x slower than local RAM (0.0077 vs 0.00064 s), so \"network RAM beats local RAM\" overstates it — the win is specifically over the local SSD and HDD tiers."
+    },
+    {
+      "id": "m2-q11",
+      "category": "Basic Hashing",
+      "page": "Module2-Systems/basic-hashing",
+      "difficulty": "intro",
+      "question": "Which statement about a hash function used for bucketing (e.g. <code>h(x) = x % B</code>) is TRUE?",
+      "options": [
+        "It is deterministic and maps any-size input to a fixed range [0, B-1], but the output cannot be turned back into the input",
+        "It compresses the input, so the original value can be recovered from the hash",
+        "It guarantees that no two inputs ever share a bucket",
+        "It produces a different output each time to spread load randomly"
+      ],
+      "correct": 0,
+      "explanation": "Hashing is deterministic (same input, same output), fixed-range, and aims for a uniform spread — but it is one-way, not compression, and collisions are unavoidable (42 and 1042 both land in bucket 2 under mod 10). The \"different output each time\" option would break lookups entirely, since you could never find what you inserted."
+    },
+    {
+      "id": "m2-q12",
+      "category": "Basic Hashing",
+      "page": "Module2-Systems/basic-hashing",
+      "difficulty": "core",
+      "question": "By the birthday-paradox argument, a hash table with B = 1,000,000 buckets has about a 50% chance of its first collision after roughly how many inserts?",
+      "options": [
+        "About 500,000 inserts (half the buckets)",
+        "About 1,000,000 inserts (when the table fills)",
+        "About 1,000 inserts (√B)",
+        "About 23 inserts, as in the birthday example"
+      ],
+      "correct": 2,
+      "explanation": "Collisions become likely after about √B inserts — √1,000,000 = 1,000 — just as 23 people (≈ √365) make a shared birthday likely. \"Half the buckets\" wildly overestimates how long you stay collision-free, which is exactly why every hash table needs a collision strategy (chaining or open addressing) long before it looks full."
+    },
+    {
+      "id": "m2-q13",
+      "category": "Basic Hashing",
+      "page": "Module2-Systems/basic-hashing",
+      "difficulty": "core",
+      "question": "A string hash that sums ASCII codes (<code>hash_sum</code>) collides far more than the polynomial rolling hash. What inputs expose its weakness?",
+      "options": [
+        "Very long strings, because the sum overflows",
+        "Reorderings of the same characters — \"abc\" and \"cba\" sum identically, while the polynomial hash weights each position by a power of a prime so order matters",
+        "Strings containing digits, which have small ASCII codes",
+        "Uppercase strings, because ASCII is case-sensitive"
+      ],
+      "correct": 1,
+      "explanation": "A plain sum is order-blind: any permutation of the same characters produces the same total and thus the same bucket. The polynomial rolling hash fixes this by multiplying each character by a growing power of a prime (P = 31), so position changes the result — that's why production code uses it."
+    },
+    {
+      "id": "m2-q14",
+      "category": "Geo-hashing",
+      "page": "Module2-Systems/case-study-geohashing",
+      "difficulty": "core",
+      "question": "Why do Uber (H3) and Google grid the world into hexagons rather than squares for geo-hashing?",
+      "options": [
+        "All six of a hexagon's neighbours are exactly the same distance from the centre, so the ring a radius query reads is even in every direction — a square's four corner-neighbours sit √2 farther than its edge-neighbours",
+        "Hexagons produce shorter cell codes, saving storage",
+        "Hexagons tile the globe with no distortion while squares cannot be drawn on a sphere",
+        "Hexagonal cells hold more points per cell, reducing the number of cells"
+      ],
+      "correct": 0,
+      "explanation": "The cell shape decides the ring shape: a square has eight neighbours at two different distances (edges vs corners), making \"within 2 km\" sloppy at the corners, while a hexagon's six neighbours are all equidistant. Code length and cell capacity are set by the chosen resolution, not the cell shape."
+    },
+    {
+      "id": "m2-q15",
+      "category": "Geo-hashing",
+      "page": "Module2-Systems/case-study-geohashing",
+      "difficulty": "stretch",
+      "question": "With 10 million active orders geo-hashed into H3 cells, what does a \"find orders within 2 km of this driver\" query actually cost, and why is that the win?",
+      "options": [
+        "Exactly one page read, because the driver's cell contains everything within the radius",
+        "About log(10M) reads, by binary search over sorted cell IDs",
+        "Roughly 10 million distance computations, but done on the GPU",
+        "Up to seven cell lookups (the driver's cell plus its six neighbours), possibly on seven pages — the win is that seven is constant whether there are ten thousand orders or ten million"
+      ],
+      "correct": 3,
+      "explanation": "The radius crosses cell borders, so you must read the query cell plus the ring of six neighbours — it is fast, but it is not one read. The naive alternative runs <code>ST_Distance</code> across all 10 million rows on every request; geo-hashing replaces that O(N) scan with a constant handful of lookups."
+    },
+    {
+      "id": "m2-q16",
+      "category": "Compression",
+      "page": "Module2-Systems/compression-basics",
+      "difficulty": "core",
+      "question": "The billion-row Listens table is physically sorted by <code>user_id</code>, so Mickey's id appears in a stretch of 100 million consecutive rows. Which compression technique exploits this directly?",
+      "options": [
+        "Delta encoding — store differences between consecutive ids",
+        "Run-length encoding — store <code>Mickey × 100M</code> as one value plus a count instead of repeating the value",
+        "Bit packing — store each id in the minimum number of bits",
+        "zstd — entropy-code the raw column bytes"
+      ],
+      "correct": 1,
+      "explanation": "RLE collapses long runs of an identical value into (value, count), reaching 10x–100x on sorted columns — and the runs come from the data's physical sort order on disk, not from any query. Delta encoding targets sorted <em>numeric</em> sequences with small gaps (like timestamps), not stretches of one repeated value."
+    },
+    {
+      "id": "m2-q17",
+      "category": "Problem Solving",
+      "page": "Module2-Systems/data-structures-problem-solving",
+      "difficulty": "core",
+      "question": "A system writes 100 million log entries a day, but every entry is drawn from the same ~1,000 distinct strings (like \"ConnectionTimeoutError\"). What is the right storage move?",
+      "options": [
+        "Run-length encoding, since log entries repeat",
+        "A Bloom filter over the log strings",
+        "Dictionary encoding — map the 1,000 unique strings to ~10-bit IDs and store only IDs, shrinking ~40 GB of raw logs to ~150 MB",
+        "Delta encoding on the string bytes"
+      ],
+      "correct": 2,
+      "explanation": "Low cardinality (1,000 distinct values) is the signature of dictionary encoding: store each 22-byte string once in a dictionary and a tiny integer code per row. RLE only helps if identical entries arrive in long consecutive runs, which interleaved log streams don't guarantee, and a Bloom filter answers membership questions — it can't reconstruct stored data."
+    },
+    {
+      "id": "m2-q18",
+      "category": "Compression",
+      "page": "Module2-Systems/compression-basics",
+      "difficulty": "stretch",
+      "question": "A pipeline of RLE, then dictionary encoding, then zstd shrinks a 1M-row <code>user_id</code> column from 4 MB to 50 KB (98.75%). Under what condition does this compounding actually happen?",
+      "options": [
+        "The column must be physically sorted (or clustered) by <code>user_id</code> and have limited cardinality — unsorted or high-cardinality data defeats the structural steps",
+        "The table must fit entirely in RAM so the encoders can make multiple passes",
+        "It always happens — compression ratios are properties of the algorithms, not the data",
+        "The column must be numeric, because RLE cannot encode strings"
+      ],
+      "correct": 0,
+      "explanation": "Each step feeds on structure: RLE needs the sorted runs (4 MB → 200 KB), dictionary needs the ~25,000 distinct ids to fit small codes (→ 100 KB), and zstd entropy-codes whatever byte patterns remain (→ 50 KB). Ratios are properties of the data's structure, not the algorithms alone — on unsorted, high-cardinality data almost none of this happens."
+    },
+    {
+      "id": "m2-q19",
+      "category": "Bloom Filters",
+      "page": "Module2-Systems/bloom-filters",
+      "difficulty": "intro",
+      "question": "Which pair of answers can a Bloom filter give about an item?",
+      "options": [
+        "\"Definitely in the set\" or \"definitely not in the set\"",
+        "\"Definitely in the set\" or \"probably not in the set\"",
+        "\"Probably in the set\" or \"probably not in the set\"",
+        "\"Definitely not in the set\" or \"probably in the set\" — false positives are possible, false negatives never are"
+      ],
+      "correct": 3,
+      "explanation": "Any 0 bit among the k hashed positions guarantees the item was never inserted (inserting it would have set that bit), so \"no\" is certain; all-1s can be an accident of other insertions, so \"yes\" is only \"probably.\" The asymmetry is the whole point — options claiming a definite \"yes\" or a fuzzy \"no\" have it backwards."
+    },
+    {
+      "id": "m2-q20",
+      "category": "Bloom Filters",
+      "page": "Module2-Systems/bloom-filters",
+      "difficulty": "core",
+      "question": "You size a Bloom filter at the course's rule-of-thumb sweet spot of 10 bits per item. Roughly what false-positive rate and hash-function count does that give?",
+      "options": [
+        "About 10% false positives with k = 1",
+        "About 1% false positives with k ≈ 7 hash functions",
+        "About 0.1% false positives with k = 3",
+        "Exactly 0% false positives if the hash functions are independent"
+      ],
+      "correct": 1,
+      "explanation": "10 bits/item with optimal k ≈ 7 yields about a 1% false-positive rate — the standard sweet spot (4 bits gives ~15%, 14 bits gives ~0.1%). Zero false positives is impossible for any Bloom filter: enough insertions will always set some other item's bit pattern by coincidence."
+    },
+    {
+      "id": "m2-q21",
+      "category": "Chrome Safe Browsing",
+      "page": "Module2-Systems/case-study-bloomfilters",
+      "difficulty": "core",
+      "question": "In Chrome Safe Browsing, what happens when the local 125 MB Bloom filter says a URL is \"maybe in set\" (a potential threat)?",
+      "options": [
+        "Chrome blocks the page immediately — \"maybe\" is treated as confirmed",
+        "Chrome sends the full URL to Google for verification",
+        "Chrome sends only a 32-bit prefix of the URL's hash; Google returns all malicious hashes sharing that prefix and Chrome finishes the match locally (the k-anonymity trick)",
+        "Chrome re-downloads a fresh Bloom filter and rechecks"
+      ],
+      "correct": 2,
+      "explanation": "Only the rare \"maybe\" case round-trips to Google, and even then Google sees just a hash prefix — never your URL — so browsing stays private while every real threat is still caught. Sending the full URL would recreate the privacy problem the local filter exists to avoid, and blocking on \"maybe\" would wrongly block ~1% of safe sites."
+    },
+    {
+      "id": "m2-q22",
+      "category": "LSH & Vector Hashing",
+      "page": "Module2-Systems/lsh-vector-hashing",
+      "difficulty": "core",
+      "question": "How does locality-sensitive hashing differ from an ordinary hash table, and what happens as you add more random hyperplanes (larger k)?",
+      "options": [
+        "LSH deliberately makes similar vectors collide into the same bucket; more hyperplanes make purer buckets but split more true pairs, trading recall for selectivity",
+        "LSH eliminates collisions entirely; more hyperplanes reduce the false-positive rate to zero",
+        "LSH sorts vectors by magnitude; more hyperplanes increase the sort depth",
+        "LSH is identical to modulo hashing but applied per dimension; more hyperplanes only add CPU cost"
+      ],
+      "correct": 0,
+      "explanation": "An ordinary hash scatters near-identical inputs apart on purpose; LSH flips the goal so closeness survives the hash — each hyperplane contributes one above/below bit, and near points share almost all bits. Larger k shrinks each bucket (search drops toward O(N/2^k)) but risks splitting close pairs that straddle a cut, which is why systems union several independent tables to recover the dropped pairs."
+    },
+    {
+      "id": "m2-q23",
+      "category": "Vector Databases",
+      "page": "Module2-Systems/case-study-vectordb",
+      "difficulty": "core",
+      "question": "OpenAI searches billions of ~1,536-D embeddings. Why does a production vector database use an ANN index (IVF or HNSW) instead of the exact <code>IndexFlatL2</code>?",
+      "options": [
+        "Exact search returns wrong answers on high-dimensional data",
+        "Exact search compares the query to every stored vector — O(N) per query, ~1.5 billion multiply-adds and ~6 GB scanned per million vectors — while an ANN index walks only the small region near the query, trading an occasional missed neighbour for sub-millisecond lookups",
+        "ANN indexes compress the vectors so they need no RAM at all",
+        "IVF and HNSW rebuild their structure on every query to stay fresh"
+      ],
+      "correct": 1,
+      "explanation": "The flat index is correct but O(N) per query, and OpenAI runs billions of queries; IVF probes only a few k-means cells and HNSW greedy-hops down a layered proximity graph, touching a tiny fraction of vectors. Crucially, the structure is built once at index time and never rebuilt per query — and shrinking the vectors themselves is a separate lever (quantization, Case Study 2.4)."
+    },
+    {
+      "id": "m2-q24",
+      "category": "Vector Compression",
+      "page": "Module2-Systems/case-study-vector-compression",
+      "difficulty": "stretch",
+      "question": "TurboQuant applies a random rotation to every embedding before rounding coordinates down to a few bits. Why is the rotation necessary — why not just round the raw float32 values?",
+      "options": [
+        "The rotation encrypts the vectors so the quantized index is secure",
+        "The rotation sorts the coordinates so delta encoding can compress them",
+        "Rounding raw floats loses no information; the rotation only speeds up SIMD execution",
+        "An embedding's information is lopsided — packed into a few directions — so coarse rounding throws away exactly the differences that matter (SF vs Berkeley blur together); the rotation spreads the information evenly across coordinates without changing any distance, making uniform rounding cheap"
+      ],
+      "correct": 3,
+      "explanation": "Most of an embedding's variation runs along a few axes, so a fixed coarse grid resolves those and destroys the rest — points that differ along a weak axis collapse into one cell. A random rotation moves no point and changes no distance, but re-aims the axes so every coordinate carries similar information; then dropping precision to a few bits shrinks the index 8–32x with little loss and no codebook to train."
+    }
+  ]
+}

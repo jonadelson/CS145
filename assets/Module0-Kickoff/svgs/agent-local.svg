@@ -1,0 +1,44 @@
+<svg viewBox="0 0 1100 406" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="local-t local-d">
+  <title id="local-t">Local memory: write and read are just SQL</title>
+  <desc id="local-d">A grey, de-emphasized model on the left (an LLM plus context extraction, for example pulling function signatures from code, a separate topic that is out of focus) talks to one green embedded database on your machine using SQL. A top arrow is SQL write, the model into the database. A bottom arrow is SQL read, the database back out through a small rerank box and into the model, a closed loop. The green database, claude-mem, is the focus: it holds two cylinders, SQLite with FTS5 for keyword and structured lookup, what you said, and a sqlite-vec vector index for semantic lookup, what you meant. Color key: grey is the model and your machine, a separate topic out of focus; green is the persistent embedded database, what we care about.</desc>
+  <text x="550" y="38" font-size="24" font-weight="700" fill="#0E0E10" text-anchor="middle">Local memory: write and read are just SQL</text>
+  <text x="550" y="64" font-size="14" fill="#6B7280" text-anchor="middle">claude-mem on your machine: SQLite for what you said, vectors for what you meant.</text>
+  <g data-step="1">
+  <rect x="58" y="188" width="186" height="104" rx="10" fill="#FFFFFF" stroke="#6B7280" stroke-width="1.5"/>
+  <text x="151" y="214" font-size="14" font-weight="700" fill="#6B7280" text-anchor="middle">Model</text>
+  <text x="151" y="236" font-size="14" fill="#6B7280" text-anchor="middle">LLM + context</text>
+  <text x="151" y="253" font-size="14" fill="#6B7280" text-anchor="middle">extraction</text>
+  <text x="151" y="276" font-size="14" fill="#6B7280" text-anchor="middle" font-style="italic">e.g. code &#8594; signatures</text>
+  <line x1="246" y1="210" x2="466" y2="210" stroke="#6B7280" stroke-width="2"/><polygon points="466,210 457,214 457,206" fill="#6B7280"/>
+  <text x="356" y="200" font-size="14" font-weight="700" fill="#6B7280" text-anchor="middle">SQL write</text>
+  <text x="370" y="290" font-size="14" font-weight="700" fill="#6B7280" text-anchor="middle">SQL read</text>
+  <rect x="300" y="302" width="140" height="46" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="370" y="330" font-size="14" font-weight="700" fill="#3F3F46" text-anchor="middle">rerank</text>
+  <line x1="466" y1="325" x2="444" y2="325" stroke="#6B7280" stroke-width="2"/><polygon points="444,325 453,320 453,330" fill="#6B7280"/>
+  <line x1="298" y1="325" x2="246" y2="288" stroke="#6B7280" stroke-width="2"/><polygon points="246,288 256,290 251,297" fill="#6B7280"/>
+  </g>
+  <g data-step="2">
+  <rect x="470" y="104" width="540" height="256" rx="14" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+  <text x="740" y="132" font-size="15" font-weight="700" fill="#6B7280" text-anchor="middle">YOUR MACHINE</text>
+  <rect x="496" y="150" width="488" height="178" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="496" y="150" width="488" height="6" rx="3" fill="#059669"/>
+  <text x="740" y="180" font-size="15" font-weight="700" fill="#059669" text-anchor="middle">One embedded database &#183; claude-mem</text>
+  </g>
+  <g data-step="3">
+  <ellipse cx="620" cy="212" rx="70" ry="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="550" y="212" width="140" height="44" fill="#FFFFFF"/>
+  <line x1="550" y1="212" x2="550" y2="256" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="690" y1="212" x2="690" y2="256" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="620" cy="256" rx="70" ry="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="620" y="236" font-size="14" font-weight="700" fill="#3F3F46" text-anchor="middle">SQLite &#183; FTS5</text>
+  <text x="620" y="288" font-size="14" fill="#6B7280" text-anchor="middle">keyword &#183; what you said</text>
+  <ellipse cx="860" cy="212" rx="70" ry="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="790" y="212" width="140" height="44" fill="#FFFFFF"/>
+  <line x1="790" y1="212" x2="790" y2="256" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="930" y1="212" x2="930" y2="256" stroke="#D4D7DC" stroke-width="1"/>
+  <ellipse cx="860" cy="256" rx="70" ry="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="860" y="236" font-size="14" font-weight="700" fill="#3F3F46" text-anchor="middle">Vector &#183; sqlite-vec</text>
+  <text x="860" y="288" font-size="14" fill="#6B7280" text-anchor="middle">semantic &#183; what you meant</text>
+  </g>
+  <text x="550" y="388" font-size="14" text-anchor="middle"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the model and your machine, out of focus&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the persistent database</tspan></text>
+</svg>

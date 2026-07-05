@@ -1,0 +1,124 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.498
+We built the whole transaction manager.
+
+00:00:04.498 --> 00:00:06.997
+Locks.
+
+00:00:06.997 --> 00:00:09.495
+Schedules.
+
+00:00:09.495 --> 00:00:11.994
+Write-ahead logging.
+
+00:00:11.994 --> 00:00:14.492
+Crash recovery.
+
+00:00:14.492 --> 00:00:16.991
+Strict two phase locking gives you safe, correct concurrency, and it scales to where most production databases run today.
+
+00:00:16.991 --> 00:00:19.489
+The next hundred-times leap comes from three protocols that drop it entirely.
+
+00:00:19.489 --> 00:00:21.988
+Micro-locking.
+
+00:00:21.988 --> 00:00:24.486
+LSM trees.
+
+00:00:24.486 --> 00:00:26.985
+Timestamp ordering.
+
+00:00:26.985 --> 00:00:30.041
+Think of correctness as nested rings.
+
+00:00:30.041 --> 00:00:33.096
+Serializable schedules on the outside.
+
+00:00:33.096 --> 00:00:36.152
+Conflict-serializable in the middle.
+
+00:00:36.152 --> 00:00:39.208
+Two phase locking inside that.
+
+00:00:39.208 --> 00:00:42.264
+Strict two phase locking at the very core.
+
+00:00:42.264 --> 00:00:45.319
+Strict two phase locking is the small ring.
+
+00:00:45.319 --> 00:00:48.375
+Every ring outside it is a set of schedules that are perfectly safe to run.
+
+00:00:48.375 --> 00:00:51.431
+Your database refuses to run them anyway.
+
+00:00:51.431 --> 00:00:54.486
+That refused space is the headroom.
+
+00:00:54.486 --> 00:00:57.542
+The whole game is finding a protocol that admits more of it.
+
+00:00:57.542 --> 00:01:00.929
+Now match a protocol to the work.
+
+00:01:00.929 --> 00:01:04.315
+A video goes viral, and ten million users hit one counter.
+
+00:01:04.315 --> 00:01:07.702
+That is fine-grained contention.
+
+00:01:07.702 --> 00:01:11.088
+Reach for micro-locking.
+
+00:01:11.088 --> 00:01:14.475
+Lock the single field, not the whole row, so thousands of writes to one entity barely wait.
+
+00:01:14.475 --> 00:01:17.861
+A song lands ten million plays in an hour.
+
+00:01:17.861 --> 00:01:21.248
+That is pure write throughput.
+
+00:01:21.248 --> 00:01:24.634
+Reach for LSM trees.
+
+00:01:24.634 --> 00:01:28.021
+Append every write to an immutable file, no locks at all, and the reads settle a moment later.
+
+00:01:28.021 --> 00:01:31.407
+Ten thousand agents update one shared graph.
+
+00:01:31.407 --> 00:01:34.794
+That is global ordering.
+
+00:01:34.794 --> 00:01:38.180
+Reach for timestamp ordering.
+
+00:01:38.180 --> 00:01:41.567
+Run every operation in timestamp order, and a conflict aborts and retries instead of waiting.
+
+00:01:41.567 --> 00:01:46.321
+Strict two phase locking is the baseline.
+
+00:01:46.321 --> 00:01:51.075
+The next hundred-times leap lives in the schedules it refuses.
+
+00:01:51.075 --> 00:01:55.830
+And the target itself is wider than two phase locking enforces.
+
+00:01:55.830 --> 00:02:00.584
+What defines correct is serializability, equal to some serial order.
+
+00:02:00.584 --> 00:02:05.338
+Conflict serializability is only the test two phase locking passes, so a scheduler that admits the serializable but not conflict-serializable schedules is still correct.
+
+00:02:05.338 --> 00:02:10.093
+That gap is the headroom.
+
+00:02:10.093 --> 00:02:14.847
+Every protocol here ran on one machine.
+
+00:02:14.847 --> 00:02:19.601
+Next we break that machine into a thousand, where the data, the locks, and the clock live on different computers.

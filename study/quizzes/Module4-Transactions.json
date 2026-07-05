@@ -1,0 +1,366 @@
+{
+  "module": "Module4-Transactions",
+  "title": "Transactions",
+  "questions": [
+    {
+      "id": "m4-q01",
+      "category": "Transaction Motivation",
+      "page": "Module4-Transactions/motivation",
+      "difficulty": "intro",
+      "question": "During the Taylor Swift Eras Tour on-sale, what actually failed at Ticketmaster?",
+      "options": [
+        "Transactions double-sold seats, so two fans ended up with the same ticket",
+        "Scalper bots exploited a race condition to walk away with most of the tickets",
+        "Availability buckled under 4x the prior peak load: queues froze and payments timed out, but no seat sold twice",
+        "The database lost committed purchases when a server crashed mid-sale"
+      ],
+      "correct": 2,
+      "explanation": "The transactions held: no seat went to two fans and bots got zero tickets. What broke was everything around that guarantee under 3.5 billion requests, queues, throttled sales, and payment timeouts. The tempting answer, double-booked seats, is exactly the popular story the page debunks."
+    },
+    {
+      "id": "m4-q02",
+      "category": "ACID Properties",
+      "page": "Module4-Transactions/acid-properties",
+      "difficulty": "intro",
+      "question": "The server crashes one millisecond after Mickey receives his Premium-upgrade receipt. Which ACID property guarantees his upgrade still exists after reboot?",
+      "options": [
+        "Atomicity",
+        "Consistency",
+        "Isolation",
+        "Durability"
+      ],
+      "correct": 3,
+      "explanation": "Durability says committed work survives any crash: once the receipt (the commit) is issued, the change is permanent. Atomicity is about all-or-nothing within one transaction, which is a different failure, a transaction stopping halfway, not a crash after commit."
+    },
+    {
+      "id": "m4-q03",
+      "category": "ACID Properties",
+      "page": "Module4-Transactions/acid-properties",
+      "difficulty": "core",
+      "question": "Alice ($200) transfers $100 to Bob ($100) while the bank's 6% interest job runs. Without isolation the books end at $324 instead of the correct $318. What caused the extra $6?",
+      "options": [
+        "The interest job read a half-done state where Bob was credited but Alice not yet debited, so the moving $100 earned interest twice",
+        "The transfer transaction ran twice because the interest job aborted it and it retried",
+        "The interest rate was applied to Alice's account before her debit posted, doubling her interest",
+        "A lost update: the transfer overwrote the interest job's write to Bob's balance"
+      ],
+      "correct": 0,
+      "explanation": "The interleaving let the interest job see Bob at $200 while Alice was still at $200, a total of $400 instead of $300, so 6% was paid on $100 that was counted twice. With isolation, the interest job waits on the transfer's lock and reads the settled $300. No write was overwritten, so this is not a lost update."
+    },
+    {
+      "id": "m4-q04",
+      "category": "ACID at Stripe",
+      "page": "Module4-Transactions/case-study-transactions",
+      "difficulty": "core",
+      "question": "Why does Stripe charge the card <em>outside</em> the database transaction that records the payment?",
+      "options": [
+        "Charging inside the transaction would require a distributed lock on Visa's servers",
+        "The card charge is an unreversible external side effect; charging first (reversible via refund) and wrapping only Stripe's own writes keeps the transaction cleanly abortable",
+        "Card networks are too slow, so keeping them inside would hold row locks for minutes",
+        "ACID does not apply to money movement, only to Stripe's internal ledger rows"
+      ],
+      "correct": 1,
+      "explanation": "A database ROLLBACK cannot un-charge a card, so unreversible side effects go outside the transaction: charge first, wrap only Stripe's own writes, and issue a refund if the transaction fails. Speed and locking are real concerns but not the reason the page gives; the design is about what rollback can and cannot undo."
+    },
+    {
+      "id": "m4-q05",
+      "category": "ACID at Stripe",
+      "page": "Module4-Transactions/case-study-transactions",
+      "difficulty": "stretch",
+      "question": "Stripe's ledger shows two rows that no longer sum to zero. Using the case study's diagnostic question, is this a consistency failure or an isolation failure, and why?",
+      "options": [
+        "Isolation, because the ledger rows were written by two different transactions",
+        "Isolation, because the failure only appears under high load",
+        "Consistency, because a drifting ledger is possible even with one transaction running at a time, so no concurrency is needed to produce it",
+        "Consistency, because durability guarantees were violated when the rows were flushed"
+      ],
+      "correct": 2,
+      "explanation": "The fastest test: \"Is this failure possible with one transaction at a time?\" A single buggy transaction can write rows that don't sum to zero with no concurrency at all, so it's a consistency (invariant) failure. Isolation failures, like the lost update on a merchant balance, only happen when transactions run concurrently."
+    },
+    {
+      "id": "m4-q06",
+      "category": "Running Transactions",
+      "page": "Module4-Transactions/transaction-examples",
+      "difficulty": "intro",
+      "question": "What happens to a SQL statement that runs <em>outside</em> any <code>BEGIN ... COMMIT</code> block?",
+      "options": [
+        "It is rejected with an error because every write requires an open transaction",
+        "It joins the next transaction that begins on the same connection",
+        "It executes with no ACID guarantees at all",
+        "It runs in autocommit mode: the statement is its own tiny one-statement transaction"
+      ],
+      "correct": 3,
+      "explanation": "Outside a block each statement autocommits, so a single UPDATE is still atomic and durable on its own. The trap is thinking it has no guarantees; the real risk is that <em>multiple</em> statements outside a block are not atomic together."
+    },
+    {
+      "id": "m4-q07",
+      "category": "Running Transactions",
+      "page": "Module4-Transactions/transaction-examples",
+      "difficulty": "core",
+      "question": "Alice has $50 and her account has <code>CHECK (balance &gt;= 0)</code>. Inside a transaction she is debited $100, then Bob is credited, then a Transfers row is inserted. What is the outcome?",
+      "options": [
+        "The debit step fails the CHECK, the transaction aborts, and every change rolls back; Bob's credit and the Transfers row never take effect",
+        "The debit is clamped to $50 and the rest of the transaction proceeds with the smaller amount",
+        "Alice's balance goes to -$50 temporarily and the transaction commits if she deposits before COMMIT",
+        "Only the debit is skipped; the credit and the Transfers insert still commit"
+      ],
+      "correct": 0,
+      "explanation": "The schema-level CHECK makes the database itself enforce the invariant: a write that would violate it aborts the whole transaction and rolls back everything since BEGIN. There is no partial commit; atomicity means Bob never gets money that Alice never had."
+    },
+    {
+      "id": "m4-q08",
+      "category": "Running Transactions",
+      "page": "Module4-Transactions/transaction-examples",
+      "difficulty": "stretch",
+      "question": "10,000 users like a viral post (counter starts at 500) with <em>no</em> isolation on the read-increment-write of <code>like_count</code>, while the Likes table's inserts all succeed. What does the course say the final counter looks like?",
+      "options": [
+        "Exactly 10,500, because each UPDATE statement is individually atomic",
+        "Nondeterministic, anywhere from 501 to 10,500, while the Likes table correctly holds all 10,000 new rows, so the cache and the source of truth diverge",
+        "Exactly 501, because every increment collides with another",
+        "The counter is correct but the Likes table silently loses rows"
+      ],
+      "correct": 1,
+      "explanation": "Concurrent transactions can each read the same value, add one, and write back, losing updates; the result depends on interleaving luck, from 501 (maximal collisions) to 10,500 (accidental serialization). The Likes rows are independent inserts, so they all land, which is what makes the divergence insidious: no error is ever raised."
+    },
+    {
+      "id": "m4-q09",
+      "category": "Naive Concurrency",
+      "page": "Module4-Transactions/naive-concurrency",
+      "difficulty": "intro",
+      "question": "Why is running transactions strictly one at a time (serial execution) slow, even though it is perfectly correct?",
+      "options": [
+        "Acquiring and releasing locks for each transaction adds overhead",
+        "Serial execution requires copying the database before each transaction",
+        "The server sits idle during each transaction's disk waits, and one long transaction stalls everyone queued behind it",
+        "Checking each transaction's conflict graph before it runs takes quadratic time"
+      ],
+      "correct": 2,
+      "explanation": "A transaction spends most of its life waiting on disk I/O that takes thousands of times longer than its computation, and serial execution forbids anyone else from using that gap. No locks or conflict graphs are involved in the serial approach at all; its cost is pure wasted waiting."
+    },
+    {
+      "id": "m4-q10",
+      "category": "Naive Concurrency",
+      "page": "Module4-Transactions/naive-concurrency",
+      "difficulty": "core",
+      "question": "T1 writes <code>play_count = 150</code> but has not committed. T2 reads 150 and acts on it. T1 then aborts. Which anomaly is this?",
+      "options": [
+        "Lost update: T2's write overwrote T1's",
+        "Stale read: T2's two reads of the row disagree",
+        "Write skew: both transactions read from snapshots and wrote disjoint rows",
+        "Dirty read: T2 read an uncommitted value that, after the abort, never existed"
+      ],
+      "correct": 3,
+      "explanation": "Reading another transaction's uncommitted write is a dirty read; when the writer aborts, the reader has acted on a value that was never real. A lost update needs two writers clobbering each other, and a stale read needs one transaction reading the same row twice around a committed change."
+    },
+    {
+      "id": "m4-q11",
+      "category": "Graph Refresher",
+      "page": "Module4-Transactions/graph-refresher",
+      "difficulty": "intro",
+      "question": "A directed graph contains a cycle. What does that mean for its topological sorts?",
+      "options": [
+        "It has exactly one topological sort, found by breaking the cycle",
+        "It has no valid topological sort, because the cycle's edges demand contradictory orderings",
+        "It has several topological sorts, one per node in the cycle",
+        "It has a topological sort only if the cycle has even length"
+      ],
+      "correct": 1,
+      "explanation": "A topological sort must place A before B for every edge A→B; a cycle demands each of its nodes come before itself, which is impossible. A DAG, by contrast, often has <em>several</em> valid orders, which is why an acyclic conflict graph can correspond to more than one equivalent serial schedule."
+    },
+    {
+      "id": "m4-q12",
+      "category": "Correctness",
+      "page": "Module4-Transactions/correctness",
+      "difficulty": "intro",
+      "question": "Which pair of actions is a <strong>conflict</strong>?",
+      "options": [
+        "T1.R(A) and T2.R(A): two transactions reading the same row",
+        "T1.W(A) and T1.R(A): one transaction writing then reading its own row",
+        "T1.W(A) and T2.R(A): two transactions touching the same row where at least one writes",
+        "T1.W(A) and T2.W(B): two transactions writing different rows"
+      ],
+      "correct": 2,
+      "explanation": "A conflict needs two <em>different</em> transactions, the <em>same</em> row, and at least one write, because only then does swapping their order change the result. Read-read commutes, one transaction never conflicts with itself, and actions on different rows are free to reorder."
+    },
+    {
+      "id": "m4-q13",
+      "category": "Correctness",
+      "page": "Module4-Transactions/correctness",
+      "difficulty": "core",
+      "question": "A schedule's conflict graph is acyclic. What can you conclude, and how do you find an equivalent serial order?",
+      "options": [
+        "The schedule is conflict-serializable, and any topological sort of the graph gives a serial order that respects every conflict",
+        "The schedule is serial, and the node order in the graph is the execution order",
+        "The schedule is conflict-serializable, but finding the serial order requires checking every permutation of transactions",
+        "The schedule avoided all conflicts, so any transaction order works"
+      ],
+      "correct": 0,
+      "explanation": "Acyclic is exactly the test: a topological sort orders the transactions so every conflict edge is respected, and that ordering is an equivalent serial run. The schedule can still be heavily interleaved and full of conflicts; acyclic means the conflicts all agree on an order, not that there are none."
+    },
+    {
+      "id": "m4-q14",
+      "category": "Correctness",
+      "page": "Module4-Transactions/correctness",
+      "difficulty": "core",
+      "question": "What is the difference between a <strong>serial</strong> schedule and a <strong>serializable</strong> one?",
+      "options": [
+        "They are synonyms; both mean transactions never overlap in time",
+        "A serial schedule never overlaps transactions; a serializable schedule interleaves freely but its result matches some serial order",
+        "A serializable schedule is any schedule produced by the lock manager, serial or not",
+        "A serial schedule matches some serial order; a serializable one matches every serial order"
+      ],
+      "correct": 1,
+      "explanation": "Serializable is the correctness bar, not an execution style: the interleaved schedule may mix actions in time as long as the final result equals some one-at-a-time run. Confusing the two makes concurrency look impossible; the whole point is interleaving <em>while</em> staying equivalent to serial."
+    },
+    {
+      "id": "m4-q15",
+      "category": "Correctness",
+      "page": "Module4-Transactions/correctness",
+      "difficulty": "stretch",
+      "question": "In schedule S2', T2 writes B, then T3 reads B, then T3 writes B, then T2 writes B again. Why is this schedule not conflict-serializable?",
+      "options": [
+        "T2 wrote B twice, and blind writes are never conflict-serializable",
+        "T3 performed a dirty read of T2's value, which always breaks serializability",
+        "The W-R conflict requires T2 before T3, but the later W-W conflict requires T3 before T2, so the conflict graph has the cycle T2 &#8594; T3 &#8594; T2 and no serial order satisfies both",
+        "The schedule touched only one variable, and single-variable schedules cannot be serialized"
+      ],
+      "correct": 2,
+      "explanation": "T2's write reaching T3's read pins T2 before T3, while T2's second write overwriting T3's pins T3 before T2; those two edges point opposite ways, forming a cycle, so no serial order respects both conflicts. A dirty read or double write alone doesn't doom a schedule; it's the contradictory ordering demands that do."
+    },
+    {
+      "id": "m4-q16",
+      "category": "Locks Stack",
+      "page": "Module4-Transactions/concurrency-stack",
+      "difficulty": "core",
+      "question": "Why does a database build its own lock manager instead of just reusing the operating system's mutexes?",
+      "options": [
+        "OS mutexes are too slow because they always make a system call into the kernel",
+        "An OS mutex is a binary lock with no data awareness; the database needs table/page/row granularity, intent locks, and automatic deadlock resolution for millions of transactions",
+        "OS mutexes cannot be shared between two threads of the same process",
+        "Databases avoid the OS entirely and talk directly to the hardware's compare-and-swap"
+      ],
+      "correct": 1,
+      "explanation": "The two layers solve different problems: the OS primitive guards a memory address it knows nothing about, while the lock manager locks at data granularity, supports intent, and detects and breaks deadlocks automatically. The database still <em>uses</em> OS mutexes underneath, so it doesn't bypass the OS; it builds a richer layer on top."
+    },
+    {
+      "id": "m4-q17",
+      "category": "DB Locks Lifecycle",
+      "page": "Module4-Transactions/lock-manager-cycle",
+      "difficulty": "core",
+      "question": "T1 holds a shared (S) lock on row A. T2 requests a shared lock and T3 requests an exclusive (X) lock on the same row. Who proceeds?",
+      "options": [
+        "Neither: any lock request on a held row must wait",
+        "T3 proceeds because exclusive requests take priority over shared holders",
+        "Both proceed: the lock manager upgrades the shared lock to cover all three",
+        "T2 proceeds immediately (S is compatible with S); T3 waits, because every pairing involving an X lock forces a wait"
+      ],
+      "correct": 3,
+      "explanation": "Shared-with-shared is the single compatible pairing in the matrix, because reads never conflict; every cell touching an exclusive lock blocks. This is the R/W conflict rule made operational: only when at least one side writes must the manager serialize access."
+    },
+    {
+      "id": "m4-q18",
+      "category": "Two-Phase Locking",
+      "page": "Module4-Transactions/db-locks-2pl",
+      "difficulty": "core",
+      "question": "Under 2PL, a transaction releases one lock and then tries to acquire another. What does the protocol say?",
+      "options": [
+        "Forbidden: the first release starts the shrinking phase, and a transaction may never acquire a lock after it has released one",
+        "Allowed, as long as the new lock is on a different row",
+        "Allowed, as long as the new lock is shared rather than exclusive",
+        "Allowed once, but a second re-acquisition triggers an abort"
+      ],
+      "correct": 0,
+      "explanation": "2PL gives every transaction a growing phase (only acquires) then a shrinking phase (only releases); the first unlock flips the switch permanently. That single rule is what guarantees the resulting schedule is conflict-serializable, so exceptions for different rows or lock modes would break the proof."
+    },
+    {
+      "id": "m4-q19",
+      "category": "Two-Phase Locking",
+      "page": "Module4-Transactions/db-locks-2pl",
+      "difficulty": "stretch",
+      "question": "Under regular (non-strict) 2PL, T1 writes row x, releases its lock early, and T2 reads x. T1 then aborts. Why does Strict 2PL prevent the mess that follows?",
+      "options": [
+        "Strict 2PL detects the abort and re-runs T2 automatically from a saved checkpoint",
+        "Strict 2PL forbids T2 from reading any row T1 ever locked, even after T1 commits",
+        "Strict 2PL holds every lock until commit or abort, so T2 could never have read T1's uncommitted write, and T1's abort cannot cascade into T2",
+        "Strict 2PL converts T1's abort into a commit so T2's read stays valid"
+      ],
+      "correct": 2,
+      "explanation": "Releasing early lets T2 build on work T1 later undoes, forcing T2 to abort too, a cascading abort. Strict 2PL closes the gap by releasing everything only at commit/abort, so no one ever reads uncommitted data. It doesn't retry or re-validate anything; it makes the dangerous read impossible in the first place."
+    },
+    {
+      "id": "m4-q20",
+      "category": "Microschedules & Deadlock",
+      "page": "Module4-Transactions/micro",
+      "difficulty": "core",
+      "question": "T1 holds a lock on row A and waits for row B; T2 holds B and waits for A. How does the lock manager detect and resolve this?",
+      "options": [
+        "It waits for a timeout on either transaction, then restarts both from BEGIN",
+        "It finds the cycle T1 &#8594; T2 &#8594; T1 in its WaitsFor graph and aborts one victim transaction to break the deadlock",
+        "It forces T1 to release A so T2 can finish, then re-grants A to T1",
+        "It escalates both row locks to a table lock so the conflict disappears"
+      ],
+      "correct": 1,
+      "explanation": "The lock manager maintains a WaitsFor graph, an edge from each waiter to the holder it waits on; a cycle means neither can ever proceed, so it aborts a victim to break it. Forcing a lock release without aborting would violate 2PL and let another transaction see half-done work."
+    },
+    {
+      "id": "m4-q21",
+      "category": "MVCC",
+      "page": "Module4-Transactions/mvcc",
+      "difficulty": "core",
+      "question": "Under MVCC, Mickey's transaction took its snapshot at 3:00. Minnie started writing value V at 2:45 and committed at 3:03. What does Mickey read, and does he ever wait?",
+      "options": [
+        "He reads Minnie's new value, because it was written before his snapshot",
+        "He blocks until Minnie commits, then reads her new value",
+        "He reads the old value and never waits: a version is visible only if its writer committed at or before his snapshot, and Minnie's commit came after",
+        "He gets an error, because reading a row with an in-flight write is forbidden"
+      ],
+      "correct": 2,
+      "explanation": "Visibility is decided by <em>commit</em> time, not write time: Minnie's version has no commit stamp until 3:03, after Mickey's 3:00 snapshot, so Mickey keeps reading the old committed version and never blocks. Readers and writers never block each other under MVCC; that is its whole point."
+    },
+    {
+      "id": "m4-q22",
+      "category": "MVCC",
+      "page": "Module4-Transactions/mvcc",
+      "difficulty": "stretch",
+      "question": "A playlist must keep at least one song. Two editors, each in a snapshot-isolation transaction, each confirm other songs remain and each delete a <em>different</em> song. Both commit and the playlist ends empty. What is this anomaly and what fixes it?",
+      "options": [
+        "Write skew, the gap MVCC's default levels allow; setting <code>ISOLATION LEVEL SERIALIZABLE</code> (SSI) adds commit-time checks that abort a transaction about to break serializability",
+        "A lost update; row-level write locks on the deleted songs would prevent it",
+        "A dirty read; each editor read the other's uncommitted delete",
+        "A deadlock; the WaitsFor graph should have aborted one editor"
+      ],
+      "correct": 0,
+      "explanation": "Each transaction read its own snapshot, wrote a change that was safe alone, and together they produced a state no serial order could, the definition of write skew. It's not a lost update (they wrote different rows) and not a dirty read (both reads saw committed data); only SSI's commit-time validation catches it."
+    },
+    {
+      "id": "m4-q23",
+      "category": "Optimistic Concurrency Control",
+      "page": "Module4-Transactions/occ",
+      "difficulty": "core",
+      "question": "How do the three concurrency strategies split by where their cost lands?",
+      "options": [
+        "2PL pays by redoing work, OCC pays by waiting, MVCC pays with extra locks",
+        "2PL pays by waiting on locks, OCC pays by redoing aborted work at validation, and MVCC sidesteps the reader-writer wait by keeping versions",
+        "All three pay the same cost, just at different times in the transaction",
+        "OCC and MVCC are free; only 2PL has any overhead"
+      ],
+      "correct": 1,
+      "explanation": "Pessimistic 2PL blocks on conflicting locks; optimistic OCC runs lock-free and pays only when validation fails, throwing away and redoing the work; MVCC removes the reader-writer wait entirely via versions. None is free: MVCC still serializes two writers on one row and must vacuum dead versions."
+    },
+    {
+      "id": "m4-q24",
+      "category": "Connecting It All Together",
+      "page": "Module4-Transactions/connecting-together",
+      "difficulty": "core",
+      "question": "In a production database, what correctness level does MVCC deliver by default, compared to 2PL?",
+      "options": [
+        "MVCC is always conflict-serializable, just like 2PL, but faster",
+        "MVCC's default is weaker than serializable in a way that raises errors on every conflict",
+        "Both default to snapshot isolation; only OCC achieves conflict-serializability",
+        "2PL yields conflict-serializable schedules; MVCC defaults to snapshot isolation, which permits write skew, and reaches full serializability only at the SERIALIZABLE level"
+      ],
+      "correct": 3,
+      "explanation": "The two routes trade differently: 2PL makes readers wait for writers and hits conflict-serializability exactly, while MVCC's non-blocking reads come at the cost of a weaker default bar (snapshot isolation) that admits write skew. Apps that can't tolerate the gap must explicitly opt into SERIALIZABLE."
+    }
+  ]
+}

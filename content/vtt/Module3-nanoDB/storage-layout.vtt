@@ -1,0 +1,178 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.678
+You have counted pages.
+
+00:00:05.678 --> 00:00:09.356
+You have shrunk them with compression.
+
+00:00:09.356 --> 00:00:13.034
+Now, how do you arrange the bytes inside a page in the first place?
+
+00:00:13.034 --> 00:00:16.712
+That choice is the storage layout, and it is the single biggest performance lever in any database.
+
+00:00:16.712 --> 00:00:20.390
+Same data, two layouts, ten times the IO.
+
+00:00:20.390 --> 00:00:23.812
+Start with the table your query sees.
+
+00:00:23.812 --> 00:00:27.234
+Listens, with user id, song id, rating, and listen time.
+
+00:00:27.234 --> 00:00:30.656
+That is the logical view.
+
+00:00:30.656 --> 00:00:34.078
+On disk you can store it two ways.
+
+00:00:34.078 --> 00:00:37.500
+Row-oriented packs whole rows together.
+
+00:00:37.500 --> 00:00:40.922
+Page one holds three complete listens, page two holds the next two.
+
+00:00:40.922 --> 00:00:44.344
+Read listen forty-two and all four columns come back in one read.
+
+00:00:44.344 --> 00:00:47.767
+An insert is one packed write.
+
+00:00:47.767 --> 00:00:51.189
+Columnar flips it.
+
+00:00:51.189 --> 00:00:54.611
+Each column gets its own file.
+
+00:00:54.611 --> 00:00:58.033
+All the user ids together, then all the ratings, then all the listen times.
+
+00:00:58.033 --> 00:01:01.455
+Now AVG of rating across a billion listens touches the rating file and skips the other three.
+
+00:01:01.455 --> 00:01:04.877
+On this four-column toy that is seventy-five percent of the IO saved, and far more on a wide table.
+
+00:01:04.877 --> 00:01:08.299
+The query decides the winner.
+
+00:01:08.299 --> 00:01:11.721
+Point lookups and inserts want row.
+
+00:01:11.721 --> 00:01:15.143
+Big aggregates want columnar.
+
+00:01:15.143 --> 00:01:19.520
+So how does one row-oriented page actually pack variable-length rows?
+
+00:01:19.520 --> 00:01:23.897
+With a slotted page.
+
+00:01:23.897 --> 00:01:28.274
+Data records grow from the top down.
+
+00:01:28.274 --> 00:01:32.651
+Row A, Row B, a longer Row C.
+
+00:01:32.651 --> 00:01:37.028
+The slot array grows from the bottom up.
+
+00:01:37.028 --> 00:01:41.405
+Each slot is just an offset and a length, a pointer to where its row lives.
+
+00:01:41.405 --> 00:01:45.782
+S0 points at Row A, S1 at Row B.
+
+00:01:45.782 --> 00:01:50.159
+Free space sits in the middle and shrinks as both sides grow toward each other.
+
+00:01:50.159 --> 00:01:54.535
+The payoff is updates.
+
+00:01:54.535 --> 00:01:58.912
+Change a row in place and it is free, as long as the size holds.
+
+00:01:58.912 --> 00:02:03.289
+If the row grows past its spot, it moves elsewhere and the slot repoints.
+
+00:02:03.289 --> 00:02:07.666
+External references like page id and slot id never change.
+
+00:02:07.666 --> 00:02:12.043
+Columnar pages flip this, and they earn a second prize.
+
+00:02:12.043 --> 00:02:16.420
+A page holds many values of one column, all the same type, which is exactly what encoders feast on.
+
+00:02:16.420 --> 00:02:20.797
+At a hundred million rows the same column shrinks five to one, even ten to one.
+
+00:02:20.797 --> 00:02:25.174
+Repetition only emerges at scale, and that is why BigQuery and Snowflake scan petabytes efficiently.
+
+00:02:25.174 --> 00:02:29.911
+Pure columnar has a catch.
+
+00:02:29.911 --> 00:02:34.648
+Each column in its own file makes one row a seek per column, and a wide table explodes into a hundred thousand tiny files that object stores like S three punish.
+
+00:02:34.648 --> 00:02:39.385
+Parquet fixes it.
+
+00:02:39.385 --> 00:02:44.121
+It slices the rows into row groups, each about one hundred twenty eight megabytes, roughly a million rows.
+
+00:02:44.121 --> 00:02:48.858
+The file is a sequence of row groups.
+
+00:02:48.858 --> 00:02:53.595
+Inside one row group, each column sits together as a column chunk.
+
+00:02:53.595 --> 00:02:58.332
+The rating chunk is all the ratings, contiguous, so a scan reads only it, and each chunk compresses on its own, ratings run length, timestamps delta.
+
+00:02:58.332 --> 00:03:03.069
+Drill in once more.
+
+00:03:03.069 --> 00:03:07.806
+A column chunk is a stack of small pages, about one megabyte each.
+
+00:03:07.806 --> 00:03:12.543
+That is Parquet's page, not the sixty four megabyte DbFile page.
+
+00:03:12.543 --> 00:03:17.280
+Same word, different size.
+
+00:03:17.280 --> 00:03:22.017
+A footer at the end holds each column's min and max per row group.
+
+00:03:22.017 --> 00:03:26.753
+A query reads it first and skips whole row groups that cannot match.
+
+00:03:26.753 --> 00:03:31.490
+The trade is simple.
+
+00:03:31.490 --> 00:03:36.227
+You pay a sliver of compression, since a run cannot cross a row group boundary.
+
+00:03:36.227 --> 00:03:40.964
+You gain local rows, one file instead of a hundred thousand, and a row group sized for parallel scans.
+
+00:03:40.964 --> 00:03:44.207
+The query pattern picks the layout.
+
+00:03:44.207 --> 00:03:47.450
+Lookups, updates, and inserts favor row.
+
+00:03:47.450 --> 00:03:50.693
+Aggregates and big scans favor columnar.
+
+00:03:50.693 --> 00:03:53.936
+Columnar plus compression is what lets a system scan petabytes in seconds.
+
+00:03:53.936 --> 00:03:57.179
+Next, the canonical columnar system that powers Google.
+
+00:03:57.179 --> 00:04:00.422
+BigQuery.

@@ -1,0 +1,112 @@
+<h1>Claude &amp; OpenAI: Deconstructing Agent Memory</h1>
+<p><em>Take a coding agent apart and you find a database.</em></p>
+<div class="v5-concept">
+<p><strong>Concept.</strong> An AI coding agent with no memory hallucinates. A persistent SQL database is the fix: first one file on your laptop, then the same primitive, one per user, scaled to millions of users.</p>
+<p><strong>Intuition.</strong> The context window is short-term memory, wiped the moment the session ends. Anything that has to outlast it lives in a database. That single idea is the spine of the rest of this course.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study</span>
+<span>Reading Time: 6 mins</span></p>
+</div>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/agent-spine.svg" alt="Real facts: store and retrieve, local then global. Model alone hallucinates; the same model plus a local SQLite database looks the answer up; the same database scaled to Postgres with read replicas holds one memory per user across 800 million users." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Giving the model real facts, in two steps. On its own the model (grey, a separate topic) makes facts up. First, a database lets it store and retrieve real facts, read and write instead of invent. Second, the same database scaled across machines holds one memory per user for millions of them. The database is the constant infrastructure that manages the facts. Local memory is Modules 1 to 4; global memory is Modules 5 and 6.</p>
+</div>
+<h2>No memory, and the hallucination</h2>
+<p>On Monday you and Claude Code build a custom auth module together. You agree on a few function names, fix a tricky edge case, ship it. On Tuesday you open a new session and ask Claude to extend it. The agent has no idea who you are. It confidently calls a function <code>verifyJWTWithScope()</code> that does not exist anywhere in your codebase, inventing a name that sounds right.</p>
+<p>That is a <strong>hallucination</strong>: a confident, fluent output that happens to be wrong. The agent is doing its best with no context, and without memory, "its best" includes inventing things that sound plausible. The second failure mode is quieter: <strong>rediscovery</strong>, where the agent re-derives the same pattern, the same bug fix, the same architectural decision every session. Your time and your tokens both pay for it.</p>
+<p>Hollywood made a movie about exactly this problem twenty years before AI went mainstream. <em>50 First Dates</em>. Lucy has amnesia, so each morning she wakes up thinking she has just met her boyfriend Henry. Henry's fix is a recorded videotape. Each night he records what happened that day, their inside jokes, the state of the relationship. He plays it back every morning before saying hello. By breakfast she is caught up. By bedtime the recording is wiped, and he records the next one. Henry is doing what every AI engineer now does for a living. <strong>The recording is a database. It is also the cure for hallucination.</strong></p>
+<h2>The context window is the agent's working-memory limit</h2>
+<p>Remember the RAM limit from the previous teardown: a fast working memory that cannot hold the whole problem. An agent hits the same limit, with a different name.</p>
+<p>Modern agents work inside a <strong>context window</strong>, the chunk of text the model can see at once. Claude's is roughly 200,000 to 1,000,000 tokens. That sounds enormous until you compare it to a real project: a mid-sized codebase plus a few weeks of design discussion runs into the tens of millions of tokens. Worse, every new session starts empty. Yesterday's plans, decisions, and bug fixes evaporate the moment the window closes.</p>
+<p>The context window is <strong>short-term memory</strong>: it forgets the moment the session ends. Anything that has to outlast a session needs <strong>long-term memory</strong>, a database. Your brain splits the same way: a phone number lasts five seconds, a friend's name lasts decades. The model is Lucy. The database does the remembering for it.</p>
+<p>So what kills hallucination is whatever survives <strong>on disk</strong> after the process exits. The rest of this course is about <em>how many machines</em> hold that disk. Local memory is the smallest case: one database on one machine.</p>
+<h2>Local memory: a database on your machine</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/agent-local.svg" alt="Local memory as a closed SQL loop: the model writes to and reads from one embedded claude-mem database via SQL; the database holds a SQLite FTS5 keyword index and a sqlite-vec vector index." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Local memory is a closed SQL loop: the model (grey, out of focus) writes with SQL and reads back through a rerank step. The database is the focus (green): one embedded claude-mem file, SQLite/FTS5 for keyword and sqlite-vec for semantic recall. One file, no server.</p>
+</div>
+<p>In late 2025, Tobi Lütke (CEO of Shopify, a ~$150B company) hit exactly this pain on his own coding agent. Over a weekend he built <strong>QMD</strong>, an open-source local search engine that gives agents persistent memory across sessions (<a href="https://github.com/tobi/qmd">github.com/tobi/qmd</a>). It indexes whatever you point it at (docs, notes, codebases) and retrieves the few snippets that matter, exposed over MCP so agents like Claude Code can call it mid-session. The premise: an agent with persistent searchable memory does not hallucinate the name of a function it could just look up.</p>
+<p>QMD is one of several tools converging on the same answer. The <a href="https://github.com/thedotmack/claude-mem">claude-mem</a> plugin passively logs observations during your sessions for later recall. <a href="https://github.com/Aider-AI/aider">Aider</a> tackles understanding the <em>current</em> codebase. All of them store their memory in <strong>SQLite</strong>, for the same four reasons:</p>
+<ul>
+<li>
+<p><strong>Zero config.</strong> The agent runs locally; the database has to start the moment the agent does, with no server to launch.</p>
+</li>
+<li>
+<p><strong>Embedded.</strong> It runs inside the agent's process. No network hop, no auth surface.</p>
+</li>
+<li>
+<p><strong>Transactional.</strong> A write mid-task must not corrupt the database if the laptop sleeps or the process dies.</p>
+</li>
+<li>
+<p><strong>One file.</strong> You can copy it, version it, or open it in any SQLite client and query it.</p>
+</li>
+</ul>
+<p>This is the cure for hallucination, and it is a single file on one machine.</p>
+<h2>Global memory: the same need, at scale</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/agent-global.svg" alt="Global memory at scale: 800 million ChatGPT users and the GPT-5 model send SQL writes to one Postgres primary, which replicates to about fifty read replicas that serve the SQL reads." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Global memory is the same database, copied. The users and GPT-5 model (grey, a separate topic) issue the same SQL as in Figure 2; only the database differs (green): one Postgres primary takes every write and streams replication to about fifty read replicas serving 800 million users. The database just keeps scaling, one machine versus many.</p>
+</div>
+<p>One laptop holds one engineer's memory. Production holds everyone's. The product pattern is the same at both ends: the model writes the reply, the database remembers your name, your conversations, your billing. Going from local to global is pure <strong>scale</strong>. Each user keeps their <em>own</em> memory, and the same primitive grows to hold all of them. <a href="#/page/Module1B-Intermediate-SQL/case-study-openai-postgres">OpenAI scaled that to 800 million users</a> by adding read replicas around a single primary.</p>
+<p>The database does not change as it grows; it migrates. The same observations, the same retrieval, move from a per-laptop SQLite file to a shared cloud database read by every agent and every engineer on the project. Next question: what happens when the database outgrows any single machine and hundreds of users hit it at once? The next teardown makes it concrete with UberEats, a planet-scale service where three parties must agree on every order.</p>
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>Short-term versus long-term.</strong> The context window is short-term memory, wiped every session. The database is long-term memory. Drop the long-term half and the model hallucinates.</p>
+</li>
+<li>
+<p><strong>One teardown, the whole course.</strong> A database on one machine (a language, storage, speed, transactions) is Modules 1 through 4. A database across many machines (replication, sharding) is Modules 5 and 6. This single example just walked the syllabus.</p>
+</li>
+<li>
+<p><strong>The fundamentals compound.</strong> The simplest SQL database, one file, is the load-bearing primitive the most senior engineer in commerce reached for to give his agent a memory. Choose the simplest database that fits the problem; that is usually enough, even at the frontier.</p>
+</li>
+</ol>
+<hr />
+<h2>Going deeper</h2>
+<p>How the database and the retrieval work, in detail.</p>
+<h3>The observations table</h3>
+<p>A simplified agent-memory database fits in one schema:</p>
+<pre><code><span class="sql-keyword">CREATE</span> <span class="sql-keyword">TABLE</span> observations (
+    id           INTEGER PRIMARY KEY,  <span class="sql-comment">-- unique row id; no two observations share one</span>
+    session_id   TEXT,                 <span class="sql-comment">-- which working session produced this</span>
+    project      TEXT,                 <span class="sql-comment">-- which codebase/project it belongs to</span>
+    created_at   TIMESTAMP,            <span class="sql-comment">-- when it was written; used to sort by recency</span>
+    kind         TEXT,                 <span class="sql-comment">-- 'decision' | 'pattern' | 'bug-fix' | 'todo'</span>
+    content      TEXT,                 <span class="sql-comment">-- the actual remembered text the agent searches</span>
+    embedding    BLOB                  <span class="sql-comment">-- the content as a vector, for semantic search</span>
+);
+
+<span class="sql-comment">-- Indexes make the common lookups fast (more on indexes in Module 3).</span>
+<span class="sql-keyword">CREATE</span> INDEX idx_session <span class="sql-keyword">ON</span> observations(session_id);  <span class="sql-comment">-- &quot;everything from this session&quot;</span>
+<span class="sql-keyword">CREATE</span> INDEX idx_project <span class="sql-keyword">ON</span> observations(project);     <span class="sql-comment">-- &quot;everything in this project&quot;</span>
+</code></pre>
+<p>QMD's index lives at <code>~/.cache/qmd/index.sqlite</code> with the <a href="https://github.com/asg017/sqlite-vec">sqlite-vec</a> extension and SQLite's built-in FTS5 module. claude-mem keeps sessions and observations in SQLite paired with a vector sidecar. Aider's repo-map cache uses <a href="https://github.com/grantjenks/python-diskcache">diskcache</a>, itself SQLite under the hood.</p>
+<h3>Three ranking signals</h3>
+<p>Once the database is set, agent memory becomes a question of <em>what to rank by</em>. Three signals show up across every serious tool, and a single agent often combines all three.</p>
+<p><strong>1. Keyword search (BM25, "Best Matching 25", a standard text-ranking algorithm).</strong> Classical full-text search weighted by term frequency and inverse document frequency, built into SQLite via FTS5. Best for exact recall: "find where we mentioned <code>verifyJWTWithScope</code>."</p>
+<pre><code><span class="sql-comment">-- &quot;What did we decide about auth in this project?&quot;</span>
+<span class="sql-comment">-- observations_fts is an FTS5 virtual table over observations.content.</span>
+<span class="sql-keyword">SELECT</span> o.content <span class="sql-keyword">FROM</span> observations o
+<span class="sql-keyword">JOIN</span> observations_fts f <span class="sql-keyword">ON</span> f.rowid <span class="sql-operator">=</span> o.id
+<span class="sql-keyword">WHERE</span> observations_fts MATCH <span class="sql-string">'auth'</span>
+  <span class="sql-keyword">AND</span> o.project <span class="sql-operator">=</span> <span class="sql-string">'cs145'</span>
+  <span class="sql-keyword">AND</span> o.kind <span class="sql-operator">=</span> <span class="sql-string">'decision'</span>
+<span class="sql-keyword">ORDER BY</span> bm25(observations_fts)
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">10</span>;
+</code></pre>
+<p><strong>2. Vector similarity.</strong> Embedding-based semantic search. The question is converted to a vector and the agent retrieves observations whose vectors point the same way. Best for paraphrase: "what are we doing about token refresh?" surfaces any observation about session lifetime even if "refresh" never appears.</p>
+<pre><code><span class="sql-comment">-- :query_embedding is computed beforehand by an external embedding model.</span>
+<span class="sql-keyword">SELECT</span> content <span class="sql-keyword">FROM</span> observations
+<span class="sql-keyword">WHERE</span> project <span class="sql-operator">=</span> <span class="sql-string">'cs145'</span>
+<span class="sql-keyword">ORDER BY</span> vec_distance_cosine(embedding, :query_embedding) ASC
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">10</span>;
+</code></pre>
+<p><strong>3. Graph centrality (PageRank).</strong> Code-aware retrieval rather than session memory. Parse the codebase with <a href="https://tree-sitter.github.io/tree-sitter/">tree-sitter</a>, treat files as nodes and symbol references as edges, run personalized PageRank seeded on what the user is asking about. <a href="https://aider.chat/2023/10/22/repomap.html">Aider's RepoMap</a> is the canonical implementation; claude-mem ships its own as the <code>smart-explore</code> skill. The PageRank runs in application code; the symbol graph sits in the same SQLite database.</p>
+<p>The three are orthogonal. <strong>BM25 catches what you said. Vectors catch what you meant. PageRank catches what is structurally relevant in your code right now.</strong> The right mix is workload-specific, and because the database speaks SQL, tuning the retrieval is a query edit, not a rebuild: weight BM25 twice as heavily by editing the <code>ORDER BY</code>; filter by recency by adding a <code>WHERE</code>. The same declarative power you have all course (say <em>what</em> you want, let the engine decide <em>how</em>) lets an agent builder iterate on memory by editing one line of SQL.</p>

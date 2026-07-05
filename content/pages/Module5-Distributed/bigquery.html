@@ -1,0 +1,93 @@
+<h1>BigQuery: Serverless OLAP at Cloud Scale</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> BigQuery is a serverless OLAP query engine: you submit SQL, Google's compute layer auto-provisions thousands of ephemeral "slots" against shared columnar storage, and you get an answer in seconds. Storage and compute scale and bill independently.</p>
+<p><strong>Intuition.</strong> When a Spotify analyst runs <code>SELECT artist, COUNT(*) FROM listens WHERE year = 2026 GROUP BY artist ORDER BY count DESC LIMIT 100</code> over a 10 TB Listens table, BigQuery spins up roughly 2,000 compute slots, each scans a slice of the columnar files in Colossus, and returns the answer in about 30 seconds for about a dollar and a quarter. No cluster was provisioned, no DBAs were involved, and when the query finishes the slots vanish.</p>
+</div>
+<hr />
+<h2>The Architectural Shift: Decoupled Storage and Compute</h2>
+<p>Traditional data warehouses (Teradata, the original Hadoop stack, even early Redshift) bundled storage and compute into one cluster. To store more data, you bought bigger nodes, and you paid for the compute on those nodes whether you queried them or not. To scan a petabyte, you bought a petabyte-sized cluster and kept it running 24/7.</p>
+<p>BigQuery split the two. Storage lives in <a href="#/page/Module5-Distributed/distributed-file-systems">Colossus</a>, Google's distributed file system, where it sits as compressed columnar files indefinitely at storage prices (around $20/TB/month). Compute is a separate fleet of ephemeral "slots" that spin up per query, do their work, and vanish. The result is two independent scaling axes:</p>
+<ul>
+<li>
+<p>Storage scales to petabytes without paying for compute.</p>
+</li>
+<li>
+<p>Compute scales to thousands of slots per query without provisioning servers.</p>
+</li>
+</ul>
+<p>Decoupling makes serverless possible: there is no cluster between queries, so there is nothing to manage.</p>
+<p><a id="bigquery-figure"></a></p>
+<div style="width: 100%; max-width: 900px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/bigquery-architecture.svg" alt="An analyst submits SQL; roughly 2,000 ephemeral pink compute slots scan in parallel at about $6.25/TiB and vanish, reading a 10 TB table held as persistent per-column files in grey Colossus storage at about $20/TB/month; the two layers scale independently" style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> BigQuery is serverless OLAP: storage and compute scale and bill independently. Each query spins up roughly 2,000 ephemeral slots that run in parallel and vanish when it finishes, billed per byte scanned (about $6.25/TiB). Colossus holds the table as persistent columnar files, one column per file, billed per gigabyte at rest (about $20/TB/month). No cluster to provision: you pay for the bytes you scan, not for idle capacity.</p>
+</div>
+<hr />
+<h2>A Worked Query: Spotify Top Artists, 100B Plays</h2>
+<pre><code><span class="sql-keyword">SELECT</span> artist, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> plays
+<span class="sql-keyword">FROM</span> spotify.listens_2026
+<span class="sql-keyword">WHERE</span> year <span class="sql-operator">=</span> <span class="sql-number">2026</span>
+<span class="sql-keyword">GROUP BY</span> artist
+<span class="sql-keyword">ORDER BY</span> plays DESC
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">100</span>;
+</code></pre>
+<p>Walk through what happens behind the API call: five stages, from planning the scan to returning the top 100.</p>
+<p><a id="bigquery-pipeline-figure"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/bigquery-pipeline.svg" alt="Five stages left to right: Plan cuts the scan from 10 TB to 200 GB using the columnar layout; Schedule allocates about 2,000 ephemeral slots; Scan has each slot read a Colossus partition and hash-aggregate by artist; Shuffle and merge hash-partitions the partial counts by artist and trims to the top 100; Return lands the result in about 30 seconds for about $1.25." style="width:100%; max-width:1240px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Behind one API call, the query runs as five stages. <strong>Plan:</strong> the optimizer sees only <code>artist</code> and <code>year</code> are touched, so the columnar layout (from the <a href="#/page/Module3-nanoDB/case-study-bigquery-scaling">Module 3 BigQuery case study</a>) reads only those two columns and skips the rest; over 100 billion rows they compress to ~200 GB, a fraction of the full 10 TB. <strong>Schedule:</strong> ~2,000 ephemeral slots are split across the stages. <strong>Scan:</strong> each slot reads a Colossus partition and hash-aggregates by artist into partial counts. <strong>Shuffle and merge:</strong> a second wave hash-partitions those counts by artist, sums, sorts, and trims to the top 100, the same hash-partitioning as <a href="#/page/Module5-Distributed/distributed-sort-hash">Distributed Sort &amp; Hash</a>. <strong>Return:</strong> the result lands in ~30 s, slots release, and you pay only for the ~200 GB scanned, about $1.25.</p>
+</div>
+<hr />
+<h2>Why ELT Beat ETL</h2>
+<p>In the pre-BigQuery world, the standard pattern was <strong>ETL</strong>: Extract from operational systems, Transform on a separate compute layer (often Spark), Load into the warehouse. This made sense when warehouse storage was expensive and warehouse compute was inflexible. You cleaned the data before loading, because once it was in the warehouse you did not want to touch it.</p>
+<p>Decoupled storage and compute flip the economics:</p>
+<ul>
+<li>
+<p><strong>Load raw.</strong> Storage is cheap. Dump everything into BigQuery without pre-processing.</p>
+</li>
+<li>
+<p><strong>Transform inside.</strong> Use SQL to reshape data on demand. The same engine that runs your analyst queries runs your transformations.</p>
+</li>
+<li>
+<p><strong>Iterate freely.</strong> When the transformation logic has a bug, re-run from the raw source instead of from a stale ETL output.</p>
+</li>
+</ul>
+<p>This is <strong>ELT</strong>: Extract, Load, Transform. The transformation step moves from a brittle external pipeline (Spark + Airflow) into the warehouse itself. Tools like dbt are built entirely around this pattern.</p>
+<hr />
+<h2>Where BigQuery Sits Among Modern OLAP Engines</h2>
+<p>Every modern OLAP engine (BigQuery, Snowflake, Redshift, Spark SQL) made the same core move: decouple storage from compute. What separates them is a set of smaller design choices, and those choices track <strong>use cases</strong> more than raw capability:</p>
+<ul>
+<li>
+<p><strong>BigQuery</strong> is serverless, so it fits ad-hoc analytics where the query load is spiky and you never want to run a cluster.</p>
+</li>
+<li>
+<p><strong>Snowflake</strong> gives you virtual warehouses you size yourself, which fits steady workloads that want a predictable cost ceiling.</p>
+</li>
+<li>
+<p><strong>Redshift</strong> fits AWS-native shops; <strong>Spark SQL</strong> fits custom, ML-heavy transforms.</p>
+</li>
+</ul>
+<p>The point is the pattern, not the details: pick the engine whose operational model matches how you actually query. Each makes its own tradeoffs on pricing, cluster sizing, and consistency, and you can read up on those nuances when you commit to one.</p>
+<hr />
+<h2>What This Says About the Modern Data Stack</h2>
+<p>The modern data stack is a chain of specialized systems, each playing the role you have now seen:</p>
+<ul>
+<li>
+<p><strong>Kafka</strong> (<a href="#/page/Module5-Distributed/kafka">next</a>) ingests real-time events.</p>
+</li>
+<li>
+<p><strong>DFS</strong> (S3, Colossus) stores raw and transformed data cheaply.</p>
+</li>
+<li>
+<p><strong>Spark / dbt</strong> transform data in place using SQL.</p>
+</li>
+<li>
+<p><strong>BigQuery / Snowflake</strong> serve interactive OLAP queries against the result.</p>
+</li>
+</ul>
+<p>Spark and BigQuery often appear in the same architecture: Spark does the heavy ELT job overnight, writes results back into BigQuery's storage, and analysts run sub-minute queries against the result the next morning.</p>
+<p>For the columnar storage and Dremel execution model that make BigQuery work under the hood, see the <a href="#/page/Module3-nanoDB/case-study-bigquery-scaling">Module 3 BigQuery case study</a>.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module5-Distributed/kafka">Kafka →</a></strong> Storage you can keep forever and compute you can spin up on demand handle batch and interactive analytics. The last piece is what brings the data in: a real-time event substrate that makes raw events available for both streaming consumers and batch loaders.</p>

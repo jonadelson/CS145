@@ -1,0 +1,84 @@
+<svg viewBox="0 0 900 392" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="tpc-t tpc-d">
+  <title id="tpc-t">Two-phase commit: prepare, then commit</title>
+  <desc id="tpc-d">Two panels. Left, phase one (prepare): a coordinator asks
+  every shard whether it can commit; each shard writes a log record and votes
+  yes, so the coordinator's decision becomes commit. Any single no would make
+  the decision abort. Right, phase two (commit): the coordinator tells every
+  shard to commit and each acknowledges, so the multi-shard transaction is
+  atomic, all commit or none do. Color key: pink is the coordinator's
+  decision, grey is the shards and the messages between them.</desc>
+  <defs><marker id="ah-tpc" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Two-phase commit: prepare, then commit</text>
+  <text x="450" y="58" text-anchor="middle" font-size="14" fill="#6B7280">One transaction spanning many shards commits atomically, or not at all.</text>
+
+  <!-- divider -->
+  <line x1="450" y1="92" x2="450" y2="346" stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- Phase 1: coordinator asks -->
+  <g data-step="1">
+    <rect x="24" y="80" width="404" height="278" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="24" y="80" width="404" height="6" rx="3" fill="#DB2777"/>
+    <text x="226" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Phase 1 &#183; Prepare</text>
+    <text x="226" y="132" text-anchor="middle" font-size="14" fill="#6B7280">Coordinator asks; each shard votes</text>
+    <rect x="40" y="183" width="120" height="46" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+    <text x="100" y="205" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Coordinator</text>
+    <text x="100" y="222" text-anchor="middle" font-size="13" fill="#6B7280">asks all</text>
+  </g>
+
+  <!-- Phase 1: shards log and vote -->
+  <g data-step="2">
+    <line x1="160" y1="200" x2="192" y2="167" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tpc)"/>
+    <line x1="160" y1="206" x2="192" y2="206" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tpc)"/>
+    <line x1="160" y1="212" x2="192" y2="245" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tpc)"/>
+    <rect x="196" y="150" width="216" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="304" y="172" text-anchor="middle" font-size="14" fill="#3F3F46">Shard 1 &#183; log + vote YES</text>
+    <rect x="196" y="189" width="216" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="304" y="211" text-anchor="middle" font-size="14" fill="#3F3F46">Shard 2 &#183; log + vote YES</text>
+    <rect x="196" y="228" width="216" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="304" y="250" text-anchor="middle" font-size="14" fill="#3F3F46">Shard 3 &#183; log + vote YES</text>
+  </g>
+
+  <!-- Phase 1: the decision -->
+  <g data-step="3">
+    <text x="226" y="296" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">All YES &#8594; decision = COMMIT</text>
+    <text x="226" y="316" text-anchor="middle" font-size="14" fill="#6B7280">any single NO &#8594; decision = ABORT</text>
+    <text x="226" y="340" text-anchor="middle" font-size="13" fill="#6B7280">Coordinator logs the decision before telling anyone</text>
+  </g>
+
+  <!-- Phase 2: coordinator says COMMIT -->
+  <g data-step="4">
+    <rect x="472" y="80" width="404" height="278" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="472" y="80" width="404" height="6" rx="3" fill="#DB2777"/>
+    <text x="674" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Phase 2 &#183; Commit</text>
+    <text x="674" y="132" text-anchor="middle" font-size="14" fill="#6B7280">Coordinator tells all; each acknowledges</text>
+    <rect x="488" y="183" width="120" height="46" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+    <text x="548" y="205" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Coordinator</text>
+    <text x="548" y="222" text-anchor="middle" font-size="13" fill="#6B7280">says COMMIT</text>
+  </g>
+
+  <!-- Phase 2: shards commit and ack -->
+  <g data-step="5">
+    <line x1="608" y1="200" x2="640" y2="167" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tpc)"/>
+    <line x1="608" y1="206" x2="640" y2="206" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tpc)"/>
+    <line x1="608" y1="212" x2="640" y2="245" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tpc)"/>
+    <rect x="644" y="150" width="216" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="752" y="172" text-anchor="middle" font-size="14" fill="#3F3F46">Shard 1 &#183; commit + ack</text>
+    <rect x="644" y="189" width="216" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="752" y="211" text-anchor="middle" font-size="14" fill="#3F3F46">Shard 2 &#183; commit + ack</text>
+    <rect x="644" y="228" width="216" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="752" y="250" text-anchor="middle" font-size="14" fill="#3F3F46">Shard 3 &#183; commit + ack</text>
+  </g>
+
+  <!-- Phase 2: atomic outcome -->
+  <g data-step="6">
+    <text x="674" y="296" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Atomic: all commit, or none do</text>
+    <text x="674" y="316" text-anchor="middle" font-size="14" fill="#6B7280">no shard can disagree with the decision</text>
+    <text x="674" y="340" text-anchor="middle" font-size="13" fill="#6B7280">Coordinator crash after prepare blocks the shards</text>
+  </g>
+
+  <text x="450" y="382" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the coordinator's decision&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the shards and their messages</tspan></text>
+</svg>

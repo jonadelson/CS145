@@ -1,0 +1,24 @@
+<h1>Case Study 1.2: How Postgres Handles OpenAI's 800 Million Users</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> OpenAI scaled ChatGPT to ~800 million users on Postgres by keeping writes on a single primary and routing reads to about 50 read replicas.</p>
+<p><strong>Intuition.</strong> Imagine Listens with ~800 million users, almost all reading and a few writing. Reads are the bottleneck. Postgres lets you keep one writable primary that holds the truth and spin up about 50 read replicas to absorb the queries.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 1.2</span>
+<span>Reading Time: 5 mins</span></p>
+</div>
+<h2>The Read-Heavy Constraint</h2>
+<p>Scaling to 800 million users looks different for every application. For an email service like Gmail, the system sustains a high, continuous volume of writes. But for ChatGPT, the primary operational bottleneck is <strong>read throughput</strong>. As detailed in their engineering post <a href="https://openai.com/index/scaling-postgresql/">"Scaling PostgreSQL to power 800 million ChatGPT users"</a>, OpenAI sustains this load using standard PostgreSQL.</p>
+<p><a id="readwrite-fig"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/openai-readwrite.svg" alt="One ChatGPT question is one write (save the new message), then hundreds of reads (fetch history, load the sidebar, build the LLM context). Reads are the bottleneck, not writes, so the system scales reads." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<hr />
+<h3>Isolating Read and Write Traffic</h3>
+<p>If we look at ChatGPT's traffic, we see a large read/write imbalance: one write, then hundreds of reads. Why? Because every time you ask the AI a single question (one write), the system must fetch your entire conversation history from the database to give the LLM its context (hundreds of reads). Furthermore, users constantly browse their sidebars loading past chats.</p>
+<p>OpenAI deployed a single primary database dedicated exclusively to saving new writes. To handle the read volume from context windows and the UI, they provisioned <strong>50 globally distributed read replicas</strong>. This architecture physically separates read traffic from write traffic. It maintains the ACID constraints of standard SQL for saving new data, while horizontally expanding read capacity.</p>
+<p><a id="replicas-fig"></a></p>
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/openai-replicas.svg" alt="Writes from new messages go to a single writable primary that holds the truth with ACID guarantees. The primary replicates to 50 globally distributed read replicas, and all the read traffic (history, sidebars) fans out to those replicas, separating read traffic from write traffic." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<p><em>(Note: We will dive much deeper into how you can configure sharding and replication later in </em><em>Module 5</em><em>, and how strict safety guarantees work under the hood in </em><em>Module 4</em><em>).</em></p>
+<hr />
+<h3>The Bottom Line</h3>
+<p><strong>For read-heavy workloads, a single primary plus read replicas scales the reads horizontally.</strong> Optimization at this level requires carefully structured data models and clear query patterns, not custom database engines. </p>
+<p>However, when a system exhausts horizontal read replication or encounters high-volume unstructured parallel writes, this architecture degrades. We cover circumventing these hard limits using Key-Value stores and Data Lakes in <strong>Module 6</strong>.</p>

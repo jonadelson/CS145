@@ -1,0 +1,42 @@
+<h1>Locality-Sensitive Hashing and Vector Embeddings</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A normal hash scatters similar inputs apart on purpose. Locality-sensitive hashing does the opposite: it sends similar vectors to the <em>same</em> bucket, so "find things like this" reads one bucket instead of scanning everything.</p>
+<p><strong>Intuition.</strong> Cut the space with a few random lines. Which side of each line a point falls on is one bit of its code. Two points close together land on the same side of almost every line, so they get the same code and the same bucket. Look only in that bucket.</p>
+</div>
+<p>The previous section already used approximation. A Bloom filter answers "is this item in the set?" approximately, accepting a few false positives in exchange for a large space saving. This page does the same for a harder question, "which items are nearest this one?", accepting a few missed matches in exchange for not scanning a billion vectors.</p>
+<h2>Locality Sensitive Hashing (LSH)</h2>
+<p>Every item is a vector in a high-dimensional space, an embedding of hundreds or thousands of numbers. A query is a vector too. "Find similar items" means one thing: of a million stored vectors, which sit nearest the query vector? Comparing the query against all million is O(N), too slow at scale, and an ordinary hash table cannot help: by design it scatters near-identical inputs to unrelated buckets.</p>
+<p><a id="lsh-pipeline"></a></p>
+<p><img src="assets/Module2-Systems/svgs/lsh-image-similarity.svg"
+     alt="Four items, each turned into a feature vector, then a k-bit LSH code, then a bucket. The two similar cats share code 1011 and the same bucket, while the dog and car land in different buckets. A query for items like the cat scans only that bucket."
+     style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The pipeline end to end. Each item becomes a feature vector, an embedding, then a short LSH code, then a bucket. The two similar cats get the same code and share a bucket, while the dog and car fall elsewhere. A search for items like the cat reads that one bucket instead of comparing against every stored vector. The next figure shows where the code bits come from.</p>
+</div>
+<p>So flip the goal: build a hash that <em>wants</em> collisions, but only between vectors that are alike. Picture one straight line dropped across the space. Every point is on one side of it or the other. In a real embedding space of hundreds of dimensions that line becomes a hyperplane, but nothing else changes: one cut, one yes-or-no question, one bit. The whole mechanism is one figure.</p>
+<p><a id="lsh-figure"></a></p>
+<p><img src="assets/Module2-Systems/svgs/lsh-cuts.svg"
+     alt="A space crossed by three dashed cuts at different angles. Above a cut reads 0, below reads 1. The orange pair is above all three cuts, so both read 000 and share a bucket; three grey points read 100, 010, and 111. The 000 pair and the 100 point differ by one bit because only cut 1 runs between them."
+     style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Read every dashed cut the same way: a vector
+above it is a 0, below it is a 1. The orange pair is above all three cuts, so
+both read <code>000</code> and share a bucket. Three more points read
+<code>100</code>, <code>010</code>, and <code>111</code>: each bit is just
+above-or-below one cut, so you can trace them by eye. The <code>000</code> pair
+and the <code>100</code> point differ by a single bit because only cut 1 runs
+between them, which is exactly why near vectors collide and far ones do not. A
+query then opens one bucket instead of scanning all of them: cost
+<code>O(N)</code> down to about <code>O(N / 2<sup>k</sup>)</code>, at the price
+of an occasional miss when a close pair straddles a cut. The picture is 2D, so
+a cut is a line; in a real embedding space it is a hyperplane, same rule.</p>
+</div>
+<h3>Why it tracks similarity</h3>
+<p>A single cut separates two points only when it happens to fall between them. Two points sitting almost on top of each other leave almost no room for a cut to land between, so nearly every cut puts them on the same side and they keep the same code. Two points far apart leave a wide gap, so many cuts fall between them and flip a bit. The chance two items land in the same bucket therefore shrinks smoothly as they get farther apart. That is what <em>locality-sensitive</em> means: closeness survives the hash instead of being scrambled by it, which is exactly the opposite of an ordinary hash.</p>
+<h3>The knob: how many lines</h3>
+<p>More hyperplanes make purer buckets but split more true pairs, so k trades recall for selectivity. You pick k for the recall you need and union several independent tables to recover the pairs any single one drops.</p>
+<h2>What is Quantization?</h2>
+<p>LSH shrinks the <em>search</em>. Quantization shrinks the <em>storage</em>: replace each exact value with a small code for the bucket it falls in, so a vector that took kilobytes takes a handful of bytes. Keep just enough to preserve who is near whom.</p>
+<h2>Vector/Embedding Hashing</h2>
+<p>Every large system that searches embeddings runs some version of this: Faiss at Facebook, recommendations at Google and Spotify, semantic and code search at OpenAI. The same locality trick shows up beyond embeddings: perceptual image hashing (Microsoft PhotoDNA) collides near-duplicate images even after a resize or recolor, and DNA <em>k-mer</em> hashing groups similar genomic sequences for fast partitioning. All trade the exact answer for the scale. To see random projections and quantization in working code, open the <a href="https://drive.google.com/drive/u/0/folders/1MvoALUcHHu9YJ7mm4KmWC0qqTiGRL_Dl">Hashing Colab</a>.</p>
+<p>Once you stop demanding the exact answer, "find similar" and "store a billion vectors" both become cheap. The next two case studies show that in production, and Case Study 2.4 pushes it to its 2026 limit.</p>

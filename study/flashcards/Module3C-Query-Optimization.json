@@ -1,0 +1,174 @@
+{
+  "module": "Module3C-Query-Optimization",
+  "title": "Query Optimization",
+  "cards": [
+    {
+      "id": "m3c-c01",
+      "front": "What are the stages that take a SQL query from text to execution?",
+      "back": "Parse and bind into a validated tree → logical plan with equivalence-preserving rewrites (predicate pushdown, projection pruning, subquery flattening) → physical plan chosen by cost search (join order, join algorithm, access path) → execute only the winner.",
+      "page": "Module3C-Query-Optimization/query-optimizer",
+      "tags": ["optimizer", "plans"]
+    },
+    {
+      "id": "m3c-c02",
+      "front": "Logical plan vs physical plan: what does each decide?",
+      "back": "The logical plan pins down WHAT rows come back — every rewrite returns the same result. The physical plan decides SPEED: which join order, join algorithm, and access path actually run, each candidate costed from table statistics.",
+      "page": "Module3C-Query-Optimization/query-optimizer",
+      "tags": ["optimizer", "plans"]
+    },
+    {
+      "id": "m3c-c03",
+      "front": "How does the optimizer avoid evaluating all n! join orders?",
+      "back": "Dynamic programming: compute the cheapest sub-plan for each subset of tables once and reuse it, collapsing n! work to about 2ⁿ. The winning plan is routinely ~100× faster than the naive ordering.",
+      "page": "Module3C-Query-Optimization/query-optimizer",
+      "tags": ["optimizer", "join-order"]
+    },
+    {
+      "id": "m3c-c04",
+      "front": "What is the most common cause of mysteriously slow production queries, and its fix?",
+      "back": "Stale statistics: if <code>pg_class.reltuples</code> says 1,000 rows when there are a billion, the optimizer picks a small-data plan and runs it on big data. Fix: <code>ANALYZE</code> (or autovacuum) to refresh the stats.",
+      "page": "Module3C-Query-Optimization/query-optimizer",
+      "tags": ["statistics", "postgres"]
+    },
+    {
+      "id": "m3c-c05",
+      "front": "Define selectivity and cardinality.",
+      "back": "Selectivity = fraction of rows passing a filter (0.0–1.0), e.g. <code>user_id = 123</code> → 0.0001. Cardinality = row count in the output: <code>Output = Input × Selectivity</code>, e.g. 1M × 0.01 = 10K rows.",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "tags": ["selectivity", "cardinality"]
+    },
+    {
+      "id": "m3c-c06",
+      "front": "How do you combine selectivities for AND and OR (assuming independence)?",
+      "back": "AND: <code>S₁ × S₂</code>. OR: <code>S₁ + S₂ − (S₁ × S₂)</code>. Join cardinality: FK join ≈ |R| (the FK side); M:N join ≈ |R|×|S| / max(V_R, V_S) where V is the distinct-value count.",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "tags": ["selectivity", "estimation"]
+    },
+    {
+      "id": "m3c-c07",
+      "front": "What access method does each selectivity band suggest?",
+      "back": "Low (&lt; 1%, e.g. primary-key lookup): index. Medium (1–10%, e.g. a month-long date range): bitmap scan. High (&gt; 10%, e.g. <code>IS NOT NULL</code>): sequential scan — the index would cost more than it saves.",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "tags": ["selectivity", "access-paths"]
+    },
+    {
+      "id": "m3c-c08",
+      "front": "What statistics does the database keep at table level vs column level?",
+      "back": "Table: <code>row_count</code>, <code>page_count</code>, <code>avg_row_len</code>, <code>last_analyzed</code> (PostgreSQL: <code>pg_class</code>). Column: null fraction, distinct count, most-common values with frequencies, histogram bounds (<code>pg_statistic</code>) — these enable range, equality, and join estimates.",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "tags": ["statistics", "postgres"]
+    },
+    {
+      "id": "m3c-c09",
+      "front": "How does reservoir sampling take a fair k-row sample from a stream of N rows?",
+      "back": "Keep the first k rows; for each later row i, swap it into a random slot with probability k/i. Every row ends up sampled with equal probability k/N, in one pass with O(k) memory. Block sampling is faster but biased when rows cluster on pages.",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "tags": ["sampling", "statistics"]
+    },
+    {
+      "id": "m3c-c10",
+      "front": "Equi-width vs height-balanced histograms: which handles skew, and why?",
+      "back": "Height-balanced: every bucket holds 1/B of the rows, so bucket ranges shrink where data is dense and estimates stay accurate under skew. Equi-width slices the value range evenly, so one bucket swallows nearly all skewed rows and estimates go wildly wrong.",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "tags": ["histograms", "skew"]
+    },
+    {
+      "id": "m3c-c11",
+      "front": "Match the probabilistic sketch to its question: Bloom filter, HyperLogLog, Count-Min Sketch.",
+      "back": "Bloom filter: \"might x be in the set?\" (~10 bits/item, ~1% false positives) — used to skip partitions. HyperLogLog: <code>COUNT(DISTINCT x)</code> in ~1.5 KB, ±1%. Count-Min Sketch: \"how often did x appear?\" — top-K / heavy hitters.",
+      "page": "Module3C-Query-Optimization/selectivity-statistics",
+      "tags": ["sketches", "statistics"]
+    },
+    {
+      "id": "m3c-c12",
+      "front": "How do you compute the IO cost of a whole query plan?",
+      "back": "Sum the cost of every step using the Module 3 formulas (BigSort, HP, BNLJ/SMJ/HPJ). Two plans returning identical results can differ wildly; write both totals in the same terms, plug in table sizes, and keep the cheaper — that IS cost-based optimization.",
+      "page": "Module3C-Query-Optimization/io-cost-summary",
+      "tags": ["io-cost", "plans"]
+    },
+    {
+      "id": "m3c-c13",
+      "front": "Why can a sort-merge-join plan make a following GROUP BY nearly free?",
+      "back": "SMJ output is sorted on the join keys; if the grouping column is a prefix of that sort order (e.g. <code>song_id</code> in a sort on <code>(song_id, user_id)</code>), each group's rows are already contiguous, so grouping is one read/write pass with no extra sort.",
+      "page": "Module3C-Query-Optimization/io-cost-summary",
+      "tags": ["smj", "group-by"]
+    },
+    {
+      "id": "m3c-c14",
+      "front": "In the HPJ query plan, why is there an extra <code>HP(3)</code> repartition before the GROUP BY?",
+      "back": "HPJ partitioned on <code>(song_id, user_id)</code>, but the GROUP BY needs <code>song_id</code> alone — one song's rows may sit in different partitions. Re-partitioning on just <code>song_id</code> aligns them; this extra pass is the whole reason the HPJ plan can lose to the SMJ plan.",
+      "page": "Module3C-Query-Optimization/io-cost-summary",
+      "tags": ["hpj", "group-by"]
+    },
+    {
+      "id": "m3c-c15",
+      "front": "How do you read PostgreSQL EXPLAIN output, and what do <code>cost=</code> and <code>rows=</code> mean?",
+      "back": "Read bottom-up: leaves scan first, results bubble to the root. <code>cost=startup..total</code> = estimated cost before the first row and for all rows; <code>rows=N</code> = estimated row count flowing out of the step.",
+      "page": "Module3C-Query-Optimization/postgres-explain",
+      "tags": ["explain", "postgres"]
+    },
+    {
+      "id": "m3c-c16",
+      "front": "Map these EXPLAIN operators to course cost formulas: Seq Scan, Hash Join, Sort, Index Scan.",
+      "back": "Seq Scan → <code>C_r·P(table)</code>. Hash Join → <code>HPJ(R,S)</code>, roughly 3(P(R)+P(S)). Sort → BigSort cost. Index Scan → <code>log(N) + matched rows</code>, output much smaller than input.",
+      "page": "Module3C-Query-Optimization/postgres-explain",
+      "tags": ["explain", "io-cost"]
+    },
+    {
+      "id": "m3c-c17",
+      "front": "What is HashAggregate, and when does the optimizer prefer it to sort-based grouping?",
+      "back": "GROUP BY via an in-memory hash table keyed by group: cost ~<code>C_r·P(input)</code>, no sort. Chosen when one-row-per-group output fits in RAM; if it doesn't, it spills and falls back to a partition-based (HPJ-style) approach. Our simplified model assumes grouping needs a sort — this is the main real-world trick beyond it.",
+      "page": "Module3C-Query-Optimization/postgres-explain",
+      "tags": ["explain", "aggregation"]
+    },
+    {
+      "id": "m3c-c18",
+      "front": "What is a shuffle in distributed query execution?",
+      "back": "Data relocation across nodes so all rows with the same key land on the same machine before a join or group-by: <code>hash(key) % nodes</code> picks a target machine. It is hash partitioning with the network as the destination — same 2N IO plus network transfer.",
+      "page": "Module3C-Query-Optimization/distributed-query",
+      "tags": ["distributed", "shuffle"]
+    },
+    {
+      "id": "m3c-c19",
+      "front": "Broadcast shuffle vs hash shuffle vs co-located: when is each best?",
+      "back": "Broadcast (copy the whole small table to every node, cost = size × #nodes): tiny table joining a massive one. Hash shuffle (redistribute both by key, cost ≈ both tables' size): two large tables. Co-located (zero network IO): tables pre-partitioned on the same key.",
+      "page": "Module3C-Query-Optimization/distributed-query",
+      "tags": ["distributed", "joins"]
+    },
+    {
+      "id": "m3c-c20",
+      "front": "Describe two-phase reaggregation for a distributed GROUP BY.",
+      "back": "Phase 1: each node pre-aggregates its local slice (1M listen rows → 1K artist totals, ~1,000× shrink) before anything crosses the network. Phase 2: partials are shuffled by grouping key to a coordinator that merges them into exact totals.",
+      "page": "Module3C-Query-Optimization/distributed-query",
+      "tags": ["distributed", "aggregation"]
+    },
+    {
+      "id": "m3c-c21",
+      "front": "Trace one Spotify play-button click through the three-act pipeline.",
+      "back": "Act 1 (OLTP): INSERT appends to an LSM MemTable, ~8 ms, 100K writes/sec/node. Act 2 (ETL, nightly): Spark hash-partitions, BigSorts within partitions, broadcast-joins dim tables, writes columnar Parquet (100 TB → 10 TB). Act 3 (OLAP): dashboard scans 3 of 20 columns of the warehouse with a broadcast join, ~2 s.",
+      "page": "Module3C-Query-Optimization/spotify-architecture-end-to-end",
+      "tags": ["architecture", "pipeline"]
+    },
+    {
+      "id": "m3c-c22",
+      "front": "Why does Spotify's pipeline use opposite storage optimizations at each end?",
+      "back": "The write end needs blazing appends with no random IO (LSM), the read end needs blazing scans of few columns (compressed columnar). No single structure wins everywhere, so the nightly ETL converts the write-optimized format into the scan-optimized one.",
+      "page": "Module3C-Query-Optimization/spotify-architecture-end-to-end",
+      "tags": ["architecture", "tradeoffs"]
+    },
+    {
+      "id": "m3c-c23",
+      "front": "Capstone toolbox: which structure fits date-range royalty queries, user-similarity clustering, hyper-local meetups, and viral-surge load spreading?",
+      "back": "Date ranges on trillions of listens → B+Tree on <code>(song_id, date)</code> (dates are sequential). High-dimensional similarity → embeddings + LSH. Hyper-local zones → H3 geo-hashing cells. Spreading viral traffic across a cluster → hash partitioning on <code>song_id</code>/<code>user_id</code>.",
+      "page": "Module3C-Query-Optimization/problem-solving-modular-systems",
+      "tags": ["design", "indexes"]
+    },
+    {
+      "id": "m3c-c24",
+      "front": "What is the capstone lesson of Module 3?",
+      "back": "Real systems are modular toolboxes, not one perfect structure: match each workload to the algorithm or index built for its access pattern — LSM for write surges, B+Tree for ranges, LSH for similarity, hash partitioning for parallelism — and let each component do its specialized job.",
+      "page": "Module3C-Query-Optimization/problem-solving-modular-systems",
+      "tags": ["design", "capstone"]
+    }
+  ]
+}

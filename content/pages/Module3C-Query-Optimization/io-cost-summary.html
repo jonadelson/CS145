@@ -1,0 +1,125 @@
+<h1>IO Cost Summary: Comparing Query Plans</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> The IO cost of a query plan is the sum of the IO costs of every step in the plan. To compare plans, you add up each step's cost using the formulas for sort, hash partition, and the three join algorithms.</p>
+<p><strong>Intuition.</strong> Two plans that produce the same result can cost wildly different amounts of IO depending on which algorithm you use at each step. This page walks through one recommendation query and computes the total cost of two plausible plans side by side.</p>
+</div>
+<p>The cost formulas used here (<code>BigSort</code>, <code>HP</code>, and the three joins <code>BNLJ</code> / <code>SMJ</code> / <code>HPJ</code>, all in terms of <code>C_r</code>, <code>C_w</code>, and page counts <code>P(...)</code>) are the ones defined in <strong><a href="#/page/Module3-nanoDB/io-algorithms">Module 3 nanoDB: IO Algorithms</a></strong>. This page does not introduce new formulas; it adds them up across a plan.</p>
+<h2>The Query</h2>
+<pre><code><span class="sql-comment">-- Highly recommended songs</span>
+<span class="sql-keyword">SELECT</span> r.song_id, <span class="sql-keyword">COUNT</span>(r.recommendation_id) <span class="sql-keyword">AS</span> recommendation_count
+<span class="sql-keyword">FROM</span> Recommendations <span class="sql-keyword">AS</span> r
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Listens</span> <span class="sql-keyword">AS</span> l <span class="sql-keyword">ON</span> r.user_id <span class="sql-operator">=</span> l.user_id <span class="sql-keyword">AND</span> r.song_id <span class="sql-operator">=</span> l.song_id
+<span class="sql-keyword">GROUP BY</span> r.song_id
+<span class="sql-keyword">ORDER BY</span> <span class="sql-keyword">COUNT</span>(r.recommendation_id) DESC;
+</code></pre>
+<div class="v5-callout v5-callout--info">
+<p><strong>The Recommendations table.</strong> Alongside the canonical <code>Users</code> / <code>Songs</code> / <code>Listens</code> schema, the recommender writes one row per song it suggests to a user: <code>Recommendations(user_id, song_id, recommendation_id, recommendation_time)</code>, with <code>user_id</code> and <code>song_id</code> foreign keys into <code>Users</code> and <code>Songs</code>. The query joins it to <code>Listens</code> on the pair <code>(user_id, song_id)</code>, so a match means "this user actually listened to a song that was recommended to them."</p>
+</div>
+<p>Three goals to achieve in any plan: <strong>JOIN</strong> the two tables on <code>(user_id, song_id)</code>, <strong>GROUP BY</strong> <code>song_id</code>, then <strong>SORT</strong> by count.</p>
+<hr />
+<h2>Query Plan #1: Sort-Merge Join</h2>
+<p><img src="assets/Module3C-Query-Optimization/images/queryplan1.png" alt="Query Plan 1: Sort-Merge Join, the three goals (Join, Group, Sort) with the what-happens and cost for each." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The query's three goals, left to right. <strong>Goal 1 (JOIN)</strong> sort-merge-joins <code>Recommendations</code> and <code>Listens</code> on <code>(song_id, user_id)</code>, so the output is already sorted on both keys. <strong>Goal 2 (GROUP BY song_id)</strong> is then free: <code>song_id</code> is a prefix of that sort order, so grouping is direct, reading <code>(3)</code> and writing <code>(4)</code>. <strong>Goal 3 (SORT)</strong> is one final <code>BigSort(4)</code> for <code>ORDER BY count</code>. The sorted join at Goal 1 (mint) makes Goal 2 free; the total is the sum of the three.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>What happens</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>#1 Join</strong> R, L on <code>[song_id, user_id]</code></td>
+<td>Sort-Merge Join. Output already sorted on both keys</td>
+<td><code>SMJ(R, L)</code></td>
+</tr>
+<tr>
+<td><strong>#2 Group</strong> <code>BY song_id</code></td>
+<td><code>song_id</code> is a <em>prefix</em> of the sort order, so we can group directly. Read <code>(3)</code>, write <code>(4)</code></td>
+<td><code>C_r·P(3) + C_w·P(4)</code></td>
+</tr>
+<tr>
+<td><strong>#3 Sort</strong> <code>ORDER BY count</code></td>
+<td>One final external sort of the grouped table <code>(4)</code></td>
+<td><code>BigSort(4)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total cost (Plan #1):</strong> <code>SMJ(R,L) + C_r·P(3) + C_w·P(4) + BigSort(4)</code></p>
+<hr />
+<h2>Query Plan #2: Hash-Partition Join</h2>
+<p><img src="assets/Module3C-Query-Optimization/images/queryplan2.png" alt="Query Plan 2: Hash-Partition Join, the three goals (Join, Group, Sort) with the what-happens and cost for each, including the extra re-partition before grouping." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The same three goals, left to right. <strong>Goal 1 (JOIN)</strong> hash-partition-joins on <code>(song_id, user_id)</code>, so the output <code>(3)</code> is split on both keys. <strong>Goal 2 (GROUP BY song_id)</strong> is where Plan 2 pays: <code>GROUP BY</code> needs <code>song_id</code> alone, so <code>(3)</code> must be re-partitioned into <code>(3b)</code> before grouping, then read <code>(3b)</code> and write <code>(4)</code>. That extra <code>HP(3)</code> step (mint) is the whole reason Plan 2 can cost more than Plan 1. <strong>Goal 3 (SORT)</strong> is the same final <code>BigSort(4)</code> as Plan 1.</p>
+</div>
+<div class="v5-callout">
+<p><strong>Note.</strong> HPJ partitions on <code>[song_id, user_id]</code>, so the output partitions <code>(3)</code> are split on <strong>both</strong> keys. Since <code>GROUP BY</code> is on <code>song_id</code> alone, we must <strong>re-partition</strong> <code>(3)</code> on <code>song_id</code> to align before grouping. That's the extra <code>HP(3)</code> step.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>What happens</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>#1 Join</strong> R, L on <code>[song_id, user_id]</code></td>
+<td>Hash-Partition Join</td>
+<td><code>HPJ(R, L)</code></td>
+</tr>
+<tr>
+<td><strong>#2 Group</strong> <code>BY song_id</code></td>
+<td>Re-partition <code>(3)</code> on <code>song_id</code> alone (call it <code>(3b)</code>); read <code>(3b)</code>, write <code>(4)</code></td>
+<td><code>HP(3) + C_r·P(3b) + C_w·P(4)</code></td>
+</tr>
+<tr>
+<td><strong>#3 Sort</strong> <code>ORDER BY count</code></td>
+<td>Final sort of <code>(4)</code></td>
+<td><code>BigSort(4)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total cost (Plan #2):</strong> <code>HPJ(R,L) + HP(3) + C_r·P(3b) + C_w·P(4) + BigSort(4)</code></p>
+<hr />
+<h2>Why the Plans Differ</h2>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>Key property</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Plan #1 (SMJ)</strong></td>
+<td>SMJ output is naturally sorted on the join keys; <code>song_id</code> is a prefix → can group directly</td>
+<td>Pays the sort cost upfront via BigSort inside SMJ</td>
+</tr>
+<tr>
+<td><strong>Plan #2 (HPJ)</strong></td>
+<td>HPJ partitions on the join keys but <code>GROUP BY</code> needs only <code>song_id</code> → extra repartition step</td>
+<td>Cheaper join when nothing is sorted, but pays repartitioning later</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Both plans need a final <code>BigSort</code> for <code>ORDER BY count</code>.</strong> Grouping leaves the rows in <code>(song_id, count)</code> order, not <code>count</code> order, so neither plan can skip it.</p>
+<h3>The decision is arithmetic</h3>
+<p>You don't argue about which plan is faster, you add it up. Both totals are written in the same terms, so line them up:</p>
+<ul>
+<li>
+<p><strong>Plan #1:</strong> <code>SMJ(R,L) + C_r·P(3) + C_w·P(4) + BigSort(4)</code></p>
+</li>
+<li>
+<p><strong>Plan #2:</strong> <code>HPJ(R,L) + HP(3) + C_r·P(3b) + C_w·P(4) + BigSort(4)</code></p>
+</li>
+</ul>
+<p>They share the final <code>BigSort(4)</code> and the write of <code>(4)</code>. The only difference is the join term plus the extra <code>HP(3)</code> repartition Plan #2 pays. Plug in the real table sizes, evaluate both, and pick the smaller number. That is the whole idea of a <strong>cost-based optimizer</strong>: estimate the IO of every candidate plan from formulas exactly like these, and keep the cheapest. The trade-off above is intuition for which term usually wins; the math is what settles it.</p>
+<hr />
+<h2>Next: Reading What a Real Optimizer Chose</h2>
+<p>So far we've <strong>estimated</strong> costs ourselves by writing out formulas. In practice, real databases do this work for you and show you the result via the <code>EXPLAIN</code> command. The <strong><a href="#/page/Module3C-Query-Optimization/postgres-explain">Reading PostgreSQL EXPLAIN</a></strong> page takes the same cost-formula vocabulary and applies it the other way around: it decodes what plan a real optimizer picked, plus an interactive Colab for exploring plans.</p>

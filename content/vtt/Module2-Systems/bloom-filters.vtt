@@ -1,0 +1,181 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.497
+A common question.
+
+00:00:04.497 --> 00:00:06.995
+You have a billion records on disk.
+
+00:00:06.995 --> 00:00:09.492
+You want to know if a particular value is in there.
+
+00:00:09.492 --> 00:00:11.990
+The naive way: reed the disk until you find it.
+
+00:00:11.990 --> 00:00:14.487
+Or reed the whole disk if it isn't.
+
+00:00:14.487 --> 00:00:16.985
+There is a much better way.
+
+00:00:16.985 --> 00:00:19.482
+It uses kilobytes of RAM and almost no time.
+
+00:00:19.482 --> 00:00:21.980
+It is called a Bloom filter.
+
+00:00:21.980 --> 00:00:24.477
+And it is going to feel like cheating.
+
+00:00:24.477 --> 00:00:27.919
+Someone asks, is the song with id forty-two in the Listens table?
+
+00:00:27.919 --> 00:00:31.362
+If the answer is no, you skip the disk reed entirely.
+
+00:00:31.362 --> 00:00:34.804
+If the answer is yes, you reed that page from disk and search it.
+
+00:00:34.804 --> 00:00:38.246
+So the trick is, can we answer "is it in there" fast, without keeping the whole table in memory?
+
+00:00:38.246 --> 00:00:41.689
+The short answer: ten-x space savings.
+
+00:00:41.689 --> 00:00:45.131
+Constant-time lookup.
+
+00:00:45.131 --> 00:00:48.574
+One percent false positives.
+
+00:00:48.574 --> 00:00:52.016
+Zero false negatives.
+
+00:00:52.016 --> 00:00:55.490
+Here is how it works.
+
+00:00:55.490 --> 00:00:58.965
+The Bloom filter is a tiny bit array.
+
+00:00:58.965 --> 00:01:02.439
+A few thousand bits.
+
+00:01:02.439 --> 00:01:05.913
+All starting at zero.
+
+00:01:05.913 --> 00:01:09.388
+For every value in the set, hash it through several functions and turn on the bits at those positions.
+
+00:01:09.388 --> 00:01:12.862
+Take a sixteen-bit array.
+
+00:01:12.862 --> 00:01:16.336
+INSERT alice hashes alice three times, lands on bits three, seven, and fourteen, sets them.
+
+00:01:16.336 --> 00:01:19.810
+Bits nine and eleven were already set by earlier inserts.
+
+00:01:19.810 --> 00:01:23.285
+To check a new value, hash it the same way and look.
+
+00:01:23.285 --> 00:01:26.759
+LOOKUP bob hashes to bits three, nine, and two.
+
+00:01:26.759 --> 00:01:30.233
+Bit two is zero.
+
+00:01:30.233 --> 00:01:33.708
+So bob is definitely not in the set.
+
+00:01:33.708 --> 00:01:37.182
+If any hashed bit is zero, the answer is definitely not in.
+
+00:01:37.182 --> 00:01:40.656
+Zero false negatives, ever.
+
+00:01:40.656 --> 00:01:44.131
+If every bit is on, the value might be in the set, or other values may have collectively turned those bits on.
+
+00:01:44.131 --> 00:01:47.605
+So yes from a Bloom filter means probably.
+
+00:01:47.605 --> 00:01:52.210
+Here is why anyone bothers.
+
+00:01:52.210 --> 00:01:56.816
+Cloudflare puts a Bloom filter in front of its SSD cache, so a file requested exactly once never gets written, sparing billions of useless writes.
+
+00:01:56.816 --> 00:02:01.421
+Google and Bing use one to skip pages they have already crawled.
+
+00:02:01.421 --> 00:02:06.026
+Sign-up forms use one to tell you a username is taken before any database round trip.
+
+00:02:06.026 --> 00:02:10.632
+Same shape every time.
+
+00:02:10.632 --> 00:02:15.237
+Ask the filter first, touch the expensive store only on a maybe.
+
+00:02:15.237 --> 00:02:19.225
+The probably is tunable.
+
+00:02:19.225 --> 00:02:23.213
+Four bits per item gives a ten percent false positive rate.
+
+00:02:23.213 --> 00:02:27.201
+Ten bits per item drops to roughly one percent.
+
+00:02:27.201 --> 00:02:31.189
+Fourteen bits gets to one in a thousand.
+
+00:02:31.189 --> 00:02:35.177
+More bits, fewer collisions, fewer false yeses.
+
+00:02:35.177 --> 00:02:39.165
+Pick the point on the curve that fits your workload.
+
+00:02:39.165 --> 00:02:43.153
+Most production systems land at ten bits per item.
+
+00:02:43.153 --> 00:02:47.141
+For a billion items, that is one and a quarter gigabytes of bits, against eighty gigabytes of RAM for a typical Java hash set on the same data.
+
+00:02:47.141 --> 00:02:49.517
+A Bloom filter trades a tiny amount of error for a huge amount of speed.
+
+00:02:49.517 --> 00:02:51.892
+The error is bounded.
+
+00:02:51.892 --> 00:02:54.268
+Predictable.
+
+00:02:54.268 --> 00:02:56.643
+One-sided.
+
+00:02:56.643 --> 00:02:59.019
+The speedup is enormous.
+
+00:02:59.019 --> 00:03:01.395
+That tradeoff is one of the deepest patterns in systems engineering.
+
+00:03:01.395 --> 00:03:03.770
+Bloom filters are where most engineers meet it for the first time.
+
+00:03:03.770 --> 00:03:06.146
+Hashing got us one IO per lookup.
+
+00:03:06.146 --> 00:03:08.522
+Bloom filters skipped the IO entirely.
+
+00:03:08.522 --> 00:03:10.897
+There is one more lever.
+
+00:03:10.897 --> 00:03:13.273
+And it works on every query.
+
+00:03:13.273 --> 00:03:15.648
+Compression.
+
+00:03:15.648 --> 00:03:18.024
+Make the pages smaller.

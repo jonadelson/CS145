@@ -1,0 +1,336 @@
+{
+  "module": "Module1B-Intermediate-SQL",
+  "title": "Intermediate SQL",
+  "questions": [
+    {
+      "id": "m1b-q01",
+      "category": "CTEs",
+      "page": "Module1B-Intermediate-SQL/cte",
+      "difficulty": "intro",
+      "question": "What does <code>WITH RockSongs AS (...)</code> at the top of a query do?",
+      "options": [
+        "Creates a permanent table named RockSongs in the database",
+        "Names an intermediate query result so the rest of the query can reference it like a table",
+        "Declares a variable that holds a single scalar value",
+        "Forces the optimizer to run that query first for performance"
+      ],
+      "correct": 1,
+      "explanation": "A CTE names a result you can reference (possibly several times) in the query, turning nested subqueries into linear, named steps read top to bottom. It is not a permanent table, and whether it runs first (materialized) or is folded in (inlined) is up to the engine."
+    },
+    {
+      "id": "m1b-q02",
+      "category": "CTEs",
+      "page": "Module1B-Intermediate-SQL/cte",
+      "difficulty": "core",
+      "question": "A CTE is expensive to compute and referenced three times in the outer query. On Postgres 12+, what should you consider, and why?",
+      "options": [
+        "Nothing — CTEs are always computed exactly once",
+        "Rewrite it as a correlated subquery so it caches",
+        "Split it into three identical CTEs so each reference gets its own copy",
+        "Write <code>WITH ... AS MATERIALIZED</code>: modern Postgres often inlines CTEs by default, which could re-run the expensive query instead of computing it once and reusing it"
+      ],
+      "correct": 3,
+      "explanation": "Whether a CTE is materialized (computed once, reused) or inlined (folded into the query, possibly re-run) depends on the database; Postgres 12+ often inlines by default so the optimizer can push filters inside. MATERIALIZED forces compute-once-and-reuse — worth it when the CTE is expensive and referenced several times."
+    },
+    {
+      "id": "m1b-q03",
+      "category": "Window Functions",
+      "page": "Module1B-Intermediate-SQL/window-functions",
+      "difficulty": "intro",
+      "question": "On the 9-row Listens table, how do these two per-user averages differ in output size?<br><code>GROUP BY user_id</code> vs <code>AVG(rating) OVER (PARTITION BY user_id)</code>",
+      "options": [
+        "GROUP BY collapses to 3 rows (one per user); the window function keeps all 9 rows and attaches each user's average as a new column",
+        "Both return 3 rows; the window version just runs faster",
+        "Both return 9 rows; GROUP BY adds a summary row at the end",
+        "The window function returns 3 rows; GROUP BY returns 9"
+      ],
+      "correct": 0,
+      "explanation": "Same math, different granularity: GROUP BY collapses each group into one summary row, losing the detail, while a window function computes the aggregate per partition and returns one result per input row. That row preservation is the defining feature of window functions."
+    },
+    {
+      "id": "m1b-q04",
+      "category": "Window Functions",
+      "page": "Module1B-Intermediate-SQL/window-functions",
+      "difficulty": "core",
+      "question": "You need every row numbered uniquely within its partition for de-duplication and pagination, even when values tie. Which ranking function do you use?",
+      "options": [
+        "RANK(): ties share a rank, then it skips",
+        "DENSE_RANK(): ties share a rank with no gap",
+        "ROW_NUMBER(): every row gets a unique number, ties broken arbitrarily",
+        "PERCENT_RANK(): gives each row a unique percentile"
+      ],
+      "correct": 2,
+      "explanation": "ROW_NUMBER is the only one guaranteed unique — ties are broken arbitrarily, which is exactly what pagination and dedup need. RANK and DENSE_RANK both assign the same number to tied rows, so duplicates would share a rank."
+    },
+    {
+      "id": "m1b-q05",
+      "category": "Window Functions",
+      "page": "Module1B-Intermediate-SQL/window-functions",
+      "difficulty": "stretch",
+      "question": "Mickey has four listens rated 4.5, 4.5, 4.2, 3.9 (a tie at the top). Ordering by rating DESC, what ranks do RANK() and DENSE_RANK() assign?",
+      "options": [
+        "RANK: 1, 2, 3, 4 — DENSE_RANK: 1, 1, 2, 3",
+        "RANK: 1, 1, 3, 4 — DENSE_RANK: 1, 1, 2, 3",
+        "RANK: 1, 1, 2, 3 — DENSE_RANK: 1, 1, 3, 4",
+        "Both give 1, 1, 3, 4; they only differ with three-way ties"
+      ],
+      "correct": 1,
+      "explanation": "RANK lets the tie share rank 1 then skips to 3, leaving a gap; DENSE_RANK shares rank 1 but stays packed, so the next distinct rating is rank 2. ROW_NUMBER would give 1, 2, 3, 4 by breaking the tie arbitrarily."
+    },
+    {
+      "id": "m1b-q06",
+      "category": "Debug Tables",
+      "page": "Module1B-Intermediate-SQL/writing-debug-tables",
+      "difficulty": "core",
+      "question": "An LLM writes a query that parses and runs cleanly. What class of bug does hand-tracing it with a debug table catch that syntax checking cannot?",
+      "options": [
+        "Semantic errors — the query runs but computes the wrong thing, e.g. grouping into 3 user-genre pairs when the model claimed 4",
+        "Missing semicolons and misspelled keywords",
+        "Slow execution plans and missing indexes",
+        "Type mismatches between columns"
+      ],
+      "correct": 0,
+      "explanation": "A debug table walks the real rows through each clause (FROM, WHERE, GROUP BY, HAVING) and records what survives, exposing logic that is wrong despite being valid SQL. Syntax errors and type errors are already caught by the parser and engine — semantics is the gap only tracing closes."
+    },
+    {
+      "id": "m1b-q07",
+      "category": "LLMs and SQL",
+      "page": "Module1B-Intermediate-SQL/llm-debug",
+      "difficulty": "intro",
+      "question": "On the BIRD text-to-SQL benchmark, what is the headline gap the course highlights about LLM-generated SQL?",
+      "options": [
+        "LLMs fail at syntax about half the time",
+        "Semantic accuracy exceeds syntax accuracy",
+        "LLMs cannot produce runnable SQL without fine-tuning",
+        "Syntax accuracy is 95%+, but semantic accuracy ranges only 16–77% — a query that runs is not necessarily correct"
+      ],
+      "correct": 3,
+      "explanation": "LLMs solved syntax: the query almost always parses and runs. Whether it MEANS what you asked is far weaker (16–77% on BIRD), so 'runs ≠ correct' — closing that gap is your job, and the work is SQL."
+    },
+    {
+      "id": "m1b-q08",
+      "category": "LLMs and SQL",
+      "page": "Module1B-Intermediate-SQL/llm-debug",
+      "difficulty": "core",
+      "question": "The same model scores ~16% one-shot and ~77% multi-shot on BIRD semantics. Why does the multi-shot loop work for SQL when it wouldn't for an English answer?",
+      "options": [
+        "Multi-shot uses a bigger model for the retries",
+        "Multi-shot lets the model memorize the benchmark",
+        "SQL runs: each attempt errors or returns rows, giving the model a signal to fix the next attempt — an English sentence never runs, so rewording gives no such feedback",
+        "SQL is a smaller language, so retries converge faster"
+      ],
+      "correct": 2,
+      "explanation": "The gain comes from method, not model size: the run-read-error-retry loop only exists because SQL is executable and produces feedback. Even so, multi-shot stops short of correct — a clean run of the wrong query just returns the wrong rows faster."
+    },
+    {
+      "id": "m1b-q09",
+      "category": "Query Equivalence",
+      "page": "Module1B-Intermediate-SQL/sql-query-equivalence",
+      "difficulty": "core",
+      "question": "Two queries return identical rows on today's Listens data. What, if anything, does that prove?",
+      "options": [
+        "They are equivalent: same output means same query",
+        "Only output equivalence — they agree on the data at hand. True equivalence means same result for ANY input, which you prove by reasoning about what each query computes",
+        "They are equivalent as long as the tables have primary keys",
+        "Nothing at all: identical output is pure coincidence with no name"
+      ],
+      "correct": 1,
+      "explanation": "Running both queries only proves they agree on the rows you have, never on the rows you don't — add Pluto with one rating tomorrow and they may diverge. Real equivalence is a guarantee over all inputs and requires reasoning, not testing on one dataset."
+    },
+    {
+      "id": "m1b-q10",
+      "category": "Query Equivalence",
+      "page": "Module1B-Intermediate-SQL/sql-query-equivalence",
+      "difficulty": "stretch",
+      "question": "Two 'top 3 songs per user' queries — one using ROW_NUMBER, one counting how many songs rate higher — agree on the course data. What input pulls them apart?",
+      "options": [
+        "A tie at the cutoff: ROW_NUMBER assigns strict ranks and drops the fourth song, while the counting version still sees only two rated higher and keeps it",
+        "A user with fewer than 3 songs: ROW_NUMBER errors on short partitions",
+        "A NULL rating: ROW_NUMBER skips NULLs but counting includes them",
+        "Nothing — they are provably equivalent for all inputs"
+      ],
+      "correct": 0,
+      "explanation": "On distinct ratings the two match, so they are merely output-equivalent. Give a user a second song tied at the cutoff and they split: strict ranking excludes one of the tied songs, while count-of-strictly-higher admits both — a concrete input that separates look-alike queries."
+    },
+    {
+      "id": "m1b-q11",
+      "category": "Query Equivalence",
+      "page": "Module1B-Intermediate-SQL/sql-query-equivalence",
+      "difficulty": "stretch",
+      "question": "Why can NOT EXISTS be safe where NOT IN silently returns zero rows, and why is the Spotify schema protected from this trap on Listens.user_id?",
+      "options": [
+        "NOT EXISTS is faster, and the foreign key on user_id prevents the trap",
+        "NOT IN fails only on empty lists; the schema guarantees the list is non-empty",
+        "NOT EXISTS asks an existence question a NULL cannot poison; NOT IN asks 'different from every value?', which a NULL in the list makes unanswerable — and Listens.user_id is declared NOT NULL (the NOT NULL constraint, not the foreign key, blocks the NULL)",
+        "They behave identically; the schema protection comes from the primary key"
+      ],
+      "correct": 2,
+      "explanation": "With a NULL in the list, NOT IN asks whether a known id differs from an unknown value — SQL can never answer yes, so the result collapses. The protection here is the NOT NULL constraint on user_id: a foreign key alone still permits NULLs, it only forces non-null values to point at a real row."
+    },
+    {
+      "id": "m1b-q12",
+      "category": "Precision",
+      "page": "Module1B-Intermediate-SQL/precision-lives-somewhere",
+      "difficulty": "core",
+      "question": "You prompt an LLM: 'Find the users who don't listen to Taylor Swift.' What does the course say actually happens?",
+      "options": [
+        "The model asks a clarifying question before writing SQL",
+        "The model refuses because the question is ambiguous",
+        "The model writes SQL that fails to run until you add the schema",
+        "The request has multiple reasonable readings that return different users; the model silently commits to one, and you cannot tell which without reading the SQL"
+      ],
+      "correct": 3,
+      "explanation": "That English phrase is not one question — 'never played a Taylor song' returns just Pluto while a broader reading returns all four users. A vague prompt does not erase the ambiguity; it hands every fork to the model to resolve silently, which is why the spec (in the prompt or in SQL you write) must decide."
+    },
+    {
+      "id": "m1b-q13",
+      "category": "Precision",
+      "page": "Module1B-Intermediate-SQL/precision-lives-somewhere",
+      "difficulty": "stretch",
+      "question": "A request leaves k independent binary ambiguities open (inner vs LEFT JOIN, NULL counts or not, rows vs DISTINCT, ...). At minimum, how many distinct queries could the model validly write, and why 'at minimum'?",
+      "options": [
+        "k queries — one per ambiguity",
+        "2^k queries — each fork doubles the possibilities, and it's a floor because some forks have more than two options (a join can be inner, left, right, or full)",
+        "k² queries — ambiguities interact pairwise",
+        "2k queries — each fork adds two variants"
+      ],
+      "correct": 1,
+      "explanation": "Each independent binary fork multiplies the space by 2, giving 2^k queries that all run; forks with more than two options push it higher, so 2^k is the floor. Resolving those forks — in an English spec, through the model's clarifying questions, or by writing the SQL yourself — is the whole of precision."
+    },
+    {
+      "id": "m1b-q14",
+      "category": "Execution",
+      "page": "Module1B-Intermediate-SQL/execution-environment",
+      "difficulty": "core",
+      "question": "Wiring an LLM to a real database through MCP or a CLI enables the write-run-read-correct loop. What does this execution loop catch, and what does it fundamentally miss?",
+      "options": [
+        "Catches mechanical failures (missing columns, type mismatches, empty results) for free; misses a query that runs cleanly but returns a plausible, wrong answer — the database has no opinion about what you meant",
+        "Catches semantic errors; misses syntax errors",
+        "Catches everything, which is why verification is optional",
+        "Catches performance problems; misses crashes"
+      ],
+      "correct": 0,
+      "explanation": "Execution turns a blind one-shot guess into multi-shot iteration, and the database does the mechanical checking automatically. But it runs what it is given: a wrong-but-running query sails through, which is exactly the gap the third step, verification, exists to close."
+    },
+    {
+      "id": "m1b-q15",
+      "category": "Verification",
+      "page": "Module1B-Intermediate-SQL/verifying-machine-sql",
+      "difficulty": "core",
+      "question": "In the course's verification framework, what distinguishes a regression test from a unit test for a SQL query?",
+      "options": [
+        "A regression test checks performance; a unit test checks correctness",
+        "A regression test runs on production data; a unit test on sample data",
+        "A unit test proves the query is right today; keeping that test and re-running it on every change proves it STAYS right — a silently shifted definition fails the day it drifts, not months later",
+        "They are the same thing at different scales"
+      ],
+      "correct": 2,
+      "explanation": "The unit test is one query checked against the answer you expected (the debug table); the regression suite is those tests kept and re-run so definitions cannot silently drift. The third tool is the library: verified queries compose, so a new query verifies only its own layer."
+    },
+    {
+      "id": "m1b-q16",
+      "category": "Claude's Agentic Stack",
+      "page": "Module1B-Intermediate-SQL/case-study-agentic-data-stack",
+      "difficulty": "core",
+      "question": "In Anthropic's self-service analytics case study, the bare model scores 21% and the full stack reaches 95%. What did handing the model the company's entire history of past SQL, raw, contribute?",
+      "options": [
+        "It was the single biggest lift, worth about 40 points",
+        "It got the model to roughly 60%, halfway there",
+        "It hurt accuracy by confusing the model",
+        "Less than one point — structure (a governed semantic layer plus skills routing to the right definitions) does the work, not raw access"
+      ],
+      "correct": 3,
+      "explanation": "The 21% baseline already had multi-shot execution against the warehouse; what it lacked was context, and raw SQL history moved accuracy less than a point. The governed definitions and routing — precision as infrastructure — provide the lift to 95%."
+    },
+    {
+      "id": "m1b-q17",
+      "category": "OpenAI & Postgres",
+      "page": "Module1B-Intermediate-SQL/case-study-openai-postgres",
+      "difficulty": "core",
+      "question": "How does OpenAI scale Postgres to ~800 million ChatGPT users, and why does that architecture fit the workload?",
+      "options": [
+        "Sharding writes across 50 primary databases",
+        "Migrating hot tables to a NoSQL store",
+        "Caching every query so the database is rarely touched",
+        "One writable primary plus ~50 globally distributed read replicas — the workload is read-heavy (one write per question, hundreds of reads for conversation context and sidebar browsing), so reads are the bottleneck to scale"
+      ],
+      "correct": 3,
+      "explanation": "The traffic has a large read/write imbalance, so OpenAI physically separates the two: the single primary holds the truth for writes while replicas absorb read volume, keeping ACID guarantees while scaling reads horizontally. It's the opposite of jumping to a custom engine or NoSQL."
+    },
+    {
+      "id": "m1b-q18",
+      "category": "Schema Design",
+      "page": "Module1B-Intermediate-SQL/schema-design",
+      "difficulty": "intro",
+      "question": "What single rule does the course say does most of the work in schema design?",
+      "options": [
+        "Store each fact once, in one place — repeated facts get their own tables (normalization)",
+        "Every table should have at most five columns",
+        "Always denormalize for read speed first",
+        "Every table must have a composite primary key"
+      ],
+      "correct": 0,
+      "explanation": "One fact, one place: a user's email lives once in Users, a song's artist once in Songs, so nothing can drift out of sync. Putting everything in one wide table copies facts onto every row, enabling update, insert, and delete anomalies."
+    },
+    {
+      "id": "m1b-q19",
+      "category": "Schema Design",
+      "page": "Module1B-Intermediate-SQL/schema-design",
+      "difficulty": "core",
+      "question": "What is the relationship between normalization and JOINs?",
+      "options": [
+        "Normalization eliminates the need for joins",
+        "Joins are a workaround for badly normalized schemas",
+        "They are two halves of one design: normalization pulls facts apart to store them safely, and joins recombine them to answer a question — every Module 1 join was reassembling the split Spotify schema",
+        "Joins only work on denormalized tables"
+      ],
+      "correct": 2,
+      "explanation": "Splitting repeated facts into their own tables is exactly why you join: a query puts the separated facts back together. The trade-off page adds: normalize first for correctness, denormalize only when a real, measured read cost forces it."
+    },
+    {
+      "id": "m1b-q20",
+      "category": "Parallel Execution",
+      "page": "Module1B-Intermediate-SQL/parallel-execution",
+      "difficulty": "intro",
+      "question": "How does running a GROUP BY query on BigQuery over 5.5 TB differ from running it on SQLite over 9 rows?",
+      "options": [
+        "BigQuery uses fundamentally different algorithms invented for the cloud",
+        "BigQuery translates SQL into MapReduce jobs, abandoning the relational model",
+        "SQLite is declarative but BigQuery is imperative",
+        "The same hash-join, sort-merge, and aggregate algorithms run in both; BigQuery just splits the table into shards across ~100 machines and runs the same algorithm on each"
+      ],
+      "correct": 3,
+      "explanation": "The engines differ in how many machines split the work, not in what work gets done: a coordinator shards the data, each machine runs the same algorithm on its ~55 GB slice, and partial results merge at the end. You write what you want; the engine parallelizes the how."
+    },
+    {
+      "id": "m1b-q21",
+      "category": "Reading Queries",
+      "page": "Module1B-Intermediate-SQL/sql-reading-queries",
+      "difficulty": "stretch",
+      "question": "In the power-users example, CTE 1 computes per-user avg_rating (Mickey 4.2, Minnie 4.4, Daffy 3.9), CTE 2 adds <code>PERCENT_RANK() OVER (ORDER BY avg_rating DESC)</code>, and the outer query keeps <code>rating_rank &lt; 0.5</code>. Who survives?",
+      "options": [
+        "Only Minnie: ranked by average descending she gets rank 0.0; Mickey lands at 0.5, which fails the strict &lt; 0.5 test, and Daffy at 1.0",
+        "Minnie and Mickey: the top half of three users is two users",
+        "All three: PERCENT_RANK starts everyone below 0.5",
+        "Nobody: PERCENT_RANK values are always ≥ 0.5"
+      ],
+      "correct": 0,
+      "explanation": "PERCENT_RANK assigns 0.0, 0.5, 1.0 across the three users ordered by average rating descending. The filter is strictly less than 0.5, so Mickey's exact 0.5 is struck along with Daffy's 1.0 — the trace in the course leaves only Minnie (avg 4.4). Reading the query in execution order, one layer at a time, is what reveals this."
+    },
+    {
+      "id": "m1b-q22",
+      "category": "Writing Queries",
+      "page": "Module1B-Intermediate-SQL/sql-writing-queries",
+      "difficulty": "core",
+      "question": "'Top 3 songs per genre' and 'daily listen spikes over 50%' — which of the five query patterns fit, and what window function powers each?",
+      "options": [
+        "Funnel with EXISTS; Timeline with SUM OVER",
+        "Ladder with <code>ROW_NUMBER() OVER (PARTITION BY genre ORDER BY plays DESC)</code>; Exception with <code>LAG()</code> to fetch the previous day's listens and compute the percent change",
+        "Comparison with AVG OVER; Ladder with RANK",
+        "Timeline with LAG; Funnel with NOT IN"
+      ],
+      "correct": 1,
+      "explanation": "Ranking within groups is the Ladder: number rows per partition and keep rn &lt;= 3. Spotting outliers is the Exception: LAG pulls the previous row so you can compute the change and filter surges. Recognizing the shape first, then filling in your tables, is the whole method."
+    }
+  ]
+}

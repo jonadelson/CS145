@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 640" role="img" aria-labelledby="ems-t ems-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="ems-t">External merge sort as a memory model</title>
+  <desc id="ems-d">Pages stream from disk through a small four-page RAM box and back. Phase one reads four pages into RAM, quicksorts them, and writes a sorted run; repeat to get several runs. Phase two reads the head page of each run into RAM and emits the smallest value over and over, merging the runs into one sorted file. Each tile is a page shaded by its sort key, light for small and dark for large, so a sorted run reads as a smooth light-to-dark gradient. Color key: the green box is disk (persistent), the red box is RAM (volatile), the neutral tiles are pages shaded by sort key.</desc>
+  <text x="550" y="40" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">External Merge Sort: 4 Pages of RAM at a Time</text>
+  <text x="550" y="66" text-anchor="middle" font-size="15" fill="#6B7280">Read a few pages, sort or merge them in memory, write them back. Never hold more than RAM.</text>
+  <g data-step="1">
+    <rect x="56" y="96" width="172" height="22" rx="11" fill="#FFFFFF" stroke="#059669"/><text x="142" y="111" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">PHASE 1 · SORT RUNS</text><rect x="56" y="132" width="150" height="150" rx="10" fill="none" stroke="#059669" stroke-width="1.5"/><rect x="70" y="144" width="26" height="22" rx="2" fill="#9AA0AA"/>
+    <rect x="100" y="144" width="26" height="22" rx="2" fill="#F4F4F6"/>
+    <rect x="130" y="144" width="26" height="22" rx="2" fill="#3F3F46"/>
+    <rect x="160" y="144" width="26" height="22" rx="2" fill="#D4D7DC"/>
+    <rect x="70" y="170" width="26" height="22" rx="2" fill="#6B7280"/>
+    <rect x="100" y="170" width="26" height="22" rx="2" fill="#E7EAEE"/>
+    <rect x="130" y="170" width="26" height="22" rx="2" fill="#3F3F46"/>
+    <rect x="160" y="170" width="26" height="22" rx="2" fill="#D4D7DC"/>
+    <rect x="70" y="196" width="26" height="22" rx="2" fill="#F4F4F6"/>
+    <rect x="100" y="196" width="26" height="22" rx="2" fill="#6B7280"/>
+    <rect x="130" y="196" width="26" height="22" rx="2" fill="#E7EAEE"/>
+    <rect x="160" y="196" width="26" height="22" rx="2" fill="#9AA0AA"/>
+    <rect x="70" y="222" width="26" height="22" rx="2" fill="#3F3F46"/>
+    <rect x="100" y="222" width="26" height="22" rx="2" fill="#F4F4F6"/>
+    <rect x="130" y="222" width="26" height="22" rx="2" fill="#9AA0AA"/>
+    <rect x="160" y="222" width="26" height="22" rx="2" fill="#D4D7DC"/>
+    <rect x="70" y="248" width="26" height="22" rx="2" fill="#6B7280"/>
+    <rect x="100" y="248" width="26" height="22" rx="2" fill="#E7EAEE"/>
+    <rect x="130" y="248" width="26" height="22" rx="2" fill="#F4F4F6"/>
+    <rect x="160" y="248" width="26" height="22" rx="2" fill="#3F3F46"/><text x="131" y="300" text-anchor="middle" font-size="13" font-weight="400" fill="#6B7280">Disk · unsorted file</text>
+  </g>
+  <g data-step="2">
+    <line x1="214" y1="205" x2="268" y2="205" stroke="#6B7280" stroke-width="2"/><polygon points="268,205 260,200 260,210" fill="#6B7280"/><text x="241.0" y="196" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">read 4</text><rect x="284" y="138" width="176" height="132" rx="10" fill="#FCEBEA" stroke="#DC2626" stroke-width="2"/><text x="372" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">RAM · 4 pages</text><rect x="300" y="178" width="30" height="60" rx="2" fill="#9AA0AA"/>
+    <rect x="340" y="178" width="30" height="60" rx="2" fill="#F4F4F6"/>
+    <rect x="380" y="178" width="30" height="60" rx="2" fill="#3F3F46"/>
+    <rect x="420" y="178" width="30" height="60" rx="2" fill="#D4D7DC"/>
+  </g>
+  <g data-step="3">
+    <rect x="300" y="178" width="30" height="60" rx="2" fill="#E7EAEE"/>
+    <rect x="340" y="178" width="30" height="60" rx="2" fill="#D4D7DC"/>
+    <rect x="380" y="178" width="30" height="60" rx="2" fill="#9AA0AA"/>
+    <rect x="420" y="178" width="30" height="60" rx="2" fill="#6B7280"/><text x="372" y="256" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">quicksort in place</text>
+  </g>
+  <g data-step="4">
+    <line x1="466" y1="205" x2="520" y2="205" stroke="#6B7280" stroke-width="2"/><polygon points="520,205 512,200 512,210" fill="#6B7280"/><text x="493.0" y="196" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">write run</text><rect x="540" y="132" width="504" height="150" rx="10" fill="none" stroke="#059669" stroke-width="1.5"/><text x="792" y="300" text-anchor="middle" font-size="13" font-weight="400" fill="#6B7280">Disk · sorted runs (each a gradient)</text><rect x="566" y="146" width="92" height="18" rx="2" fill="#F4F4F6"/>
+    <rect x="566" y="166" width="92" height="18" rx="2" fill="#E7EAEE"/>
+    <rect x="566" y="186" width="92" height="18" rx="2" fill="#D4D7DC"/>
+    <rect x="566" y="206" width="92" height="18" rx="2" fill="#9AA0AA"/>
+    <rect x="566" y="226" width="92" height="18" rx="2" fill="#6B7280"/>
+    <rect x="566" y="246" width="92" height="18" rx="2" fill="#3F3F46"/>
+    <rect x="684" y="146" width="92" height="18" rx="2" fill="#F4F4F6"/>
+    <rect x="684" y="166" width="92" height="18" rx="2" fill="#E7EAEE"/>
+    <rect x="684" y="186" width="92" height="18" rx="2" fill="#D4D7DC"/>
+    <rect x="684" y="206" width="92" height="18" rx="2" fill="#9AA0AA"/>
+    <rect x="684" y="226" width="92" height="18" rx="2" fill="#6B7280"/>
+    <rect x="684" y="246" width="92" height="18" rx="2" fill="#3F3F46"/>
+    <rect x="802" y="146" width="92" height="18" rx="2" fill="#F4F4F6"/>
+    <rect x="802" y="166" width="92" height="18" rx="2" fill="#E7EAEE"/>
+    <rect x="802" y="186" width="92" height="18" rx="2" fill="#D4D7DC"/>
+    <rect x="802" y="206" width="92" height="18" rx="2" fill="#9AA0AA"/>
+    <rect x="802" y="226" width="92" height="18" rx="2" fill="#6B7280"/>
+    <rect x="802" y="246" width="92" height="18" rx="2" fill="#3F3F46"/>
+    <rect x="920" y="146" width="92" height="18" rx="2" fill="#F4F4F6"/>
+    <rect x="920" y="166" width="92" height="18" rx="2" fill="#E7EAEE"/>
+    <rect x="920" y="186" width="92" height="18" rx="2" fill="#D4D7DC"/>
+    <rect x="920" y="206" width="92" height="18" rx="2" fill="#9AA0AA"/>
+    <rect x="920" y="226" width="92" height="18" rx="2" fill="#6B7280"/>
+    <rect x="920" y="246" width="92" height="18" rx="2" fill="#3F3F46"/>
+  </g>
+  <g data-step="5">
+    <rect x="56" y="344" width="172" height="22" rx="11" fill="#FFFFFF" stroke="#059669"/><text x="142" y="359" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">PHASE 2 · MERGE</text><rect x="56" y="380" width="210" height="150" rx="10" fill="none" stroke="#059669" stroke-width="1.5"/><rect x="72" y="392" width="50" height="20" rx="2" fill="#F4F4F6"/>
+    <rect x="72" y="414" width="50" height="20" rx="2" fill="#E7EAEE"/>
+    <rect x="72" y="436" width="50" height="20" rx="2" fill="#D4D7DC"/>
+    <rect x="72" y="458" width="50" height="20" rx="2" fill="#9AA0AA"/>
+    <rect x="72" y="480" width="50" height="20" rx="2" fill="#6B7280"/>
+    <rect x="72" y="502" width="50" height="20" rx="2" fill="#3F3F46"/>
+    <rect x="138" y="392" width="50" height="20" rx="2" fill="#F4F4F6"/>
+    <rect x="138" y="414" width="50" height="20" rx="2" fill="#E7EAEE"/>
+    <rect x="138" y="436" width="50" height="20" rx="2" fill="#D4D7DC"/>
+    <rect x="138" y="458" width="50" height="20" rx="2" fill="#9AA0AA"/>
+    <rect x="138" y="480" width="50" height="20" rx="2" fill="#6B7280"/>
+    <rect x="138" y="502" width="50" height="20" rx="2" fill="#3F3F46"/>
+    <rect x="204" y="392" width="50" height="20" rx="2" fill="#F4F4F6"/>
+    <rect x="204" y="414" width="50" height="20" rx="2" fill="#E7EAEE"/>
+    <rect x="204" y="436" width="50" height="20" rx="2" fill="#D4D7DC"/>
+    <rect x="204" y="458" width="50" height="20" rx="2" fill="#9AA0AA"/>
+    <rect x="204" y="480" width="50" height="20" rx="2" fill="#6B7280"/>
+    <rect x="204" y="502" width="50" height="20" rx="2" fill="#3F3F46"/><text x="161" y="548" text-anchor="middle" font-size="13" font-weight="400" fill="#6B7280">Disk · sorted runs</text><line x1="274" y1="452" x2="328" y2="452" stroke="#6B7280" stroke-width="2"/><polygon points="328,452 320,447 320,457" fill="#6B7280"/><text x="301.0" y="443" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">read each head</text><rect x="344" y="386" width="232" height="132" rx="10" fill="#FCEBEA" stroke="#DC2626" stroke-width="2"/><text x="460" y="408" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">RAM · merge buffers</text><rect x="360" y="426" width="30" height="46" rx="2" fill="#F4F4F6"/>
+    <rect x="400" y="426" width="30" height="46" rx="2" fill="#E7EAEE"/>
+    <rect x="440" y="426" width="30" height="46" rx="2" fill="#D4D7DC"/><text x="420" y="506" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">in buffers</text><rect x="508" y="426" width="44" height="46" rx="2" fill="#F4F4F6"/><text x="530" y="506" text-anchor="middle" font-size="11" font-weight="400" fill="#6B7280">out · emit smallest</text>
+  </g>
+  <g data-step="6">
+    <line x1="582" y1="452" x2="636" y2="452" stroke="#6B7280" stroke-width="2"/><polygon points="636,452 628,447 628,457" fill="#6B7280"/><text x="609.0" y="443" text-anchor="middle" font-size="12" font-weight="400" fill="#6B7280">write</text><rect x="656" y="380" width="388" height="150" rx="10" fill="none" stroke="#059669" stroke-width="1.5"/><text x="850" y="548" text-anchor="middle" font-size="13" font-weight="400" fill="#6B7280">Disk · one fully sorted run</text><rect x="700" y="392" width="244" height="18" rx="2" fill="#F4F4F6"/>
+    <rect x="700" y="414" width="244" height="18" rx="2" fill="#E7EAEE"/>
+    <rect x="700" y="436" width="244" height="18" rx="2" fill="#D4D7DC"/>
+    <rect x="700" y="458" width="244" height="18" rx="2" fill="#9AA0AA"/>
+    <rect x="700" y="480" width="244" height="18" rx="2" fill="#6B7280"/>
+    <rect x="700" y="502" width="244" height="18" rx="2" fill="#3F3F46"/>
+  </g>
+  <text x="56" y="596" text-anchor="start" font-size="14" font-weight="700" fill="#0E0E10">Legend</text><rect x="56" y="608" width="20" height="14" rx="2" fill="#F4F4F6"/>
+    <rect x="78" y="608" width="20" height="14" rx="2" fill="#E7EAEE"/>
+    <rect x="100" y="608" width="20" height="14" rx="2" fill="#D4D7DC"/>
+    <rect x="122" y="608" width="20" height="14" rx="2" fill="#9AA0AA"/>
+    <rect x="144" y="608" width="20" height="14" rx="2" fill="#6B7280"/>
+    <rect x="166" y="608" width="20" height="14" rx="2" fill="#3F3F46"/><text x="190" y="619" text-anchor="start" font-size="12.5" font-weight="400" fill="#6B7280">light → dark = sort key (small → large)</text><rect x="470" y="608" width="20" height="14" rx="2" fill="#FCEBEA" stroke="#DC2626"/><text x="498" y="619" text-anchor="start" font-size="12.5" font-weight="400" fill="#6B7280">red = RAM (volatile)</text><rect x="640" y="608" width="20" height="14" rx="2" fill="#FFFFFF" stroke="#059669"/><text x="668" y="619" text-anchor="start" font-size="12.5" font-weight="400" fill="#6B7280">green = disk (persistent)</text>
+</svg>

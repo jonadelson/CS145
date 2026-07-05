@@ -1,0 +1,109 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.375
+Let's first meet the cast in our database.
+
+00:00:04.375 --> 00:00:06.750
+Every example in this course uses the same tiny database.
+
+00:00:06.750 --> 00:00:09.125
+Three tables.
+
+00:00:09.125 --> 00:00:11.500
+Four characters.
+
+00:00:11.500 --> 00:00:13.875
+Ten songs.
+
+00:00:13.875 --> 00:00:16.250
+That is it.
+
+00:00:16.250 --> 00:00:18.625
+Once you know who is who, every query is just a question about these people and their songs.
+
+00:00:18.625 --> 00:00:23.855
+Start with Users.
+
+00:00:23.855 --> 00:00:29.086
+Four characters: Mickey, who shows up first in almost every example; Minnie, the second most active; Daffy, our edge cases; and Pluto, who hardly listens, so he is how we show NULLs and empty result sets.
+
+00:00:29.086 --> 00:00:34.316
+Each gets a primary key, user-ID.
+
+00:00:34.316 --> 00:00:39.546
+Think of it like a student ID or a social security number: one unique value per row, and no two users share it.
+
+00:00:39.546 --> 00:00:44.777
+Ten songs next, a simple lookup table of title, artist, and genre.
+
+00:00:44.777 --> 00:00:50.007
+You join to it constantly and rarely query it on its own.
+
+00:00:50.007 --> 00:00:55.237
+Then Listens, the table everything pivots on.
+
+00:00:55.237 --> 00:01:00.468
+Every play adds a row: a user, a song, an optional rating, a time.
+
+00:01:00.468 --> 00:01:05.698
+But the real magic is the two foreign keys.
+
+00:01:05.698 --> 00:01:10.928
+Listens carries a user-ID and a song-ID, and each one must match a real row in the other table: user-ID into Users, song-ID into Songs.
+
+00:01:10.928 --> 00:01:16.158
+The database will not let you log a listen for a user or song that does not exist.
+
+00:01:16.158 --> 00:01:21.389
+That is how the three tables connect.
+
+00:01:21.389 --> 00:01:26.619
+So read one row.
+
+00:01:26.619 --> 00:01:31.849
+Listen one says user one, song one, rating four point five.
+
+00:01:31.849 --> 00:01:37.080
+User one is Mickey, song one is Evermore.
+
+00:01:37.080 --> 00:01:42.310
+So listen one means Mickey played Evermore, and rated it four point five.
+
+00:01:42.310 --> 00:01:47.709
+Here is how that schema is actually defined, in DDL, the data definition language.
+
+00:01:47.709 --> 00:01:53.107
+CREATE TABLE listens, then one line per column.
+
+00:01:53.107 --> 00:01:58.506
+PRIMARY KEY marks listen-ID as the unique row id, and NOT NULL marks the required columns.
+
+00:01:58.506 --> 00:02:03.904
+Each column also names a type: INT for the IDs, DECIMAL for a rating like four point five, TIMESTAMP for the time.
+
+00:02:03.904 --> 00:02:09.303
+Then the foreign keys.
+
+00:02:09.303 --> 00:02:14.702
+FOREIGN KEY user-ID REFERENCES Users means every listen must point at a real user, and song-ID at a real song.
+
+00:02:14.702 --> 00:02:20.100
+The database rejects a listen that points at nobody.
+
+00:02:20.100 --> 00:02:25.499
+Users and Songs are defined the same way, just without the foreign keys.
+
+00:02:25.499 --> 00:02:29.242
+That is the whole world.
+
+00:02:29.242 --> 00:02:32.985
+Four users, ten songs, an unbounded number of listens.
+
+00:02:32.985 --> 00:02:36.728
+Every example query for the rest of this course is going to ask the same kind of question.
+
+00:02:36.728 --> 00:02:40.471
+Who listened to what, and when.
+
+00:02:40.471 --> 00:02:44.214
+Mickey, Minnie, Daffy, and Pluto are now your colleagues for the next ten weeks.

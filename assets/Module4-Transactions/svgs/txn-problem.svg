@@ -1,0 +1,57 @@
+<svg viewBox="0 0 960 430" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="tp-t tp-d">
+  <title id="tp-t">What actually overwhelmed Ticketmaster: load, not double-booking</title>
+  <desc id="tp-d">Three panels. The demand: about 12 million visitors plus scalper bots
+  generated 3.5 billion system requests, four times the site's prior peak. What bent under it:
+  virtual queues froze thousands deep, Ticketmaster deliberately slowed and paused sales to
+  stay up, and seat holds and payments timed out under the contention. What held: no seat was
+  sold twice, the bots acquired zero tickets, and 2.4 million tickets sold in one day, a record.
+  The transactions stayed correct; availability and latency did not. Color key: violet is the
+  demand, red is what buckled under load, green is what the transactions kept correct.</desc>
+
+  <text x="480" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">What Actually Overwhelmed Ticketmaster</text>
+  <text x="480" y="56" text-anchor="middle" font-size="14" fill="#6B7280">Not double-booking. The transactions held. The load did not.</text>
+
+  <!-- Panel 1: the demand -->
+  <g data-step="1">
+    <rect x="24" y="80" width="288" height="284" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="24" y="80" width="288" height="6" rx="3" fill="#7C3AED"/>
+    <text x="168" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">The demand</text>
+    <text x="168" y="156" text-anchor="middle" font-size="30" font-weight="700" fill="#7C3AED">12M</text>
+    <text x="168" y="178" text-anchor="middle" font-size="13" fill="#3F3F46">visitors, plus scalper bots</text>
+    <text x="168" y="226" text-anchor="middle" font-size="30" font-weight="700" fill="#7C3AED">3.5B</text>
+    <text x="168" y="248" text-anchor="middle" font-size="13" fill="#3F3F46">system requests in hours</text>
+    <text x="168" y="300" text-anchor="middle" font-size="20" font-weight="700" fill="#0E0E10">4&#215; the prior peak</text>
+    <text x="168" y="324" text-anchor="middle" font-size="13" fill="#6B7280">more than the site was built for</text>
+  </g>
+
+  <!-- Panel 2: what bent -->
+  <g data-step="2">
+    <rect x="336" y="80" width="288" height="284" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="336" y="80" width="288" height="6" rx="3" fill="#DC2626"/>
+    <text x="480" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">What bent: availability</text>
+    <text x="480" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">Queues froze, 2,000+ deep</text>
+    <text x="480" y="172" text-anchor="middle" font-size="12.5" fill="#6B7280">waiting rooms stalled for hours</text>
+    <text x="480" y="212" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">Sales slowed &amp; paused</text>
+    <text x="480" y="234" text-anchor="middle" font-size="12.5" fill="#6B7280">throttled on purpose, to stay up</text>
+    <text x="480" y="274" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">Holds &amp; payments timed out</text>
+    <text x="480" y="296" text-anchor="middle" font-size="12.5" fill="#6B7280">seat locks contended under load</text>
+  </g>
+
+  <!-- Panel 3: what held -->
+  <g data-step="3">
+    <rect x="648" y="80" width="288" height="284" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="648" y="80" width="288" height="6" rx="3" fill="#16A34A"/>
+    <text x="792" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">What held: correctness</text>
+    <text x="792" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">No seat sold twice</text>
+    <text x="792" y="172" text-anchor="middle" font-size="12.5" fill="#6B7280">the transactions did their job</text>
+    <text x="792" y="212" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">Bots got zero tickets</text>
+    <text x="792" y="234" text-anchor="middle" font-size="12.5" fill="#6B7280">they added load, not theft</text>
+    <text x="792" y="274" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">2.4M sold in a day</text>
+    <text x="792" y="296" text-anchor="middle" font-size="12.5" fill="#6B7280">a single-day record</text>
+  </g>
+
+  <text x="480" y="392" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Correctness survived. Delivering it fast, under that load, is the hard part, and the rest of this module.</text>
+  <text x="480" y="418" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the demand&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = what buckled under load&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = what stayed correct</tspan></text>
+</svg>

@@ -1,0 +1,49 @@
+<h1>The WAL Log</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Every update is three writes, in order. The database first <strong>appends</strong> a tiny diff, the old and new value, to the <strong>log</strong>, then <strong>updates</strong> the value in a page held in the <strong>RAM buffer</strong>, and <strong>flushes</strong> that 64 MB page to disk later. RAM is volatile, so the log append is what makes the change durable now. The log is durable before the page ever reaches disk, the <strong>write-ahead</strong> rule, and it makes a crash survivable: the log alone holds enough to rebuild any past version, put a change back, or take it away.</p>
+<p><strong>Intuition.</strong> Say A is updated from 19 to 22.8. First a small row, <code>A, old 19, new 22.8</code>, appends to the log and is durable at once. Then A's page updates in the RAM buffer. The 64 MB page is big and slow, so it flushes to disk later. If a crash hits in that gap, the log already holds the change.</p>
+</div>
+<p>Follow one update through all three.</p>
+<h2>The Lifecycle of an Update</h2>
+<p><a id="lifecycle-fig"></a></p>
+<p>Every update is three writes to three places. It <strong>appends</strong> the diff to the log, <strong>updates</strong> the value in a page in the RAM buffer, and later <strong>flushes</strong> that 64 MB page to disk. You already know paging from storage: the buffer holds fixed-size pages, and a page moves to disk as one write. Follow all three below.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/update-lifecycle.svg" alt="One update, value A going from 19 to 22.8, is three writes in order: it appends a tiny old-to-new diff to the violet write-ahead log, updates A's page in the red RAM buffer in place, and later flushes the whole 64 MB page to a slot in the green disk grid. The append and update happen now; the flush is deferred, so the log is durable before the page reaches disk." style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One update, three writes in time order. ① <strong>Append</strong> the diff to the log (violet), durable at once; ② <strong>update</strong> A's page in the RAM buffer (red) in place, fast but volatile; ③ later, <strong>flush</strong> the whole 64 MB page to disk (green) as one write, start to end. Steps ① and ② happen now and the flush is deferred, so the log is always durable before the page reaches disk.</p>
+</div>
+<p><strong>Append</strong> now, <strong>update</strong> now, <strong>flush</strong> later: those three actions are the whole mechanism, and the log always leads.</p>
+<h2>Inside the WAL Row</h2>
+<p><a id="log-table-fig"></a></p>
+<p>The log is append-only. Every write appends one row holding the old value and the new value, and a COMMIT or ABORT record marks where a transaction ends. Each row is tiny, about 40 bytes: a header (log position, type, length) 12 B, the transaction id 4 B, the location 8 B, and the old and new value 8 B each. Nothing is ever overwritten; the log only grows.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/wal-log.svg" alt="The log as a table with columns Txn, Var, old value in orange, and new value in green. Two rows: A updated from 19 to 22.8 and B from 23 to 27.6 under transaction T1, then a green COMMIT record closes it. Ellipsis rows show it is part of a longer log." style="width:100%; max-width:460px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The log after two updates: A from 19 to 22.8 and B from 23 to 27.6. Each is one row with the old value (orange) and the new value (green), so the same log carries what it takes to put a change back or take it away. A commit record closes the transaction. These are the rows undo runs against when a transaction aborts, and redo when a crash hits.</p>
+</div>
+<p>Every change is now an old-to-new row. Three questions follow: <strong>how do you get any past version from it, why is writing on every change not slow, and why must the log reach disk before the data page?</strong></p>
+<h2>Any Version, on Demand</h2>
+<p><a id="versions-fig"></a></p>
+<p>Change Tracking opened with a problem: show the exact state at any past moment, without copying the whole database. The WAL log already holds it. Because every row keeps both the old value and the new, you replay the log to any state: stop replaying at a past moment and you have the version that was true then. Forward, you redo the new values; backward, you undo the old ones. The log is the version history, one change at a time.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/wal-versions.svg" alt="The log drawn top to bottom in time, each row an old-to-new change: T1 sets A to 22.8 and B to 27.6, then T2 and T3 change them later. Stopping the replay just after T1 gives the version A=22.8, B=27.6. Forward uses the new values, backward the old, so the log reaches any version either way." style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> The log read top to bottom is a full change history. To see the state at any past moment, stop replaying the rows there: just after T1, the version is A=22.8, B=27.6. Because each row carries both values, you can move either way, redoing new values forward or undoing old values back.</p>
+</div>
+<h2>Cheap for Two Reasons: Small and Sequential</h2>
+<p><a id="sequential-fig"></a></p>
+<p>First, a WAL row is tiny, about 40 bytes against a 64 MB data page. Second, it only appends, one sequential write at the tail of the log, while the data page needs a random I/O to wherever its row lives. The numbers are lopsided. Flushing a 64 MB page to SSD takes about 13 ms (64 MB at 5 GB/s). The WAL flushes in small 64 KB pages, about 13 µs each, roughly a thousand times less; and a row landing in battery-backed NVRAM is durable at RAM speed, about 100 ns, a hundred thousand times less than the page flush.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/sequential-append.svg" alt="A comparison: without the log, each change is a random I/O to its own scattered 64 MB data page (page 17, page 492, page 1038) in grey, about 13 ms; with the log, every change is a roughly 40 byte row appended to one growing file in violet, a 64 KB WAL page about 13 microseconds (about 1,000 times less) and a battery-backed NVRAM row about 100 nanoseconds." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Without the log (grey), each change is a random I/O to its own scattered 64 MB data page, about 13 ms. With the log (violet), every change is a ~40 byte row appended to one growing file, one fast sequential stream: a 64 KB WAL page costs about 13 µs (~1,000× less), and a row in battery-backed NVRAM is durable in about 100 ns (~100,000× less). Small and sequential beats big and random.</p>
+</div>
+<div class="v5-callout v5-callout--info">
+<p><strong>Hardware makes the log even cheaper.</strong> Battery-backed NVRAM writes at RAM speed yet survives power loss, so the quick note is durable the instant it lands. Replicating the log to RAM on three or more machines means one crash loses nothing. And sequential SSD appends, the one operation all of this hardware does fastest, are exactly what WAL turns every random update into.</p>
+</div>
+<h2>Why the Log Goes First</h2>
+<p><a id="crash-order-fig"></a></p>
+<p>The update and the flush happen at different times, so a crash can strike between them, and which write reaches disk first decides everything. The log goes first: a crash before the page flushes still leaves the change in the durable log, ready to re-apply. Flip the order and the data changed with no record of why, unrecoverable. That is the write-ahead rule. Surviving an actual crash, replaying the log and undoing the unfinished work, is the next two pages.</p>
+<p><img src="assets/Module4B-Crash-Recovery/svgs/crash-order.svg" alt="Two orderings of the same two writes: data first, where a crash before the log row lands leaves the data changed with no record of why, unrecoverable in red; and log first as WAL demands, where a crash before the data page moves leaves the intent in the durable log, recoverable in green." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 5.</strong> Data first (red): if the crash hits before the log row lands, the data changed with no row to replay, an inconsistency recovery cannot fix. Log first (green), the WAL order: a crash before the data page moves leaves the change sitting in the durable log, ready to re-apply. Log-before-data is the only order that keeps the data file recoverable.</p>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4B-Crash-Recovery/recovery-wal">Undo for Aborts →</a></strong> One log gives you versions, cheap writes, and a safe order. Its fourth payoff is surviving a crash. Next: undo reads the old values to reverse a transaction that aborts, so it leaves no trace. Redo, its mirror, arrives with the crash.</p>

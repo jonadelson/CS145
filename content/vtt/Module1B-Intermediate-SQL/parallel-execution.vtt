@@ -1,0 +1,97 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.631
+A SELECT against a five-and-a-half-terabyte Listens table runs in forty-seven milliseconds on BigQuery.
+
+00:00:06.631 --> 00:00:11.261
+The same SELECT against a nine-row Listens table runs in even less time on SQLite.
+
+00:00:11.261 --> 00:00:15.892
+How is one billions of times bigger and only marginally slower?
+
+00:00:15.892 --> 00:00:20.523
+Parallel execution.
+
+00:00:20.523 --> 00:00:25.154
+The big version splits the table across about a hundred machines and runs the same algorithm on each shard.
+
+00:00:25.154 --> 00:00:29.784
+A shard is just split-up data.
+
+00:00:29.784 --> 00:00:34.415
+One slice of the table, handed to one machine.
+
+00:00:34.415 --> 00:00:40.046
+The challenge: scale up by a factor of a billion without rewriting the query.
+
+00:00:40.046 --> 00:00:45.676
+The query was designed for one machine.
+
+00:00:45.676 --> 00:00:51.307
+SQLite runs the entire thing single-threaded against a small table.
+
+00:00:51.307 --> 00:00:56.938
+BigQuery has to take the same query and run it on about a hundred machines, each with a slice of the data, and have it return the same answer in milliseconds.
+
+00:00:56.938 --> 00:01:01.870
+Take the canonical query on the slide: the top ten most-played songs since twenty twenty-four.
+
+00:01:01.870 --> 00:01:06.802
+A join, a COUNT, GROUP BY song, ORDER BY plays, LIMIT ten.
+
+00:01:06.802 --> 00:01:11.734
+SQLite runs it in microseconds.
+
+00:01:11.734 --> 00:01:16.666
+BigQuery runs the same query on a five-and-a-half-terabyte table by splitting it into about a hundred shards.
+
+00:01:16.666 --> 00:01:21.598
+The query author writes the same query either way.
+
+00:01:21.598 --> 00:01:28.576
+Trace the journey from your query to the result.
+
+00:01:28.576 --> 00:01:35.553
+Parse the SQL, build the execution tree, the coordinator shards the data, about a hundred machines each scan a shard in parallel, then the partial results merge into the global top ten.
+
+00:01:35.553 --> 00:01:42.531
+Five phases, all happening in forty-seven milliseconds.
+
+00:01:42.531 --> 00:01:49.508
+Each phase has the equivalent step in SQLite, just running on one machine instead of a hundred.
+
+00:01:49.508 --> 00:01:56.737
+What you see as a developer is a single SQL statement and a result.
+
+00:01:56.737 --> 00:02:03.966
+What is actually happening is a giant choreography: the table is split, each shard runs its piece, partial results get shuffled and combined, the final answer comes back.
+
+00:02:03.966 --> 00:02:11.195
+The abstraction holds because the algorithms are the same; only the data layout changes.
+
+00:02:11.195 --> 00:02:16.153
+A side-by-side comparison closes the picture.
+
+00:02:16.153 --> 00:02:21.110
+SQLite, single machine, single thread, nine rows, microseconds.
+
+00:02:21.110 --> 00:02:26.067
+BigQuery, about a hundred machines, parallel, five and a half terabytes, tens of milliseconds.
+
+00:02:26.067 --> 00:02:31.025
+Same query language, same algorithms, very different operating point.
+
+00:02:31.025 --> 00:02:36.171
+The deepest lesson of SQL is that the language scales from your laptop to a data center without you rewriting it.
+
+00:02:36.171 --> 00:02:41.316
+That is by design.
+
+00:02:41.316 --> 00:02:46.462
+Modern parallel databases preserve the algorithms you learned on small tables, and run them at huge scale by splitting the work.
+
+00:02:46.462 --> 00:02:51.607
+We go deep on how that distribution works in the next couple of modules.
+
+00:02:51.607 --> 00:02:56.753
+This page is just a preview of how one query breaks into parallel steps.

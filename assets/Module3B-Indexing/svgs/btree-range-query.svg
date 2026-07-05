@@ -1,0 +1,98 @@
+<svg viewBox="0 0 1200 566" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="btree-range-query-t btree-range-query-d">
+  <title id="btree-range-query-t">Walking a range query SELECT * WHERE release_date BETWEEN 12000 AND 14000 in a B+Tree</title>
+  <desc id="btree-range-query-d">Walking a range query SELECT * WHERE release_date BETWEEN 12000 AND 14000 in a B+Tree. Step 1 visits the root. Step 2 descends to the middle internal node (the other two internals are skipped). Step 3 walks from leaf 3 to leaf 4 sequentially, loading data pages 3 and 4. Total 7 IOs versus 160,000 for a full scan. Color key: green is the index and data pages on disk (persistent), violet is the range-walk path, grey dashed is skipped or not visited.</desc>
+    <defs>
+        <marker id="ar-rq" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <polygon points="0 0, 10 3, 0 6" fill="#7C3AED"/>
+        </marker>
+    </defs>
+
+    <text x="600" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#0E0E10">Walking the range <tspan font-family="JetBrains Mono, monospace">12000 ≤ key ≤ 14000</tspan></text>
+    <text x="600" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">one descent to the starting leaf · then stream across leaves until the end key</text>
+
+    <g data-step="1">
+    <rect x="500" y="80" width="200" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2.5"/>
+    <rect x="500" y="80" width="200" height="6" rx="6" fill="#059669"/>
+    <text x="600" y="100" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#059669">Root · step 1</text>
+    <text x="530" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">5000</text>
+    <text x="600" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">15000</text>
+    <text x="670" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">25000</text>
+    <text x="720" y="110" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#7C3AED">12000 ≥ 5000, &lt; 15000</text>
+
+    </g>
+    <g data-step="2">
+    <rect x="220" y="180" width="200" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="320" y="200" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#6B7280">Internal (&lt; 5000)</text>
+    <text x="320" y="220" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">skipped</text>
+
+    <rect x="500" y="180" width="200" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2.5"/>
+    <rect x="500" y="180" width="200" height="6" rx="6" fill="#059669"/>
+    <text x="600" y="200" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#059669">Internal · step 2</text>
+    <text x="530" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">11234</text>
+    <text x="600" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">13789</text>
+    <text x="670" y="222" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">14456</text>
+
+    <rect x="780" y="180" width="200" height="54" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="880" y="200" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#6B7280">Internal (15000–24999)</text>
+    <text x="880" y="220" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">skipped</text>
+
+    <line x1="560" y1="134" x2="340" y2="180" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="600" y1="134" x2="600" y2="180" stroke="#7C3AED" stroke-width="3" marker-end="url(#ar-rq)"/>
+    <line x1="640" y1="134" x2="860" y2="180" stroke="#D4D7DC" stroke-width="1" stroke-dasharray="4,3"/>
+
+    </g>
+    <g data-step="3">
+    <rect x="400" y="300" width="160" height="96" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="480" y="318" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#6B7280">Leaf (&lt; 11234)</text>
+    <text x="480" y="360" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#6B7280">not visited</text>
+
+    <rect x="580" y="300" width="160" height="96" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2.5"/>
+    <rect x="580" y="300" width="160" height="6" rx="6" fill="#059669"/>
+    <text x="660" y="318" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#059669">Leaf 3 · step 3</text>
+    <text x="594" y="338" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">11234 → Pg 3</text>
+    <text x="594" y="354" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">12890 → Pg 3</text>
+    <text x="594" y="370" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">13456 → Pg 3</text>
+    <text x="660" y="388" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#3F3F46">≥ 12000 ✓</text>
+
+    <rect x="760" y="300" width="160" height="96" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2.5"/>
+    <rect x="760" y="300" width="160" height="6" rx="6" fill="#059669"/>
+    <text x="840" y="318" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#059669">Leaf 4 · step 3 (cont.)</text>
+    <text x="774" y="342" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">13789 → Pg 3</text>
+    <text x="774" y="360" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">13980 → Pg 4</text>
+    <text x="840" y="388" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#3F3F46">both ≤ 14000 ✓</text>
+
+    <rect x="940" y="300" width="160" height="96" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.8" stroke-dasharray="4,3"/>
+    <text x="1020" y="318" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#7C3AED">Leaf 5 · peek</text>
+    <text x="954" y="342" font-family="JetBrains Mono, monospace" font-size="13" fill="#7C3AED">14456 → Pg 4</text>
+    <text x="954" y="360" font-family="JetBrains Mono, monospace" font-size="13" fill="#7C3AED">14789 → Pg 4</text>
+    <text x="1020" y="388" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#7C3AED">14456 &gt; 14000, stop</text>
+
+    <line x1="560" y1="234" x2="640" y2="300" stroke="#7C3AED" stroke-width="3" marker-end="url(#ar-rq)"/>
+    <line x1="740" y1="368" x2="760" y2="368" stroke="#7C3AED" stroke-width="3" marker-end="url(#ar-rq)"/>
+    <text x="750" y="360" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#7C3AED">linked</text>
+    <line x1="920" y1="368" x2="940" y2="368" stroke="#7C3AED" stroke-width="1.8" stroke-dasharray="3,2" marker-end="url(#ar-rq)"/>
+
+    </g>
+    <g data-step="4">
+    <text x="300" y="450" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Data pages fetched</text>
+
+    <rect x="180" y="460" width="240" height="60" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="180" y="460" width="240" height="6" rx="6" fill="#059669"/>
+    <text x="196" y="478" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#059669">Page 3</text>
+    <text x="196" y="502" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">keys 12890, 13456 in range</text>
+
+    <rect x="440" y="460" width="240" height="60" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <rect x="440" y="460" width="240" height="6" rx="6" fill="#059669"/>
+    <text x="456" y="478" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#059669">Page 4</text>
+    <text x="456" y="502" font-family="JetBrains Mono, monospace" font-size="13" fill="#3F3F46">key 13980 in range</text>
+
+    </g>
+    <g data-step="5">
+    <rect x="720" y="440" width="440" height="80" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="2"/>
+    <text x="940" y="462" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Cost</text>
+    <text x="740" y="482" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">5 index IOs (root, internal, leaves 3 + 4, peek 5)</text>
+    <text x="740" y="500" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">2 data-page IOs (pages 3 and 4)</text>
+    <text x="740" y="516" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0E0E10">7 IOs total · vs 160,000 full scan → ~23,000× faster</text>
+    </g>
+    <text x="600" y="552" text-anchor="middle" font-family="Inter, sans-serif" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = index and data pages on disk, persistent&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the range-walk path&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey dashed</tspan><tspan fill="#3F3F46"> = skipped</tspan></text>
+</svg>

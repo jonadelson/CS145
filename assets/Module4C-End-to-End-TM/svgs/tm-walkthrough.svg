@@ -1,0 +1,95 @@
+<svg viewBox="0 0 1180 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tm-walk-t tm-walk-d" style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="tm-walk-t">A no-conflict trace: three transactions on different tuples flow through the Transaction Manager, four of the five components fire</title>
+  <desc id="tm-walk-d">Three transactions arrive at the same instant: Mickey buys Premium (blue), Minnie updates her profile (orange), Daffy adds a song (violet). They touch different tuples. The Scheduler routes each to a thread. The Lock Manager grants all three locks with no waiting because the tuples do not overlap. The Write-Ahead Log records each change before commit. The Deadlock Detector stays quiet, the only one of the five that does not fire, because there is no waits-for cycle. The Recovery Manager stands by. The result is one consistent committed state. Color key: blue is Mickey's transaction, orange is Minnie's, violet is Daffy's; green is a component that fired; grey is the Deadlock Detector, idle on this trace.</desc>
+  <defs>
+    <marker id="tw-ah" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="590" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">One no-conflict trace: five components, four firing</text>
+  <text x="590" y="62" text-anchor="middle" font-size="14" fill="#6B7280">Three transactions on different tuples. The deadlock detector has nothing to do.</text>
+
+  <!-- three incoming transactions -->
+  <g data-step="1">
+    <rect x="40" y="110" width="250" height="56" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="110" width="6" height="56" rx="3" fill="#2563EB"/>
+    <text x="60" y="136" font-size="14" font-weight="700" fill="#2563EB">Mickey · buys Premium</text>
+    <text x="60" y="156" font-family="JetBrains Mono, monospace" font-size="12" fill="#3F3F46">UPDATE Users SET is_premium</text>
+
+    <rect x="40" y="178" width="250" height="56" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="178" width="6" height="56" rx="3" fill="#EA580C"/>
+    <text x="60" y="204" font-size="14" font-weight="700" fill="#EA580C">Minnie · updates profile</text>
+    <text x="60" y="224" font-family="JetBrains Mono, monospace" font-size="12" fill="#3F3F46">UPDATE Users SET name</text>
+
+    <rect x="40" y="246" width="250" height="56" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="40" y="246" width="6" height="56" rx="3" fill="#7C3AED"/>
+    <text x="60" y="272" font-size="14" font-weight="700" fill="#7C3AED">Daffy · adds a song</text>
+    <text x="60" y="292" font-family="JetBrains Mono, monospace" font-size="12" fill="#3F3F46">INSERT INTO Songs</text>
+  </g>
+
+  <!-- Scheduler: routes each to a thread -->
+  <g data-step="2">
+    <line x1="294" y1="206" x2="334" y2="206" stroke="#6B7280" stroke-width="2.5" marker-end="url(#tw-ah)"/>
+    <rect x="340" y="150" width="230" height="112" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="340" y="150" width="230" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="360" y="180" font-size="15" font-weight="700" fill="#16A34A">Scheduler</text>
+    <text x="360" y="204" font-size="12.5" fill="#3F3F46">Routes each transaction</text>
+    <text x="360" y="222" font-size="12.5" fill="#3F3F46">to its own thread,</text>
+    <text x="360" y="240" font-size="12.5" fill="#3F3F46">interleaves for throughput.</text>
+  </g>
+
+  <!-- Lock Manager: grants all three, no overlap -->
+  <g data-step="3">
+    <line x1="574" y1="206" x2="614" y2="206" stroke="#6B7280" stroke-width="2.5" marker-end="url(#tw-ah)"/>
+    <rect x="620" y="142" width="250" height="128" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="620" y="142" width="250" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="640" y="170" font-size="15" font-weight="700" fill="#16A34A">Lock Manager</text>
+    <text x="640" y="196" font-size="12.5" fill="#3F3F46"><tspan fill="#2563EB" font-weight="700">Mickey row</tspan> · granted</text>
+    <text x="640" y="216" font-size="12.5" fill="#3F3F46"><tspan fill="#EA580C" font-weight="700">Minnie row</tspan> · granted</text>
+    <text x="640" y="236" font-size="12.5" fill="#3F3F46"><tspan fill="#7C3AED" font-weight="700">Daffy row</tspan> · granted</text>
+    <text x="640" y="258" font-size="11.5" fill="#6B7280">No overlap, so no waiting.</text>
+  </g>
+
+  <!-- WAL: logs each change before commit -->
+  <g data-step="4">
+    <line x1="745" y1="274" x2="745" y2="306" stroke="#6B7280" stroke-width="2.5" marker-end="url(#tw-ah)"/>
+    <rect x="620" y="312" width="250" height="96" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="620" y="312" width="250" height="5" rx="2.5" fill="#16A34A"/>
+    <text x="640" y="342" font-size="15" font-weight="700" fill="#16A34A">Write-Ahead Log</text>
+    <text x="640" y="366" font-family="JetBrains Mono, monospace" font-size="12" fill="#3F3F46">LOG Mickey, Minnie, Daffy</text>
+    <text x="640" y="388" font-size="12.5" fill="#3F3F46">Each change logged before</text>
+    <text x="640" y="404" font-size="12.5" fill="#3F3F46">its commit becomes durable.</text>
+  </g>
+
+  <!-- Deadlock Detector: quiet (grey) -->
+  <g data-step="5">
+    <rect x="340" y="312" width="230" height="96" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="340" y="312" width="230" height="5" rx="2.5" fill="#D4D7DC"/>
+    <text x="360" y="342" font-size="15" font-weight="700" fill="#6B7280">Deadlock Detector</text>
+    <text x="360" y="366" font-size="12.5" fill="#6B7280">Waits-for graph is empty.</text>
+    <text x="360" y="386" font-size="12.5" fill="#6B7280">No cycle, so no victim.</text>
+    <text x="360" y="404" font-size="12.5" font-weight="700" fill="#6B7280">Stays quiet on this trace.</text>
+  </g>
+
+  <!-- Recovery Manager: stands by -->
+  <g data-step="6">
+    <rect x="340" y="430" width="530" height="58" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="340" y="430" width="530" height="5" rx="2.5" fill="#DC2626"/>
+    <text x="360" y="460" font-size="15" font-weight="700" fill="#DC2626">Recovery Manager</text>
+    <text x="360" y="480" font-size="12.5" fill="#3F3F46">Stands by. If the server crashed here, it would replay the log to a consistent state.</text>
+  </g>
+
+  <!-- consistent committed output -->
+  <g data-step="7">
+    <line x1="874" y1="360" x2="914" y2="360" stroke="#6B7280" stroke-width="2.5" marker-end="url(#tw-ah)"/>
+    <rect x="920" y="300" width="220" height="120" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+    <text x="1030" y="332" text-anchor="middle" font-size="15" font-weight="700" fill="#16A34A">Committed state</text>
+    <text x="1030" y="358" text-anchor="middle" font-size="12.5" fill="#3F3F46">Mickey premium · Minnie</text>
+    <text x="1030" y="376" text-anchor="middle" font-size="12.5" fill="#3F3F46">renamed · Daffy's song added</text>
+    <text x="1030" y="402" text-anchor="middle" font-size="13" font-weight="700" fill="#16A34A">ACID preserved</text>
+  </g>
+
+  <!-- color key -->
+  <text x="40" y="556" font-size="13.5"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = Mickey&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#EA580C" font-weight="700">orange</tspan><tspan fill="#3F3F46"> = Minnie&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = Daffy</tspan></text>
+  <text x="40" y="578" font-size="13.5"><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = a component that fired&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the deadlock detector, idle on this no-conflict trace</tspan></text>
+</svg>

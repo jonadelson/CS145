@@ -1,0 +1,106 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.878
+B-plus trees handle reeds and writes well, until the writes get extreme.
+
+00:00:05.878 --> 00:00:09.755
+A million listen events a second.
+
+00:00:09.755 --> 00:00:13.633
+At that volume every write may split a tree node and trigger random seeks, and the disk falls over.
+
+00:00:13.633 --> 00:00:17.511
+Write-heavy systems flip it.
+
+00:00:17.511 --> 00:00:21.388
+Flush sorted batches as immutable files.
+
+00:00:21.388 --> 00:00:25.266
+Each file is an SS Table.
+
+00:00:25.266 --> 00:00:29.376
+Here is one SS Table file, and what is inside it.
+
+00:00:29.376 --> 00:00:33.486
+Three sections, written once and never modified.
+
+00:00:33.486 --> 00:00:37.596
+First, at the front, a bloom filter.
+
+00:00:37.596 --> 00:00:41.706
+Compact and probabilistic.
+
+00:00:41.706 --> 00:00:45.816
+It quickly rejects keys the file does not contain, so a reed can skip the whole file when the key is missing.
+
+00:00:45.816 --> 00:00:49.926
+Small enough to live in RAM.
+
+00:00:49.926 --> 00:00:54.036
+Next, the index block.
+
+00:00:54.036 --> 00:00:58.146
+A sparse list of key and byte offset pairs, one every Nth key.
+
+00:00:58.146 --> 00:01:02.255
+Binary search this short list to find which data block holds your key.
+
+00:01:02.255 --> 00:01:06.365
+Also small enough to stay cached.
+
+00:01:06.365 --> 00:01:10.475
+The rest of the file is the data blocks.
+
+00:01:10.475 --> 00:01:14.585
+The actual key value pairs, sorted by key and compressed in fixed chunks, so reeding one block pulls several neighbouring keys into cache.
+
+00:01:14.585 --> 00:01:18.695
+Now zoom out.
+
+00:01:18.695 --> 00:01:22.805
+On disk you have many SS Tables at once, and the same key can sit in several at different versions.
+
+00:01:22.805 --> 00:01:26.915
+Take user one hundred.
+
+00:01:26.915 --> 00:01:31.025
+The oldest file has version one, the middle has version two, the newest has version three.
+
+00:01:31.025 --> 00:01:35.135
+On reed, the newest version wins.
+
+00:01:35.135 --> 00:01:39.245
+The older copies linger until a background process called compaction merges the files and drops them.
+
+00:01:39.245 --> 00:01:44.233
+The reed in three lines.
+
+00:01:44.233 --> 00:01:49.220
+If the bloom filter says the key is not there, return null, with no disk reed at all.
+
+00:01:49.220 --> 00:01:54.208
+Otherwise binary search the index for the offset.
+
+00:01:54.208 --> 00:01:59.195
+Reed that one block and linear search it for the key.
+
+00:01:59.195 --> 00:02:04.183
+Flush and compact sit beside it here, but their timing, when a mem-table flushes and when compaction fires, is the LSM tree story, not this one.
+
+00:02:04.183 --> 00:02:09.276
+An SS Table is a file format.
+
+00:02:09.276 --> 00:02:14.369
+Bloom filter for fast misses, sparse index to narrow the block, sorted data blocks for the pairs.
+
+00:02:14.369 --> 00:02:19.462
+Immutable on disk, so reeds stay cheap.
+
+00:02:19.462 --> 00:02:24.554
+The same format powers Bigtable, Cassandra, DynamoDB, and RocksDB, which sits under CockroachDB and many others.
+
+00:02:24.554 --> 00:02:29.647
+Next, how a cluster of SS Tables plus a mem-table in RAM plus a compaction loop behaves as one index.
+
+00:02:29.647 --> 00:02:34.740
+LSM trees.

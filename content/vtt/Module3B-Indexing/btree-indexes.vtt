@@ -1,0 +1,220 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.166
+Think of a dictionary.
+
+00:00:05.166 --> 00:00:08.333
+Half a million words, and you never read them all.
+
+00:00:08.333 --> 00:00:11.499
+The tabs take you to the letter, the guide words to the page, and there is your word.
+
+00:00:11.499 --> 00:00:14.665
+AB-plus tree gives a database table that same stack of signposts.
+
+00:00:14.665 --> 00:00:17.832
+Hash indexes give constant time on equality and no help on ranges.
+
+00:00:17.832 --> 00:00:20.998
+AB-plus tree handles both with one shape.
+
+00:00:20.998 --> 00:00:24.165
+A hundred million songs, and you want Cruel Summer.
+
+00:00:24.165 --> 00:00:27.331
+Binary search would halve the list twenty-seven times.
+
+00:00:27.331 --> 00:00:30.497
+The database does it in four reeds.
+
+00:00:30.497 --> 00:00:33.664
+The trick is one word.
+
+00:00:33.664 --> 00:00:36.830
+Fanout.
+
+00:00:36.830 --> 00:00:40.980
+Here is the whole structure.
+
+00:00:40.980 --> 00:00:45.129
+On the left are the data pages, the rows themselves on disk.
+
+00:00:45.129 --> 00:00:49.279
+Finding a row means finding its page.
+
+00:00:49.279 --> 00:00:53.428
+The tree is built on top to get you there fast.
+
+00:00:53.428 --> 00:00:57.578
+Start at the root.
+
+00:00:57.578 --> 00:01:01.727
+It holds a few hundred keys in sorted order, and each key points to a subtree.
+
+00:01:01.727 --> 00:01:05.877
+You compare your search key and follow the one pointer that covers it.
+
+00:01:05.877 --> 00:01:10.026
+That drops you into an internal node, the next level down, which narrows the range again.
+
+00:01:10.026 --> 00:01:14.176
+A few levels down you reach the leaves.
+
+00:01:14.176 --> 00:01:18.325
+The leaves hold every key in sorted order, and each one points straight to a data page.
+
+00:01:18.325 --> 00:01:22.475
+So the path is root, internal, leaf, then the data page.
+
+00:01:22.475 --> 00:01:26.624
+Trace release date twelve thousand eight ninety.
+
+00:01:26.624 --> 00:01:30.774
+The root sends it into the middle range, the internal node into eleven thousand to thirteen thousand, the leaf resolves to page three, and page three holds the song, As It Was.
+
+00:01:30.774 --> 00:01:34.923
+Four reeds.
+
+00:01:34.923 --> 00:01:39.073
+Three for the tree, one for the data.
+
+00:01:39.073 --> 00:01:43.222
+A full scan would be millions.
+
+00:01:43.222 --> 00:01:47.372
+For a billion-tuple table at fanout one thousand the tree is just three levels deep, so doubling the data barely changes the depth.
+
+00:01:47.372 --> 00:01:52.102
+Now the part where B-plus trees pull ahead.
+
+00:01:52.102 --> 00:01:56.831
+Find every song whose release date falls between twelve thousand and fourteen thousand.
+
+00:01:56.831 --> 00:02:01.561
+Start at the root.
+
+00:02:01.561 --> 00:02:06.290
+Twelve thousand lands in the middle range, five thousand to fifteen thousand.
+
+00:02:06.290 --> 00:02:11.020
+Follow it to the internal node it points to.
+
+00:02:11.020 --> 00:02:15.749
+Its separators send you to the first leaf with a key at or above twelve thousand.
+
+00:02:15.749 --> 00:02:20.479
+From here you stop descending and scan the linked leaves in order.
+
+00:02:20.479 --> 00:02:25.208
+Leaf three holds twelve eight ninety and thirteen four fifty-six, both in range.
+
+00:02:25.208 --> 00:02:29.938
+Walk the link to leaf four, thirteen seven eighty-nine and thirteen nine eighty, both in range.
+
+00:02:29.938 --> 00:02:34.667
+Now, why peek at leaf five at all?
+
+00:02:34.667 --> 00:02:39.397
+Leaf four ended at thirteen nine eighty, still in range, so we cannot stop yet, the next leaf might have more.
+
+00:02:39.397 --> 00:02:44.126
+Leaf five opens with fourteen four fifty-six, past fourteen thousand, so we stop.
+
+00:02:44.126 --> 00:02:48.856
+And notice, that key is no accident.
+
+00:02:48.856 --> 00:02:53.585
+Fourteen four fifty-six is the exact separator the internal node held one level up to point at leaf five.
+
+00:02:53.585 --> 00:02:58.315
+The boundary was bracketed by the index the whole time.
+
+00:02:58.315 --> 00:03:03.044
+Then fetch the data pages the matching leaves point to, page three and page four.
+
+00:03:03.044 --> 00:03:07.774
+Five index reeds and two data reeds.
+
+00:03:07.774 --> 00:03:12.503
+Seven I Os total, against a full scan of the whole table.
+
+00:03:12.503 --> 00:03:17.233
+Sorted leaves linked end to end are why range queries are cheap on a B-plus tree and impossible on a hash index.
+
+00:03:17.233 --> 00:03:21.076
+Why so shallow?
+
+00:03:21.076 --> 00:03:24.919
+Binary search splits by two, and twenty-seven halvings find one song in a hundred million.
+
+00:03:24.919 --> 00:03:28.762
+Now split by a hundred.
+
+00:03:28.762 --> 00:03:32.605
+After one reed ninety-nine percent of the data is gone.
+
+00:03:32.605 --> 00:03:36.447
+After two, ninety-nine point nine nine.
+
+00:03:36.447 --> 00:03:40.290
+That multiplier per level is fanout, and it is set by how many key and pointer pairs fit on one page.
+
+00:03:40.290 --> 00:03:44.133
+Real nodes hold hundreds of keys, so a billion tuples fit in three levels.
+
+00:03:44.133 --> 00:03:47.976
+One more reed for the data page makes four.
+
+00:03:47.976 --> 00:03:50.820
+The rule is simple.
+
+00:03:50.820 --> 00:03:53.665
+AB-plus tree helps any time the database can use sorted order to narrow the search.
+
+00:03:53.665 --> 00:03:56.509
+Equality narrows.
+
+00:03:56.509 --> 00:03:59.354
+Range narrows.
+
+00:03:59.354 --> 00:04:02.198
+Prefix narrows.
+
+00:04:02.198 --> 00:04:05.042
+Sorted output comes free.
+
+00:04:05.042 --> 00:04:07.887
+It does not help when the search cannot narrow.
+
+00:04:07.887 --> 00:04:10.731
+A function wrapping the column, since the index is on name, not on lower of name.
+
+00:04:10.731 --> 00:04:13.576
+A suffix match, with no prefix to start from.
+
+00:04:13.576 --> 00:04:16.420
+A not-equals, since almost every value qualifies.
+
+00:04:16.420 --> 00:04:19.265
+Each one falls back to a scan.
+
+00:04:19.265 --> 00:04:22.109
+Match the index to the query shape.
+
+00:04:22.109 --> 00:04:26.095
+Almost every relational database uses B-plus trees as the default index.
+
+00:04:26.095 --> 00:04:30.081
+Point lookups, range scans, sorted output, prefix matches, one shape.
+
+00:04:30.081 --> 00:04:34.067
+But every write rebalances the tree, splitting nodes and writing both halves to disk.
+
+00:04:34.067 --> 00:04:38.054
+At a million writes a second that breaks.
+
+00:04:38.054 --> 00:04:42.040
+The next format is built for exactly that case.
+
+00:04:42.040 --> 00:04:46.026
+SS Tables.

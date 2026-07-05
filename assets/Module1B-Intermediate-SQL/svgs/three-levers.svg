@@ -1,0 +1,50 @@
+<svg viewBox="0 0 1180 336" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="tl-t tl-d">
+  <title id="tl-t">Three steps, three failures</title>
+  <desc id="tl-d">The model generates the SQL. Three steps (blue) wrap that
+  generation, and each catches a different way the query is wrong. Precision:
+  pin the spec, which catches the wrong reading, a query that answers a
+  different question. Execution: run it on real data, which catches crashes
+  and empty results. Verification: test the result and keep it, which catches
+  subtle errors and drift. The model only generates; you own all three steps,
+  and all three are SQL. Color key: blue is a step you own.</desc>
+
+  <text x="590" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Three steps, three failures</text>
+  <text x="590" y="56" text-anchor="middle" font-size="16" fill="#3F3F46">The model generates the SQL. Each step catches a different way it is wrong.</text>
+
+  <!-- Precision -->
+  <g data-step="1">
+    <rect x="60" y="90" width="340" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="60" y="90" width="340" height="4" rx="2" fill="#60A5FA"/>
+    <text x="230" y="124" text-anchor="middle" font-size="19" font-weight="700" fill="#0E0E10">Precision</text>
+    <text x="230" y="156" text-anchor="middle" font-size="15" fill="#3F3F46">Pin the spec</text>
+    <line x1="84" y1="182" x2="376" y2="182" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="230" y="214" text-anchor="middle" font-size="15"><tspan fill="#0E0E10" font-weight="700">Catches </tspan><tspan fill="#3F3F46">the wrong reading</tspan></text>
+  </g>
+
+  <!-- Execution -->
+  <g data-step="2">
+    <rect x="420" y="90" width="340" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="420" y="90" width="340" height="4" rx="2" fill="#60A5FA"/>
+    <text x="590" y="124" text-anchor="middle" font-size="19" font-weight="700" fill="#0E0E10">Execution</text>
+    <text x="590" y="156" text-anchor="middle" font-size="15" fill="#3F3F46">Run it on real data</text>
+    <line x1="444" y1="182" x2="736" y2="182" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="590" y="214" text-anchor="middle" font-size="15"><tspan fill="#0E0E10" font-weight="700">Catches </tspan><tspan fill="#3F3F46">crashes and empty results</tspan></text>
+  </g>
+
+  <!-- Verification -->
+  <g data-step="3">
+    <rect x="780" y="90" width="340" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="780" y="90" width="340" height="4" rx="2" fill="#60A5FA"/>
+    <text x="950" y="124" text-anchor="middle" font-size="19" font-weight="700" fill="#0E0E10">Verification</text>
+    <text x="950" y="156" text-anchor="middle" font-size="15" fill="#3F3F46">Test the result, keep it</text>
+    <line x1="804" y1="182" x2="1096" y2="182" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="950" y="214" text-anchor="middle" font-size="15"><tspan fill="#0E0E10" font-weight="700">Catches </tspan><tspan fill="#3F3F46">subtle errors and drift</tspan></text>
+  </g>
+
+  <g data-step="4">
+    <text x="590" y="280" text-anchor="middle" font-size="16" fill="#0E0E10" font-weight="700">The model only generates. You own all three steps, and all three are SQL.</text>
+    <text x="590" y="312" text-anchor="middle" font-size="14"><tspan fill="#60A5FA" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = a step you own</tspan></text>
+  </g>
+</svg>

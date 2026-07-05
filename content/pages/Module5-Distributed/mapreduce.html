@@ -1,0 +1,68 @@
+<h1>MapReduce: Divide and Conquer at Scale</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> MapReduce is a programming model where you write two functions, <code>map(record) → (key, value)</code> and <code>reduce(key, list[value]) → result</code>, and the framework distributes the work across thousands of machines using hash partitioning to shuffle records by key.</p>
+<p><strong>Intuition.</strong> When Spotify wants the Top 100 most-played songs of 2026, <code>map</code> runs over every play log line and emits <code>(song_id, 1)</code>; the framework shuffles all values for the same <code>song_id</code> to the same reducer (hash-partitioned); <code>reduce</code> sums the 1s per song. 100 billion log lines turn into 100 lines of output across 1,000 machines in minutes.</p>
+</div>
+<hr />
+<h2>A Worked Example: Top Songs Across 100B Plays</h2>
+<p>The 2004 Google MapReduce paper handed the industry a pattern that still runs ETL pipelines today. Walk through it on a Spotify-scale workload.</p>
+<p><strong>Input.</strong> A year of play logs: ~100 billion lines, each <code>user_id, song_id, timestamp, duration_ms</code>, scattered across 1,000 chunk files in HDFS.</p>
+<p><strong>Goal.</strong> The top 100 most-played songs of 2026.</p>
+<p>The job has three phases, all distributed across the cluster.</p>
+<p><a id="mapreduce-figure"></a></p>
+<div style="width: 100%; max-width: 900px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/mapreduce-flow.svg" alt="100B log lines in HDFS feed grey mappers emitting (song_id, 1); a pink shuffle hash-partitions pairs by hash(song_id) % R so the same key reaches one reducer; grey reducers sum the 1s into about 50M per-song counts" style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> MapReduce finds the top songs across 100 billion plays. 1,000 mappers each read one 3×-replicated chunk and emit <code>(song_id, 1)</code> per play; the shuffle partitions pairs by <code>hash(song_id) % R</code> so the same key always reaches the same reducer. Each reducer sums the <code>1</code>s for its slice of song IDs and writes the per-song counts. The same code runs in about 10 minutes on 1,000 machines instead of weeks on one.</p>
+</div>
+<h3>Phase 1: Map</h3>
+<p>Each of 1,000 mapper workers reads one chunk file in parallel. For every line, the mapper emits a single key-value pair:</p>
+<pre><code class="language-python">def map(line):
+    user_id, song_id, ts, duration = parse(line)
+    emit(song_id, 1)        # one play of this song
+</code></pre>
+<p>After Phase 1: ~100 billion key-value pairs sitting on the mappers' local disks.</p>
+<h3>Phase 2: Shuffle (the hidden core)</h3>
+<p>The framework hash-partitions every key-value pair by <code>song_id</code>. All <code>(song_id=42, 1)</code> pairs from any mapper end up on the same reducer (machine <code>hash(42) % 100</code>). This is the same hash-partitioning algorithm from <a href="#/page/Module5-Distributed/distributed-sort-hash">Distributed Sort &amp; Hash</a>, now running automatically as part of the job.</p>
+<p>Each reducer ends up with all the values for some subset of song IDs. Most of the wall clock goes here, because shuffle moves data across the network and writes it to disk.</p>
+<h3>Phase 3: Reduce</h3>
+<p>Each of 100 reducer workers gets a chunk of the song ID space and sums:</p>
+<pre><code class="language-python">def reduce(song_id, list_of_ones):
+    emit(song_id, sum(list_of_ones))
+</code></pre>
+<p>After Phase 3: ~50 million <code>(song_id, count)</code> pairs (one per song that was played at least once). A small follow-up sort gives the top 100.</p>
+<p><strong>Cost.</strong> ~10 minutes wall clock on 1,000 machines. The same job on a single beefy server: weeks.</p>
+<hr />
+<h2>Why MapReduce Won (2004-2014)</h2>
+<p>The model gave developers four things at once:</p>
+<ol>
+<li>
+<p><strong>A simple programming surface.</strong> Two functions. No knowledge of how the cluster moves data, recovers from failures, or load-balances.</p>
+</li>
+<li>
+<p><strong>Built-in fault tolerance.</strong> When a worker dies mid-job, the framework restarts that worker's task on a different machine. Map and reduce are deterministic, so reruns produce the same answer.</p>
+</li>
+<li>
+<p><strong>Linear scaling.</strong> Doubling the cluster doubles throughput, up to thousands of machines.</p>
+</li>
+<li>
+<p><strong>Commodity hardware.</strong> Same calculus as <a href="#/page/Module5-Distributed/case-study-gfs">GFS (5.1)</a>: a thousand cheap servers beats one supercomputer on price-per-throughput.</p>
+</li>
+</ol>
+<p>The trade-off is throughput over latency. The shuffle writes everything to disk, so a 10-minute MR job is slow next to a 100 ms SQL query, but it processes orders of magnitude more data.</p>
+<hr />
+<h2>Where MapReduce Hit a Wall</h2>
+<p>By 2014 the industry had moved past pure MapReduce for two reasons:</p>
+<ul>
+<li>
+<p><strong>Iterative algorithms are slow.</strong> Machine learning needs many passes over the data; pure MR writes to disk between every pass, paying the IO cost every time.</p>
+</li>
+<li>
+<p><strong>Interactive analytics need sub-minute response.</strong> A data scientist exploring a hypothesis cannot wait 10 minutes per query.</p>
+</li>
+</ul>
+<p>Both failure modes have the same root cause: the materialize-to-disk-between-stages design that made MR easy to recover from also made it slow whenever the same data was touched twice. The fix, covered next, is to keep intermediate data in RAM.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module5-Distributed/spark">Spark →</a></strong> Spark keeps the same hash-partitioning + worker model but holds intermediate data in memory and represents the pipeline as a chain of operators. Result: 100× speedup on iterative work, interactive analytics on terabyte-scale data.</p>

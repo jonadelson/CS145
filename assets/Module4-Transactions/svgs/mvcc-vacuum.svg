@@ -1,0 +1,65 @@
+<svg viewBox="0 0 980 360" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:980px; display:block; margin:1rem auto;" role="img" aria-labelledby="vac-t vac-d" font-family="Inter, sans-serif">
+  <title id="vac-t">Vacuum deletes the row versions that no running query still reads</title>
+  <desc id="vac-d">One row keeps four versions, oldest to newest (v1 to v4), each a value plus a commit timestamp. Two queries are still running: one opened at 2:50 and still reads v3, and a newer one reads the current v4. No running query reads v1 or v2, so they are dead. Vacuum deletes the dead versions and frees the space, leaving v3 and v4. Color key: violet is a version a running query still reads; grey is a dead version vacuum deletes.</desc>
+  <defs>
+    <marker id="ah-vac" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">Vacuum: delete versions no query still reads</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">Each update leaves the old version behind. A version stays while a running query reads it; vacuum deletes the rest.</text>
+
+  <!-- step 1: the version chain -->
+  <g data-step="1">
+    <text x="40" y="98" font-size="14" font-weight="700" fill="#3F3F46">Row: song 42 likes &#183; one version per update &#8594;</text>
+    <rect x="40"  y="138" width="196" height="84" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <text x="56"  y="162" font-size="13.5" font-weight="700" fill="#7C3AED">v1</text>
+    <text x="220" y="162" text-anchor="end" font-size="13" font-family="JetBrains Mono, monospace" fill="#6B7280">@ 2:00</text>
+    <text x="138" y="200" text-anchor="middle" font-size="18" font-weight="700" fill="#0E0E10">likes = 100</text>
+    <rect x="268" y="138" width="196" height="84" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <text x="284" y="162" font-size="13.5" font-weight="700" fill="#7C3AED">v2</text>
+    <text x="448" y="162" text-anchor="end" font-size="13" font-family="JetBrains Mono, monospace" fill="#6B7280">@ 2:20</text>
+    <text x="366" y="200" text-anchor="middle" font-size="18" font-weight="700" fill="#0E0E10">likes = 101</text>
+    <rect x="496" y="138" width="196" height="84" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <text x="512" y="162" font-size="13.5" font-weight="700" fill="#7C3AED">v3</text>
+    <text x="676" y="162" text-anchor="end" font-size="13" font-family="JetBrains Mono, monospace" fill="#6B7280">@ 2:45</text>
+    <text x="594" y="200" text-anchor="middle" font-size="18" font-weight="700" fill="#0E0E10">likes = 102</text>
+    <rect x="724" y="138" width="196" height="84" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <text x="740" y="162" font-size="13.5" font-weight="700" fill="#7C3AED">v4</text>
+    <text x="904" y="162" text-anchor="end" font-size="13" font-family="JetBrains Mono, monospace" fill="#6B7280">@ 3:10 · now</text>
+    <text x="822" y="200" text-anchor="middle" font-size="18" font-weight="700" fill="#0E0E10">likes = 103</text>
+    <line x1="238" y1="180" x2="266" y2="180" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-vac)"/>
+    <line x1="466" y1="180" x2="494" y2="180" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-vac)"/>
+    <line x1="694" y1="180" x2="722" y2="180" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-vac)"/>
+  </g>
+
+  <!-- step 2: running queries point at the versions they read; v1, v2 have none -->
+  <g data-step="2">
+    <rect x="520" y="86" width="148" height="30" rx="15" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="594" y="105" text-anchor="middle" font-size="12.5" font-weight="700" fill="#7C3AED">query @ 2:50</text>
+    <line x1="594" y1="116" x2="594" y2="136" stroke="#7C3AED" stroke-width="1.5" marker-end="url(#ah-vac)"/>
+    <rect x="748" y="86" width="148" height="30" rx="15" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="822" y="105" text-anchor="middle" font-size="12.5" font-weight="700" fill="#7C3AED">newer query</text>
+    <line x1="822" y1="116" x2="822" y2="136" stroke="#7C3AED" stroke-width="1.5" marker-end="url(#ah-vac)"/>
+    <text x="252" y="250" text-anchor="middle" font-size="15" font-weight="700" fill="#6B7280">DEAD</text>
+    <text x="252" y="270" text-anchor="middle" font-size="13.5" fill="#6B7280">no running query reads these</text>
+    <text x="708" y="250" text-anchor="middle" font-size="15" font-weight="700" fill="#7C3AED">LIVE</text>
+    <text x="708" y="270" text-anchor="middle" font-size="13.5" fill="#3F3F46">v3 still read, v4 is current</text>
+  </g>
+
+  <!-- step 3: vacuum discards the dead versions, greyed out -->
+  <g data-step="3">
+    <rect x="40"  y="138" width="196" height="84" rx="8" fill="#F7F8FA" stroke="#D4D7DC" stroke-width="2"/>
+    <text x="56"  y="162" font-size="13.5" font-weight="700" fill="#6B7280">v1</text>
+    <text x="220" y="162" text-anchor="end" font-size="13" font-family="JetBrains Mono, monospace" fill="#6B7280">@ 2:00</text>
+    <text x="138" y="200" text-anchor="middle" font-size="18" font-weight="700" fill="#6B7280">likes = 100</text>
+    <rect x="268" y="138" width="196" height="84" rx="8" fill="#F7F8FA" stroke="#D4D7DC" stroke-width="2"/>
+    <text x="284" y="162" font-size="13.5" font-weight="700" fill="#6B7280">v2</text>
+    <text x="448" y="162" text-anchor="end" font-size="13" font-family="JetBrains Mono, monospace" fill="#6B7280">@ 2:20</text>
+    <text x="366" y="200" text-anchor="middle" font-size="18" font-weight="700" fill="#6B7280">likes = 101</text>
+    <line x1="52"  y1="180" x2="224" y2="180" stroke="#6B7280" stroke-width="2.5"/>
+    <line x1="280" y1="180" x2="452" y2="180" stroke="#6B7280" stroke-width="2.5"/>
+    <text x="252" y="306" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">VACUUM discards v1 and v2 &#8594; space freed</text>
+  </g>
+
+  <text x="40" y="344" font-size="13.5"><tspan font-weight="700" fill="#7C3AED">violet</tspan><tspan fill="#3F3F46"> = a version a running query still reads&#160;&#160;&#183;&#160;&#160;</tspan><tspan font-weight="700" fill="#6B7280">grey</tspan><tspan fill="#3F3F46"> = dead version, deleted by vacuum</tspan></text>
+</svg>

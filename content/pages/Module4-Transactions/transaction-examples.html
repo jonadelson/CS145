@@ -1,0 +1,190 @@
+<h1>Sample Code: Running Transactions</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Every multi-step database operation that needs ACID guarantees is wrapped in <code>BEGIN</code> and <code>COMMIT</code>. The database treats everything between those two keywords as one atomic unit: every write succeeds together, or none of them do, and no other transaction sees the in-between state.</p>
+<p><strong>Intuition.</strong> The Stripe case study showed <em>why</em> ACID matters. This page shows <em>how</em> to write transactions in SQL. Four scenarios (concert tickets, bank transfer, inventory, social-media likes), each a race between concurrent users on shared data, each one made safe by wrapping the right statements in <code>BEGIN ... COMMIT</code>.</p>
+</div>
+<hr />
+<h2>The Three Keywords</h2>
+<ul>
+<li>
+<p><strong><code>BEGIN TRANSACTION</code></strong> (or <code>BEGIN</code> / <code>START TRANSACTION</code>): marks the start.</p>
+</li>
+<li>
+<p><strong><code>COMMIT</code></strong>: makes every change since <code>BEGIN</code> permanent and visible to other transactions.</p>
+</li>
+<li>
+<p><strong><code>ROLLBACK</code></strong>: undoes every change since <code>BEGIN</code>, as if nothing had happened.</p>
+</li>
+</ul>
+<p>Anything <em>outside</em> a <code>BEGIN ... COMMIT</code> block runs in <strong>autocommit</strong> mode: each statement is its own tiny one-statement transaction.</p>
+<p><img src="assets/Module4-Transactions/svgs/transaction-keywords.svg" alt="A transaction block: BEGIN opens it, statements run inside, then COMMIT makes every change permanent or ROLLBACK undoes them all; outside the block each statement autocommits on its own." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The three keywords frame one block. BEGIN opens the transaction; your statements run inside as one logical operation; COMMIT makes every change since BEGIN permanent, or ROLLBACK undoes them all as if nothing happened. Rolling a transaction back is also called <strong>aborting</strong> it, the term the rest of this module uses (in Postgres, <code>ABORT</code> is the same command). Outside a block, each statement autocommits as its own one-statement transaction.</p>
+</div>
+<hr />
+<h2>How to Read These Examples</h2>
+<p>Each example shows the <strong>happy path</strong>: the SQL that runs when the purchase succeeds. If a SELECT reveals that a business check fails (not enough inventory, insufficient balance, duplicate like), the application issues <code>ROLLBACK</code> instead of <code>COMMIT</code> and the database automatically undoes every write since <code>BEGIN</code>. Schema-level constraints (<code>CHECK</code>, <code>UNIQUE</code>, <code>FOREIGN KEY</code>) also trigger automatic rollback when violated.</p>
+<p>Inside <code>BEGIN ... COMMIT</code>, your reads and writes see one consistent view of the database. Concurrent transactions queue up on the rows you touch, serialized by the database so that each one looks as if it ran alone. You don't need extra SQL tricks to make a transaction safe; the block itself is the safety.</p>
+<hr />
+<h2>Example 1: Ticket Purchase (Atomicity)</h2>
+<p><strong>Scenario.</strong> Taylor Swift tickets go on sale at 5:00 PM. Alice clicks "Purchase 2 tickets." The purchase touches two tables (inventory and orders), and both must update together.</p>
+<pre><code><span class="sql-comment">-- Step 1: Begin the transaction</span>
+BEGIN TRANSACTION;
+
+<span class="sql-comment">-- Step 2: Select the available inventory</span>
+<span class="sql-keyword">SELECT</span> available_tickets
+<span class="sql-keyword">FROM</span> Concerts
+<span class="sql-keyword">WHERE</span> concert_id <span class="sql-operator">=</span> <span class="sql-string">'taylor_swift_123'</span>;
+
+<span class="sql-comment">-- Step 3: Reserve the tickets</span>
+<span class="sql-keyword">UPDATE</span> Concerts
+<span class="sql-keyword">SET</span> available_tickets <span class="sql-operator">=</span> available_tickets <span class="sql-operator">-</span> <span class="sql-number">2</span>
+<span class="sql-keyword">WHERE</span> concert_id <span class="sql-operator">=</span> <span class="sql-string">'taylor_swift_123'</span>;
+
+<span class="sql-comment">-- Step 4: Insert the customer order</span>
+<span class="sql-keyword">INSERT</span> <span class="sql-keyword">INTO</span> <span class="sql-table">Orders</span> (user_id, concert_id, num_tickets, total_amount, status)
+<span class="sql-keyword">VALUES</span> (<span class="sql-string">'user_789'</span>, <span class="sql-string">'taylor_swift_123'</span>, <span class="sql-number">2</span>, <span class="sql-number">150.00</span>, <span class="sql-string">'confirmed'</span>);
+
+<span class="sql-comment">-- Step 5: Commit every change</span>
+COMMIT;
+</code></pre>
+<div class="definition-card">
+<h4><span class="acid-dot a">A</span>ACID Focus: Atomicity</h4>
+<p><strong>What breaks without it:</strong> the <code>UPDATE Concerts</code> succeeds but <code>INSERT INTO Orders</code> fails halfway (network drop, disk full, server crash). Inventory is decremented by 2 but no order exists. Alice's tickets are "reserved" for nobody.</p>
+<p><strong>What the transaction buys:</strong> any failure between <code>BEGIN</code> and <code>COMMIT</code> triggers an automatic <code>ROLLBACK</code>. Every change since <code>BEGIN</code> is undone and the database is back to its pre-purchase state. The purchase either happens end-to-end or it doesn't happen at all.</p>
+</div>
+<hr />
+<h2>Example 2: Bank Transfer (Consistency)</h2>
+<p><strong>Scenario.</strong> Alice transfers $100 to Bob. Two balances move: Alice's down by $100, Bob's up by $100. Stripe's Accounts table has one schema-enforced rule: <code>CHECK (balance &gt;= 0)</code>. No account can ever commit in the red.</p>
+<pre><code><span class="sql-comment">-- Accounts.balance carries a rule declared once in CREATE TABLE: CHECK (balance &gt;= 0).</span>
+<span class="sql-comment">-- The database enforces it on every write itself: no app code, no separate process.</span>
+
+<span class="sql-comment">-- Step 1: Begin the transaction</span>
+BEGIN TRANSACTION;
+
+<span class="sql-comment">-- Step 2: Debit Alice</span>
+<span class="sql-keyword">UPDATE</span> Accounts
+<span class="sql-keyword">SET</span> balance <span class="sql-operator">=</span> balance <span class="sql-operator">-</span> <span class="sql-number">100.00</span>
+<span class="sql-keyword">WHERE</span> account_id <span class="sql-operator">=</span> <span class="sql-string">'alice_account'</span>;
+
+<span class="sql-comment">-- Step 3: Credit Bob</span>
+<span class="sql-keyword">UPDATE</span> Accounts
+<span class="sql-keyword">SET</span> balance <span class="sql-operator">=</span> balance <span class="sql-operator">+</span> <span class="sql-number">100.00</span>
+<span class="sql-keyword">WHERE</span> account_id <span class="sql-operator">=</span> <span class="sql-string">'bob_account'</span>;
+
+<span class="sql-comment">-- Step 4: Record the transfer</span>
+<span class="sql-keyword">INSERT</span> <span class="sql-keyword">INTO</span> Transfers (from_account, to_account, amount, type)
+<span class="sql-keyword">VALUES</span> (<span class="sql-string">'alice_account'</span>, <span class="sql-string">'bob_account'</span>, <span class="sql-number">100.00</span>, <span class="sql-string">'transfer'</span>);
+
+<span class="sql-comment">-- Step 5: Commit every change</span>
+COMMIT;
+</code></pre>
+<p>Now suppose Alice has only $50. Same transaction, but step 2 would break the rule:</p>
+<pre><code><span class="sql-comment">-- The debit runs first and would push her below zero:</span>
+<span class="sql-keyword">UPDATE</span> Accounts <span class="sql-keyword">SET</span> balance <span class="sql-operator">=</span> balance <span class="sql-operator">-</span> <span class="sql-number">100.00</span>   <span class="sql-comment">-- 50.00 → -50.00</span>
+<span class="sql-keyword">WHERE</span> account_id <span class="sql-operator">=</span> <span class="sql-string">'alice_account'</span>;
+<span class="sql-comment">-- ERROR: violates CHECK (balance &gt;= 0). The transaction ABORTS;</span>
+<span class="sql-comment">-- Bob's credit and the Transfers row never run; every change rolls back.</span>
+</code></pre>
+<div class="definition-card">
+<h4><span class="acid-dot c">C</span>ACID Focus: Consistency</h4>
+<p><strong>The point:</strong> the rule lives in the schema, not the app, so the database holds <code>balance &gt;= 0</code> on every transaction by itself. The application can attempt any writes it likes; a commit that would break the invariant is aborted and rolled back, so the books never show money that never existed.</p>
+</div>
+<hr />
+<h2>Example 3: Inventory Reservation (Isolation)</h2>
+<p><strong>Scenario.</strong> Black Friday at 12:00:00 AM. Limited edition Labubu. Only <strong>1 unit</strong> remaining. 1,000 customers click "Buy Now" simultaneously. Without isolation, all 1,000 transactions would read <code>quantity = 1</code> at the same instant and all 1,000 would "buy" the last unit.</p>
+<pre><code><span class="sql-comment">-- Step 1: Begin the transaction</span>
+BEGIN TRANSACTION;
+
+<span class="sql-comment">-- Step 2: Select the quantity</span>
+<span class="sql-keyword">SELECT</span> quantity <span class="sql-keyword">FROM</span> Products <span class="sql-keyword">WHERE</span> product_id <span class="sql-operator">=</span> <span class="sql-string">'labubu'</span>;
+
+<span class="sql-comment">-- Step 3: Decrement to reserve one unit (else ROLLBACK)</span>
+<span class="sql-keyword">UPDATE</span> Products <span class="sql-keyword">SET</span> quantity <span class="sql-operator">=</span> quantity <span class="sql-operator">-</span> <span class="sql-number">1</span> <span class="sql-keyword">WHERE</span> product_id <span class="sql-operator">=</span> <span class="sql-string">'labubu'</span>;
+
+<span class="sql-comment">-- Step 4: Insert the order</span>
+<span class="sql-keyword">INSERT</span> <span class="sql-keyword">INTO</span> <span class="sql-table">Orders</span> (customer_id, product_id, quantity, status)
+<span class="sql-keyword">VALUES</span> (<span class="sql-string">'customer_alice'</span>, <span class="sql-string">'labubu'</span>, <span class="sql-number">1</span>, <span class="sql-string">'confirmed'</span>);
+
+<span class="sql-comment">-- Step 5: Commit every change</span>
+COMMIT;
+</code></pre>
+<div class="definition-card">
+<h4><span class="acid-dot i">I</span>ACID Focus: Isolation</h4>
+<p><strong>What breaks without it:</strong> the <strong>oversell</strong> problem (distinct from the lost update in Example 4). All 1,000 transactions SELECT <code>quantity = 1</code> at the same instant, all 1,000 UPDATE to 0, all 1,000 INSERT orders: 1,000 customers each "buy" the one last unit.</p>
+<p><strong>What the transaction buys:</strong> the database serializes access to the Labubu row using row-level locking (covered in <a href="#/page/Module4-Transactions/db-locks-2pl">Two-Phase Locking</a>). The 1,000 transactions queue up one at a time. The first runs end-to-end: SELECT sees <code>quantity = 1</code>, UPDATE decrements to 0, INSERT records the order, COMMIT. Each of the remaining 999 gets its turn only after the lock releases, by which time the row shows <code>quantity = 0</code>; the application sees no inventory and ROLLBACKs. Exactly one customer walks away with a Labubu.</p>
+</div>
+<hr />
+<h2>Example 4: Viral Like Counter (Isolation)</h2>
+<p><strong>Scenario.</strong> A celebrity posts breaking news at 3:00 PM. The post goes viral. 10,000 users hit "Like" within five seconds. Two tables must stay in sync: <code>Likes</code> (one row per like) and <code>Posts.like_count</code> (the cached total).</p>
+<pre><code><span class="sql-comment">-- Step 1: Begin the transaction</span>
+BEGIN TRANSACTION;
+
+<span class="sql-comment">-- Step 2: Insert the like row</span>
+<span class="sql-comment">-- The Likes table has a UNIQUE (user_id, post_id) constraint; a duplicate</span>
+<span class="sql-comment">-- INSERT fails and the whole transaction rolls back.</span>
+<span class="sql-keyword">INSERT</span> <span class="sql-keyword">INTO</span> Likes (user_id, post_id, timestamp)
+<span class="sql-keyword">VALUES</span> (<span class="sql-string">'user_12345'</span>, <span class="sql-string">'viral_post_456'</span>, NOW());
+
+<span class="sql-comment">-- Step 3: Increment the cached counter</span>
+<span class="sql-keyword">UPDATE</span> Posts
+<span class="sql-keyword">SET</span> like_count <span class="sql-operator">=</span> like_count <span class="sql-operator">+</span> <span class="sql-number">1</span>,
+    last_activity <span class="sql-operator">=</span> NOW()
+<span class="sql-keyword">WHERE</span> post_id <span class="sql-operator">=</span> <span class="sql-string">'viral_post_456'</span>;
+
+<span class="sql-comment">-- Step 4: Commit every change</span>
+COMMIT;
+</code></pre>
+<div class="definition-card">
+<h4><span class="acid-dot i">I</span>ACID Focus: Isolation</h4>
+<p><strong>What breaks without it:</strong> the classic "lost update" problem. The counter starts at 500. Two concurrent transactions both read <code>like_count = 500</code>, both compute <code>500 + 1</code>, both write back <code>501</code>, and two likes produce one increment. At 10,000 concurrent likes the final counter is <em>nondeterministic</em>: it can land anywhere between <strong>501</strong> (if every increment collides with at least one other) and <strong>10,500</strong> (if they happen to serialize by pure luck). Meanwhile the <code>Likes</code> table correctly receives all 10,000 new rows. The counter and the source of truth have diverged, and by an unpredictable amount.</p>
+<p><strong>What the transaction buys:</strong> the UPDATE on <code>Posts</code> takes a row-level lock on the post's counter row. Concurrent likes queue up behind that lock. Each transaction reads the current counter, adds one, and writes it back before releasing. After all 10,000 commit, <code>like_count = 10,500</code> <em>deterministically</em>, and the invariant <code>Posts.like_count = COUNT(*) FROM Likes</code> holds.</p>
+</div>
+<hr />
+<h2>Pattern Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Core pattern</th>
+<th>Primary ACID property</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ticket purchase</td>
+<td>Multi-table check-reserve-confirm</td>
+<td>Atomicity</td>
+</tr>
+<tr>
+<td>Bank transfer</td>
+<td>Debit-one-credit-another under <code>CHECK</code></td>
+<td>Consistency</td>
+</tr>
+<tr>
+<td>Inventory reservation</td>
+<td>Read-then-decrement under row lock</td>
+<td>Isolation</td>
+</tr>
+<tr>
+<td>Viral counter</td>
+<td>Insert-detail + update-summary</td>
+<td>Isolation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Three takeaways worth remembering:</strong></p>
+<ol>
+<li>
+<p><strong>Wrap in <code>BEGIN ... COMMIT</code> whenever you touch more than one row or table.</strong> A single <code>UPDATE</code> is already atomic; multiple statements are not, unless you say so.</p>
+</li>
+<li>
+<p><strong>Inside the block, your reads and writes see a consistent view.</strong> The database serializes concurrent transactions so each one looks as if it ran alone. You don't need explicit locks or clever conditional updates for the common cases; the transaction block is the safety.</p>
+</li>
+<li>
+<p><strong><code>ROLLBACK</code> is mostly automatic.</strong> Any constraint violation, deadlock, crash, or unhandled application exception rolls back the whole transaction. You rarely write <code>ROLLBACK</code> by hand; you let failures propagate.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module4-Transactions/graph-refresher">Graph Refresher →</a></strong> The keywords above are the user-facing surface. The rest of Module 4 digs into what the database does underneath to deliver on the <code>COMMIT</code> promise. The next section, Concurrency Control, opens with a quick graph refresher (cycles and topological sort), then uses it to define exactly when the database's reordering stays correct.</p>

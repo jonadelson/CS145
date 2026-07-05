@@ -1,0 +1,223 @@
+<h1>Colab Practice: Problem Solving with SQL</h1>
+<div class="case-study-meta">
+<p><span class="tag">SQL Fundamentals</span>
+<span>Practice Problems</span></p>
+</div>
+<h2>Step 0: PostgreSQL Playground</h2>
+<p><strong><a href="https://colab.research.google.com/drive/19raF0_aeJs-dQdQC9tZ8GhveXVhAIdji#scrollTo=_U0snD1qNpky">Open PostgreSQL Colab Playground</a></strong></p>
+<p><strong>Instructions:</strong></p>
+<ul>
+<li>
+<p>Run the setup cell to create the <code>Users</code>, <code>Songs</code>, and <code>Listens</code> tables.</p>
+</li>
+<li>
+<p>Run <code>sql-practice-dataset.sql</code> to add the extended songs, listens, and <code>Recommendations</code> table.</p>
+</li>
+<li>
+<p>Run one <code>SELECT</code> to confirm the tables loaded.</p>
+</li>
+</ul>
+<hr />
+<h2>Practice 1: Writing Debug Tables</h2>
+<p>Creating a <strong>Debug Table</strong> forces you to evaluate logical execution ordering: <strong>FROM → JOIN → WHERE → GROUP BY → HAVING → SELECT</strong>.</p>
+<blockquote>
+<p><strong>Tip</strong>: 
+<strong>Check your work</strong>: All answers and interactive logic traces are available in the <strong><a href="https://colab.research.google.com/drive/1ABFEJdOfeL9F-J-ZVzxZmqvEQTYa7D_c?usp=sharing">Practice Solutions Colab</a></strong>.</p>
+</blockquote>
+<h3>1.1: Filtering Strategies (JOIN vs IN vs EXISTS)</h3>
+<p>Analyze these four queries. Do they all pull the same genres? Which is the most efficient for checking existence in a large dataset?</p>
+<pre><code><span class="sql-comment">-- Query 1: INNER JOIN</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s
+<span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id;
+
+<span class="sql-comment">-- Query 2: INNER JOIN (No Distinct - what happens?)</span>
+<span class="sql-keyword">SELECT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s
+<span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id;
+
+<span class="sql-comment">-- Query 3: IN Clause</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s
+<span class="sql-keyword">WHERE</span> s.song_id <span class="sql-keyword">IN</span> (<span class="sql-keyword">SELECT</span> song_id <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>);
+
+<span class="sql-comment">-- Query 4: EXISTS Clause</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s
+<span class="sql-keyword">WHERE</span> <span class="sql-keyword">EXISTS</span> (<span class="sql-keyword">SELECT</span> <span class="sql-number">1</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">WHERE</span> l.song_id <span class="sql-operator">=</span> s.song_id);
+</code></pre>
+<h3>1.2: Set Operations (UNION vs. EXCEPT)</h3>
+<p>Mickey (user 1) has a listening history and a set of recommendations. Load <code>sql-practice-dataset.sql</code> so the <code>Recommendations</code> table exists (see <a href="#the-practice-dataset">The Practice Dataset</a> below), then compare the genres he plays against the genres he is recommended.</p>
+<pre><code><span class="sql-comment">-- Query 5: Mickey's Listening History</span>
+<span class="sql-keyword">SELECT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id <span class="sql-keyword">WHERE</span> l.user_id <span class="sql-operator">=</span> <span class="sql-number">1</span>;
+
+<span class="sql-comment">-- Query 6: Mickey's Recommendations</span>
+<span class="sql-keyword">SELECT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">INNER JOIN</span> Recommendations r <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> r.song_id <span class="sql-keyword">WHERE</span> r.user_id <span class="sql-operator">=</span> <span class="sql-number">1</span>;
+
+<span class="sql-comment">-- Query 7: UNION (History OR Recommendations)</span>
+<span class="sql-keyword">SELECT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id <span class="sql-keyword">WHERE</span> l.user_id <span class="sql-operator">=</span> <span class="sql-number">1</span>
+<span class="sql-keyword">UNION</span>
+<span class="sql-keyword">SELECT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">INNER JOIN</span> Recommendations r <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> r.song_id <span class="sql-keyword">WHERE</span> r.user_id <span class="sql-operator">=</span> <span class="sql-number">1</span>;
+
+<span class="sql-comment">-- Query 8: EXCEPT (History BUT NOT recommended)</span>
+<span class="sql-keyword">SELECT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">INNER JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id <span class="sql-keyword">WHERE</span> l.user_id <span class="sql-operator">=</span> <span class="sql-number">1</span>
+EXCEPT
+<span class="sql-keyword">SELECT</span> s.genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">INNER JOIN</span> Recommendations r <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> r.song_id <span class="sql-keyword">WHERE</span> r.user_id <span class="sql-operator">=</span> <span class="sql-number">1</span>;
+</code></pre>
+<h3>1.3: The LEFT JOIN</h3>
+<p>Check this query for User 1. Does it yield more or fewer rows than an <code>INNER JOIN</code>? Why?</p>
+<pre><code><span class="sql-comment">-- Query 9: All genres, matched against Mickey's listens</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> s.genre 
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s 
+<span class="sql-keyword">LEFT JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id <span class="sql-keyword">AND</span> l.user_id <span class="sql-operator">=</span> <span class="sql-number">1</span>;
+</code></pre>
+<hr />
+<h2>The Practice Dataset</h2>
+<p>The advanced challenges run on an extended dataset: it adds songs, listens, and a <code>Recommendations</code> table on top of the canonical 4 users, 10 songs, and 9 listens. Load it by running <a href="assets/Module1B-Intermediate-SQL/sql-practice-dataset.sql" target="_blank"><code>sql-practice-dataset.sql</code></a> in the Colab after the base tables. The canonical rows are unchanged, so the four users stand and Pluto is still the only user with no listens.</p>
+<h3>Added Songs (song_id 11 to 18)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">song_id</th>
+<th style="text-align: left;">title</th>
+<th style="text-align: left;">artist</th>
+<th style="text-align: left;">genre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">11</td>
+<td style="text-align: left;">Anti-Hero</td>
+<td style="text-align: left;">Taylor Swift</td>
+<td style="text-align: left;">Pop</td>
+</tr>
+<tr>
+<td style="text-align: left;">12</td>
+<td style="text-align: left;">Cruel Summer</td>
+<td style="text-align: left;">Taylor Swift</td>
+<td style="text-align: left;">Pop</td>
+</tr>
+<tr>
+<td style="text-align: left;">13</td>
+<td style="text-align: left;">Perfect</td>
+<td style="text-align: left;">Ed Sheeran</td>
+<td style="text-align: left;">Rock</td>
+</tr>
+<tr>
+<td style="text-align: left;">14</td>
+<td style="text-align: left;">Castle on the Hill</td>
+<td style="text-align: left;">Ed Sheeran</td>
+<td style="text-align: left;">Rock</td>
+</tr>
+<tr>
+<td style="text-align: left;">15</td>
+<td style="text-align: left;">Let It Be</td>
+<td style="text-align: left;">Beatles</td>
+<td style="text-align: left;">Classic</td>
+</tr>
+<tr>
+<td style="text-align: left;">16</td>
+<td style="text-align: left;">Come Together</td>
+<td style="text-align: left;">Beatles</td>
+<td style="text-align: left;">Classic</td>
+</tr>
+<tr>
+<td style="text-align: left;">17</td>
+<td style="text-align: left;">Hello</td>
+<td style="text-align: left;">Adele</td>
+<td style="text-align: left;">Pop</td>
+</tr>
+<tr>
+<td style="text-align: left;">18</td>
+<td style="text-align: left;">Rolling in the Deep</td>
+<td style="text-align: left;">Adele</td>
+<td style="text-align: left;">Pop</td>
+</tr>
+</tbody>
+</table>
+<p>Genres stay consistent with the base data: Taylor Swift is Pop (Bad Blood, song 9, is her one Rock track), Ed Sheeran is Rock, the Beatles are Classic, and Adele joins as a second Pop artist. The added listens come from users 1 to 3, so Pluto keeps zero listens; run <code>qry_count_songs</code> in the Colab to see each song's totals.</p>
+<h3>Recommendations (a new table)</h3>
+<p><code>Recommendations(user_id, song_id)</code> records songs the system suggests to a user. Queries 5 to 8 in 1.2 read Mickey's rows:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">user_id</th>
+<th style="text-align: left;">song_id</th>
+<th style="text-align: left;">title</th>
+<th style="text-align: left;">genre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">3</td>
+<td style="text-align: left;">Shape of You</td>
+<td style="text-align: left;">Rock</td>
+</tr>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">9</td>
+<td style="text-align: left;">Bad Blood</td>
+<td style="text-align: left;">Rock</td>
+</tr>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">11</td>
+<td style="text-align: left;">Anti-Hero</td>
+<td style="text-align: left;">Pop</td>
+</tr>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">17</td>
+<td style="text-align: left;">Hello</td>
+<td style="text-align: left;">Pop</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Practice 2: Building Intuition with Window Functions</h2>
+<p><strong>Goal</strong>: Compare near-identical ranking queries and see why their outputs differ.</p>
+<h3>2.1: The Base Count (<code>qry_count_songs</code>)</h3>
+<p>Find the total listens for each song, grouped by genre, song ID, and title. This is your baseline for ranking queries.</p>
+<h3>2.2: Ranking by Genre (<code>qry_top_songs_genre</code>)</h3>
+<p>Identify the top-k ranked songs per genre based on listens (try k = 1, 2, and 3). </p>
+<ul>
+<li>How does competition shift when ranking within a genre versus the entire dataset?</li>
+</ul>
+<h3>2.3: Ranking by Artist (<code>qry_top_songs_artist</code>)</h3>
+<p>Identify the top-k ranked songs per artist based on listens.</p>
+<ul>
+<li>If an artist has multiple songs, which one leads?</li>
+</ul>
+<h3>2.4: Finding the Global Peak (<code>qry_max_listens</code>)</h3>
+<p>Find the song with the highest number of listens across the platform.</p>
+<h3>2.5: The Artist Champion (<code>qry_max_listens_artist</code>)</h3>
+<p>Identify the song with the most listens for each artist.</p>
+<ul>
+<li>This is a "Top-1 per Artist" query. Compare this to 2.3.</li>
+</ul>
+<h3>2.6: Multi-Dimensional Ranking (<code>qry_top_songs_genre_artist</code>)</h3>
+<p>Find the top-k ranked songs per (genre, artist) based on listens.</p>
+<ul>
+<li>Observe how the partitions shrink. What happens to the rank values?</li>
+</ul>
+<hr />
+<h2>Challenge: When Do These Match?</h2>
+<p>Run these two queries in the Colab and compare their row counts.</p>
+<pre><code class="language-sql">-- Query A: Rank 1 per Genre
+runSql('Query top_songs_genre', qry_top_songs_genre.format(k=1))
+
+-- Query B: Rank 1 per (Genre, Artist)
+runSql('Query top_songs_genre_artist', qry_top_songs_genre_artist.format(k=1))
+</code></pre>
+<p>Query A returns one song per genre (3 rows). Query B returns one per (genre, artist), so it returns more (5 rows): Pop has both Taylor Swift and Adele, and Rock has both Ed Sheeran and Taylor Swift, so each of those genres yields two rows.</p>
+<ul>
+<li>
+<p>The two queries agree only on a genre with a single artist. Classic (Beatles only) is the one genre where Query A and Query B return the same song.</p>
+</li>
+<li>
+<p>What would you change in the data to make Query A and Query B return identical rows for every genre?</p>
+</li>
+</ul>
+<hr />
+<div style="background: #FEF7E6; border: 1px solid #FEF7E6; border-radius: 12px; padding: 1.5rem; text-align: center;">
+<h4>Solutions</h4>
+<p>The full queries, answers, and dataset are in the Colab.</p>
+<p><a href="https://colab.research.google.com/drive/1ABFEJdOfeL9F-J-ZVzxZmqvEQTYa7D_c?usp=sharing" target="_blank" class="continue-button" style="display: inline-block;">Open Practice Solutions Colab</a></p>
+</div>

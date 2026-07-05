@@ -1,0 +1,50 @@
+<svg viewBox="0 0 820 484" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="cap-t cap-d">
+  <title id="cap-t">CAP: partition tolerance is a given, all three at once is impossible, so your one choice is the consistent side or the available side</title>
+  <desc id="cap-d">Three overlapping circles label Consistency, Availability, and Partition tolerance.
+  Partition tolerance is mandatory because real networks partition, so its circle is filled green,
+  a given. The center where all three meet is filled red: having all three at once is impossible.
+  That leaves one live choice, and its two options are colored so you can name them: the purple
+  region, CP, stays consistent and may reject requests during a partition; the blue region, AP,
+  stays available and may serve stale data. Color key: green is partition tolerance, the mandatory
+  given; red is the impossible all-three center; purple is the consistent choice, CP; blue is the
+  available choice, AP.</desc>
+
+  <text x="410" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The CAP theorem</text>
+  <text x="410" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Partition tolerance is a given. All three at once is impossible. So you choose: consistent or available.</text>
+
+  <!-- Step 1: the three properties -->
+  <g data-step="1">
+    <circle cx="410" cy="196" r="140" fill="none" stroke="#6B7280" stroke-width="1.5"/>
+    <circle cx="330" cy="322" r="140" fill="none" stroke="#6B7280" stroke-width="1.5"/>
+    <circle cx="490" cy="322" r="140" fill="none" stroke="#6B7280" stroke-width="1.5"/>
+    <text x="410" y="96" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">Consistency (C)</text>
+    <text x="205" y="404" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">Availability (A)</text>
+    <text x="622" y="404" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">Partition tolerance (P)</text>
+  </g>
+
+  <!-- Step 2: P is mandatory (green), all-three center is impossible (red) -->
+  <g data-step="2">
+    <circle cx="490" cy="322" r="140" fill="#16A34A" fill-opacity="0.12" stroke="#16A34A" stroke-width="2.5"/>
+    <text x="622" y="404" text-anchor="middle" font-size="17" font-weight="700" fill="#16A34A">Partition tolerance (P)</text>
+    <text x="640" y="286" text-anchor="middle" font-size="13" font-weight="700" fill="#16A34A">mandatory:</text>
+    <text x="640" y="303" text-anchor="middle" font-size="13" fill="#3F3F46">the network splits</text>
+    <rect x="358" y="270" width="104" height="34" rx="6" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="410" y="284" text-anchor="middle" font-size="13" font-weight="700" fill="#DC2626">all three</text>
+    <text x="410" y="299" text-anchor="middle" font-size="13" fill="#DC2626">impossible</text>
+  </g>
+
+  <!-- Step 3: the one choice, two colored options -->
+  <g data-step="3">
+    <rect x="438" y="196" width="150" height="46" rx="6" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="513" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#7C3AED">CP · consistent</text>
+    <text x="513" y="232" text-anchor="middle" font-size="13" fill="#3F3F46">may reject writes</text>
+    <rect x="335" y="360" width="150" height="46" rx="6" fill="#ECF1FE" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="410" y="378" text-anchor="middle" font-size="15" font-weight="700" fill="#2563EB">AP · available</text>
+    <text x="410" y="396" text-anchor="middle" font-size="13" fill="#3F3F46">may serve stale</text>
+  </g>
+
+  <text x="410" y="452" text-anchor="middle" font-size="13"><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = P, the given &#160;·&#160; </tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = all-three, impossible</tspan></text>
+  <text x="410" y="472" text-anchor="middle" font-size="13"><tspan fill="#7C3AED" font-weight="700">purple</tspan><tspan fill="#3F3F46"> = CP, the consistent choice &#160;·&#160; </tspan><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = AP, the available choice</tspan></text>
+</svg>

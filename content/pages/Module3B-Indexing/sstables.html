@@ -1,0 +1,60 @@
+<h1>SSTables: Sorted String Tables</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> An SSTable is an immutable file of key-value pairs sorted by key, written once and never modified. It's the building block for write-heavy stores like LSM trees.</p>
+<p><strong>Intuition.</strong> When Spotify needs to record 1 million listen events per second, writing each one to a sorted on-disk B+Tree is too slow, because every write triggers a rebalance. Instead, the system buffers writes in RAM until it has a chunk, then flushes a sorted immutable file to disk. That file is an SSTable.</p>
+</div>
+<hr />
+<h2>Anatomy of an SSTable</h2>
+<p><img src="assets/Module3B-Indexing/svgs/sstable-anatomy.svg" alt="SSTable structure. One file with three sections: the bloom filter (red, held in RAM) plus the index block and data blocks (green, on disk). Bottom: three SSTable files coexist on disk, with the user_100 key appearing as v1, v2, v3 across them in pastel purple. The newest wins on read." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> An SSTable is one immutable on-disk file with three sections read in order: a bloom filter held in RAM (red) that answers <em>"is key K here?"</em> in O(1) and skips a wasted disk read on a miss, a sparse index block that binary-searches to the right data block, and the sorted, compressed data blocks themselves. Many SSTables coexist on disk, so the same key can live in several files; a read takes the newest version, here <code>user<sub>100</sub></code>'s <code>v3</code> in <code>sstable_3.db</code> over <code>v1</code> and <code>v2</code>.</p>
+</div>
+<p>Each SSTable is a single file with three sections laid out in order. (Recall <a href="#/page/Module2-Systems/case-study-bloomfilters">Bloom filters from Module 2</a> for how they work and their false-positive behavior.)</p>
+<p><a id="multiple-coexist"></a></p>
+<p>Multiple SSTables coexist on disk. A background <strong>compaction</strong> process eventually merges older files together to throw away obsolete versions.</p>
+<hr />
+<h2>How Databases Use SSTables</h2>
+<p>Three operations show up in any system that uses SSTables:</p>
+<ul>
+<li>
+<p><strong>Flush.</strong> Convert an in-memory buffer of pending writes into a sorted, immutable file on disk. One sequential write per flush.</p>
+</li>
+<li>
+<p><strong>Read.</strong> Consult the bloom filter, binary-search the sparse index, and read the target data block. Three steps, mostly from cache.</p>
+</li>
+<li>
+<p><strong>Compact.</strong> K-way merge a set of older SSTables into one larger file, keeping the newest version of each key and dropping deleted entries.</p>
+</li>
+</ul>
+<p>Some databases use SSTables as a standalone storage format (notably older versions of HBase and many analytics stores). Others layer them into a larger structure, which is where LSM trees come in on the next page.</p>
+<hr />
+<h2>Algorithm</h2>
+<div class="algo">
+<p class="algo-head">Algorithm · SSTable: Flush, Read, Compact</p>
+<pre class="algo-code">
+<span class="sig">Flush(memtable):</span>                    <span class="cmt">// RAM buffer is full</span>
+    sorted = sort(memtable)         <span class="cmt">// sort by key</span>
+    write(bloom_filter)             <span class="cmt">// for quick "not exists"</span>
+    write(sparse_index)             <span class="cmt">// every Nth key → offset</span>
+    write(sorted_data)              <span class="cmt">// the actual key-values</span>
+    write(footer)                   <span class="cmt">// min_key, max_key, size</span>
+
+<span class="sig">Read(sstable, key):</span>
+    if not bloom_filter.contains(key):
+        return None                 <span class="cmt">// quick reject, no disk read</span>
+    offset = binary_search(index, key)
+    block  = read_block(offset)
+    return linear_search(block, key)
+
+<span class="sig">Compact(sstables):</span>
+    merged = k_way_merge(sstables)  <span class="cmt">// keep newest version per key</span>
+    return write_new_sstable(merged)
+</pre>
+</div>
+</div>
+<hr />
+<h2>Where SSTables Run in Production</h2>
+<p>The same file format powers Google's Bigtable and Spanner, Amazon DynamoDB, Apache Cassandra, and RocksDB. RocksDB is the storage engine underneath Kafka Streams, CockroachDB, TiKV, and many other systems. If you've used a modern key-value store, you've almost certainly written an SSTable.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/lsm-indexes">LSM Tree Indexes →</a></strong> How a cluster of SSTables behaves as a single log-structured index, and how reads and writes flow through it.</p>

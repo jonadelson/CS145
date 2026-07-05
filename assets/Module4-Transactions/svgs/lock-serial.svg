@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1478 514" role="img" aria-labelledby="lk-t lk-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="lk-t">Serial lock schedule T2 → T1 → T3 (completion 49 units)</title>
+  <desc id="lk-d">A lock schedule timeline with each transaction on its own row and time on the X-axis (Req and Get as up-arrows, read/write start and end as boxes). It runs T2 first (times 1 to 9), then T1 (10 to 24), then T3 (25 to 48), with no overlap, finishing at 49 time units, the serial baseline the interleaved schedules must beat.</desc>
+
+  <text x="110" y="40" font-size="17" font-weight="700" fill="#0E0E10">Serial lock schedule T2 → T1 → T3 (completion 49 units)</text>
+  <text x="88" y="396" text-anchor="end" font-size="15" font-weight="700" fill="#3F3F46">T1</text>
+  <text x="88" y="278" text-anchor="end" font-size="15" font-weight="700" fill="#3F3F46">T2</text>
+  <text x="88" y="160" text-anchor="end" font-size="15" font-weight="700" fill="#3F3F46">T3</text>
+  <line x1="110" y1="450" x2="1358" y2="450" stroke="#D4D7DC"/>
+  <text x="110" y="470" text-anchor="middle" font-size="13" fill="#6B7280">0</text>
+  <text x="135" y="470" text-anchor="middle" font-size="13" fill="#6B7280">1</text>
+  <text x="161" y="470" text-anchor="middle" font-size="13" fill="#6B7280">2</text>
+  <text x="186" y="470" text-anchor="middle" font-size="13" fill="#6B7280">3</text>
+  <text x="212" y="470" text-anchor="middle" font-size="13" fill="#6B7280">4</text>
+  <text x="237" y="470" text-anchor="middle" font-size="13" fill="#6B7280">5</text>
+  <text x="263" y="470" text-anchor="middle" font-size="13" fill="#6B7280">6</text>
+  <text x="288" y="470" text-anchor="middle" font-size="13" fill="#6B7280">7</text>
+  <text x="314" y="470" text-anchor="middle" font-size="13" fill="#6B7280">8</text>
+  <text x="339" y="470" text-anchor="middle" font-size="13" fill="#6B7280">9</text>
+  <text x="365" y="470" text-anchor="middle" font-size="13" fill="#6B7280">10</text>
+  <text x="390" y="470" text-anchor="middle" font-size="13" fill="#6B7280">11</text>
+  <text x="416" y="470" text-anchor="middle" font-size="13" fill="#6B7280">12</text>
+  <text x="441" y="470" text-anchor="middle" font-size="13" fill="#6B7280">13</text>
+  <text x="467" y="470" text-anchor="middle" font-size="13" fill="#6B7280">14</text>
+  <text x="492" y="470" text-anchor="middle" font-size="13" fill="#6B7280">15</text>
+  <text x="518" y="470" text-anchor="middle" font-size="13" fill="#6B7280">16</text>
+  <text x="543" y="470" text-anchor="middle" font-size="13" fill="#6B7280">17</text>
+  <text x="568" y="470" text-anchor="middle" font-size="13" fill="#6B7280">18</text>
+  <text x="594" y="470" text-anchor="middle" font-size="13" fill="#6B7280">19</text>
+  <text x="619" y="470" text-anchor="middle" font-size="13" fill="#6B7280">20</text>
+  <text x="645" y="470" text-anchor="middle" font-size="13" fill="#6B7280">21</text>
+  <text x="670" y="470" text-anchor="middle" font-size="13" fill="#6B7280">22</text>
+  <text x="696" y="470" text-anchor="middle" font-size="13" fill="#6B7280">23</text>
+  <text x="721" y="470" text-anchor="middle" font-size="13" fill="#6B7280">24</text>
+  <text x="747" y="470" text-anchor="middle" font-size="13" fill="#6B7280">25</text>
+  <text x="772" y="470" text-anchor="middle" font-size="13" fill="#6B7280">26</text>
+  <text x="798" y="470" text-anchor="middle" font-size="13" fill="#6B7280">27</text>
+  <text x="823" y="470" text-anchor="middle" font-size="13" fill="#6B7280">28</text>
+  <text x="849" y="470" text-anchor="middle" font-size="13" fill="#6B7280">29</text>
+  <text x="874" y="470" text-anchor="middle" font-size="13" fill="#6B7280">30</text>
+  <text x="900" y="470" text-anchor="middle" font-size="13" fill="#6B7280">31</text>
+  <text x="925" y="470" text-anchor="middle" font-size="13" fill="#6B7280">32</text>
+  <text x="950" y="470" text-anchor="middle" font-size="13" fill="#6B7280">33</text>
+  <text x="976" y="470" text-anchor="middle" font-size="13" fill="#6B7280">34</text>
+  <text x="1001" y="470" text-anchor="middle" font-size="13" fill="#6B7280">35</text>
+  <text x="1027" y="470" text-anchor="middle" font-size="13" fill="#6B7280">36</text>
+  <text x="1052" y="470" text-anchor="middle" font-size="13" fill="#6B7280">37</text>
+  <text x="1078" y="470" text-anchor="middle" font-size="13" fill="#6B7280">38</text>
+  <text x="1103" y="470" text-anchor="middle" font-size="13" fill="#6B7280">39</text>
+  <text x="1129" y="470" text-anchor="middle" font-size="13" fill="#6B7280">40</text>
+  <text x="1154" y="470" text-anchor="middle" font-size="13" fill="#6B7280">41</text>
+  <text x="1180" y="470" text-anchor="middle" font-size="13" fill="#6B7280">42</text>
+  <text x="1205" y="470" text-anchor="middle" font-size="13" fill="#6B7280">43</text>
+  <text x="1231" y="470" text-anchor="middle" font-size="13" fill="#6B7280">44</text>
+  <text x="1256" y="470" text-anchor="middle" font-size="13" fill="#6B7280">45</text>
+  <text x="1282" y="470" text-anchor="middle" font-size="13" fill="#6B7280">46</text>
+  <text x="1307" y="470" text-anchor="middle" font-size="13" fill="#6B7280">47</text>
+  <text x="1333" y="470" text-anchor="middle" font-size="13" fill="#6B7280">48</text>
+  <text x="1358" y="470" text-anchor="middle" font-size="13" fill="#6B7280">49</text>
+  <text x="734" y="492" text-anchor="middle" font-size="13" fill="#6B7280">Time Units</text>
+
+  <!-- ===== T2 runs first (times 1-9), revealed step by step ===== -->
+  <g data-step="1">
+    <line x1="135" y1="273" x2="135" y2="233" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="135,233 135,247 120,240" fill="#16A34A"/>
+    <text x="135" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Req(A)</text>
+    <text x="135" y="295" text-anchor="middle" font-size="13" fill="#6B7280">1</text>
+    </g>
+  <g data-step="2">
+    <line x1="161" y1="273" x2="161" y2="233" stroke="#DC2626" stroke-width="2.5"/>
+    <polygon points="161,233 161,247 146,240" fill="#DC2626"/>
+    <text x="161" y="205" text-anchor="middle" font-size="14" fill="#0E0E10">Get(A)</text>
+    <text x="161" y="295" text-anchor="middle" font-size="13" fill="#6B7280">2</text>
+    </g>
+  <g data-step="3">
+    <rect x="173" y="247" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="186" y="187" text-anchor="middle" font-size="14" fill="#0E0E10">Rs(A)</text>
+    <text x="186" y="295" text-anchor="middle" font-size="13" fill="#6B7280">3</text>
+    </g>
+  <g data-step="4">
+    <rect x="301" y="247" width="26" height="26" rx="3" fill="#ECF1FE" stroke="#2563EB"/>
+    <text x="314" y="223" text-anchor="middle" font-size="14" fill="#0E0E10">Re(A)</text>
+    <text x="314" y="295" text-anchor="middle" font-size="13" fill="#6B7280">8</text>
+    </g>
+  <g data-step="5">
+    <line x1="339" y1="273" x2="339" y2="233" stroke="#7C3AED" stroke-width="2.5"/>
+    <polygon points="339,233 339,247 354,240" fill="#7C3AED"/>
+    <text x="339" y="205" text-anchor="middle" font-size="14" fill="#0E0E10">Unl(A)</text>
+    <text x="339" y="295" text-anchor="middle" font-size="13" fill="#6B7280">9</text>
+    </g>
+
+  <!-- ===== then T1 (times 10-24) ===== -->
+  <g data-step="6">
+    <line x1="365" y1="391" x2="365" y2="351" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="365,351 365,365 350,358" fill="#16A34A"/>
+    <text x="365" y="341" text-anchor="middle" font-size="14" fill="#0E0E10">Req(A)</text>
+    <text x="365" y="413" text-anchor="middle" font-size="13" fill="#6B7280">10</text>
+    <line x1="390" y1="391" x2="390" y2="351" stroke="#DC2626" stroke-width="2.5"/>
+    <polygon points="390,351 390,365 375,358" fill="#DC2626"/>
+    <text x="390" y="323" text-anchor="middle" font-size="14" fill="#0E0E10">Get(A)</text>
+    <text x="390" y="413" text-anchor="middle" font-size="13" fill="#6B7280">11</text>
+    <rect x="403" y="365" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="416" y="305" text-anchor="middle" font-size="14" fill="#0E0E10">Rs(A)</text>
+    <text x="416" y="413" text-anchor="middle" font-size="13" fill="#6B7280">12</text>
+    <rect x="530" y="365" width="26" height="26" rx="3" fill="#ECF1FE" stroke="#2563EB"/>
+    <text x="543" y="341" text-anchor="middle" font-size="14" fill="#0E0E10">Re(A)</text>
+    <text x="543" y="413" text-anchor="middle" font-size="13" fill="#6B7280">17</text>
+    <rect x="555" y="365" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="568" y="323" text-anchor="middle" font-size="14" fill="#0E0E10">Ws(A)</text>
+    <text x="568" y="413" text-anchor="middle" font-size="13" fill="#6B7280">18</text>
+    <rect x="683" y="365" width="26" height="26" rx="3" fill="#FDEBE0" stroke="#EA580C"/>
+    <text x="696" y="341" text-anchor="middle" font-size="14" fill="#0E0E10">We(A)</text>
+    <text x="696" y="413" text-anchor="middle" font-size="13" fill="#6B7280">23</text>
+    <line x1="721" y1="391" x2="721" y2="351" stroke="#7C3AED" stroke-width="2.5"/>
+    <polygon points="721,351 721,365 736,358" fill="#7C3AED"/>
+    <text x="721" y="323" text-anchor="middle" font-size="14" fill="#0E0E10">Unl(A)</text>
+    <text x="721" y="413" text-anchor="middle" font-size="13" fill="#6B7280">24</text>
+    </g>
+
+  <!-- ===== then T3 (times 25-48) ===== -->
+  <g data-step="7">
+    <line x1="747" y1="155" x2="747" y2="115" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="747,115 747,129 732,122" fill="#16A34A"/>
+    <text x="747" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Req(B)</text>
+    <text x="747" y="177" text-anchor="middle" font-size="13" fill="#6B7280">25</text>
+    <line x1="772" y1="155" x2="772" y2="115" stroke="#DC2626" stroke-width="2.5"/>
+    <polygon points="772,115 772,129 757,122" fill="#DC2626"/>
+    <text x="772" y="87" text-anchor="middle" font-size="14" fill="#0E0E10">Get(B)</text>
+    <text x="772" y="177" text-anchor="middle" font-size="13" fill="#6B7280">26</text>
+    <rect x="785" y="129" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="798" y="69" text-anchor="middle" font-size="14" fill="#0E0E10">Rs(B)</text>
+    <text x="798" y="177" text-anchor="middle" font-size="13" fill="#6B7280">27</text>
+    <rect x="912" y="129" width="26" height="26" rx="3" fill="#ECF1FE" stroke="#2563EB"/>
+    <text x="925" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Re(B)</text>
+    <text x="925" y="177" text-anchor="middle" font-size="13" fill="#6B7280">32</text>
+    <rect x="937" y="129" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="950" y="87" text-anchor="middle" font-size="14" fill="#0E0E10">Ws(B)</text>
+    <text x="950" y="177" text-anchor="middle" font-size="13" fill="#6B7280">33</text>
+    <rect x="1065" y="129" width="26" height="26" rx="3" fill="#FDEBE0" stroke="#EA580C"/>
+    <text x="1078" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">We(B)</text>
+    <text x="1078" y="177" text-anchor="middle" font-size="13" fill="#6B7280">38</text>
+    <line x1="1103" y1="155" x2="1103" y2="115" stroke="#16A34A" stroke-width="2.5"/>
+    <polygon points="1103,115 1103,129 1088,122" fill="#16A34A"/>
+    <text x="1103" y="87" text-anchor="middle" font-size="14" fill="#0E0E10">Req(A)</text>
+    <text x="1103" y="177" text-anchor="middle" font-size="13" fill="#6B7280">39</text>
+    <line x1="1129" y1="155" x2="1129" y2="115" stroke="#DC2626" stroke-width="2.5"/>
+    <polygon points="1129,115 1129,129 1114,122" fill="#DC2626"/>
+    <text x="1129" y="69" text-anchor="middle" font-size="14" fill="#0E0E10">Get(A)</text>
+    <text x="1129" y="177" text-anchor="middle" font-size="13" fill="#6B7280">40</text>
+    <rect x="1141" y="129" width="26" height="26" rx="3" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <text x="1154" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">Ws(A)</text>
+    <text x="1154" y="177" text-anchor="middle" font-size="13" fill="#6B7280">41</text>
+    <rect x="1269" y="129" width="26" height="26" rx="3" fill="#FDEBE0" stroke="#EA580C"/>
+    <text x="1282" y="105" text-anchor="middle" font-size="14" fill="#0E0E10">We(A)</text>
+    <text x="1282" y="177" text-anchor="middle" font-size="13" fill="#6B7280">46</text>
+    <line x1="1307" y1="155" x2="1307" y2="115" stroke="#7C3AED" stroke-width="2.5"/>
+    <polygon points="1307,115 1307,129 1322,122" fill="#7C3AED"/>
+    <text x="1307" y="87" text-anchor="middle" font-size="14" fill="#0E0E10">Unl(B)</text>
+    <text x="1307" y="177" text-anchor="middle" font-size="13" fill="#6B7280">47</text>
+    <line x1="1333" y1="155" x2="1333" y2="115" stroke="#7C3AED" stroke-width="2.5"/>
+    <polygon points="1333,115 1333,129 1348,122" fill="#7C3AED"/>
+    <text x="1333" y="69" text-anchor="middle" font-size="14" fill="#0E0E10">Unl(A)</text>
+    <text x="1333" y="177" text-anchor="middle" font-size="13" fill="#6B7280">48</text>
+    </g>
+
+  <!-- ===== end: highlight the 49-unit serial baseline ===== -->
+  <g data-step="8">
+    <line x1="1358" y1="60" x2="1358" y2="450" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6,4"/>
+    <rect x="1305" y="225" width="150" height="54" rx="8" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <text x="1380" y="252" text-anchor="middle" font-size="18" font-weight="700" fill="#7C3AED">49 time units</text>
+    <text x="1380" y="270" text-anchor="middle" font-size="12" fill="#6B7280">serial baseline</text>
+    </g>
+</svg>

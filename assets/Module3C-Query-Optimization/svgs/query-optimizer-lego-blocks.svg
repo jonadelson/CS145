@@ -1,0 +1,63 @@
+<svg viewBox="0 0 1200 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="query-optimizer-lego-blocks-t query-optimizer-lego-blocks-d">
+  <title id="query-optimizer-lego-blocks-t">Algorithm 'lego blocks' the optimizer can mix and match into physical plans</title>
+  <desc id="query-optimizer-lego-blocks-d">Algorithm 'lego blocks' the optimizer can mix and match into physical plans. Four columns: Access Methods (sequential, index, bitmap scans), Partition / Sort (Hash Partition, BigSort), Aggregation (Hash Aggregate, Sort Aggregate), Join Algorithms (Hash Join, Sort-Merge Join, Block Nested Loop). This is a neutral catalog: the four families are equal peers, so no color coding is used.</desc>
+    <text x="600" y="30" text-anchor="middle" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#0E0E10">Algorithm Lego Blocks</text>
+    <text x="600" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">the optimizer combines these to build a physical plan</text>
+    <g data-step="1">
+    <text x="150" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">1. Access Methods</text>
+    <text x="150" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">how to fetch rows</text>
+    <rect x="50" y="120" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="150" y="142" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Sequential Scan</text>
+    <text x="150" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">read every page</text>
+    <text x="150" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">good for &gt; 10 % rows</text>
+    <rect x="50" y="190" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="150" y="212" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Index Scan</text>
+    <text x="150" y="230" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">B+Tree lookup</text>
+    <text x="150" y="244" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">good for &lt; 1 % rows</text>
+    <rect x="50" y="260" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="150" y="282" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Bitmap Scan</text>
+    <text x="150" y="300" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">combine multiple indexes</text>
+    <text x="150" y="314" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">good for 1 – 10 % rows</text>
+    </g>
+    <g data-step="2">
+    <text x="430" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">2. Partition / Sort</text>
+    <text x="430" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">break big into small</text>
+    <rect x="330" y="120" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="430" y="142" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Hash Partition</text>
+    <text x="430" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">split file by h(key) % B</text>
+    <text x="430" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">cost: 2N IO</text>
+    <rect x="330" y="190" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="430" y="212" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">BigSort</text>
+    <text x="430" y="230" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">external merge sort</text>
+    <text x="430" y="244" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">cost: 2N · (1 + ⌈log_B (N/2B)⌉)</text>
+    </g>
+    <g data-step="3">
+    <text x="710" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">3. Aggregation</text>
+    <text x="710" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">collapse to one row per group</text>
+    <rect x="610" y="120" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="710" y="142" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Hash Aggregate</text>
+    <text x="710" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">in-memory hash table</text>
+    <text x="710" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">no sort needed</text>
+    <rect x="610" y="190" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="710" y="212" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Sort Aggregate</text>
+    <text x="710" y="230" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">sort, then group adjacent rows</text>
+    <text x="710" y="244" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">good if input already sorted</text>
+    </g>
+    <g data-step="4">
+    <text x="990" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">4. Join Algorithms</text>
+    <text x="990" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">combine two tables</text>
+    <rect x="890" y="120" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="990" y="142" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Hash Join (HPJ)</text>
+    <text x="990" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">build hash, probe</text>
+    <text x="990" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">cost: 3 (N + M)</text>
+    <rect x="890" y="190" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="990" y="212" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Sort-Merge (SMJ)</text>
+    <text x="990" y="230" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">sort both, walk in lockstep</text>
+    <text x="990" y="244" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">cost: BigSort + N + M</text>
+    <rect x="890" y="260" width="200" height="62" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="990" y="282" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Block Nested Loop</text>
+    <text x="990" y="300" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#3F3F46">load R, scan S per block</text>
+    <text x="990" y="314" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">cost: P(R) + ⌈P(R)/B⌉·P(S)</text>
+    </g>
+    <text x="600" y="348" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#6B7280">A neutral catalog: four equal families the optimizer mixes and matches, so no color coding is used.</text>
+</svg>

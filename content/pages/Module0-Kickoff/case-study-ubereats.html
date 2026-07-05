@@ -1,0 +1,103 @@
+<h1>UberEats: Deconstructing a Big Service</h1>
+<p><em>UberEats: one database, three sides, and the disconnected edge.</em></p>
+<div class="v5-concept">
+<p><strong>Concept.</strong> UberEats keeps users, drivers, and restaurants in a single relational database so each order updates all three records atomically, while the same SQL engine, embedded, runs offline on the driver's phone.</p>
+<p><strong>Intuition.</strong> A burrito order has three sides, diner, driver, restaurant, and they all have to agree the moment it is placed. SQL's transactional guarantees are what stop two drivers from claiming the same order, on the server and on the phone in a tunnel.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study</span>
+<span>Reading Time: 6 mins</span></p>
+</div>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/uber-three-sides.svg" alt="UberEats keeps three client apps (Diner, Driver, Restaurant, volatile) feeding one relational database, the shared truth; placing an order is one atomic transaction that charges the diner, assigns one driver, and decrements inventory, so two drivers can never claim the same order." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One database, three sides. The diner, driver, and restaurant apps hold volatile state (red); the relational database (green) is the single shared truth. One order is a single atomic transaction, which is why two drivers can never claim the same order.</p>
+</div>
+<h2>One order, three sides</h2>
+<p>If you are building a three-sided marketplace like UberEats (diner, driver, restaurant), your primary constraint is state synchronization. A mobile client holds a volatile, in-memory state. Your phone cannot safely orchestrate a group order or dispatch a driver on its own. To do that, the application queries an out-of-process global state: the relational database.</p>
+<p>Placing an order is one <strong>transaction</strong>: charge the diner, assign exactly one driver, decrement the restaurant's inventory. All of it, or none of it. That all-or-nothing guarantee is what stops two drivers from claiming the same order, and what makes a sold-out salad disappear for thousands of browsing clients at once. If the JOIN that maps an order to an available driver is slow or wrong, the system physically degrades: drivers sit idle and food gets cold.</p>
+<h2>App state versus global state</h2>
+<p>The split is the same one you saw in the agent teardown, at a different scale. The client's in-memory state is short-lived and local, like a context window or a Pandas DataFrame: fast, bounded, gone when the process ends. The relational database is the long-lived global truth that every diner, driver, and restaurant reads and writes against at once.</p>
+<p>During a rainstorm, UberEats recalculates incentive pricing across an entire city. Distributed SQL engines execute those heavy aggregations over petabytes, then adjust operational thresholds instantly. Same language, laptop to cluster.</p>
+<h2>The disconnected edge</h2>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/uber-edge.svg" alt="The driver's phone runs an embedded SQLite database, staying transactional offline; on reconnect a green arrow pushes local changes to the cloud database, the shared source of truth, and a grey arrow reconciles back." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The disconnected edge. The driver's phone runs an embedded SQLite database, so it works offline and stays transactional even if the phone dies mid-write, then syncs to the cloud truth (green) on reconnect. Same SQL, from the cluster to the pocket.</p>
+</div>
+<p>There is one more place the database lives, and it is the smallest one: the driver's phone itself.</p>
+<p>A driver in a parking garage or a dead-zone freeway still needs to accept an order, mark a pickup, update a status. The app cannot stall waiting for a network round-trip. So the phone carries its own embedded SQL database: SQLite, the same engine that already ships on the phone in your pocket.</p>
+<ul>
+<li>
+<p><strong>Already on every phone.</strong> SQLite ships preinstalled on every Android device and every iPhone ever made, several billion devices in total. Nobody installs it; it is just there. It is the default embedded database the whole industry already builds on, which is why reaching for it on the edge is the obvious move, not an exotic one.</p>
+</li>
+<li>
+<p><strong>Serverless and embedded.</strong> No cluster to reach. The database sits inside the app, on the device.</p>
+</li>
+<li>
+<p><strong>Transactional offline.</strong> It obeys the same all-or-nothing rules even if the phone dies mid-write. A half-accepted order never exists.</p>
+</li>
+<li>
+<p><strong>Syncs on reconnect.</strong> When signal returns, the local changes reconcile against the cloud source of truth.</p>
+</li>
+</ul>
+<p>The lesson is the punchline of the whole kickoff: it is the <em>same SQL language and the same transactional guarantees</em> on a planet-scale server cluster and on a phone with no signal. You do not learn two systems. You learn one, and point it at different hardware.</p>
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>One database, one transaction.</strong> Three sides agree because placing an order is a single atomic transaction. Two drivers can never claim the same order.</p>
+</li>
+<li>
+<p><strong>The same primitive at every size.</strong> You have now seen it small (a Pandas DataFrame), as an agent's memory (one SQLite file), at planet scale (UberEats' shared relational database), and at the disconnected edge (SQLite on the driver's phone). One language, laptop to cluster to pocket.</p>
+</li>
+<li>
+<p><strong>The rest of the course builds it.</strong> You have seen <em>what</em> a database does at every scale. Modules 1 through 6 are how you build and operate one yourself.</p>
+</li>
+</ol>
+<hr />
+<h2>Going deeper</h2>
+<p>The same teardown, one level down: the history that explains the design, and the mechanics of the offline edge.</p>
+<h3>"But I read a blog, isn't SQL slow?"</h3>
+<p>This is a misconception born of the early-2000s "scale wall." In the 1990s and 2000s, SQL databases ran on a single massive server; when data exceeded one machine, scaling out was extremely hard. The industry temporarily pivoted to the <strong>NoSQL movement</strong>, sacrificing strict data safety and JOINs just to partition data across thousands of cheap machines.</p>
+<p>Google's infrastructure shows exactly why the split happened:</p>
+<ol>
+<li>
+<p><strong>Web Search and Gmail</strong> did not need strict transactional safety, just massive unstructured scale. Google abandoned relational constraints here, inventing MapReduce and BigTable, which fueled the wider NoSQL movement.</p>
+</li>
+<li>
+<p><strong>Ads data systems</strong>, the engine generating Google's revenue, had to be perfectly accurate. It stayed anchored to custom MySQL infrastructure, proving SQL's fit for financial data.</p>
+</li>
+</ol>
+<p>Modern distributed SQL closes the loop: 2020s engines deliver horizontal scale (NoSQL's original draw) without giving up safety or the declarative model. One tool on your laptop and on massive-scale compute. Module 6 revisits the SQL-versus-NoSQL question once you have the systems vocabulary to answer it.</p>
+<h3>Offline sync, concretely</h3>
+<p>The phone's schema mirrors the cloud with mobile tweaks. Lines starting with <code>--</code> are SQL comments:</p>
+<pre><code><span class="sql-comment">-- Orders the driver accepts and edits offline.</span>
+<span class="sql-keyword">CREATE</span> <span class="sql-keyword">TABLE</span> <span class="sql-table">Orders</span> (
+    id INTEGER PRIMARY KEY,    <span class="sql-comment">-- unique order id</span>
+    status TEXT,               <span class="sql-comment">-- 'accepted' | 'picked-up' | 'delivered'</span>
+    created_at TIMESTAMP,      <span class="sql-comment">-- when the order was accepted</span>
+    updated_at TIMESTAMP       <span class="sql-comment">-- when it last changed; used to decide what to sync</span>
+);
+</code></pre>
+<p>On reconnect, a Common Table Expression finds what changed inside the sync window and ships only those rows to the cloud:</p>
+<pre><code><span class="sql-keyword">WITH</span> RecentOrders <span class="sql-keyword">AS</span> (
+    <span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Orders</span>
+    <span class="sql-keyword">WHERE</span> updated_at &gt; datetime(<span class="sql-string">'now'</span>, <span class="sql-string">'-600 seconds'</span>)
+)
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> RecentOrders;
+</code></pre>
+<p>Because the edge speaks the same declarative language as the cloud, complex state logic extends to the isolated device without overhauling the core data architecture.</p>
+<h3>Optional reading: real-world data architecture decisions</h3>
+<ul>
+<li>
+<p><strong><a href="https://www.uber.com/blog/how-uber-serves-over-40-million-reads-per-second-using-an-integrated-cache/">How Uber Serves Over 40 Million Reads Per Second</a></strong>. Uber's journey from MySQL to BigQuery, Spanner, and PrestoSQL.</p>
+</li>
+<li>
+<p><strong><a href="https://engineering.atspotify.com/2024/05/data-platform-explained-part-ii">Spotify's Data Platform Explained</a></strong>. Spotify's MySQL and BigQuery infrastructure at billions of events daily.</p>
+</li>
+<li>
+<p><strong><a href="https://www.notion.com/blog/building-and-scaling-notions-data-lake">Building and Scaling Notion's Data Lake</a></strong>. Scaling PostgreSQL for a collaborative workspace.</p>
+</li>
+</ul>

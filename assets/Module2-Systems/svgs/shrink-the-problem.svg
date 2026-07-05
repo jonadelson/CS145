@@ -1,0 +1,56 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="stp-t stp-d">
+  <title id="stp-t">Two levers for a too-big problem: partition the lookup, or shrink each item</title>
+  <desc id="stp-d">One too-big problem; scanning all N per query is too slow and storing all N bytes too costly. Two composable levers. Lever 1, don't scan all N: partition the lookup so a query touches one slice. Exact, hash to one bucket (hashing). Approximate, bucket by similarity or prune what is definitely absent, then check only the candidates near the query (Bloom, LSH, IVF, HNSW). Lever 2, don't store all N bytes: shrink each item. Exact and lossless, drop the redundancy the data already has (RLE, dictionary, delta, bit-packing), which only works if the column has structure. Approximate and lossy, drop the precision but keep the rank order (PQ, TurboQuant), reframing with a random rotation so one coarse quantizer fits any data. Real systems compose both, for example IVF plus PQ, the vector database. Color key: orange is the lever and the approach, grey is the scaffolding.</desc>
+
+  <text x="600" y="38" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">Every structure here turns a big problem into a small one</text>
+  <text x="600" y="64" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">Too slow to scan all N, too costly to store all N. Two levers, used together.</text>
+
+  <!-- ===== Lever 1 ===== -->
+  <rect x="50" y="92" width="520" height="396" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="50" y="92" width="520" height="6" rx="3" fill="#EA580C"/>
+  <text x="310" y="124" text-anchor="middle" style="font-size:18px;font-weight:700;fill:#EA580C;">1 · Don't scan all N</text>
+  <text x="310" y="148" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">Partition the lookup, so a query touches one slice</text>
+
+  <rect x="74" y="170" width="472" height="138" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="92" y="194" style="font-size:13px;font-weight:700;fill:#6B7280;">EXACT</text>
+  <text x="92" y="220" style="font-size:16px;font-weight:700;fill:#0E0E10;">Hash to one bucket</text>
+  <text x="92" y="244" style="font-size:14px;fill:#3F3F46;">Partition by key; read one bucket, not N.</text>
+  <text x="92" y="268" style="font-size:14px;fill:#3F3F46;">Hashing</text>
+  <text x="92" y="292" style="font-size:13px;fill:#6B7280;font-style:italic;">Basic Hashing</text>
+
+  <rect x="74" y="322" width="472" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="92" y="346" style="font-size:13px;font-weight:700;fill:#6B7280;">APPROXIMATE</text>
+  <text x="92" y="372" style="font-size:16px;font-weight:700;fill:#0E0E10;">Bucket by similarity, or prune early</text>
+  <text x="92" y="396" style="font-size:14px;fill:#3F3F46;">Bucket similar items, or prune what is</text>
+  <text x="92" y="416" style="font-size:14px;fill:#3F3F46;">definitely absent; check only the candidates.</text>
+  <text x="92" y="440" style="font-size:14px;fill:#3F3F46;">Bloom · LSH · IVF · HNSW</text>
+  <text x="92" y="462" style="font-size:13px;fill:#6B7280;font-style:italic;">Bloom Filters · LSH &amp; Vector Hashing · CS 2.3</text>
+
+  <!-- ===== Lever 2 ===== -->
+  <rect x="630" y="92" width="520" height="396" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="630" y="92" width="520" height="6" rx="3" fill="#EA580C"/>
+  <text x="890" y="124" text-anchor="middle" style="font-size:18px;font-weight:700;fill:#EA580C;">2 · Don't store all N bytes</text>
+  <text x="890" y="148" text-anchor="middle" style="font-size:15px;fill:#3F3F46;">Shrink each item, so the index fits</text>
+
+  <rect x="654" y="170" width="472" height="138" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="672" y="194" style="font-size:13px;font-weight:700;fill:#6B7280;">EXACT · LOSSLESS</text>
+  <text x="672" y="220" style="font-size:16px;font-weight:700;fill:#0E0E10;">Drop the redundancy</text>
+  <text x="672" y="244" style="font-size:14px;fill:#3F3F46;">Exploit the structure the data already has.</text>
+  <text x="672" y="268" style="font-size:14px;fill:#3F3F46;">RLE · dictionary · delta · bit-pack</text>
+  <text x="672" y="292" style="font-size:13px;fill:#6B7280;font-style:italic;">Compression Basics · only if there is structure</text>
+
+  <rect x="654" y="322" width="472" height="150" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="672" y="346" style="font-size:13px;font-weight:700;fill:#6B7280;">APPROXIMATE · LOSSY</text>
+  <text x="672" y="372" style="font-size:16px;font-weight:700;fill:#0E0E10;">Drop the precision, keep the order</text>
+  <text x="672" y="396" style="font-size:14px;fill:#3F3F46;">Reframe with a random rotation so one</text>
+  <text x="672" y="416" style="font-size:14px;fill:#3F3F46;">coarse quantizer fits any data.</text>
+  <text x="672" y="440" style="font-size:14px;fill:#3F3F46;">PQ · TurboQuant</text>
+  <text x="672" y="462" style="font-size:13px;fill:#6B7280;font-style:italic;">Case Study 2.4</text>
+
+  <!-- compose connector -->
+  <rect x="360" y="506" width="480" height="44" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="360" y="544" width="480" height="6" rx="3" fill="#0E0E10"/>
+  <text x="600" y="533" text-anchor="middle" style="font-size:15px;font-weight:700;fill:#0E0E10;">Real systems compose both → IVF-PQ, the vector database</text>
+
+  <text x="600" y="586" text-anchor="middle" style="font-size:14px;"><tspan style="fill:#0E0E10;font-weight:700;">Color key&#160;&#160;</tspan><tspan style="fill:#EA580C;font-weight:700;">orange</tspan><tspan style="fill:#3F3F46;"> = the lever and the approach&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#6B7280;font-weight:700;">grey</tspan><tspan style="fill:#3F3F46;"> = the exact/approx tag and scaffolding</tspan></text>
+</svg>

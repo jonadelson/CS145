@@ -1,0 +1,72 @@
+<svg viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spotify-end-to-end-t spotify-end-to-end-d">
+  <title id="spotify-end-to-end-t">Spotify end-to-end architecture: one click triggers three systems</title>
+  <desc id="spotify-end-to-end-d">Spotify end-to-end architecture: one click triggers three systems. Act 1 OLTP (LSM tree write), Act 2 ETL (Spark hash partition, BigSort, broadcast join, columnar write), Act 3 OLAP (star schema query with broadcast and columnar scan). All three are persistent storage systems on disk. Color key: mint marks the durable on-disk storage system at each act; red marks the volatile RAM MemTable on the OLTP hot path before it persists to disk.</desc>
+    <defs>
+        <marker id="ar-spo" markerWidth="14" markerHeight="14" refX="12" refY="5" orient="auto"><polygon points="0 0, 14 5, 0 10" fill="#6B7280"/></marker>
+    </defs>
+    <text x="600" y="34" text-anchor="middle" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#0E0E10">Spotify: One Click, Three Systems</text>
+    <text x="600" y="58" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">OLTP → ETL → OLAP. Opposite optimizations at each stage.</text>
+    <g data-step="1">
+    <rect x="40" y="84" width="310" height="370" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="40" y="84" width="310" height="6" rx="10" fill="#6EE7B7"/>
+    <text x="195" y="116" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0E0E10">Act 1 · The Click</text>
+    <text x="195" y="134" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">OLTP · user taps play on "Anti-Hero"</text>
+    <rect x="58" y="150" width="274" height="178" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="58" y="150" width="274" height="6" rx="3" fill="#6EE7B7"/>
+    <text x="195" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">LSM Tree Write</text>
+    <text x="76" y="202" font-family="JetBrains Mono, monospace" font-size="14" fill="#DC2626" font-weight="700">1. MemTable (in RAM)</text>
+    <text x="76" y="224" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">2. Flush to SSTable (disk)</text>
+    <text x="76" y="246" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3. Background compaction</text>
+    <text x="195" y="280" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">no random disk I/O on hot path</text>
+    <text x="195" y="308" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">&lt; 8 ms · 100K writes/sec · 8.6B/day</text>
+    <text x="195" y="350" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#3F3F46">→ <a href="../Module3B-Indexing/lsm-indexes.html" style="fill:#3F3F46;">lsm-indexes</a></text>
+    <rect x="58" y="92" width="58" height="20" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="87" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#3F3F46">OLTP</text>
+    <text x="400" y="222" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">real-time</text>
+    <line x1="355" y1="240" x2="445" y2="240" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ar-spo)"/>
+    <text x="400" y="262" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">events queue</text>
+    </g>
+    <g data-step="2">
+    <rect x="450" y="84" width="310" height="370" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="450" y="84" width="310" height="6" rx="10" fill="#6EE7B7"/>
+    <text x="605" y="116" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0E0E10">Act 2 · The Transform</text>
+    <text x="605" y="134" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">ETL · nightly Spark batch</text>
+    <rect x="468" y="150" width="274" height="178" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="468" y="150" width="274" height="6" rx="3" fill="#6EE7B7"/>
+    <text x="605" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Spark Pipeline</text>
+    <text x="486" y="202" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">1. Hash partition by user_id</text>
+    <text x="486" y="224" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">2. BigSort by timestamp</text>
+    <text x="486" y="246" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3. Broadcast join dim tables</text>
+    <text x="486" y="268" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">4. Write columnar (Parquet)</text>
+    <text x="605" y="296" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">format conversion: row → columnar</text>
+    <text x="605" y="318" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">3 hr · 1000 nodes · 100 TB/day</text>
+    <text x="605" y="350" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#3F3F46">→ <a href="hash-partitioning.html" style="fill:#3F3F46;">hash-partitioning</a> · <a href="big-sort.html" style="fill:#3F3F46;">big-sort</a></text>
+    <rect x="468" y="92" width="54" height="20" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="495" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#3F3F46">ETL</text>
+    <text x="810" y="222" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">nightly</text>
+    <line x1="765" y1="240" x2="855" y2="240" stroke="#6B7280" stroke-width="2.5" marker-end="url(#ar-spo)"/>
+    <text x="810" y="262" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">batch load</text>
+    </g>
+    <g data-step="3">
+    <rect x="860" y="84" width="310" height="370" rx="10" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="860" y="84" width="310" height="6" rx="10" fill="#6EE7B7"/>
+    <text x="1015" y="116" text-anchor="middle" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0E0E10">Act 3 · The Dashboard</text>
+    <text x="1015" y="134" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">OLAP · CEO opens app</text>
+    <rect x="878" y="150" width="274" height="178" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="878" y="150" width="274" height="6" rx="3" fill="#6EE7B7"/>
+    <text x="1015" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#3F3F46">Star Schema Query</text>
+    <text x="896" y="202" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">1. Broadcast small dims</text>
+    <text x="896" y="224" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">2. Columnar scan fact</text>
+    <text x="896" y="246" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">3. Two-phase aggregation</text>
+    <text x="896" y="268" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">4. Final sort + LIMIT</text>
+    <text x="1015" y="296" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">scan only the columns the query needs</text>
+    <text x="1015" y="318" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0E0E10">2 sec · 3 of 20 cols · 1 PB warehouse</text>
+    <text x="1015" y="350" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#3F3F46">→ <a href="../Module3-nanoDB/storage-layout.html" style="fill:#3F3F46;">storage-layout</a> · <a href="distributed-query.html" style="fill:#3F3F46;">distributed-query</a></text>
+    <rect x="878" y="92" width="60" height="20" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="908" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#3F3F46">OLAP</text>
+    </g>
+    <line x1="40" y1="478" x2="1170" y2="478" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="600" y="503" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0E0E10">Opposite optimizations at opposite ends of the pipeline.</text>
+    <text x="600" y="522" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-style="italic" fill="#6B7280">Writes optimized for low latency. Scans optimized for compressed throughput. ETL bridges the two.</text>
+    <text x="600" y="546" text-anchor="middle" font-family="Inter, sans-serif" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#6EE7B7" font-weight="700">mint</tspan><tspan fill="#3F3F46"> = the durable on-disk storage system at each act&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the volatile RAM MemTable on the OLTP hot path before it persists</tspan></text>
+</svg>

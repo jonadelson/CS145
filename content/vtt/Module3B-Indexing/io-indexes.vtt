@@ -1,0 +1,217 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.488
+We have built four index structures, and each one wins on something different.
+
+00:00:04.488 --> 00:00:06.976
+So how do you pick?
+
+00:00:06.976 --> 00:00:09.464
+It comes down to three questions, in order.
+
+00:00:09.464 --> 00:00:11.951
+What is the workload?
+
+00:00:11.951 --> 00:00:14.439
+Is the data sorted?
+
+00:00:14.439 --> 00:00:16.927
+And what does it cost?
+
+00:00:16.927 --> 00:00:19.415
+Answer those and the right index falls out.
+
+00:00:19.415 --> 00:00:22.792
+Question one.
+
+00:00:22.792 --> 00:00:26.169
+Match the workload to the structure.
+
+00:00:26.169 --> 00:00:29.546
+This table is the whole decision.
+
+00:00:29.546 --> 00:00:32.922
+Hash index.
+
+00:00:32.922 --> 00:00:36.299
+Constant time on equality, no ranges.
+
+00:00:36.299 --> 00:00:39.676
+Primary keys and caches, Redis and Memcached.
+
+00:00:39.676 --> 00:00:43.053
+B-plus tree.
+
+00:00:43.053 --> 00:00:46.430
+Log N on any key, native ranges and sorted output.
+
+00:00:46.430 --> 00:00:49.807
+The general-purpose default, Postgres and MySQL.
+
+00:00:49.807 --> 00:00:53.184
+LSM tree, built on SS Tables.
+
+00:00:53.184 --> 00:00:56.560
+Append to RAM, sequential flush, background compaction.
+
+00:00:56.560 --> 00:00:59.937
+The write-heavy choice, Cassandra, DynamoDB, RocksDB.
+
+00:00:59.937 --> 00:01:03.314
+The SS Table itself is just the file format underneath, not a standalone choice.
+
+00:01:03.314 --> 00:01:06.691
+And for full text, an inverted index, a term dictionary plus postings lists.
+
+00:01:06.691 --> 00:01:10.318
+Question two.
+
+00:01:10.318 --> 00:01:13.945
+Does it matter if the data is already sorted by your key?
+
+00:01:13.945 --> 00:01:17.572
+Enormously.
+
+00:01:17.572 --> 00:01:21.199
+Picture two dictionaries, same content, one hundred seventy thousand words over one thousand pages.
+
+00:01:21.199 --> 00:01:24.826
+One sorted, one scrambled.
+
+00:01:24.826 --> 00:01:28.453
+The sorted one needs only one thousand index entries, the first word per page.
+
+00:01:28.453 --> 00:01:32.080
+Look up coffee in one reed, jump, scan.
+
+00:01:32.080 --> 00:01:35.707
+The scrambled one needs an entry per word, because words land randomly.
+
+00:01:35.707 --> 00:01:39.334
+A hundred seventy times more index for the same data.
+
+00:01:39.334 --> 00:01:42.961
+Sorting is what makes the index small.
+
+00:01:42.961 --> 00:01:47.663
+Apply that to a table and the term is clustering.
+
+00:01:47.663 --> 00:01:52.365
+A clustered index means the table is physically sorted by the key.
+
+00:01:52.365 --> 00:01:57.067
+The index is sparse, one entry per page, and a range scan becomes a sequential walk.
+
+00:01:57.067 --> 00:02:01.769
+Find the first page, walk forward.
+
+00:02:01.769 --> 00:02:06.471
+An unclustered index means the table sits in insert order.
+
+00:02:06.471 --> 00:02:11.173
+The index is dense, one entry per row, and a range scan pays one IO per matching row, jumping around the table.
+
+00:02:11.173 --> 00:02:15.875
+A table can be clustered on only one set of columns, because the physical order goes one way.
+
+00:02:15.875 --> 00:02:20.577
+Every other index on it is unclustered.
+
+00:02:20.577 --> 00:02:24.056
+Question three.
+
+00:02:24.056 --> 00:02:27.535
+Pull the structure and the clustering together and the IO cost falls out for every access pattern.
+
+00:02:27.535 --> 00:02:31.014
+Equality lookup.
+
+00:02:31.014 --> 00:02:34.493
+Hash and B-plus tree are both fast, one to four reeds, and clustering does not help, because the lookup hits one row anyway.
+
+00:02:34.493 --> 00:02:37.972
+Range scan or ORDER BY.
+
+00:02:37.972 --> 00:02:41.452
+The clustered B-plus tree wins.
+
+00:02:41.452 --> 00:02:44.931
+Find the first page, walk forward.
+
+00:02:44.931 --> 00:02:48.410
+The unclustered one pays a reed per row, and hash is unusable.
+
+00:02:48.410 --> 00:02:51.889
+Insert and update.
+
+00:02:51.889 --> 00:02:55.368
+LSM wins.
+
+00:02:55.368 --> 00:02:58.847
+Append to RAM.
+
+00:02:58.847 --> 00:03:02.326
+The B-plus tree pays for occasional rebalancing, the hash for a bucket update and a possible split.
+
+00:03:02.326 --> 00:03:06.324
+One trap to clear.
+
+00:03:06.324 --> 00:03:10.322
+That B-plus tree log N is log base fanout of N, and fanout is large.
+
+00:03:10.322 --> 00:03:14.320
+At fanout one thousand, a billion keys fit in three levels.
+
+00:03:14.320 --> 00:03:18.318
+At fanout sixty-five thousand, a trillion keys fit in three levels too.
+
+00:03:18.318 --> 00:03:22.316
+So log N collapses to a constant in practice, three to four reeds per lookup, whatever the table size.
+
+00:03:22.316 --> 00:03:26.315
+The real gap between hash and B-plus tree is small.
+
+00:03:26.315 --> 00:03:30.313
+One reed versus three.
+
+00:03:30.313 --> 00:03:34.311
+The useful difference is ranges.
+
+00:03:34.311 --> 00:03:38.309
+And LSM cost does not fit this chart at all.
+
+00:03:38.309 --> 00:03:42.307
+It is not a function of table size.
+
+00:03:42.307 --> 00:03:46.305
+It is the count of SS Tables you touch, bloom filters skipping the tiers that cannot hold the key.
+
+00:03:46.305 --> 00:03:49.533
+Three questions, in order.
+
+00:03:49.533 --> 00:03:52.760
+Workload picks the structure.
+
+00:03:52.760 --> 00:03:55.988
+Sorted-or-not picks clustered or unclustered.
+
+00:03:55.988 --> 00:03:59.215
+Combine them, the IO cost falls out.
+
+00:03:59.215 --> 00:04:02.443
+Two traps.
+
+00:04:02.443 --> 00:04:05.671
+Log N is shorthand, not a real difference.
+
+00:04:05.671 --> 00:04:08.898
+And LSM cost is about SS Table counts, not rows.
+
+00:04:08.898 --> 00:04:12.126
+Pick by the query pattern, not the asymptote.
+
+00:04:12.126 --> 00:04:15.353
+That closes the indexing tour.
+
+00:04:15.353 --> 00:04:18.581
+Next, the query optimizer, the piece that decides which index to use for any given query.

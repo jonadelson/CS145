@@ -1,0 +1,139 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.768
+Last page, we defined a correct interleaving.
+
+00:00:04.768 --> 00:00:07.536
+Conflict-serializability.
+
+00:00:07.536 --> 00:00:10.303
+Now, where does the database enforce it?
+
+00:00:10.303 --> 00:00:13.071
+You type BEGIN TRANSACTION.
+
+00:00:13.071 --> 00:00:15.839
+That one line runs down a stack four layers deep.
+
+00:00:15.839 --> 00:00:18.800
+Follow one COMMIT down the whole stack.
+
+00:00:18.800 --> 00:00:21.761
+At the top, your code.
+
+00:00:21.761 --> 00:00:24.722
+It runs the transaction and sees one clean operation.
+
+00:00:24.722 --> 00:00:27.683
+Below it, the database.
+
+00:00:27.683 --> 00:00:30.644
+Its lock manager takes an exclusive lock on the Likes row.
+
+00:00:30.644 --> 00:00:33.605
+It decides what to lock.
+
+00:00:33.605 --> 00:00:36.566
+Below that, the operating system.
+
+00:00:36.566 --> 00:00:39.527
+It grabs a mutex on the thread holding that lock.
+
+00:00:39.527 --> 00:00:42.488
+It decides how.
+
+00:00:42.488 --> 00:00:45.449
+At the bottom, the hardware.
+
+00:00:45.449 --> 00:00:48.410
+Every lock above reduces to one instruction here.
+
+00:00:48.410 --> 00:00:51.371
+What is it?
+
+00:00:51.371 --> 00:00:54.332
+Compare-and-swap.
+
+00:00:54.332 --> 00:00:57.293
+Read a memory location, check it has not changed, write a new value, all in one step that cannot be split.
+
+00:00:57.293 --> 00:01:00.254
+Then the guarantee climbs back up.
+
+00:01:00.254 --> 00:01:03.215
+Atomic at the bottom, isolated at the top.
+
+00:01:03.215 --> 00:01:07.819
+So why not just use the operating system's locks and stop there?
+
+00:01:07.819 --> 00:01:12.423
+Because they solve a smaller problem.
+
+00:01:12.423 --> 00:01:17.027
+An OS lock is one bit, locked or unlocked, guarding a memory address it knows nothing about.
+
+00:01:17.027 --> 00:01:21.632
+The database lock manager works in the language of your data.
+
+00:01:21.632 --> 00:01:26.236
+It locks a whole table, a page, or a single row.
+
+00:01:26.236 --> 00:01:30.840
+A transaction can announce intent, I plan to write these rows, queue around me.
+
+00:01:30.840 --> 00:01:35.444
+And it resolves deadlocks on its own, across millions of transactions.
+
+00:01:35.444 --> 00:01:38.910
+Now the component that hands out the locks.
+
+00:01:38.910 --> 00:01:42.375
+The lock manager.
+
+00:01:42.375 --> 00:01:45.841
+Every transaction comes here to lock the exact rows it touches, and it owes two goals.
+
+00:01:45.841 --> 00:01:49.306
+Correct, equal to some serial order.
+
+00:01:49.306 --> 00:01:52.772
+And fast, overlapping the idle waits.
+
+00:01:52.772 --> 00:01:56.237
+Watch three transactions ask at once.
+
+00:01:56.237 --> 00:01:59.703
+T1 and T2 both want a lock on Row A.
+
+00:01:59.703 --> 00:02:03.168
+T3 wants Row B.
+
+00:02:03.168 --> 00:02:06.634
+The manager records every request in its lock table, a live map of which row each lock sits on, who holds it, and who is queued behind.
+
+00:02:06.634 --> 00:02:10.100
+Read it straight off the picture.
+
+00:02:10.100 --> 00:02:13.565
+Row A is locked by T1, so T2 waits.
+
+00:02:13.565 --> 00:02:17.031
+Row B is free, so T3's lock is granted.
+
+00:02:17.031 --> 00:02:20.496
+That is the manager's first job.
+
+00:02:20.496 --> 00:02:23.962
+Grant the lock when the row is free, queue you behind the holder when it is taken.
+
+00:02:23.962 --> 00:02:27.427
+Two jobs wait ahead.
+
+00:02:27.427 --> 00:02:30.893
+Schedule many transactions fast, and break the deadlocks that locks make possible.
+
+00:02:30.893 --> 00:02:37.975
+So one clean transaction on top, four cooperating layers beneath, and a lock manager that grants the free rows and queues the rest.
+
+00:02:37.975 --> 00:02:45.057
+Next, we follow a single lock from request to release, on DB Locks Lifecycle.

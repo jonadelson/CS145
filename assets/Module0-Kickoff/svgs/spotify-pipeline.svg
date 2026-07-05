@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="pipe-t pipe-d" style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="pipe-t">Spotify: one play event from click to dashboard</title>
+  <desc id="pipe-d">One play event traced left to right across three panels. The blue panel is OLTP, the real-time write path that takes the click. The grey panel is the ELT batch hop: extract from OLTP, load raw rows into the warehouse, transform them in place. The green panel is OLAP, the analytics store that serves dashboards. Each panel lists the algorithms this course teaches. Color key: blue is OLTP the write path, grey is the ELT hop, green is OLAP analytics.</desc>
+  <defs><marker id="ah-pipe" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="600" y="40" font-size="24" font-weight="700" fill="#0E0E10" text-anchor="middle">Spotify: one play event, click to dashboard</text>
+  <text x="600" y="66" font-size="16" fill="#3F3F46" text-anchor="middle">OLTP writes it. ELT moves it. OLAP serves it. One SQL backbone, three roles.</text>
+
+  <!-- OLTP panel (blue region) -->
+  <rect x="50" y="100" width="360" height="440" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="50" y="100" width="360" height="6" rx="3" fill="#2563EB"/>
+  <text x="230" y="132" font-size="17" font-weight="700" fill="#2563EB" text-anchor="middle">OLTP: real-time writes</text>
+  <rect x="74" y="152" width="312" height="92" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="230" y="184" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">User app, then API</text>
+  <text x="230" y="208" font-size="14" fill="#3F3F46" text-anchor="middle">click "Anti-Hero",</text>
+  <text x="230" y="228" font-size="14" fill="#3F3F46" text-anchor="middle">100K requests / sec</text>
+  <rect x="74" y="260" width="312" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="230" y="292" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">LSM write path</text>
+  <text x="230" y="316" font-size="14" fill="#3F3F46" text-anchor="middle">MemTable, then flush to</text>
+  <text x="230" y="336" font-size="14" fill="#3F3F46" text-anchor="middle">SSTable L0, L1, L2;</text>
+  <text x="230" y="356" font-size="14" fill="#3F3F46" text-anchor="middle">background compaction</text>
+  <rect x="74" y="392" width="312" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="230" y="424" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">INSERT INTO listens</text>
+  <text x="230" y="448" font-size="14" fill="#3F3F46" text-anchor="middle">row store, under 10 ms,</text>
+  <text x="230" y="468" font-size="14" fill="#3F3F46" text-anchor="middle">write-optimized,</text>
+  <text x="230" y="488" font-size="14" fill="#3F3F46" text-anchor="middle">handles bursts</text>
+
+  <line x1="410" y1="320" x2="452" y2="320" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-pipe)"/>
+  <text x="431" y="308" font-size="14" fill="#6B7280" text-anchor="middle">real</text>
+  <text x="431" y="344" font-size="14" fill="#6B7280" text-anchor="middle">time</text>
+
+  <!-- ELT panel (grey, the hop) -->
+  <rect x="462" y="100" width="276" height="440" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="462" y="100" width="276" height="6" rx="3" fill="#D4D7DC"/>
+  <text x="600" y="132" font-size="17" font-weight="700" fill="#6B7280" text-anchor="middle">ELT: the batch hop</text>
+  <rect x="486" y="200" width="228" height="100" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="600" y="234" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">Extract + load</text>
+  <text x="600" y="258" font-size="14" fill="#3F3F46" text-anchor="middle">Spark bulk-loads raw</text>
+  <text x="600" y="278" font-size="14" fill="#3F3F46" text-anchor="middle">rows into the warehouse</text>
+  <rect x="486" y="332" width="228" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="600" y="366" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">Transform in place</text>
+  <text x="600" y="390" font-size="14" fill="#3F3F46" text-anchor="middle">aggregate at scale,</text>
+  <text x="600" y="410" font-size="14" fill="#3F3F46" text-anchor="middle">the algorithms this</text>
+  <text x="600" y="430" font-size="14" fill="#3F3F46" text-anchor="middle">course teaches</text>
+
+  <line x1="738" y1="320" x2="780" y2="320" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-pipe)"/>
+  <text x="759" y="308" font-size="14" fill="#6B7280" text-anchor="middle">batch</text>
+  <text x="759" y="344" font-size="14" fill="#6B7280" text-anchor="middle">load</text>
+
+  <!-- OLAP panel (green region) -->
+  <rect x="790" y="100" width="360" height="440" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="790" y="100" width="360" height="6" rx="3" fill="#059669"/>
+  <text x="970" y="132" font-size="17" font-weight="700" fill="#059669" text-anchor="middle">OLAP: analytics</text>
+  <rect x="814" y="152" width="312" height="92" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="970" y="184" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">Columnar store</text>
+  <text x="970" y="208" font-size="14" fill="#3F3F46" text-anchor="middle">star schema, compressed</text>
+  <text x="970" y="228" font-size="14" fill="#3F3F46" text-anchor="middle">fact partitions</text>
+  <rect x="814" y="260" width="312" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="970" y="292" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">Aggregation queries</text>
+  <text x="970" y="316" font-size="14" fill="#3F3F46" text-anchor="middle">scan only the columns</text>
+  <text x="970" y="336" font-size="14" fill="#3F3F46" text-anchor="middle">a query needs,</text>
+  <text x="970" y="356" font-size="14" fill="#3F3F46" text-anchor="middle">read-optimized</text>
+  <rect x="814" y="392" width="312" height="116" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="970" y="424" font-size="15" font-weight="700" fill="#0E0E10" text-anchor="middle">Dashboards</text>
+  <text x="970" y="448" font-size="14" fill="#3F3F46" text-anchor="middle">Tableau, Snowflake,</text>
+  <text x="970" y="468" font-size="14" fill="#3F3F46" text-anchor="middle">the warehouse every</text>
+  <text x="970" y="488" font-size="14" fill="#3F3F46" text-anchor="middle">analyst reads</text>
+
+  <text x="600" y="590" font-size="14" text-anchor="middle"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#2563EB" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = OLTP, the write path&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = ELT, the hop&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#059669" font-weight="700">green</tspan><tspan fill="#3F3F46"> = OLAP, analytics</tspan></text>
+</svg>

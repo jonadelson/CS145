@@ -1,0 +1,136 @@
+<h1>Spotify Database</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> The course runs on three tables: <code>Users</code>, <code>Songs</code>, and <code>Listens</code>. <code>Listens</code> links a user to a song with foreign keys, and records the rating and time.</p>
+<p><strong>Intuition.</strong> One <code>Listens</code> row reads as a sentence: user 1 (Mickey) played song 1 (Evermore) and rated it 4.5. <code>Users</code> and <code>Songs</code> hold the who and what; <code>Listens</code> records each play and joins them by key.</p>
+</div>
+<h2>The Three Tables</h2>
+<p><a id="schema-fig"></a></p>
+<p><img src="assets/Module1-SQL/svgs/spotify-schema.svg" alt="The Spotify schema: Users, Songs, and Listens shown together. Users has primary key user_id; Songs has primary key song_id; Listens has primary key listen_id and two foreign keys, user_id pointing at Users.user_id and song_id at Songs.song_id. Decoded: listen 1 means Mickey (user 1) played Evermore (song 1) and rated it 4.5." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The whole schema on one page. Each table has a primary key (blue PK): user_id, song_id, listen_id. Listens carries two foreign keys (blue FK) that point back at the other tables, so one Listens row reads as a sentence: listen 1 is Mickey (user 1) playing Evermore (song 1), rated 4.5. Every query in the course joins these three tables along those IDs.</p>
+</div>
+<h2>How the Schema Is Defined</h2>
+<p><a id="ddl-fig"></a></p>
+<p><img src="assets/Module1-SQL/svgs/spotify-ddl.svg" alt="The CREATE TABLE listens statement annotated: INT, DECIMAL(2,1) and TIMESTAMP are the column types; PRIMARY KEY marks listen_id as the unique row id and NOT NULL marks required columns; two FOREIGN KEY ... REFERENCES clauses tie user_id to a real Users row and song_id to a real Songs row, so the database rejects a listen that points at a user or song that does not exist." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Reading the DDL. <code>CREATE TABLE</code> names each column, gives it a type (<code>INT</code>, <code>DECIMAL(2,1)</code>, <code>TIMESTAMP</code>), and states its rules: <code>PRIMARY KEY</code> picks the unique id, <code>NOT NULL</code> marks a column required, and <code>FOREIGN KEY ... REFERENCES</code> ties <code>user_id</code> and <code>song_id</code> to real rows in Users and Songs so a listen can never reference a user or song that does not exist.</p>
+</div>
+<p>The figure walks Listens because it has every feature: a primary key, two foreign keys, typed columns, and required versus nullable fields. Here is the DDL for all three tables:</p>
+<h3>Users Table</h3>
+<pre><code><span class="sql-keyword">CREATE</span> <span class="sql-keyword">TABLE</span> <span class="sql-table">users</span> (
+  user_id    INT           PRIMARY KEY,     <span class="sql-comment">-- Unique ID for each user</span>
+  name       VARCHAR(<span class="sql-number">100</span>)  <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>,        <span class="sql-comment">-- User's name (required)</span>
+  email      VARCHAR(<span class="sql-number">255</span>)  UNIQUE <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>  <span class="sql-comment">-- Email (required, no duplicates)</span>
+);
+</code></pre>
+<h3>Songs Table</h3>
+<pre><code><span class="sql-keyword">CREATE</span> <span class="sql-keyword">TABLE</span> <span class="sql-table">songs</span> (
+  song_id    INT           PRIMARY KEY,     <span class="sql-comment">-- Unique ID for each song</span>
+  title      VARCHAR(<span class="sql-number">255</span>)  <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>,        <span class="sql-comment">-- Song title (required)</span>
+  artist     VARCHAR(<span class="sql-number">100</span>)  <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>,        <span class="sql-comment">-- Artist name (required)  </span>
+  genre      VARCHAR(<span class="sql-number">50</span>)                    <span class="sql-comment">-- Genre (optional - can be NULL)</span>
+);
+</code></pre>
+<h3>Listens Table</h3>
+<pre><code><span class="sql-keyword">CREATE</span> <span class="sql-keyword">TABLE</span> <span class="sql-table">listens</span> (
+  listen_id    INT          PRIMARY KEY,     <span class="sql-comment">-- Unique ID for each listen</span>
+  user_id      INT          <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>,        <span class="sql-comment">-- Which user (required)</span>
+  song_id      INT          <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>,        <span class="sql-comment">-- Which song (required)</span>
+  rating       DECIMAL(<span class="sql-number">2</span>,<span class="sql-number">1</span>),                 <span class="sql-comment">-- Rating 0.0-5.0 (optional)</span>
+  listen_time  TIMESTAMP,                    <span class="sql-comment">-- When played (optional)</span>
+
+  FOREIGN KEY (user_id) REFERENCES <span class="sql-table">users</span>(user_id),   <span class="sql-comment">-- Must be valid user</span>
+  FOREIGN KEY (song_id) REFERENCES <span class="sql-table">songs</span>(song_id)    <span class="sql-comment">-- Must be valid song</span>
+);
+</code></pre>
+<hr />
+<h2>SQL Schema Reference Guide</h2>
+<h3>Data Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>INT</code></td>
+<td>Whole numbers</td>
+<td>1, 42, 999</td>
+</tr>
+<tr>
+<td><code>VARCHAR(n)</code></td>
+<td>Text up to n characters</td>
+<td>'Taylor Swift' (max 100)</td>
+</tr>
+<tr>
+<td><code>DECIMAL(p,s)</code></td>
+<td>Decimal with p total digits, s after decimal</td>
+<td>4.5 (max 9.9)</td>
+</tr>
+<tr>
+<td><code>TIMESTAMP</code></td>
+<td>Date and time</td>
+<td>2024-08-30 14:35:00</td>
+</tr>
+<tr>
+<td><strong>Modern Types</strong></td>
+<td><strong>New &amp; Popular</strong></td>
+<td><strong>Used For</strong></td>
+</tr>
+<tr>
+<td><code>JSONB</code></td>
+<td>JSON documents (PostgreSQL)</td>
+<td>{"playlists": ["workout", "chill"]}</td>
+</tr>
+<tr>
+<td><code>BLOB</code></td>
+<td>Binary large objects</td>
+<td>Album cover images, audio files</td>
+</tr>
+<tr>
+<td><code>VECTOR(n)</code></td>
+<td>AI embeddings</td>
+<td>[0.1, -0.3, 0.8, ...] for song similarity</td>
+</tr>
+</tbody>
+</table>
+<h3>Constraints</h3>
+<table>
+<thead>
+<tr>
+<th>Constraint</th>
+<th>Purpose</th>
+<th>Example in Our Database</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PRIMARY KEY</code></td>
+<td>Unique identifier for each row. Can be multiple columns</td>
+<td>user_id, song_id, listen_id<br>Or composite: (student_id, class_id)</td>
+</tr>
+<tr>
+<td><code>UNIQUE</code></td>
+<td>No duplicates allowed</td>
+<td>email (no two users can share)</td>
+</tr>
+<tr>
+<td><code>NOT NULL</code></td>
+<td>Required - must have a value</td>
+<td>name, title, artist</td>
+</tr>
+<tr>
+<td><code>FOREIGN KEY</code></td>
+<td>References PRIMARY KEY in another table</td>
+<td>user_id → users, song_id → songs</td>
+</tr>
+<tr>
+<td><em>(no constraint)</em></td>
+<td>Optional - can be NULL</td>
+<td>genre, rating, listen_time</td>
+</tr>
+</tbody>
+</table>

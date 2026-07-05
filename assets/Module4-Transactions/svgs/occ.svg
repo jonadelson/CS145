@@ -1,0 +1,66 @@
+<svg viewBox="0 0 960 446" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="occ-t occ-d">
+  <title id="occ-t">Optimistic concurrency: run free, validate at commit, redo on a clash</title>
+  <desc id="occ-d">Two transactions run with no locks. Each has three phases: a read phase that computes on a
+  private copy, a validate phase at commit, and a write phase. T1 validates clean (nothing it read changed)
+  and commits, in green. T2 ran over the same window, but at validate a row it read had been written by T1,
+  so it fails validation (red), aborts, and restarts its read phase. Color key: violet is a running phase,
+  green is a clean validation and commit, red is a conflict and abort.</desc>
+
+  <defs><marker id="ah-occ" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="480" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Optimistic concurrency: run free, check at commit</text>
+  <text x="480" y="56" text-anchor="middle" font-size="14" fill="#6B7280">No locks while running. Validate at the end; a clash means redo the work, not wait.</text>
+
+  <!-- phase legend -->
+  <text x="64" y="88" font-size="14" font-weight="700" fill="#3F3F46" font-family="'JetBrains Mono', monospace">THREE PHASES:</text>
+  <text x="205" y="88" font-size="14" fill="#3F3F46" font-family="'JetBrains Mono', monospace">READ (private copy) &#8594; VALIDATE (at commit) &#8594; WRITE</text>
+
+  <!-- T1: commits -->
+  <g data-step="1">
+    <text x="64" y="123" font-size="14" font-weight="700" fill="#0E0E10">T1</text>
+    <rect x="92" y="104" width="320" height="36" rx="6" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="252" y="127" text-anchor="middle" font-size="14" fill="#3F3F46">READ &#183; compute on a private copy</text>
+  </g>
+  <g data-step="2">
+    <rect x="420" y="104" width="118" height="36" rx="6" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+    <text x="479" y="127" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">VALIDATE &#10003;</text>
+  </g>
+  <g data-step="3">
+    <rect x="546" y="104" width="86" height="36" rx="6" fill="#7C3AED"/>
+    <text x="589" y="127" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">WRITE</text>
+    <text x="648" y="127" font-size="14" font-weight="700" fill="#16A34A">&#8594; committed</text>
+  </g>
+
+  <!-- T2: aborts + retries -->
+  <g data-step="1">
+    <text x="64" y="201" font-size="14" font-weight="700" fill="#0E0E10">T2</text>
+    <rect x="92" y="182" width="356" height="36" rx="6" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="270" y="205" text-anchor="middle" font-size="14" fill="#3F3F46">READ &#183; compute on a private copy</text>
+  </g>
+  <g data-step="2">
+    <rect x="456" y="182" width="118" height="36" rx="6" fill="#FCEBEA" stroke="#DC2626" stroke-width="2"/>
+    <text x="515" y="205" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">VALIDATE &#10007;</text>
+    <text x="584" y="205" font-size="14" fill="#DC2626">a row T2 read was written by T1</text>
+  </g>
+  <g data-step="3">
+    <path d="M 515 220 L 515 232 L 270 232 L 270 238" fill="none" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-occ)"/>
+    <text x="528" y="235" font-size="13" font-weight="700" fill="#DC2626">abort</text>
+    <rect x="92" y="240" width="356" height="34" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-dasharray="5 4"/>
+    <text x="270" y="262" text-anchor="middle" font-size="14" fill="#6B7280">READ again (retry), then validate and commit</text>
+  </g>
+
+  <!-- the validation rule -->
+  <g data-step="2">
+    <rect x="92" y="306" width="776" height="58" rx="9" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5"/>
+    <rect x="92" y="306" width="6" height="58" rx="3" fill="#7C3AED"/>
+    <text x="116" y="330" font-size="14" font-weight="700" fill="#0E0E10">The validate check, run once at commit</text>
+    <text x="116" y="352" font-size="14" fill="#3F3F46">Did anything I read get written by a transaction that committed since I started?  No &#8594; commit.  Yes &#8594; abort &amp; retry.</text>
+  </g>
+
+  <text x="92" y="394" font-size="14" fill="#6B7280">Under two-phase locking, T2 would have <tspan font-weight="700" fill="#3F3F46">waited</tspan> for T1. Optimistic lets it <tspan font-weight="700" fill="#3F3F46">run</tspan>, and pays only on a real clash, so it wins when conflicts are rare.</text>
+
+  <!-- visible color key -->
+  <text x="92" y="424" font-size="14" fill="#6B7280">Color key  <tspan font-weight="700" fill="#7C3AED">violet</tspan> = a running phase &#183; <tspan font-weight="700" fill="#16A34A">green</tspan> = clean validation, commit &#183; <tspan font-weight="700" fill="#DC2626">red</tspan> = a conflict, abort.</text>
+</svg>

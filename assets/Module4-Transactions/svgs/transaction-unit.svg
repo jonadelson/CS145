@@ -1,0 +1,51 @@
+<svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="tu-t tu-d">
+  <title id="tu-t">One Buy click is one transaction: three steps, all or none</title>
+  <desc id="tu-d">Alice clicks Buy. That single click is one transaction wrapping three
+  steps: check the seat is open, charge the card, record the sale. The transaction is atomic,
+  so either all three commit together or none of them do, never a charge without a seat. This
+  runs about ten thousand times per second with every fan reaching for the same seats. Color
+  key: violet is the transaction and its commit, red is the all-or-nothing abort.</desc>
+  <defs><marker id="ah-tu" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">One Buy click is one transaction</text>
+  <text x="450" y="56" text-anchor="middle" font-size="14" fill="#6B7280">Three steps bundled into a single all-or-nothing unit of work.</text>
+
+  <!-- Alice -->
+  <rect x="28" y="150" width="120" height="56" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="88" y="174" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Alice</text>
+  <text x="88" y="193" text-anchor="middle" font-size="14" fill="#6B7280">clicks Buy</text>
+  <line x1="148" y1="178" x2="186" y2="178" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tu)"/>
+
+  <!-- Transaction box + 3 steps -->
+  <g data-step="1">
+  <rect x="190" y="96" width="380" height="164" rx="10" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+  <text x="380" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#7C3AED">One transaction</text>
+  <rect x="210" y="136" width="340" height="32" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="226" y="157" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#0E0E10">1.</tspan> check the seat is open</text>
+  <rect x="210" y="174" width="340" height="32" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="226" y="195" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#0E0E10">2.</tspan> charge the card</text>
+  <rect x="210" y="212" width="340" height="32" rx="5" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="226" y="233" font-size="14" fill="#3F3F46"><tspan font-weight="700" fill="#0E0E10">3.</tspan> record the sale</text>
+  </g>
+
+  <!-- All-or-none outcome -->
+  <g data-step="2">
+  <line x1="570" y1="178" x2="608" y2="178" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-tu)"/>
+  <rect x="612" y="120" width="260" height="52" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+  <text x="742" y="143" text-anchor="middle" font-size="14" font-weight="700" fill="#16A34A">Commit: all three happen</text>
+  <text x="742" y="161" text-anchor="middle" font-size="13" fill="#6B7280">seat booked, card charged, sale logged</text>
+  <rect x="612" y="184" width="260" height="52" rx="8" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+  <text x="742" y="207" text-anchor="middle" font-size="14" font-weight="700" fill="#DC2626">Abort: none happen</text>
+  <text x="742" y="225" text-anchor="middle" font-size="13" fill="#6B7280">never a charge without a seat</text>
+  </g>
+
+  <!-- Scale -->
+  <g data-step="3">
+  <text x="450" y="300" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED">× ~10,000 per second</text>
+  <text x="450" y="322" text-anchor="middle" font-size="14" fill="#6B7280">every fan reaching for the same seats at the same instant</text>
+  </g>
+
+  <text x="450" y="350" text-anchor="middle" font-size="13"><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the transaction &amp; its commit&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#DC2626" font-weight="700">red</tspan><tspan fill="#3F3F46"> = the all-or-nothing abort</tspan></text>
+</svg>

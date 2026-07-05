@@ -1,0 +1,161 @@
+<h1>SQL Sets and Set Operations</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Set operators combine two query results: <code>UNION</code> (in either), <code>INTERSECT</code> (in both), <code>EXCEPT</code> (in the first but not the second). <code>UNION</code> removes duplicates; <code>UNION ALL</code> keeps them.</p>
+<p><strong>Intuition.</strong> Stack the genres Mickey played onto the genres he was recommended. <code>UNION</code> merges them into one deduplicated set, <code>INTERSECT</code> keeps the genres in both, <code>EXCEPT</code> keeps the ones he played but was not recommended.</p>
+</div>
+<h2>Sets vs Multi-sets</h2>
+<div class="v5-callout v5-callout--info">
+<p style="margin: 0 0 1rem 0;"><strong>Key concept:</strong> SQL tables are multi-sets (bags).</p>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+<div>
+<h4 style="margin: 0 0 0.5rem 0;">Mathematical set</h4>
+<ul style="margin: 0.5rem 0;">
+<li>No duplicates allowed</li>
+<li>{1, 2, 3}: each element once</li>
+<li>Order doesn't matter</li>
+</ul>
+</div>
+<div>
+<h4 style="margin: 0 0 0.5rem 0;">SQL multi-set (bag)</h4>
+<ul style="margin: 0.5rem 0;">
+<li>Duplicates ARE allowed</li>
+<li>{1, 1, 2, 3, 3, 3}: elements can repeat</li>
+<li>Each duplicate counts separately</li>
+</ul>
+</div>
+</div>
+</div>
+<h2>SQL Set Operations Overview</h2>
+<div style="width: 100%; max-width: 1200px; margin: 2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/sets-ops.svg" style="width:100%;height:auto;display:block;" alt="The four set operations as row tables. Query A is Mickey and Minnie, Query B is Mickey and Daffy; Mickey (teal) is in both, Minnie (blue) only A, Daffy (violet) only B. UNION returns the three distinct users; UNION ALL keeps the duplicate Mickey (four rows); INTERSECT returns only Mickey; EXCEPT (A minus B) returns only Minnie."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Set A and Set B are two example user sets; the panels show what each operation returns.</p>
+</div>
+<hr />
+<h2>UNION: Combine and Remove Duplicates</h2>
+<p>Creates a true set from two queries. Duplicate rows appear only once.</p>
+<div class="side-by-side">
+<div><pre><code><span class="sql-comment">-- Artists from Pop songs</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> artist                <span class="sql-comment">-- Query A: Pop artists</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> 
+<span class="sql-keyword">WHERE</span> genre <span class="sql-operator">=</span> <span class="sql-string">'Pop'</span>
+
+<span class="sql-keyword">UNION</span>                                 <span class="sql-comment">-- UNION: Combines and removes duplicates</span>
+
+<span class="sql-comment">-- Artists from Rock songs</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> artist                <span class="sql-comment">-- Query B: Rock artists</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> 
+<span class="sql-keyword">WHERE</span> genre <span class="sql-operator">=</span> <span class="sql-string">'Rock'</span>                  <span class="sql-comment">-- Result: All artists from EITHER genre</span>
+</code></pre></div>
+</div>
+<p><strong>Result</strong>: Taylor Swift, Ed Sheeran (each artist appears once)</p>
+<hr />
+<h2>UNION ALL: Combine and Keep Duplicates</h2>
+<p>UNION ALL keeps every row, duplicates and all.</p>
+<div class="side-by-side">
+<div><pre><code><span class="sql-comment">-- All Pop listens</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id 
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">WHERE</span> genre <span class="sql-operator">=</span> <span class="sql-string">'Pop'</span>                   <span class="sql-comment">-- First result set</span>
+
+<span class="sql-keyword">UNION</span> <span class="sql-keyword">ALL</span>                             <span class="sql-comment">-- UNION ALL: Keeps ALL rows (duplicates too!)</span>
+
+<span class="sql-comment">-- All Classic listens</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id 
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">WHERE</span> genre <span class="sql-operator">=</span> <span class="sql-string">'Classic'</span>               <span class="sql-comment">-- If user listened to both, appears twice</span>
+</code></pre></div><div><table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Duplicates</th>
+<th>Use When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UNION</td>
+<td>Removed</td>
+<td>Want unique results</td>
+</tr>
+<tr>
+<td>UNION ALL</td>
+<td>Kept</td>
+<td>Need all rows for counting/aggregation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Performance</strong>: UNION ALL skips the dedup pass, so it avoids the sort UNION needs.</p></div>
+</div>
+<hr />
+<h2>INTERSECT: Find Common Rows</h2>
+<p>Returns only rows that appear in BOTH queries.</p>
+<div class="side-by-side">
+<div><pre><code><span class="sql-comment">-- Users who listened to Pop</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> user_id 
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">WHERE</span> genre <span class="sql-operator">=</span> <span class="sql-string">'Pop'</span>                   <span class="sql-comment">-- Query A: Pop listeners</span>
+
+INTERSECT                             <span class="sql-comment">-- INTERSECT: Only rows in BOTH results</span>
+
+<span class="sql-comment">-- Users who listened to Classic</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> user_id 
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span> l
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Songs</span> s <span class="sql-keyword">ON</span> l.song_id <span class="sql-operator">=</span> s.song_id
+<span class="sql-keyword">WHERE</span> genre <span class="sql-operator">=</span> <span class="sql-string">'Classic'</span>               <span class="sql-comment">-- Result: Users who like BOTH genres</span>
+</code></pre></div>
+</div>
+<p><strong>Result</strong>: Users 1, 2, and 3 (Mickey, Minnie, and Daffy all listened to both Pop and Classic).</p>
+<hr />
+<h2>EXCEPT: Find Difference</h2>
+<p>Returns rows from first query that are NOT in second query.</p>
+<div class="side-by-side">
+<div><pre><code><span class="sql-comment">-- All songs</span>
+<span class="sql-keyword">SELECT</span> song_id, title <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span>       <span class="sql-comment">-- Query A: All songs in database</span>
+
+EXCEPT                                 <span class="sql-comment">-- EXCEPT: A minus B (set difference)</span>
+
+<span class="sql-comment">-- Songs that have been listened to</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> s.song_id, s.title 
+<span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> s
+<span class="sql-keyword">JOIN</span> <span class="sql-table">Listens</span> l <span class="sql-keyword">ON</span> s.song_id <span class="sql-operator">=</span> l.song_id  <span class="sql-comment">-- Query B: Songs with listens</span>
+                                         <span class="sql-comment">-- Result: Songs NEVER listened to</span>
+</code></pre></div>
+</div>
+<p><strong>Result</strong>: Songs 3, 4, 5, 9, 10 (Shape of You, Photograph, Shivers, Bad Blood, DJ Mix). Never played.</p>
+<hr />
+<h2>Performance Tips</h2>
+<ol>
+<li>
+<p><strong>Index columns</strong> used in set operations for better performance</p>
+</li>
+<li>
+<p><strong>Rewrite as a JOIN where it fits</strong>: an INTERSECT can be rewritten as a JOIN, and EXCEPT as a LEFT JOIN ... WHERE IS NULL; on indexed keys the join is usually faster.</p>
+</li>
+</ol>
+<hr />
+<h2>Practice: Multi-set vs Set Behavior</h2>
+<pre><code><span class="sql-comment">-- This table has duplicates (multi-set)</span>
+<span class="sql-keyword">SELECT</span> genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span>;              <span class="sql-comment">-- Raw data: Duplicates preserved</span>
+<span class="sql-comment">-- Result: Pop, Pop, Rock, Rock, Rock, Classic, Classic, Classic, Rock, NULL</span>
+
+<span class="sql-comment">-- Remove duplicates to get a set</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-keyword">DISTINCT</span> genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span>;     <span class="sql-comment">-- DISTINCT: Each value once only</span>
+<span class="sql-comment">-- Result: Pop, Rock, Classic, NULL   -- NULL counts as a distinct value!</span>
+
+<span class="sql-comment">-- UNION removes duplicates (set operation)</span>
+<span class="sql-keyword">SELECT</span> genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> <span class="sql-keyword">WHERE</span> artist <span class="sql-operator">=</span> <span class="sql-string">'Taylor Swift'</span>
+<span class="sql-keyword">UNION</span>                                 <span class="sql-comment">-- Set operation: Removes duplicates</span>
+<span class="sql-keyword">SELECT</span> genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> <span class="sql-keyword">WHERE</span> artist <span class="sql-operator">=</span> <span class="sql-string">'Ed Sheeran'</span>;
+<span class="sql-comment">-- Result: Pop, Rock (no duplicates)</span>
+
+<span class="sql-comment">-- UNION ALL keeps duplicates (multi-set operation)  </span>
+<span class="sql-keyword">SELECT</span> genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> <span class="sql-keyword">WHERE</span> artist <span class="sql-operator">=</span> <span class="sql-string">'Taylor Swift'</span>
+<span class="sql-keyword">UNION</span> <span class="sql-keyword">ALL</span>                             <span class="sql-comment">-- Multi-set: Preserves ALL duplicates</span>
+<span class="sql-keyword">SELECT</span> genre <span class="sql-keyword">FROM</span> <span class="sql-table">Songs</span> <span class="sql-keyword">WHERE</span> artist <span class="sql-operator">=</span> <span class="sql-string">'Ed Sheeran'</span>;
+<span class="sql-comment">-- Result: Pop, Pop, Rock, Rock, Rock, Rock (all occurrences)</span>
+</code></pre>

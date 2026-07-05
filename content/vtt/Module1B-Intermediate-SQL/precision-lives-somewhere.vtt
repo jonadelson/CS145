@@ -1,0 +1,154 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.761
+Here is an English request.
+
+00:00:04.761 --> 00:00:07.523
+Find the users who don't listen to Taylor Swift.
+
+00:00:07.523 --> 00:00:10.284
+It sounds exact.
+
+00:00:10.284 --> 00:00:13.046
+It is not.
+
+00:00:13.046 --> 00:00:15.807
+Does it mean a user who never played a Taylor song?
+
+00:00:15.807 --> 00:00:18.568
+Then Mickey is out, because he played her, even though he plays the Beatles too.
+
+00:00:18.568 --> 00:00:21.330
+Or does it mean a user who plays anything besides Taylor?
+
+00:00:21.330 --> 00:00:24.091
+Then Mickey stays in.
+
+00:00:24.091 --> 00:00:26.852
+One query returns only Pluto.
+
+00:00:26.852 --> 00:00:29.614
+The other returns all four.
+
+00:00:29.614 --> 00:00:32.375
+And Pluto plays nothing at all, so should a user with no listens even count?
+
+00:00:32.375 --> 00:00:35.137
+The English does not say.
+
+00:00:35.137 --> 00:00:37.898
+Same sentence, different answers.
+
+00:00:37.898 --> 00:00:43.587
+The model cannot tell which one you meant, so it picks one, silently.
+
+00:00:43.587 --> 00:00:49.276
+The fix is to write the meaning down.
+
+00:00:49.276 --> 00:00:54.965
+That precise statement is the spec, and the only choice is where it lives: in the prompt, or in the SQL you write yourself.
+
+00:00:54.965 --> 00:01:00.654
+A vague prompt pins nothing, so the model is free to guess, and you cannot tell which guess you got.
+
+00:01:00.654 --> 00:01:03.368
+Picture the same request as two prompts.
+
+00:01:03.368 --> 00:01:06.082
+The vague one is a single line, so the model can write either query.
+
+00:01:06.082 --> 00:01:08.796
+The precise one numbers what the model must not guess.
+
+00:01:08.796 --> 00:01:11.510
+The engine.
+
+00:01:11.510 --> 00:01:14.225
+The tables, and exactly how they join.
+
+00:01:14.225 --> 00:01:16.939
+The definition.
+
+00:01:16.939 --> 00:01:19.653
+The edge cases.
+
+00:01:19.653 --> 00:01:22.367
+And a step by step trace.
+
+00:01:22.367 --> 00:01:25.081
+That definition line is the one only you can supply, because only you know what you meant.
+
+00:01:25.081 --> 00:01:28.991
+Every numbered line blocks a guess.
+
+00:01:28.991 --> 00:01:32.901
+Drop the join paths, and the model joins on the wrong column.
+
+00:01:32.901 --> 00:01:36.812
+Drop the edge case, and it quietly loses Pluto, the user with no listens at all.
+
+00:01:36.812 --> 00:01:40.722
+The prompt is not long for its own sake.
+
+00:01:40.722 --> 00:01:44.632
+Each line removes exactly one way for the model to be wrong.
+
+00:01:44.632 --> 00:01:47.854
+And two readings is the easy case.
+
+00:01:47.854 --> 00:01:51.076
+One phrase over two tables gave us two queries.
+
+00:01:51.076 --> 00:01:54.297
+A real question joins five tables and carries several independent forks.
+
+00:01:54.297 --> 00:01:57.519
+Which join.
+
+00:01:57.519 --> 00:02:00.741
+Whether a null counts.
+
+00:02:00.741 --> 00:02:03.963
+What to count.
+
+00:02:03.963 --> 00:02:07.184
+Each fork roughly doubles the possibilities, so eight queries all run, and only one is the query you actually meant.
+
+00:02:07.184 --> 00:02:10.406
+The spec is the single path through the tree to that one query.
+
+00:02:10.406 --> 00:02:13.877
+You resolve those forks in one of three ways.
+
+00:02:13.877 --> 00:02:17.349
+Push: write every answer into the prompt yourself.
+
+00:02:17.349 --> 00:02:20.820
+Pull: let the model interview you, one question per fork.
+
+00:02:20.820 --> 00:02:24.292
+Or just write the SQL, which is already precise, because every fork is a choice the query has to make.
+
+00:02:24.292 --> 00:02:27.763
+All three land on the same query.
+
+00:02:27.763 --> 00:02:31.234
+What you cannot do is leave a fork open.
+
+00:02:31.234 --> 00:02:34.706
+Something always picks it.
+
+00:02:34.706 --> 00:02:38.177
+Either you, or the model guessing alone.
+
+00:02:38.177 --> 00:02:41.915
+Pin the definition and you have chosen one query out of many.
+
+00:02:41.915 --> 00:02:45.654
+The spec names the right answer.
+
+00:02:45.654 --> 00:02:49.392
+But the model still has to write the SQL and land on a query that actually runs.
+
+00:02:49.392 --> 00:02:53.131
+That is the next step: execution.

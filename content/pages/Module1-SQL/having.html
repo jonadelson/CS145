@@ -1,0 +1,268 @@
+<h1>HAVING: Filtering Group Aggregates</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> <code>HAVING</code> filters whole groups after <code>GROUP BY</code>, testing aggregate results like <code>COUNT</code> or <code>AVG</code>. <code>WHERE</code> filters rows before grouping; <code>HAVING</code> filters groups after.</p>
+<p><strong>Intuition.</strong> "Users averaging above 4.0" cannot use <code>WHERE</code>, since no single row holds an average. Group the Listens by user, then <code>HAVING AVG(rating) &gt; 4.0</code> keeps the user groups that pass.</p>
+</div>
+<div style="width: 100%; max-width: 1200px; margin: 2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/having-filter.svg" style="width:100%;height:auto;display:block;" alt="HAVING filters groups: the query GROUP BY user_id HAVING AVG(rating) > 4.0 forms one row per user (Mickey COUNT 3 AVG 4.2, Minnie 4.4, Daffy 3.9), then HAVING tests each group&#39;s average; Mickey and Minnie pass, Daffy 3.9 is below 4.0 so the whole group drops. Output: Mickey, Minnie."&gt;</p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> HAVING is the gatekeeper on groups. Groups form with their aggregates, HAVING tests each one, and a group either passes whole or drops whole. Three groups enter, two survive.</p>
+</div>
+</div>
+<h2>Simple HAVING</h2>
+<p><a id="simple-having-query"></a></p>
+<pre><code><span class="sql-comment">-- Find users whose average rating exceeds 4.0</span>
+<span class="sql-keyword">SELECT</span>                         <span class="sql-comment">-- Last: Select columns to output</span>
+    user_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> listen_count,
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>                   <span class="sql-comment">-- First: Get rows</span>
+<span class="sql-keyword">GROUP BY</span> user_id               <span class="sql-comment">-- Next: Create groups</span>
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>       <span class="sql-comment">-- Then: Filter groups by aggregate condition</span>
+<span class="sql-keyword">ORDER BY</span> user_id               <span class="sql-comment">-- Last: Sort surviving groups</span>
+</code></pre>
+<div class="side-by-side cols-3">
+<div><p><strong>Step 1: GROUP BY</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>COUNT(*)</th><th>AVG(rating)</th><th class="annotation">Notes</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>3</td><td>(4.5+4.2+3.9)/3</td><td class="annotation">User 1's</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>3</td><td>(4.7+4.6+3.9)/3</td><td class="annotation">User 2's</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>3</td><td>(2.9+4.9+NULL)/2</td><td class="annotation">User 3's</td></tr>
+</tbody>
+</table></div><div><p><strong>Step 2: HAVING AVG() &gt; 4</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>AVG(rating)</th><th>AVG &gt; 4.0</th></tr>
+</thead>
+<tbody>
+<tr class="row-keep"><td class="color-bar blue"></td><td>1</td><td>4.2</td><td>4.2 &gt; 4.0</td></tr><tr class="row-keep"><td class="color-bar orange"></td><td>2</td><td>4.4</td><td>4.4 &gt; 4.0</td></tr><tr class="row-drop"><td class="color-bar purple"></td><td>3</td><td>3.9</td><td>3.9 &gt; 4.0</td></tr>
+</tbody>
+</table></div><div><p><strong>Output</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>listen_count</th><th>avg_rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>3</td><td>4.2</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>3</td><td>4.4</td></tr>
+</tbody>
+</table></div>
+</div>
+<ul>
+<li>
+<p>GROUP BY first, HAVING second</p>
+</li>
+<li>
+<p>FALSE = entire group gone</p>
+</li>
+<li>
+<p>No partial elimination</p>
+</li>
+</ul>
+<hr />
+<h2>HAVING with COUNT</h2>
+<pre><code><span class="sql-comment">-- Find songs played at least twice</span>
+<span class="sql-keyword">SELECT</span> 
+    song_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> play_count,
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> song_id               <span class="sql-comment">-- Group by each song</span>
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) &gt;<span class="sql-operator">=</span> <span class="sql-number">2</span>           <span class="sql-comment">-- Keep only groups with 2+ rows</span>
+<span class="sql-keyword">ORDER BY</span> song_id               <span class="sql-comment">-- Sort output</span>
+</code></pre>
+<p><a id="count-fig"></a></p>
+<p><img src="assets/Module1-SQL/svgs/having-count.svg" alt="HAVING COUNT(*) >= 2 on listens grouped by song_id: songs 1, 2 and 6 were played at least twice and stay; songs 7 and 8 were played once and drop. Output: songs 1, 2, 6." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"&gt;</p>
+<div class="paper-caption">
+<p><strong>Figure.</strong> Grouping listens by <code>song_id</code> and keeping only groups with <code>COUNT(*) &gt;= 2</code>. Songs 1, 2 and 6 were played at least twice; songs 7 and 8 were played once, so they drop.</p>
+</div>
+<p><strong>Key Points:</strong></p>
+<ul>
+<li>
+<p>Unpopular songs eliminated</p>
+</li>
+<li>
+<p>Threshold: 2+ plays</p>
+</li>
+<li>
+<p>NULLs counted in COUNT(*)</p>
+</li>
+</ul>
+<hr />
+<h2>HAVING with Multiple Conditions</h2>
+<pre><code><span class="sql-comment">-- Find active users (3+ listens) with high average ratings (&gt;4.0)</span>
+<span class="sql-keyword">SELECT</span> 
+    user_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> listen_count,
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating,
+    <span class="sql-keyword">MIN</span>(rating) <span class="sql-keyword">AS</span> min_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) &gt;<span class="sql-operator">=</span> <span class="sql-number">3</span>           <span class="sql-comment">-- One HAVING clause, two conditions joined by AND</span>
+   <span class="sql-keyword">AND</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>       <span class="sql-comment">-- Both must be true for group to survive</span>
+<span class="sql-keyword">ORDER BY</span> user_id
+</code></pre>
+<p><a id="multi-fig"></a></p>
+<p><img src="assets/Module1-SQL/svgs/having-multi.svg" alt="HAVING COUNT(*) >= 3 AND AVG(rating) &gt; 4.0: both conditions must hold. Mickey and Minnie pass both; Daffy has three listens but his 3.9 average fails the rating test, so his group drops. Output: Mickey, Minnie." style="width:100%; max-width:1180px; display:block; margin:1.5rem auto;"&gt;</p>
+<div class="paper-caption">
+<p><strong>Figure.</strong> Two HAVING conditions joined by <code>AND</code>: a group survives only if it passes both. Mickey and Minnie clear <code>COUNT(*) &gt;= 3</code> and <code>AVG(rating) &gt; 4.0</code>; Daffy has three listens but his 3.9 average fails the second test.</p>
+</div>
+<p><strong>Key Points:</strong></p>
+<ul>
+<li>Mix any aggregates</li>
+</ul>
+<hr />
+<h2>WHERE and HAVING</h2>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/having-pipeline.svg" style="width:100%;height:auto;display:block;" alt="WHERE filters rows, then HAVING filters groups. The query WHERE rating > 3.5 GROUP BY user_id HAVING COUNT(*) &gt;= 2 first strikes Daffy&#39;s 2.9 and NULL on the raw rows (9 to 7), groups the survivors into Mickey 3, Minnie 3, Daffy 1, then HAVING drops Daffy&#39;s one-row group. Output: Mickey, Minnie."&gt;</p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> WHERE and HAVING run at different times. WHERE strikes individual rows before grouping (Daffy&#39;s 2.9 and NULL go), the survivors form groups, then HAVING drops whole groups by aggregate (Daffy&#39;s single row fails COUNT(*) &gt;= 2). WHERE picks rows, HAVING picks groups.</p>
+</div>
+<p><a id="wh-query"></a></p>
+<pre><code><span class="sql-comment">-- Find users with 2+ ratings above 3.5</span>
+
+<span class="sql-keyword">SELECT</span> 
+    user_id,
+    <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> high_rating_count,
+    <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_high_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> rating &gt; <span class="sql-number">3.5</span>             <span class="sql-comment">-- 1st: WHERE filters individual rows</span>
+<span class="sql-keyword">GROUP BY</span> user_id               <span class="sql-comment">-- 2nd: GROUP BY forms groups from survivors</span>
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) &gt;<span class="sql-operator">=</span> <span class="sql-number">2</span>           <span class="sql-comment">-- 3rd: HAVING filters entire groups</span>
+<span class="sql-keyword">ORDER BY</span> user_id               <span class="sql-comment">-- 4th: ORDER BY sorts final results</span>
+</code></pre>
+<p><a id="wh-step1"></a></p>
+<p><strong>Step 1: WHERE rating &gt; 3.5</strong> · 9 rows → 7 rows (crossed-out rows fail the test; NULL is UNKNOWN, also removed)</p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>listen_id</th><th>user_id</th><th>rating</th><th>rating &gt; 3.5</th></tr>
+</thead>
+<tbody>
+<tr class="row-keep"><td class="color-bar blue"></td><td>1</td><td>1</td><td>4.5</td><td>4.5 &gt; 3.5</td></tr><tr class="row-keep"><td class="color-bar blue"></td><td>2</td><td>1</td><td>4.2</td><td>4.2 &gt; 3.5</td></tr><tr class="row-keep"><td class="color-bar blue"></td><td>3</td><td>1</td><td>3.9</td><td>3.9 &gt; 3.5</td></tr><tr class="row-keep"><td class="color-bar orange"></td><td>4</td><td>2</td><td>4.7</td><td>4.7 &gt; 3.5</td></tr><tr class="row-keep"><td class="color-bar orange"></td><td>5</td><td>2</td><td>4.6</td><td>4.6 &gt; 3.5</td></tr><tr class="row-keep"><td class="color-bar orange"></td><td>6</td><td>2</td><td>3.9</td><td>3.9 &gt; 3.5</td></tr><tr class="row-drop"><td class="color-bar purple"></td><td>7</td><td>3</td><td>2.9</td><td>2.9 &gt; 3.5</td></tr><tr class="row-keep"><td class="color-bar purple"></td><td>8</td><td>3</td><td>4.9</td><td>4.9 &gt; 3.5</td></tr><tr class="row-drop"><td class="color-bar purple"></td><td>9</td><td>3</td><td><span class="null-value">NULL</span></td><td>NULL → unknown</td></tr>
+</tbody>
+</table>
+<p><a id="wh-step2"></a></p>
+<p><strong>Step 2: GROUP BY on Filtered Data</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>Filtered Rows</th><th>COUNT(*)</th><th>AVG(rating)</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>1,2,3</td><td>3</td><td>4.2</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>4,5,6</td><td>3</td><td>4.4</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>8</td><td>1</td><td>4.9</td></tr>
+</tbody>
+</table>
+<p><a id="wh-step3"></a></p>
+<p><strong>Step 3: HAVING COUNT(*) &gt;= 2</strong> · 3 groups → 2 rows (HAVING crosses out groups that are too small)</p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>COUNT(*)</th><th>COUNT(*) &gt;= 2</th></tr>
+</thead>
+<tbody>
+<tr class="row-keep"><td class="color-bar blue"></td><td>1</td><td>3</td><td>3 &gt;= 2</td></tr><tr class="row-keep"><td class="color-bar orange"></td><td>2</td><td>3</td><td>3 &gt;= 2</td></tr><tr class="row-drop" data-cue="bucket-daffy"><td class="color-bar purple"></td><td>3</td><td>1</td><td>1 &gt;= 2</td></tr>
+</tbody>
+</table>
+<p><strong>Output</strong></p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>high_rating_count</th><th>avg_high_rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>3</td><td>4.2</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>3</td><td>4.4</td></tr>
+</tbody>
+</table>
+<hr />
+<h2>Key Rules</h2>
+<ol>
+<li>
+<p><strong>Execution Order</strong>: HAVING runs after GROUP BY.</p>
+</li>
+<li>
+<p><strong>Aggregate Conditions</strong>: Can use aggregate functions like AVG(), COUNT()</p>
+</li>
+<li>
+<p><strong>Group-Level Filter</strong>: Operates on entire groups, not individual rows</p>
+</li>
+<li>
+<p><strong>Requires GROUP BY</strong>: HAVING only makes sense with grouped data</p>
+</li>
+</ol>
+<h3>SQL Execution Pipeline</h3>
+<pre><code>Input:  FROM
+Logic:  WHERE → GROUP BY → HAVING
+        (no aggregates) → (form groups) → (aggregates exist!)
+Output: SELECT/ORDER BY
+</code></pre>
+<h2>Common Patterns</h2>
+<ul>
+<li>
+<p><strong>Aggregate Filters</strong>: <code>HAVING COUNT(*) &gt; 2</code> keeps groups with 3+ rows</p>
+</li>
+<li>
+<p><strong>Average Checks</strong>: <code>HAVING AVG(rating) &gt; 4.0</code> filters by group average</p>
+</li>
+<li>
+<p><strong>Multiple Conditions</strong>: <code>HAVING COUNT(*) &gt; 1 AND AVG(rating) &gt; 4.0</code></p>
+</li>
+<li>
+<p><strong>Column References</strong>: Can use GROUP BY columns or aggregates</p>
+</li>
+</ul>
+<h2>Common Mistakes</h2>
+<h3>HAVING on rows</h3>
+<pre><code><span class="sql-comment">-- WRONG: HAVING does not work on individual rows</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">HAVING</span> rating &gt; <span class="sql-number">4.0</span>
+
+<span class="sql-comment">-- CORRECT: Use WHERE to filter individual rows</span>
+<span class="sql-keyword">SELECT</span> <span class="sql-operator">*</span> <span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> rating &gt; <span class="sql-number">4.0</span>
+</code></pre>
+<p><strong>Problem:</strong> HAVING only works with grouped data</p>
+<h3>The HAVING Alias Problem</h3>
+<pre><code><span class="sql-comment">-- WRONG: Alias not yet created when HAVING runs</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_r
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> avg_r &gt; <span class="sql-number">4.0</span>
+
+<span class="sql-comment">-- CORRECT: Repeat the aggregate expression in HAVING</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_r
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>
+</code></pre>
+<p><strong>Problem:</strong> HAVING executes before SELECT creates aliases</p>
+<h3>Wrong Filter, Wrong Place</h3>
+<pre><code><span class="sql-comment">-- WRONG: HAVING can't access individual row values</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> rating &gt; <span class="sql-number">4.0</span>            <span class="sql-comment">-- Error: Which rating? Group has many!</span>
+
+<span class="sql-comment">-- CORRECT: WHERE for row conditions, HAVING for group conditions</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> rating &gt; <span class="sql-number">4.0</span>             <span class="sql-comment">-- Filter rows BEFORE grouping</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) &gt; <span class="sql-number">2</span>            <span class="sql-comment">-- Then filter groups by aggregate</span>
+</code></pre>
+<p><strong>Problem:</strong> HAVING should use aggregate functions or GROUP BY columns</p>
+<h3>NULL Aggregate Confusion</h3>
+<pre><code><span class="sql-comment">-- Surprising: AVG ignores NULL ratings</span>
+<span class="sql-keyword">SELECT</span> user_id, <span class="sql-keyword">AVG</span>(rating)
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>       <span class="sql-comment">-- AVG skips NULLs (may mislead!)</span>
+
+<span class="sql-comment">-- Explicit: Show total vs rated counts for clarity</span>
+<span class="sql-keyword">SELECT</span> user_id, 
+       <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> total,       <span class="sql-comment">-- Includes NULL rows</span>
+       <span class="sql-keyword">COUNT</span>(rating) <span class="sql-keyword">AS</span> rated,  <span class="sql-comment">-- Excludes NULL ratings</span>
+       <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">GROUP BY</span> user_id
+<span class="sql-keyword">HAVING</span> <span class="sql-keyword">COUNT</span>(rating) &gt; <span class="sql-number">0</span>       <span class="sql-comment">-- Ensure at least 1 non-NULL rating</span>
+   <span class="sql-keyword">AND</span> <span class="sql-keyword">AVG</span>(rating) &gt; <span class="sql-number">4.0</span>       <span class="sql-comment">-- Then check average</span>
+</code></pre>
+<p><strong>Problem:</strong> AVG ignores NULL, which affects HAVING conditions</p>

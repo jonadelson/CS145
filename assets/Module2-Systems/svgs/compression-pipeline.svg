@@ -1,0 +1,60 @@
+<svg viewBox="0 0 1200 420" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="cp-t cp-d">
+  <title id="cp-t">Stacking compression: 4 MB down to 50 KB</title>
+  <desc id="cp-d">One user_id column of 1 million values, 4 MB raw, sorted by user_id with about 25,000 active users, shrunk in three stacked steps, drawn as a descending staircase of orange boxes whose height tracks the size. RLE collapses the sorted runs to 200 KB. Dictionary shrinks each value because 25,000 ids need only a 2-byte code, not a 4-byte int, to 100 KB. zstd is a general-purpose codec that entropy-codes the leftover byte patterns, to 50 KB. The end result is 98.75 percent smaller. Color key: orange is the column shrinking, grey is the step applied.</desc>
+  <defs><marker id="ah-cp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="600" y="40" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">Stack the techniques and the column collapses</text>
+  <text x="600" y="66" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">1M user_id values, sorted by user_id, ~25K users. Box height tracks size, not to scale.</text>
+
+  <!-- baseline y = 340 -->
+  <!-- step 1: raw 4 MB -->
+  <g data-step="1">
+  <rect x="60" y="120" width="170" height="220" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="60" y="120" width="170" height="6" rx="3" fill="#EA580C"/>
+  <text x="145" y="150" text-anchor="middle" style="font-size:14px;fill:#6B7280;">Raw user_id</text>
+  <text x="145" y="240" text-anchor="middle" style="font-size:22px;font-weight:700;fill:#EA580C;">4 MB</text>
+  <text x="145" y="266" text-anchor="middle" style="font-size:13px;fill:#3F3F46;">1M × 4 bytes</text>
+  </g>
+
+  <!-- step 2: RLE -> 200 KB -->
+  <g data-step="2">
+  <line x1="234" y1="300" x2="296" y2="300" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-cp)"/>
+  <text x="265" y="288" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#6B7280;">RLE</text>
+  <rect x="300" y="200" width="160" height="140" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="300" y="200" width="160" height="6" rx="3" fill="#EA580C"/>
+  <text x="380" y="230" text-anchor="middle" style="font-size:14px;fill:#6B7280;">After RLE</text>
+  <text x="380" y="280" text-anchor="middle" style="font-size:20px;font-weight:700;fill:#EA580C;">200 KB</text>
+  <text x="380" y="304" text-anchor="middle" style="font-size:13px;fill:#3F3F46;">sorted → long runs</text>
+  </g>
+
+  <!-- step 3: dictionary -> 100 KB -->
+  <g data-step="3">
+  <line x1="464" y1="300" x2="526" y2="300" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-cp)"/>
+  <text x="495" y="288" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#6B7280;">dictionary</text>
+  <rect x="530" y="246" width="150" height="94" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="530" y="246" width="150" height="6" rx="3" fill="#EA580C"/>
+  <text x="605" y="274" text-anchor="middle" style="font-size:14px;fill:#6B7280;">After dict</text>
+  <text x="605" y="304" text-anchor="middle" style="font-size:18px;font-weight:700;fill:#EA580C;">100 KB</text>
+  <text x="605" y="326" text-anchor="middle" style="font-size:13px;fill:#3F3F46;">25K ids → 2-byte codes</text>
+  </g>
+
+  <!-- step 4: zstd -> 50 KB -->
+  <g data-step="4">
+  <line x1="684" y1="300" x2="746" y2="300" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-cp)"/>
+  <text x="715" y="288" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#6B7280;">zstd</text>
+  <rect x="750" y="278" width="140" height="62" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="750" y="278" width="140" height="6" rx="3" fill="#EA580C"/>
+  <text x="820" y="304" text-anchor="middle" style="font-size:14px;fill:#6B7280;">After zstd</text>
+  <text x="820" y="328" text-anchor="middle" style="font-size:17px;font-weight:700;fill:#EA580C;">50 KB</text>
+  </g>
+
+  <!-- step 5: result -->
+  <g data-step="5">
+  <rect x="930" y="240" width="220" height="100" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="930" y="334" width="220" height="6" rx="3" fill="#0E0E10"/>
+  <text x="1040" y="276" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">4 MB &#8594; 50 KB</text>
+  <text x="1040" y="312" text-anchor="middle" style="font-size:22px;font-weight:700;fill:#0E0E10;">98.75% smaller</text>
+  </g>
+
+  <text x="600" y="396" text-anchor="middle" style="font-size:14px;"><tspan style="fill:#0E0E10;font-weight:700;">Color key&#160;&#160;</tspan><tspan style="fill:#EA580C;font-weight:700;">orange</tspan><tspan style="fill:#3F3F46;"> = the column, shrinking&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#6B7280;font-weight:700;">grey</tspan><tspan style="fill:#3F3F46;"> = the step applied&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#0E0E10;font-weight:700;">ink</tspan><tspan style="fill:#3F3F46;"> = the result</tspan></text>
+</svg>

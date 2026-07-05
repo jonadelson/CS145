@@ -1,0 +1,154 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.805
+A transaction acts like a single move.
+
+00:00:04.805 --> 00:00:07.610
+We saw why we need that.
+
+00:00:07.610 --> 00:00:10.415
+Now the promise: four guarantees that spell ACID.
+
+00:00:10.415 --> 00:00:13.220
+Get all four, and a database holds real money.
+
+00:00:13.220 --> 00:00:16.025
+Drop one, and money goes missing.
+
+00:00:16.025 --> 00:00:20.429
+Take Alice's one purchase from last page, those three steps wrapped as a single transaction.
+
+00:00:20.429 --> 00:00:24.833
+It can end two ways.
+
+00:00:24.833 --> 00:00:29.237
+All three succeed, so the transaction commits and her seat is booked.
+
+00:00:29.237 --> 00:00:33.641
+Or the card declines, so the whole transaction rolls back.
+
+00:00:33.641 --> 00:00:38.045
+No seat held, no charge, as if she never clicked.
+
+00:00:38.045 --> 00:00:42.449
+That all-or-nothing is the first guarantee, and four of them protect this purchase, even when a million people click buy at once.
+
+00:00:42.449 --> 00:00:45.236
+Here are all four, one color each.
+
+00:00:45.236 --> 00:00:48.022
+Atomicity.
+
+00:00:48.022 --> 00:00:50.809
+The bundle cannot be split.
+
+00:00:50.809 --> 00:00:53.596
+Alice's card declines halfway, and the database pretends the whole attempt never happened.
+
+00:00:53.596 --> 00:00:56.383
+No ticket, no payment, no inventory touched.
+
+00:00:56.383 --> 00:00:59.169
+Consistency.
+
+00:00:59.169 --> 00:01:01.956
+The database always obeys its own rules.
+
+00:01:01.956 --> 00:01:04.743
+Bob's purchase moves the ticket count and the revenue together, as one unit.
+
+00:01:04.743 --> 00:01:07.530
+You never see one move without the other.
+
+00:01:07.530 --> 00:01:10.316
+Isolation.
+
+00:01:10.316 --> 00:01:13.103
+Concurrent transactions do not see each other's half-done work.
+
+00:01:13.103 --> 00:01:15.890
+Alice and Bob both grab the last ticket.
+
+00:01:15.890 --> 00:01:18.677
+Alice locks the row first.
+
+00:01:18.677 --> 00:01:21.463
+So what happens to Bob?
+
+00:01:21.463 --> 00:01:24.250
+Bob waits.
+
+00:01:24.250 --> 00:01:27.037
+No double sale.
+
+00:01:27.037 --> 00:01:29.824
+Durability.
+
+00:01:29.824 --> 00:01:32.610
+Once the database says committed, that answer is permanent.
+
+00:01:32.610 --> 00:01:35.397
+Bob sees his receipt, the server crashes a millisecond later, and after recovery his ticket is still there.
+
+00:01:35.397 --> 00:01:39.069
+Isolation deserves a closer look, with money.
+
+00:01:39.069 --> 00:01:42.740
+Month-end.
+
+00:01:42.740 --> 00:01:46.412
+Alice has two hundred dollars, Bob one hundred, three hundred in all.
+
+00:01:46.412 --> 00:01:50.084
+Two transactions fire at once: Alice transfers a hundred to Bob, and the bank adds six percent interest to every account.
+
+00:01:50.084 --> 00:01:53.756
+Without isolation, they interleave.
+
+00:01:53.756 --> 00:01:57.427
+The transfer credits Bob first, so Bob already shows two hundred.
+
+00:01:57.427 --> 00:02:01.099
+But Alice has not been debited yet, so she still shows two hundred.
+
+00:02:01.099 --> 00:02:04.771
+Now the interest job reads the balances.
+
+00:02:04.771 --> 00:02:08.442
+On which total does it pay?
+
+00:02:08.442 --> 00:02:12.114
+Four hundred dollars.
+
+00:02:12.114 --> 00:02:15.786
+Both read the same half-done state, the moving hundred counted in both accounts at once.
+
+00:02:15.786 --> 00:02:19.458
+So interest pays six percent on four hundred, not three.
+
+00:02:19.458 --> 00:02:23.129
+The books land at three hundred twenty four.
+
+00:02:23.129 --> 00:02:26.801
+Six dollars created from nothing.
+
+00:02:26.801 --> 00:02:30.473
+Now turn isolation on.
+
+00:02:30.473 --> 00:02:34.145
+The interest job waits on the transfer's lock until it commits.
+
+00:02:34.145 --> 00:02:37.816
+Then it reads the settled balances, a clean three hundred, and pays exactly eighteen dollars.
+
+00:02:37.816 --> 00:02:41.488
+The books land at three hundred eighteen, not a cent invented.
+
+00:02:41.488 --> 00:02:44.971
+ACID is the contract that turns stored bytes into a system you trust with money.
+
+00:02:44.971 --> 00:02:48.454
+Next, all four at once in a real payment.
+
+00:02:48.454 --> 00:02:51.937
+Stripe moves a trillion dollars a year.

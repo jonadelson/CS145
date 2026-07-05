@@ -1,0 +1,80 @@
+<svg viewBox="0 0 1180 736" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="vpp-t vpp-d">
+  <title id="vpp-t">One question, two prompts, two outcomes</title>
+  <desc id="vpp-d">The same English request shown as two prompts. Left, grey:
+  a vague one-line prompt; the model can write Query A (a LEFT JOIN that
+  returns all four users) or Query B (a NOT IN that returns only Pluto), and
+  you cannot tell which you will get. Right, blue: a precise prompt with five
+  numbered, indented sections, engine, schema with join paths, definitions,
+  edge cases, and show-your-work; its Definitions line fixes exactly Query B,
+  returning {Pluto}, which you can check. Color key: blue is the precise
+  prompt and the single query it fixes, grey is the vague prompt and its two
+  possible queries.</desc>
+  <defs><marker id="ah-vpp" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="590" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">One question, two prompts, two outcomes</text>
+  <text x="590" y="56" text-anchor="middle" font-size="16" fill="#3F3F46">What you leave out, the model guesses. The precise prompt picks the query for you.</text>
+
+  <!-- Left: vague prompt (grey) -->
+  <rect x="24" y="80" width="556" height="38" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="24" y="80" width="6" height="38" rx="3" fill="#9AA0AA"/>
+  <text x="302" y="105" text-anchor="middle" font-size="16" font-weight="700" fill="#6B7280">Vague prompt</text>
+
+  <rect x="24" y="124" width="556" height="396" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="302" y="314" text-anchor="middle" font-size="16" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">users who don't listen</text>
+  <text x="302" y="340" text-anchor="middle" font-size="16" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">to Taylor Swift</text>
+
+  <line x1="302" y1="524" x2="302" y2="556" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vpp)"/>
+
+  <rect x="24" y="560" width="556" height="128" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="24" y="560" width="6" height="128" rx="3" fill="#9AA0AA"/>
+  <text x="52" y="593" text-anchor="middle" font-size="20" font-weight="700" fill="#6B7280">&#10007;</text>
+  <text x="322" y="586" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Ambiguous: one or the other</text>
+  <text x="322" y="606" text-anchor="middle" font-size="14" fill="#6B7280">you can't tell which you'll get</text>
+  <rect x="48" y="620" width="508" height="28" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="64" y="639" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Query A &#183; LEFT JOIN  &#8594;  all 4 users</text>
+  <rect x="48" y="654" width="508" height="28" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="64" y="673" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Query B &#183; NOT IN  &#8594;  {Pluto}</text>
+
+  <!-- Right: precise prompt (blue) -->
+  <rect x="600" y="80" width="556" height="38" rx="8" fill="#FFFFFF" stroke="#60A5FA" stroke-width="1"/>
+  <rect x="600" y="80" width="6" height="38" rx="3" fill="#60A5FA"/>
+  <text x="878" y="105" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Precise prompt</text>
+
+  <rect x="600" y="124" width="556" height="396" rx="8" fill="#ECF1FE" stroke="#60A5FA" stroke-width="1"/>
+  <text x="624" y="146" font-size="14" font-weight="700" fill="#0E0E10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">1. [Engine] PostgreSQL</text>
+  <text x="624" y="170" font-size="14" font-weight="700" fill="#0E0E10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">2. [Schema]</text>
+  <text x="664" y="187" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Users(user_id, name, join_date)</text>
+  <text x="664" y="204" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Listens(listen_id, user_id, song_id, rating)</text>
+  <text x="664" y="221" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Songs(song_id, title, artist)</text>
+  <text x="664" y="238" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">joins: Listens.user_id &#8594; Users.user_id,</text>
+  <text x="664" y="255" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&#160;&#160;&#160;&#160;&#160;&#160;&#160;Listens.song_id &#8594; Songs.song_id</text>
+  <text x="624" y="280" font-size="14" font-weight="700" fill="#0E0E10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">3. [Definitions]</text>
+  <text x="664" y="297" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">"doesn't listen to Taylor Swift" = the user has</text>
+  <text x="664" y="314" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">zero Listens that join a Song with</text>
+  <text x="664" y="331" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">artist = 'Taylor Swift'. One Taylor listen</text>
+  <text x="664" y="348" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">excludes the user, even if they also</text>
+  <text x="664" y="365" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">listened to other artists.</text>
+  <text x="624" y="390" font-size="14" font-weight="700" fill="#0E0E10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">4. [Edge cases]</text>
+  <text x="664" y="407" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">a user with no Listens at all has zero</text>
+  <text x="664" y="424" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Taylor listens, so they still count and</text>
+  <text x="664" y="441" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">must appear.</text>
+  <text x="624" y="466" font-size="14" font-weight="700" fill="#0E0E10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">5. [Show your work]</text>
+  <text x="664" y="483" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">list the rows after each JOIN and which</text>
+  <text x="664" y="500" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">rows the filter drops.</text>
+
+  <line x1="878" y1="524" x2="878" y2="556" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vpp)"/>
+
+  <rect x="600" y="560" width="556" height="128" rx="8" fill="#FFFFFF" stroke="#60A5FA" stroke-width="1"/>
+  <rect x="600" y="560" width="6" height="128" rx="3" fill="#60A5FA"/>
+  <text x="628" y="593" text-anchor="middle" font-size="20" font-weight="700" fill="#60A5FA">&#10003;</text>
+  <text x="896" y="586" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Defined: exactly one query</text>
+  <text x="896" y="606" text-anchor="middle" font-size="14" fill="#6B7280">the [Definitions] line picks it</text>
+  <rect x="624" y="622" width="508" height="52" rx="6" fill="#FFFFFF" stroke="#60A5FA" stroke-width="2"/>
+  <text x="878" y="644" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Query B &#183; NOT IN</text>
+  <text x="878" y="663" text-anchor="middle" font-size="14" fill="#3F3F46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&#8594; {Pluto}, the defined answer</text>
+
+  <text x="590" y="716" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#60A5FA" font-weight="700">blue</tspan><tspan fill="#3F3F46"> = the precise prompt and the one query it fixes&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the vague prompt and its two possible queries</tspan></text>
+</svg>

@@ -1,0 +1,258 @@
+{
+  "module": "Module1B-Intermediate-SQL",
+  "title": "Intermediate SQL",
+  "cards": [
+    {
+      "id": "m1b-c01",
+      "front": "What is a CTE, and what is its basic syntax?",
+      "back": "A Common Table Expression: <code>WITH name AS (SELECT ...)</code> names an intermediate result so the rest of the query can reference it like a table — nested chaos becomes named, linear steps.",
+      "page": "Module1B-Intermediate-SQL/cte",
+      "tags": ["cte"]
+    },
+    {
+      "id": "m1b-c02",
+      "front": "Why do CTEs beat deeply nested subqueries for complex logic?",
+      "back": "They read linearly top to bottom like recipe steps, each step can be tested on its own, one CTE can be referenced multiple times, and CTEs uniquely support recursion for hierarchical data.",
+      "page": "Module1B-Intermediate-SQL/cte",
+      "tags": ["cte", "readability"]
+    },
+    {
+      "id": "m1b-c03",
+      "front": "Materialized vs inlined CTE — what's the difference and who decides?",
+      "back": "Materialized: computed once and reused. Inlined: folded into the outer query (possibly re-run), letting the optimizer push filters inside. The engine decides — Postgres 12+ often inlines by default; <code>WITH ... AS MATERIALIZED</code> forces compute-once.",
+      "page": "Module1B-Intermediate-SQL/cte",
+      "tags": ["cte", "performance"]
+    },
+    {
+      "id": "m1b-c04",
+      "front": "What do window functions do that GROUP BY cannot?",
+      "back": "They compute aggregates across a partition (<code>OVER (PARTITION BY ...)</code>) while returning one result per input row — all rows survive, gaining a derived column, instead of collapsing to one row per group.",
+      "page": "Module1B-Intermediate-SQL/window-functions",
+      "tags": ["window-functions"]
+    },
+    {
+      "id": "m1b-c05",
+      "front": "In a window function, what do PARTITION BY and ORDER BY each control?",
+      "back": "PARTITION BY defines the groups the calculation runs within (omit it for the whole table); ORDER BY sets the row sequence inside each partition, required for ranking and running totals.",
+      "page": "Module1B-Intermediate-SQL/window-functions",
+      "tags": ["window-functions", "syntax"]
+    },
+    {
+      "id": "m1b-c06",
+      "front": "ROW_NUMBER vs RANK vs DENSE_RANK on a tie — what does each produce?",
+      "back": "ROW_NUMBER: unique numbers, ties broken arbitrarily (1,2,3,4) — for dedup/pagination. RANK: ties share, then skip, leaving a gap (1,1,3,4) — for leaderboards. DENSE_RANK: ties share, no gap (1,1,2,3).",
+      "page": "Module1B-Intermediate-SQL/window-functions",
+      "tags": ["window-functions", "ranking"]
+    },
+    {
+      "id": "m1b-c07",
+      "front": "How do window functions handle NULLs?",
+      "back": "Aggregates like AVG skip NULL values (Daffy's NULL-rated row still shows his 3.9 average); NULLs group together in PARTITION BY and sort first or last in ORDER BY.",
+      "page": "Module1B-Intermediate-SQL/window-functions",
+      "tags": ["window-functions", "nulls"]
+    },
+    {
+      "id": "m1b-c08",
+      "front": "What is a debug table (hand-trace)?",
+      "back": "A correctness tool: walk the input rows through each clause in execution order (FROM, WHERE, GROUP BY, HAVING), crossing out what drops at each step. It exposes semantic errors that syntax-checking tools miss.",
+      "page": "Module1B-Intermediate-SQL/writing-debug-tables",
+      "tags": ["debug-tables", "verification"]
+    },
+    {
+      "id": "m1b-c09",
+      "front": "Why are debug tables the key tool for checking LLM-written SQL?",
+      "back": "LLM SQL is 95%+ syntactically accurate but only 16–82% semantically accurate (BIRD). Drawing one debug table (~5 min) catches the logic bug on the first pass, versus a ~30-minute reprompting loop.",
+      "page": "Module1B-Intermediate-SQL/writing-debug-tables",
+      "tags": ["debug-tables", "llm"]
+    },
+    {
+      "id": "m1b-c10",
+      "front": "Do you trace every row when hand-tracing a big table?",
+      "back": "No — trace the rows that matter and approximate the rest ('Rock: ~500, Pop: ~300', 'AVG ≈ 4.2'). Use clear conventions an interviewer or grader can follow for partial credit.",
+      "page": "Module1B-Intermediate-SQL/writing-debug-tables",
+      "tags": ["debug-tables", "interviews"]
+    },
+    {
+      "id": "m1b-c11",
+      "front": "Query equivalence vs output equivalence?",
+      "back": "Equivalent: same result for ANY input data — a guarantee you prove by reasoning. Output-equivalent: they happen to agree on the data at hand — a coincidence that can break when tomorrow's row arrives.",
+      "page": "Module1B-Intermediate-SQL/sql-query-equivalence",
+      "tags": ["equivalence"]
+    },
+    {
+      "id": "m1b-c12",
+      "front": "Give an example of two look-alike 'top 3 per user' queries that split on a specific input.",
+      "back": "ROW_NUMBER-based top-3 vs counting-how-many-rate-higher: they match on distinct ratings, but a tie at the cutoff splits them — ROW_NUMBER drops the fourth song, the counting version keeps it.",
+      "page": "Module1B-Intermediate-SQL/sql-query-equivalence",
+      "tags": ["equivalence", "window-functions"]
+    },
+    {
+      "id": "m1b-c13",
+      "front": "Why is NOT EXISTS NULL-safe when NOT IN is not?",
+      "back": "NOT IN asks 'different from every value in the list?' — a NULL makes that unanswerable, collapsing the result to zero rows. NOT EXISTS asks a plain existence question a NULL cannot poison.",
+      "page": "Module1B-Intermediate-SQL/sql-query-equivalence",
+      "tags": ["nulls", "subqueries"]
+    },
+    {
+      "id": "m1b-c14",
+      "front": "What is the syntax-vs-semantics gap in LLM-generated SQL?",
+      "back": "On BIRD, syntax accuracy is 95%+ but semantic accuracy is 16–77%: the query runs, but running says nothing about whether it answered your question. Runs ≠ correct.",
+      "page": "Module1B-Intermediate-SQL/llm-debug",
+      "tags": ["llm", "semantics"]
+    },
+    {
+      "id": "m1b-c15",
+      "front": "One-shot vs multi-shot LLM SQL generation?",
+      "back": "One-shot: the model writes once, blind (~16% on BIRD). Multi-shot: it runs the query, reads the error or rows, and rewrites in a loop (~77%). Same model — the executable feedback loop, unavailable to English, provides the lift.",
+      "page": "Module1B-Intermediate-SQL/llm-debug",
+      "tags": ["llm", "multi-shot"]
+    },
+    {
+      "id": "m1b-c16",
+      "front": "What are the three steps you wrap around an LLM that generates SQL?",
+      "back": "Precision (pin the spec, catching the wrong reading), Execution (run on real data, catching crashes and empty results), Verification (test the result, catching subtle errors and drift). The model generates; the three steps are yours, all in SQL.",
+      "page": "Module1B-Intermediate-SQL/llm-debug",
+      "tags": ["llm", "workflow"]
+    },
+    {
+      "id": "m1b-c17",
+      "front": "What happens to an ambiguous request like 'users who don't listen to Taylor Swift' when you send it to an LLM as-is?",
+      "back": "It has multiple reasonable readings returning different users (just Pluto vs all four). The model silently commits to one reading and never says which — the vague prompt hands every fork to the model.",
+      "page": "Module1B-Intermediate-SQL/precision-lives-somewhere",
+      "tags": ["precision", "llm"]
+    },
+    {
+      "id": "m1b-c18",
+      "front": "What belongs in a precise text-to-SQL prompt?",
+      "back": "[Engine] the SQL dialect; [Schema] exact tables, columns, and join paths; [Definitions] the actual ask; [Edge cases] e.g. the no-listen user; [Show your work] a step-by-step trace to check against. Each line blocks a guess.",
+      "page": "Module1B-Intermediate-SQL/precision-lives-somewhere",
+      "tags": ["precision", "prompting"]
+    },
+    {
+      "id": "m1b-c19",
+      "front": "What are the three routes to resolving the ambiguity forks in a data question?",
+      "back": "Push: write every fork into an English spec. Pull: let the model interview you, one clarifying question per fork. Write SQL: skip the prose — every fork is already a syntactic choice, so the query is precise by construction. k binary forks left open = at least 2^k possible queries.",
+      "page": "Module1B-Intermediate-SQL/precision-lives-somewhere",
+      "tags": ["precision", "ambiguity"]
+    },
+    {
+      "id": "m1b-c20",
+      "front": "What is an execution environment for an LLM writing SQL?",
+      "back": "A real database the model reaches through a tool like MCP or a CLI, enabling the write-run-read-error-correct loop. It turns a blind one-shot guess into multi-shot iteration.",
+      "page": "Module1B-Intermediate-SQL/execution-environment",
+      "tags": ["execution", "mcp"]
+    },
+    {
+      "id": "m1b-c21",
+      "front": "What does the execution loop catch for free, and what can it never catch?",
+      "back": "Catches everything mechanical — missing columns, type mismatches, joins returning nothing — because the database does the checking. It cannot catch a query that runs cleanly but returns a plausible, wrong number: the database has no opinion about what you meant.",
+      "page": "Module1B-Intermediate-SQL/execution-environment",
+      "tags": ["execution", "verification"]
+    },
+    {
+      "id": "m1b-c22",
+      "front": "What is a unit test for a SQL query?",
+      "back": "One query run against an expected result — the debug table is the unit test. 'Did this LEFT JOIN keep Pluto? Did the GROUP BY count once?' You answer by running and comparing, not by arguing in English.",
+      "page": "Module1B-Intermediate-SQL/verifying-machine-sql",
+      "tags": ["verification", "testing"]
+    },
+    {
+      "id": "m1b-c23",
+      "front": "What does a regression test add on top of a unit test?",
+      "back": "Keep the test and re-run it on every change: the query proven right today is proven to STAY right. If a definition silently shifts, the stored test fails that day, not months later.",
+      "page": "Module1B-Intermediate-SQL/verifying-machine-sql",
+      "tags": ["verification", "regression"]
+    },
+    {
+      "id": "m1b-c24",
+      "front": "What is a 'library' of verified queries, and what course concept does it correspond to?",
+      "back": "A verified query is a function, and functions compose: 'non-Taylor listeners' proven once gets reused inside 'weekly active non-Taylor listeners', so you verify only the new layer. That library is the semantic layer.",
+      "page": "Module1B-Intermediate-SQL/verifying-machine-sql",
+      "tags": ["verification", "semantic-layer"]
+    },
+    {
+      "id": "m1b-c25",
+      "front": "Anthropic's self-service analytics: what were the accuracy numbers with and without the stack?",
+      "back": "Bare Claude on internal business questions: 21% (it could already run and retry, but guessed definitions like 'active user'). With precision as infrastructure — a governed semantic layer plus skills routing to ~30 relevant docs — 95%.",
+      "page": "Module1B-Intermediate-SQL/case-study-agentic-data-stack",
+      "tags": ["case-study", "llm"]
+    },
+    {
+      "id": "m1b-c26",
+      "front": "In the Anthropic case study, how much did handing the model the company's raw history of past SQL improve accuracy?",
+      "back": "Less than one point. Structure does the work, not raw access — governed definitions and routing lift the model, and verification evals gate each domain at ~90%.",
+      "page": "Module1B-Intermediate-SQL/case-study-agentic-data-stack",
+      "tags": ["case-study", "semantic-layer"]
+    },
+    {
+      "id": "m1b-c27",
+      "front": "How does OpenAI serve ~800 million ChatGPT users on standard Postgres?",
+      "back": "One writable primary that holds the truth plus about 50 globally distributed read replicas absorbing the read volume — physically separating read from write traffic while keeping ACID for writes.",
+      "page": "Module1B-Intermediate-SQL/case-study-openai-postgres",
+      "tags": ["case-study", "replication"]
+    },
+    {
+      "id": "m1b-c28",
+      "front": "Why is ChatGPT's database workload read-heavy?",
+      "back": "One question is one write, but the system must fetch the entire conversation history for LLM context (hundreds of reads), and users constantly browse sidebars of past chats. Read throughput, not writes, is the bottleneck.",
+      "page": "Module1B-Intermediate-SQL/case-study-openai-postgres",
+      "tags": ["case-study", "workloads"]
+    },
+    {
+      "id": "m1b-c29",
+      "front": "What is the core rule of schema design, and what is it called?",
+      "back": "Store each fact once, in one place. Splitting repeated facts into their own tables is normalization (the strict formal version is BCNF): no fact stored twice, so nothing drifts out of sync.",
+      "page": "Module1B-Intermediate-SQL/schema-design",
+      "tags": ["schema-design", "normalization"]
+    },
+    {
+      "id": "m1b-c30",
+      "front": "What three anomalies does one big denormalized table invite?",
+      "back": "Update anomaly: changing a fact must touch many rows and can leave them disagreeing. Insert anomaly: can't record a song until someone plays it. Delete anomaly: removing one row can erase a fact that lived only there.",
+      "page": "Module1B-Intermediate-SQL/schema-design",
+      "tags": ["schema-design", "anomalies"]
+    },
+    {
+      "id": "m1b-c31",
+      "front": "What is the normalization/denormalization trade-off?",
+      "back": "Normalization buys correctness and pays with joins; denormalization buys read speed and pays with the risk that copies of a fact disagree. Default to normalized; denormalize only when a real, measured read cost forces it.",
+      "page": "Module1B-Intermediate-SQL/schema-design",
+      "tags": ["schema-design", "denormalization"]
+    },
+    {
+      "id": "m1b-c32",
+      "front": "What's the key difference between running SQL on SQLite vs BigQuery?",
+      "back": "How many machines split the work, not what work gets done: the same hash-join, sort-merge, and aggregate algorithms run in both. BigQuery shards a 5.5 TB table across ~100 machines (~55 GB each) and merges partial results.",
+      "page": "Module1B-Intermediate-SQL/parallel-execution",
+      "tags": ["parallel", "bigquery"]
+    },
+    {
+      "id": "m1b-c33",
+      "front": "What are the five phases of a distributed query's journey?",
+      "back": "Parse (SQL → AST, optimizer picks a strategy), build the physical execution tree, distribute (hash-partition so related data lands on the same machine), parallel execution on every shard, then result assembly — a coordinator merge-sorts the partial results.",
+      "page": "Module1B-Intermediate-SQL/parallel-execution",
+      "tags": ["parallel", "execution-plan"]
+    },
+    {
+      "id": "m1b-c34",
+      "front": "In what order should you READ a complex query?",
+      "back": "Execution order, not written order: FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY, tracing how each clause hands its rows to the next and the row set shrinks and reshapes.",
+      "page": "Module1B-Intermediate-SQL/sql-reading-queries",
+      "tags": ["reading-queries", "execution-order"]
+    },
+    {
+      "id": "m1b-c35",
+      "front": "What are the five common query-writing patterns?",
+      "back": "Funnel (did A but never B), Ladder (rank within groups), Timeline (cumulative/moving over time), Comparison (individual vs group metric), Exception (spot outliers). Recognize the shape, then fill in your tables.",
+      "page": "Module1B-Intermediate-SQL/sql-writing-queries",
+      "tags": ["patterns", "writing-queries"]
+    },
+    {
+      "id": "m1b-c36",
+      "front": "What does LAG() do, and which patterns rely on it?",
+      "back": "<code>LAG(col) OVER (PARTITION BY ... ORDER BY ...)</code> fetches the previous row's value — e.g. last month's play count — powering Timeline growth rates and Exception spike detection (percent change vs previous period).",
+      "page": "Module1B-Intermediate-SQL/sql-writing-queries",
+      "tags": ["window-functions", "lag"]
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.762
+Chrome has to keep three billion people away from malicious websites.
+
+00:00:05.762 --> 00:00:09.523
+The catch is privacy.
+
+00:00:09.523 --> 00:00:13.285
+Google could check every link you click against its blocklist, but then Google would see every site you visit.
+
+00:00:13.285 --> 00:00:17.046
+And the full blocklist is far too big to ship to your phone.
+
+00:00:17.046 --> 00:00:20.808
+So how do you warn everyone, without watching everyone?
+
+00:00:20.808 --> 00:00:25.816
+Google's blocklist of bad sites is eight gigabytes, far too big for a phone.
+
+00:00:25.816 --> 00:00:30.824
+So Chrome ships a Bloom filter of it instead, a megabyte filter small enough for every device.
+
+00:00:30.824 --> 00:00:35.831
+You open a site.
+
+00:00:35.831 --> 00:00:40.839
+If the filter says not in the set, the answer is safe, and nothing leaves your phone.
+
+00:00:40.839 --> 00:00:45.847
+If it says maybe, Chrome sends only a short prefix of the hash to Google.
+
+00:00:45.847 --> 00:00:50.855
+Google sends back every bad hash with that prefix, and your phone finishes the check itself.
+
+00:00:50.855 --> 00:00:53.659
+Walk the three constraints.
+
+00:00:53.659 --> 00:00:56.462
+Scale.
+
+00:00:56.462 --> 00:00:59.266
+A hundred million bad sites is eight gigabytes, and you cannot push that to every phone.
+
+00:00:59.266 --> 00:01:02.070
+Privacy.
+
+00:01:02.070 --> 00:01:04.874
+Pinging Google on every link leaks your whole history.
+
+00:01:04.874 --> 00:01:07.677
+And load.
+
+00:01:07.677 --> 00:01:10.481
+Three billion users times every click is trillions of requests a day.
+
+00:01:10.481 --> 00:01:13.285
+A plain database loses on at least one of the three.
+
+00:01:13.285 --> 00:01:18.567
+The Bloom filter breaks the tie.
+
+00:01:18.567 --> 00:01:23.850
+Instead of the eight gigabyte list, each device downloads about a hundred and twenty-five megabytes, roughly sixty-four times smaller.
+
+00:01:23.850 --> 00:01:29.132
+It answers is this site bad right on the phone, in constant time, with no network call for the common case.
+
+00:01:29.132 --> 00:01:34.415
+Most sites are safe, so most checks end right there.
+
+00:01:34.415 --> 00:01:39.005
+The privacy comes from the filter's one-sided error.
+
+00:01:39.005 --> 00:01:43.595
+A no is certain, so a safe site never touches the network, and Google learns nothing.
+
+00:01:43.595 --> 00:01:48.185
+A maybe might be a false alarm, so the phone has to confirm.
+
+00:01:48.185 --> 00:01:52.774
+But it sends only a short hash prefix, one shared by many sites, not the page you opened.
+
+00:01:52.774 --> 00:01:57.364
+Google answers for the whole prefix, and the phone finishes locally.
+
+00:01:57.364 --> 00:02:01.954
+Google sees a crowd, never you.
+
+00:02:01.954 --> 00:02:05.956
+Line up the three options.
+
+00:02:05.956 --> 00:02:09.957
+Download the full database, and you ship eight gigabytes to every phone.
+
+00:02:09.957 --> 00:02:13.958
+Ask the cloud every time, and Google sees all of your browsing.
+
+00:02:13.958 --> 00:02:17.960
+The Bloom filter is the middle path.
+
+00:02:17.960 --> 00:02:21.962
+A small download, an instant local answer, and a hashed prefix only on a maybe.
+
+00:02:21.962 --> 00:02:25.963
+It gives up a tiny false-alarm rate, and buys both scale and privacy.
+
+00:02:25.963 --> 00:02:31.118
+A small filter on every device answers safe locally for almost all browsing, and only the rare maybe sends a prefix to Google.
+
+00:02:31.118 --> 00:02:36.272
+So a hundred million bad sites and three billion users cost almost no bandwidth, and leak almost nothing.
+
+00:02:36.272 --> 00:02:41.427
+That is the Bloom filter trade.
+
+00:02:41.427 --> 00:02:46.582
+A little error, for an enormous saving.

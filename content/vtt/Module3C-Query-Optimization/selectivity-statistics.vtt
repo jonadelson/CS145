@@ -1,0 +1,115 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.982
+The optimizer picks a plan by estimating cost, and cost depends on how many tuples flow through each step.
+
+00:00:05.982 --> 00:00:09.965
+That fraction is called selectivity.
+
+00:00:09.965 --> 00:00:13.947
+WHERE user id equals one keeps just Mickey's three listens out of a billion.
+
+00:00:13.947 --> 00:00:17.929
+WHERE rating is not null keeps about ninety five percent, nearly the whole table.
+
+00:00:17.929 --> 00:00:21.911
+Three rows should use the index.
+
+00:00:21.911 --> 00:00:25.893
+Almost everything should scan.
+
+00:00:25.893 --> 00:00:29.876
+The optimizer needs statistics to tell it which.
+
+00:00:29.876 --> 00:00:33.858
+Those statistics come from a sample.
+
+00:00:33.858 --> 00:00:38.297
+Reservoir sampling is how it grabs that sample, in a single streaming pass over a table too big to shuffle.
+
+00:00:38.297 --> 00:00:42.736
+Three panels.
+
+00:00:42.736 --> 00:00:47.175
+Panel one, the stream.
+
+00:00:47.175 --> 00:00:51.614
+The rows arrive one at a time, no rewind, one pass.
+
+00:00:51.614 --> 00:00:56.053
+Panel two, the reservoir, K slots wide.
+
+00:00:56.053 --> 00:01:00.492
+The first K rows just fill the slots.
+
+00:01:00.492 --> 00:01:04.930
+Then each later row I overwrites a random slot with probability K over I, otherwise it is discarded.
+
+00:01:04.930 --> 00:01:09.369
+Panel three, the guarantee.
+
+00:01:09.369 --> 00:01:13.808
+Every one of the N rows ends up in the sample with equal probability, K over N, in tiny memory and no second scan.
+
+00:01:13.808 --> 00:01:18.247
+Two cheaper alternatives trade exactness for speed.
+
+00:01:18.247 --> 00:01:22.686
+Block sampling reads whole pages, fast but biased if rows cluster on disk.
+
+00:01:22.686 --> 00:01:27.125
+Progressive sampling starts small and grows until the variance is low enough.
+
+00:01:27.125 --> 00:01:31.545
+Now store that sample as a histogram, and the hard case is skew.
+
+00:01:31.545 --> 00:01:35.966
+Two ways to bucket.
+
+00:01:35.966 --> 00:01:40.386
+Equi-width gives every bucket an equal value range.
+
+00:01:40.386 --> 00:01:44.806
+But on a skewed column one bucket swallows almost everything, about eighty five percent of the rows, and its estimate is useless.
+
+00:01:44.806 --> 00:01:49.226
+Height-balanced instead gives every bucket the same row count, a quarter each.
+
+00:01:49.226 --> 00:01:53.647
+Ranges shrink where data is dense, so estimates stay accurate exactly where skew would hurt.
+
+00:01:53.647 --> 00:01:58.067
+Around the histogram sit the table stats, tuple and page counts, and probabilistic sketches.
+
+00:01:58.067 --> 00:02:02.487
+Bloom filters for membership.
+
+00:02:02.487 --> 00:02:06.907
+HyperLogLog for distinct count.
+
+00:02:06.907 --> 00:02:11.328
+Count-Min Sketch for frequency.
+
+00:02:11.328 --> 00:02:15.748
+Each trades a little space for an answer the optimizer needs.
+
+00:02:15.748 --> 00:02:20.817
+So the fraction passing the filter drives the access method.
+
+00:02:20.817 --> 00:02:25.885
+Under one percent, highly selective, use an index.
+
+00:02:25.885 --> 00:02:30.954
+One to ten percent, a bitmap scan.
+
+00:02:30.954 --> 00:02:36.022
+More than ten percent, just scan the table.
+
+00:02:36.022 --> 00:02:41.091
+Gather by sampling, store as histograms and sketches, use to estimate selectivity.
+
+00:02:41.091 --> 00:02:46.159
+And keep them fresh, because statistics go stale as the table changes, and until analyze runs again every estimate is computed against the old shape of the data.
+
+00:02:46.159 --> 00:02:51.228
+Next, we put these estimates to work, costing two real query plans by hand.

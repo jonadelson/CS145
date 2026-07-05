@@ -1,0 +1,276 @@
+{
+  "module": "Module0-Kickoff",
+  "title": "Kickoff",
+  "questions": [
+    {
+      "id": "m0-q01",
+      "category": "Why Memory Matters",
+      "page": "Module0-Kickoff/why-memory-matters",
+      "difficulty": "intro",
+      "question": "When this course says it is about \"memory,\" what does that word refer to?",
+      "options": [
+        "The volatile RAM chips in your laptop",
+        "The CPU cache hierarchy (L1/L2/L3)",
+        "The durable database on disk where data persists over time",
+        "The context window of a large language model"
+      ],
+      "correct": 2,
+      "explanation": "The kickoff explicitly says \"memory\" here means the durable database where data lives long-term, not the volatile RAM chip in your laptop. RAM (and the context window) are exactly the short-term stores the course contrasts against."
+    },
+    {
+      "id": "m0-q02",
+      "category": "Why Memory Matters",
+      "page": "Module0-Kickoff/why-memory-matters",
+      "difficulty": "core",
+      "question": "The kickoff calls the context window, the DataFrame, and the phone in a tunnel \"the short version of all three\" teardowns. What do these three things have in common?",
+      "options": [
+        "They are all forms of short-term memory; anything that must outlast them lives in a database",
+        "They are all distributed systems that need replication",
+        "They are all examples of declarative programming interfaces",
+        "They are all limited by network bandwidth rather than storage"
+      ],
+      "correct": 0,
+      "explanation": "Each is a fast but volatile working store: the context window is wiped per session, the DataFrame dies with the process, and the phone's in-app state is cut off in a tunnel. The durable half of each system is a database. They are single-machine, local stores, not distributed systems."
+    },
+    {
+      "id": "m0-q03",
+      "category": "Why Memory Matters",
+      "page": "Module0-Kickoff/why-memory-matters",
+      "difficulty": "core",
+      "question": "The three kickoff teardowns are ordered along a specific axis. Which ordering matches the course's \"one machine to many machines\" scale axis?",
+      "options": [
+        "UberEats &#8594; agent memory &#8594; Pandas",
+        "Pandas on a laptop &#8594; agent memory (1 user to 800M users) &#8594; UberEats at planet scale",
+        "Agent memory &#8594; UberEats &#8594; Pandas",
+        "Pandas &#8594; UberEats &#8594; agent memory"
+      ],
+      "correct": 1,
+      "explanation": "The teardowns run left to right from one machine to many: Pandas (~16 GB laptop, the on-ramp), then agent memory growing from one user to 800 million, then UberEats with billions of orders planet-wide plus the offline edge. Reversing the order swaps the on-ramp with the destination."
+    },
+    {
+      "id": "m0-q04",
+      "category": "Pandas: Small Analytics",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "difficulty": "intro",
+      "question": "What is the difference between an <strong>imperative</strong> and a <strong>declarative</strong> program, as the Pandas teardown defines it?",
+      "options": [
+        "Imperative code is compiled; declarative code is interpreted",
+        "Imperative code spells out how to compute the answer step by step; declarative code states what you want and lets the engine decide how",
+        "Imperative code runs on one machine; declarative code always runs on a cluster",
+        "Imperative code uses functions; declarative code uses objects"
+      ],
+      "correct": 1,
+      "explanation": "Nested Python loops building a count dictionary are imperative: you spell out the how. The Polars and SQL versions just declare the join, grouping, and order, and the engine works out how to walk the rows. Where the code runs is a separate question; declarative programs can run on one machine too."
+    },
+    {
+      "id": "m0-q05",
+      "category": "Pandas: Small Analytics",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "difficulty": "core",
+      "question": "According to the Pandas teardown, what \"extra property\" does the SQL version of the top-10-songs query have that makes it special as data grows?",
+      "options": [
+        "It automatically caches results between runs",
+        "It always runs faster than the Polars version on a laptop",
+        "It compresses the data before scanning it",
+        "The query text runs unchanged from a thousand rows on a laptop to a hundred billion rows across two thousand machines; only the execution plan changes"
+      ],
+      "correct": 3,
+      "explanation": "The point is scale-invariance of the program: you never rewrite the query when data grows, you point it at a bigger engine. SQL is not claimed to be faster than Polars on small data; the claim is that the same declarative text survives the jump to a cluster."
+    },
+    {
+      "id": "m0-q06",
+      "category": "Pandas: Small Analytics",
+      "page": "Module0-Kickoff/case-study-pandas",
+      "difficulty": "core",
+      "question": "You run the same group-and-count query in Pandas, Polars, and a distributed database, and the dataset grows past a laptop's RAM. What happens in each?",
+      "options": [
+        "Pandas crashes past RAM; Polars streams lazily on all cores and pushes the limit further but is still one machine; the database ships the query to the data across many machines",
+        "All three crash, because the query itself must be rewritten for larger data",
+        "Pandas spills to disk automatically; Polars crashes; the database gets slower but succeeds",
+        "Pandas and Polars both stream from disk; only the database keeps everything in RAM"
+      ],
+      "correct": 0,
+      "explanation": "Pandas loads every row into RAM and copies at each step, so it dies at the RAM ceiling. Polars runs a lazy, streaming, all-cores plan that only materializes what it needs, pushing the ceiling out while still bounded by one machine. A database flips the problem: send the query to the data, spread the scan and join across machines. Pandas has no automatic spill-to-disk in this story."
+    },
+    {
+      "id": "m0-q07",
+      "category": "Agent Memory",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "difficulty": "intro",
+      "question": "On Tuesday, a fresh Claude Code session confidently calls <code>verifyJWTWithScope()</code>, a function that exists nowhere in your codebase. What does the teardown call this failure, and what causes it?",
+      "options": [
+        "A rediscovery: the agent re-derives the same fix every session",
+        "A hallucination: a confident, fluent output that is wrong, caused by having no memory of past sessions",
+        "A race condition: two sessions wrote to the same file",
+        "An overflow: the context window ran out of tokens mid-answer"
+      ],
+      "correct": 1,
+      "explanation": "Inventing a plausible-sounding but nonexistent name is a hallucination, and it happens because each session starts with no context, so the agent's best effort includes making things up. Rediscovery is the teardown's second, quieter failure mode: re-deriving the same pattern each session, which wastes time and tokens rather than inventing facts."
+    },
+    {
+      "id": "m0-q08",
+      "category": "Agent Memory",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "difficulty": "core",
+      "question": "The agent teardown says the context window is \"the same limit\" as the RAM ceiling from the Pandas teardown. In what sense?",
+      "options": [
+        "Both are measured in gigabytes and can be upgraded with hardware",
+        "Both cause the program to crash when exceeded",
+        "Both are caused by slow disk I/O",
+        "Both are fast working memories that cannot hold the whole problem and lose everything when the process or session ends"
+      ],
+      "correct": 3,
+      "explanation": "A context window (roughly 200K to 1M tokens) sounds huge but a real project runs to tens of millions of tokens, and every session starts empty, just as a DataFrame is fast but bounded and gone when the process exits. The fix in both cases is durable storage, not more short-term capacity. An overfull context window doesn't crash; it simply can't see or retain the rest."
+    },
+    {
+      "id": "m0-q09",
+      "category": "Agent Memory",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "difficulty": "core",
+      "question": "QMD, claude-mem, and Aider all store agent memory in SQLite. Which of the following is one of the four reasons the teardown gives?",
+      "options": [
+        "SQLite scales horizontally across machines better than Postgres",
+        "It is embedded: it runs inside the agent's process, with no network hop and no auth surface",
+        "SQLite supports vector search natively without any extension",
+        "SQLite queries are faster than any client-server database at any scale"
+      ],
+      "correct": 1,
+      "explanation": "The four reasons are: zero config (no server to launch), embedded (in-process, no network hop), transactional (a mid-task write can't corrupt the file if the laptop sleeps), and one file (copyable, versionable, openable in any client). Vector search actually requires the sqlite-vec extension, and scaling out is exactly what SQLite does not do; that's what the Postgres migration is for."
+    },
+    {
+      "id": "m0-q10",
+      "category": "Agent Memory",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "difficulty": "core",
+      "question": "How does agent memory go from \"local\" (one engineer's laptop) to \"global\" (800 million users), according to the teardown?",
+      "options": [
+        "The same SQL and the same primitive: the per-laptop SQLite file migrates to a shared Postgres setup with one primary and ~50 read replicas, each user keeping their own memory",
+        "The context window is enlarged until it holds every user's history",
+        "Each user's memory is moved into the model's weights via fine-tuning",
+        "SQL is replaced with a NoSQL store because relational databases cannot scale"
+      ],
+      "correct": 0,
+      "explanation": "Going local to global is described as pure scale: the model issues the same SQL, and only the database changes, from one embedded file to a Postgres primary streaming replication to about fifty read replicas. The whole point is that the primitive does not change as it grows; it migrates."
+    },
+    {
+      "id": "m0-q11",
+      "category": "Agent Memory",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "difficulty": "stretch",
+      "question": "An agent is asked \"what are we doing about token refresh?\" and should surface an observation about session lifetime even though the word \"refresh\" never appears in it. Which ranking signal handles this, and why?",
+      "options": [
+        "BM25 keyword search, because FTS5 expands synonyms automatically",
+        "Personalized PageRank, because it follows symbol references between files",
+        "Vector similarity, because embeddings match what you meant even when the words differ",
+        "Recency ordering on <code>created_at</code>, because newer observations are more relevant"
+      ],
+      "correct": 2,
+      "explanation": "This is exactly the teardown's paraphrase example for vector similarity: the question is embedded and observations whose vectors point the same way are retrieved. BM25 catches what you said (exact terms, no synonym expansion), and PageRank catches what is structurally relevant in the code, not semantic paraphrase."
+    },
+    {
+      "id": "m0-q12",
+      "category": "Agent Memory",
+      "page": "Module0-Kickoff/case-study-agent-memory",
+      "difficulty": "stretch",
+      "question": "The teardown says that because agent memory lives in a SQL database, \"tuning the retrieval is a query edit, not a rebuild.\" Which change illustrates this claim?",
+      "options": [
+        "Retraining the embedding model to produce better vectors",
+        "Weighting BM25 twice as heavily by editing the <code>ORDER BY</code>, or filtering by recency by adding a <code>WHERE</code> clause",
+        "Rewriting the agent in Rust so retrieval runs on all cores",
+        "Moving the observations table from SQLite to Postgres"
+      ],
+      "correct": 1,
+      "explanation": "The declarative payoff is that changing what to rank by is a one-line SQL edit: adjust the ORDER BY to reweight signals, add a WHERE for recency. Retraining models or migrating engines are rebuilds of other layers; the migration to Postgres is about scale, not ranking."
+    },
+    {
+      "id": "m0-q13",
+      "category": "UberEats: A Big Service",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "difficulty": "core",
+      "question": "In UberEats, why can two drivers never claim the same order?",
+      "options": [
+        "Each driver's phone locks the order in its local SQLite file first",
+        "Drivers are assigned round-robin by the mobile app",
+        "The restaurant app confirms each driver manually before dispatch",
+        "Placing an order is a single atomic transaction: charge the diner, assign exactly one driver, decrement inventory, all or none"
+      ],
+      "correct": 3,
+      "explanation": "The shared relational database is the single source of truth, and the order is one all-or-nothing transaction, so exactly one driver assignment can commit. A phone's local state is volatile and cannot safely orchestrate dispatch on its own; that's precisely why the global state lives out-of-process in the database."
+    },
+    {
+      "id": "m0-q14",
+      "category": "UberEats: A Big Service",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "difficulty": "core",
+      "question": "A driver in a parking garage with no signal still needs to accept an order and mark a pickup. How does the UberEats driver app handle this?",
+      "options": [
+        "It queues taps in application memory and replays them when signal returns",
+        "The phone runs an embedded SQLite database that stays transactional offline, then syncs local changes to the cloud source of truth on reconnect",
+        "It falls back to a read-only mode until the network returns",
+        "It connects to nearby drivers' phones over Bluetooth to reach the server"
+      ],
+      "correct": 1,
+      "explanation": "The phone carries its own embedded SQL database (SQLite, preinstalled on every phone) that obeys the same all-or-nothing rules even if the phone dies mid-write, so a half-accepted order never exists; changes reconcile with the cloud on reconnect. Queuing taps in app memory is exactly the volatile state that would be lost if the phone died."
+    },
+    {
+      "id": "m0-q15",
+      "category": "UberEats: A Big Service",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "difficulty": "stretch",
+      "question": "The teardown answers \"isn't SQL slow?\" with history. Why did the NoSQL movement of the 2000s happen, and what changed since?",
+      "options": [
+        "Scaling SQL beyond one machine was extremely hard, so the industry sacrificed strict safety and JOINs to partition across cheap machines; modern distributed SQL now delivers horizontal scale without giving up safety or the declarative model",
+        "SQL could not express aggregations, so MapReduce replaced it permanently for analytics",
+        "SQL was proprietary and expensive, and NoSQL won because it was open source",
+        "Relational databases could not store text data, which the web needed"
+      ],
+      "correct": 0,
+      "explanation": "In the 1990s-2000s SQL ran on one massive server, and scaling out was so hard that the industry traded away transactional safety and JOINs (Google's Search/Gmail path with BigTable and MapReduce) while accuracy-critical Ads data stayed on MySQL. Modern distributed SQL closes the loop: NoSQL's horizontal scale without the sacrifices. Licensing and text storage were never the issue."
+    },
+    {
+      "id": "m0-q16",
+      "category": "UberEats: A Big Service",
+      "page": "Module0-Kickoff/case-study-ubereats",
+      "difficulty": "stretch",
+      "question": "On reconnect, the driver app runs:<br><pre><code>WITH RecentOrders AS (\n  SELECT * FROM Orders\n  WHERE updated_at &gt; datetime('now', '-600 seconds')\n)\nSELECT * FROM RecentOrders;</code></pre>What does this query do, and why is it written this way?",
+      "options": [
+        "It deletes orders older than ten minutes to free space on the phone",
+        "It locks the Orders table so the cloud cannot modify it during sync",
+        "It selects only rows changed in the last ten minutes, so the phone ships just the changed orders to the cloud instead of the whole table",
+        "It downloads the latest ten minutes of orders from the cloud to the phone"
+      ],
+      "correct": 2,
+      "explanation": "The CTE finds what changed inside the sync window (updated_at within the last 600 seconds) so only those rows are pushed to the cloud source of truth. It reads local data to upload, not download, and a SELECT deletes and locks nothing."
+    },
+    {
+      "id": "m0-q17",
+      "category": "SQL Career Journey",
+      "page": "Module0-Kickoff/sql-metro",
+      "difficulty": "intro",
+      "question": "In the Spotify pipeline figure, one play event travels through three stages. What are they, in order?",
+      "options": [
+        "OLAP &#8594; ELT &#8594; OLTP",
+        "OLTP (real-time transactional write) &#8594; ELT (batch hop) &#8594; OLAP (analytics store serving dashboards)",
+        "Cache &#8594; queue &#8594; data lake",
+        "SQLite &#8594; Postgres &#8594; BigQuery"
+      ],
+      "correct": 1,
+      "explanation": "The event is written first to the transactional OLTP database, moved by an ELT batch hop, and lands in the OLAP analytics store that serves dashboards: one SQL backbone, three roles. OLAP-first reverses the flow; a play must be recorded transactionally before it can be analyzed."
+    },
+    {
+      "id": "m0-q18",
+      "category": "SQL Career Journey",
+      "page": "Module0-Kickoff/sql-metro",
+      "difficulty": "stretch",
+      "question": "In the power-users query, <code>NTILE(10) OVER (ORDER BY total_minutes DESC)</code> assigns a decile, and the outer query keeps <code>WHERE p.decile = 1</code>. Which users end up in the final result?",
+      "options": [
+        "The bottom 10% of listeners, since decile 1 is the smallest bucket",
+        "All users who listened for more than one hour total",
+        "Exactly the 10 users with the most listening time",
+        "The top 10% of users by total listening minutes, among those who listened to at least 3 genres"
+      ],
+      "correct": 3,
+      "explanation": "NTILE(10) splits the ordered rows into ten equal buckets; because the ORDER BY is total_minutes DESC, decile 1 is the top tenth, and the earlier CTE already filtered to unique_genres >= 3. It returns a percentage of users, not a fixed count of 10, and descending order makes decile 1 the heaviest listeners, not the lightest."
+    }
+  ]
+}

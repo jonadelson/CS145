@@ -1,0 +1,186 @@
+{
+  "module": "Module4C-End-to-End-TM",
+  "title": "End-to-End TM",
+  "questions": [
+    {
+      "id": "m4c-q01",
+      "category": "Transaction Manager Architecture",
+      "page": "Module4C-End-to-End-TM/tm-summary",
+      "difficulty": "intro",
+      "question": "Which five components make up the Transaction Manager?",
+      "options": [
+        "Parser, optimizer, executor, buffer manager, storage engine",
+        "Scheduler, lock manager, write-ahead log, deadlock detector, recovery manager",
+        "Query router, cache, replication manager, index manager, vacuum",
+        "Scheduler, MVCC engine, checkpoint daemon, connection pool, planner"
+      ],
+      "correct": 1,
+      "explanation": "The TM orchestrates scheduling, locking, write-ahead logging, deadlock detection, and recovery as one cooperating system, turning concurrent transactions into one consistent ACID state. Parser/optimizer/executor are the query-processing pipeline, a different subsystem."
+    },
+    {
+      "id": "m4c-q02",
+      "category": "Transaction Manager Architecture",
+      "page": "Module4C-End-to-End-TM/tm-summary",
+      "difficulty": "core",
+      "question": "Mickey, Minnie, and Daffy run three concurrent transactions that touch entirely different tuples. Which TM component has nothing to do in this trace?",
+      "options": [
+        "The scheduler, because no interleaving decisions are needed",
+        "The write-ahead log, because non-conflicting changes need no logging",
+        "The deadlock detector, because with no shared rows there are no waits, so the waits-for graph can never form a cycle",
+        "The lock manager, because non-overlapping rows need no locks"
+      ],
+      "correct": 2,
+      "explanation": "Five components, four firing: the scheduler still routes transactions, the lock manager still grants (non-blocking) locks, and the WAL still logs every change before commit. Only the deadlock detector idles, since deadlock requires transactions waiting on each other, which needs shared rows."
+    },
+    {
+      "id": "m4c-q03",
+      "category": "Transaction Manager Architecture",
+      "page": "Module4C-End-to-End-TM/tm-summary",
+      "difficulty": "core",
+      "question": "According to the scaling analysis, why can a Transaction Manager run about a million transactions per second on commodity hardware?",
+      "options": [
+        "Most transactions touch independent rows (only ~10-20 of ~1,000 conflict), lock checks are O(1) hash lookups, and the WAL turns scattered updates into one sequential stream",
+        "Modern CPUs execute each transaction on its own dedicated core",
+        "The TM batches all transactions into one big transaction per second",
+        "Locks are skipped entirely for read-only transactions, which dominate the workload"
+      ],
+      "correct": 0,
+      "explanation": "The throughput comes from three design choices: most transactions never wait because they never conflict, each lock check is a constant-time hash lookup, and logging is sequential. Separation of concerns keeps each component behind a tiny interface. Batching and per-core dedication are not the mechanisms the course describes."
+    },
+    {
+      "id": "m4c-q04",
+      "category": "Three Transactions",
+      "page": "Module4C-End-to-End-TM/tm-three-transactions",
+      "difficulty": "core",
+      "question": "In the three-transaction trace, T3 aborts while T1 and T2 commit. Why don't T1 and T2 have to roll back too?",
+      "options": [
+        "Because T1 and T2 committed before T3 started, so the schedule was serial",
+        "Because the recovery manager re-ran T1 and T2 after undoing T3",
+        "Because T3 only performed reads, which never need undoing",
+        "Under Strict 2PL, T3 held its exclusive locks on B and C until it ended, so no other transaction ever read its uncommitted data; the abort is contained and never cascades"
+      ],
+      "correct": 3,
+      "explanation": "This is the 'strict' in Strict 2PL earning its name: no one builds on T3's dirty values because T3 never released its locks before aborting. The schedule was interleaved, not serial, and T3 wrote both B and C; containment comes from lock discipline, not from timing luck or read-only status."
+    },
+    {
+      "id": "m4c-q05",
+      "category": "Three Transactions",
+      "page": "Module4C-End-to-End-TM/tm-three-transactions",
+      "difficulty": "stretch",
+      "question": "Start state A=19, B=32, C=27. All-commit ends at A=27.36, B=38.4, C=32.4. In Scenario 2, T1 and T2 (which share A) commit but T3 (which wrote B and C) aborts. What is the final state, and how is it reached?",
+      "options": [
+        "A=19, B=32, C=27: an abort anywhere rolls the database back to the start state",
+        "A=27.36, B=32, C=27: the recovery manager reads T3's WAL entries backward and restores the old values of C and B, leaving T1 and T2's committed work on A untouched",
+        "A=27.36, B=38.4, C=32.4: aborts only matter if the server also crashes",
+        "A=19, B=38.4, C=32.4: T3's writes survive but the shared counter A reverts"
+      ],
+      "correct": 1,
+      "explanation": "Undo is per-transaction: walking T3's WAL entries backward reverts C from 32.4 to 27 and B from 38.4 to 32, while A keeps both committed updates (27.36). Rolling back the whole database would violate durability for T1 and T2; atomicity only erases the transaction that failed."
+    },
+    {
+      "id": "m4c-q06",
+      "category": "Problem Solving",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "difficulty": "intro",
+      "question": "What is the core design flaw in the Ticketdisaster.com checkout flow?",
+      "options": [
+        "The virtual queue admits users in random order instead of first-come-first-served",
+        "The database lacks a write-ahead log, so crashes lose purchases",
+        "It locks an entire zone (1,000+ seats) the moment a user picks it and holds the lock through browsing and payment, so one slow user freezes thousands of seats for minutes",
+        "Payment processing runs inside the OS kernel, starving the lock manager"
+      ],
+      "correct": 2,
+      "explanation": "The lock is both too big (a whole zone) and held too long (through a human typing card details, 5-10 minutes). The transaction machinery itself is correct; the application's use of it is what falls over under load, which is the page's whole point."
+    },
+    {
+      "id": "m4c-q07",
+      "category": "Problem Solving",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "difficulty": "core",
+      "question": "Ticketsfaster.com switches from zone-level locks (1,000 seats) to seat-level locks (1-8 seats). Why does this raise concurrent users from ~100 to ~10,000?",
+      "options": [
+        "Smaller locks are faster for the lock manager to grant, cutting per-lock latency",
+        "Seat-level locks are shared rather than exclusive, so buyers no longer wait",
+        "Higher-resolution locking means lower contention: locking one seat blocks nobody else, so thousands of fans browse and buy different seats at once",
+        "Fewer locked rows means the WAL writes fewer entries per purchase"
+      ],
+      "correct": 2,
+      "explanation": "The win is contention, not lock overhead: a zone lock blocks 999 other fans behind one user, while a seat lock blocks essentially no one. The locks are still exclusive for the purchase; there are just vastly fewer buyers who need the <em>same</em> one."
+    },
+    {
+      "id": "m4c-q08",
+      "category": "Problem Solving",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "difficulty": "core",
+      "question": "What is Strategy 2's key move for cutting lock duration from 5-10 minutes to about 30 seconds?",
+      "options": [
+        "Move the slow human steps (browsing, typing card number and billing address) outside the critical section: pre-fill everything in the queue with no lock held, then take the lock only for the final write",
+        "Replace the human payment step with a stored credit-card vault that charges automatically",
+        "Give each user a hard 30-second timer, after which their lock is revoked",
+        "Process payments on a faster network so card authorization completes sooner"
+      ],
+      "correct": 0,
+      "explanation": "The slowest part of checkout is a human typing, and none of it needs a lock. Collecting it up front in the queue shrinks the locked window to just the final confirm-and-write. A revocation timer is the old broken design (the timeout that kicked users back to the queue), not the fix."
+    },
+    {
+      "id": "m4c-q09",
+      "category": "Problem Solving",
+      "page": "Module4C-End-to-End-TM/problem-solving",
+      "difficulty": "stretch",
+      "question": "Even with seat-level, short-duration locks, load can still overwhelm real-time locking. What is Strategy 3, and what problem of the old flow does it dissolve?",
+      "options": [
+        "Add read replicas so seat-availability reads never touch the primary",
+        "Shard the seat map across servers so no one lock manager is a bottleneck",
+        "Cache seat availability aggressively and let occasional double-sells be refunded later",
+        "Fall back to an async timestamp system: fans submit requests instantly, a background job processes them in timestamp order and emails confirmations, replacing blocking waits, and eliminating the uncertain reserved-but-not-purchased state that pending payments create"
+      ],
+      "correct": 3,
+      "explanation": "When blocking is unavoidable, make the wait predictable and transparent: a stamped submission queue turns a 3-hour lock-holding wait into a 60-second submit and scales to ~50,000 concurrent users. Caching with double-sells sacrifices the correctness guarantee the whole module is built to keep."
+    },
+    {
+      "id": "m4c-q10",
+      "category": "Next 100x",
+      "page": "Module4C-End-to-End-TM/next-100x",
+      "difficulty": "intro",
+      "question": "In the nested correctness rings (Serializable &#8835; Conflict-Serializable &#8835; 2PL &#8835; Strict 2PL), where does the course say the next 100x of throughput lives?",
+      "options": [
+        "In tuning Strict 2PL itself to grant locks faster",
+        "In the rings outside Strict 2PL: perfectly safe, serializable schedules that today's S2PL databases refuse to run",
+        "In relaxing the correctness target so non-serializable schedules become acceptable",
+        "In faster hardware, since protocols are already optimal"
+      ],
+      "correct": 1,
+      "explanation": "Every ring outside S2PL contains valid schedules a smarter scheduler could admit; that untapped gap is the opportunity. Crucially, the correctness target never moves, serializable stays the bar; only the scheduler changes. Tuning 2PL itself is explicitly the dead-end path."
+    },
+    {
+      "id": "m4c-q11",
+      "category": "Next 100x",
+      "page": "Module4C-End-to-End-TM/next-100x",
+      "difficulty": "core",
+      "question": "A song lands 10 million plays in an hour, pure write throughput on an append-heavy stream. Which protocol matches this workload signature?",
+      "options": [
+        "Micro-locking: lock the single play-count field instead of the whole row",
+        "Timestamp ordering: run every play in timestamp order and abort conflicts",
+        "LSM trees: append every write to an immutable file with no locks at all, with reads that settle a moment later (ClickHouse, BigQuery, Snowflake)",
+        "Strict 2PL with a larger lock table"
+      ],
+      "correct": 2,
+      "explanation": "Read the signature, and the protocol falls out: pure write throughput wants lock-free appends, which is LSM trees. Micro-locking fits fine-grained contention on one hot counter (Postgres, SQL Server, Oracle), and timestamp ordering fits global ordering across agents (Spanner)."
+    },
+    {
+      "id": "m4c-q12",
+      "category": "Next 100x",
+      "page": "Module4C-End-to-End-TM/next-100x",
+      "difficulty": "stretch",
+      "question": "Why can a scheduler that admits schedules which are serializable but NOT conflict-serializable still be correct?",
+      "options": [
+        "Because what defines correct is serializability, equal to some serial order; conflict-serializability is only the mechanical test 2PL happens to pass, so schedules outside CS but inside Serializable are still safe headroom",
+        "Because conflict-serializability was proven equivalent to serializability, so the two rings are the same",
+        "Because such schedules only involve read-only transactions, which cannot conflict",
+        "It cannot; anything outside conflict-serializable is unsafe by definition"
+      ],
+      "correct": 0,
+      "explanation": "CS is a sufficient, checkable stand-in for serializability, not the definition of it: the rings nest strictly, and the Serializable-minus-CS gap is real, safe schedules. Believing CS <em>is</em> correctness is exactly the misconception this page dismantles; the target stays serializability while the scheduler gets smarter."
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+<h1>SELECT-FROM-WHERE: The SQL Foundation</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Every basic query has three clauses: <code>FROM</code> picks the table, <code>WHERE</code> keeps the rows that pass a test, <code>SELECT</code> chooses the columns to return.</p>
+<p><strong>Intuition.</strong> You write SELECT-FROM-WHERE, but it runs <code>FROM</code>, then <code>WHERE</code>, then <code>SELECT</code>: load all of Listens, drop the rows that fail the rating test, then keep just the columns you asked for.</p>
+</div>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/sfw-hook.svg" style="width:100%;height:auto;display:block;" alt="SELECT-FROM-WHERE keeps some rows, then some columns. FROM Listens loads nine rows (listen_id, user_id, song_id, rating), colored by user. WHERE rating greater than 4.0 strikes the four failing rows (3.9, 3.9, 2.9, and the NULL which is UNKNOWN). SELECT user_id, song_id, rating projects the five survivors to three columns, dropping listen_id."></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> WHERE drops rows that fail its test, and SELECT keeps only the columns you name. FROM loads first, so the clauses run FROM, then WHERE, then SELECT. WHERE strikes the rows that fail its test (nine down to five, and a NULL comparison is UNKNOWN so it drops too), and SELECT keeps only the columns you name (dropping listen_id).</p>
+</div>
+<hr />
+<h2>Basic Query Structure: The FloWS Order</h2>
+<pre><code><span class="sql-comment">-- Get listens with high ratings (above 4.0)</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id, rating    <span class="sql-comment">-- choose only 3 columns for output</span>
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>                       <span class="sql-comment">-- picks the table (9 rows)</span>
+<span class="sql-keyword">WHERE</span> rating &gt; <span class="sql-number">4.0</span>                 <span class="sql-comment">-- keeps rows where the test is TRUE</span>
+</code></pre>
+<ol>
+<li>
+<p><strong>Execution Order</strong>: FROM → WHERE → SELECT. Read it as FWS (FloWS mnemonic). That is the reverse of the SFW you write.</p>
+</li>
+<li>
+<p><strong>Row Filtering</strong>: WHERE evaluates each row individually</p>
+</li>
+<li>
+<p><strong>Column Selection</strong>: SELECT determines output columns</p>
+</li>
+</ol>
+<p>You write <code>SELECT</code> first, but the database runs it last: it needs the table (<code>FROM</code>) and the surviving rows (<code>WHERE</code>) before it can decide what to return (<code>SELECT</code>).</p>
+<hr />
+<h2>WHERE with AND and OR</h2>
+<pre><code><span class="sql-comment">-- AND: both conditions must hold</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id, rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">1</span> <span class="sql-keyword">AND</span> rating &gt; <span class="sql-number">4.0</span>
+
+<span class="sql-comment">-- OR: either condition is enough</span>
+<span class="sql-keyword">SELECT</span> user_id, song_id, rating
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> user_id <span class="sql-operator">=</span> <span class="sql-number">1</span> <span class="sql-keyword">OR</span> rating &gt; <span class="sql-number">4.0</span>
+</code></pre>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/sfw-andor.svg" style="width:100%;height:auto;display:block;" alt="The same two checks (user_id = 1 and rating > 4.0) on nine rows. AND keeps a row only when both are true (2 rows, Mickey's high-rated listens). OR keeps it when either is true (6 rows). The NULL rating makes rating &gt; 4.0 UNKNOWN, shown as a grey question mark."&gt;</p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> AND keeps a row only when both checks pass, so two rows survive. OR keeps a row when either passes, so six survive. The NULL rating makes <code>rating &gt; 4.0</code> UNKNOWN, which neither AND nor OR can turn into a keep.</p>
+</div>
+<hr />
+<h2>Understanding Aliases (AS Keyword)</h2>
+<p>An <strong>alias</strong> gives a column a new name in the output with <code>AS</code>. But because WHERE runs before SELECT, the alias does not exist yet when WHERE is evaluated, so WHERE cannot use it.</p>
+<div style="width:100%;max-width:1200px;margin:2rem auto;">
+<p><img src="assets/Module1-SQL/svgs/sfw-alias.svg" style="width:100%;height:auto;display:block;" alt="AS renames a column in the output: rating * 2 AS double_rating. But execution order is FROM, then WHERE, then SELECT, so the alias double_rating is created last, in SELECT. WHERE runs second, before the alias exists, so WHERE double_rating > 8 fails; WHERE rating * 2 &gt; 8 works because the expression already exists."&gt;</p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> <code>AS</code> renames a column in the result, but only in SELECT, which runs last. Since WHERE runs before SELECT, the alias does not exist yet there: <code>WHERE double_rating &gt; 8</code> fails, while <code>WHERE rating * 2 &gt; 8</code> works because the expression itself already exists.</p>
+</div>
+<p><strong>Why It Matters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Clause</th>
+<th>Execution Order</th>
+<th>Can Reference</th>
+<th>Cannot Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FROM</td>
+<td>1st</td>
+<td>Table names</td>
+<td>SELECT aliases</td>
+</tr>
+<tr>
+<td>WHERE</td>
+<td>2nd</td>
+<td>Table columns</td>
+<td>SELECT aliases</td>
+</tr>
+<tr>
+<td>SELECT</td>
+<td>3rd</td>
+<td>Table columns, expressions</td>
+<td>Future aliases</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>SELECT with Calculations</h2>
+<p><code>SELECT</code> can also compute new columns. <code>rating * 2 AS double_rating</code> doubles a value; <code>CASE ... WHEN</code> is SQL's if-then-else.</p>
+<pre><code><span class="sql-keyword">SELECT</span>
+    user_id,
+    rating,
+    rating <span class="sql-operator">*</span> <span class="sql-number">2</span> <span class="sql-keyword">AS</span> double_rating,
+    <span class="sql-keyword">CASE</span>
+        <span class="sql-keyword">WHEN</span> rating &gt;<span class="sql-operator">=</span> <span class="sql-number">4.5</span> <span class="sql-keyword">THEN</span> <span class="sql-string">'Excellent'</span>
+        <span class="sql-keyword">WHEN</span> rating &gt;<span class="sql-operator">=</span> <span class="sql-number">4.0</span> <span class="sql-keyword">THEN</span> <span class="sql-string">'Good'</span>
+        <span class="sql-keyword">ELSE</span> <span class="sql-string">'Average'</span>
+    <span class="sql-keyword">END</span> <span class="sql-keyword">AS</span> category
+<span class="sql-keyword">FROM</span> <span class="sql-table">Listens</span>
+<span class="sql-keyword">WHERE</span> rating <span class="sql-keyword">IS</span> <span class="sql-keyword">NOT</span> <span class="sql-keyword">NULL</span>
+</code></pre>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>rating</th><th>double_rating</th><th>category</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>4.5</td><td>9.0</td><td>Excellent</td></tr><tr><td class="color-bar blue"></td><td>1</td><td>4.2</td><td>8.4</td><td>Good</td></tr><tr><td class="color-bar blue"></td><td>1</td><td>3.9</td><td>7.8</td><td>Average</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>4.7</td><td>9.4</td><td>Excellent</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>4.9</td><td>9.8</td><td>Excellent</td></tr>
+</tbody>
+</table>

@@ -1,0 +1,58 @@
+<h1>Pandas: Deconstructing Small Analytics</h1>
+<p><em>Pandas, Polars, and the limit at the edge of RAM.</em></p>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Pandas and Polars assume your whole dataset fits in your machine's RAM, and work on it there. Fast, familiar, and bounded by one machine.</p>
+<p><strong>Intuition.</strong> A laptop holds maybe sixteen gigabytes of RAM. Spotify holds billions of song listens. The bridge between those two numbers is the rest of this course.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study</span>
+<span>Reading Time: 5 mins</span></p>
+</div>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/pandas-ram.svg" alt="Pandas keeps the whole dataset in RAM on one machine: a DataFrame read from CSV or Parquet on disk, grouped, sorted, and joined in memory, returning a result fast, until the data exceeds RAM and it crashes." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The part you already know. Pandas, and Polars (the same idea in Rust, faster on big files), loads your whole dataset into RAM and works on it there: one process, one machine, fast until the data exceeds RAM (right), where it crashes. This is <strong>a database in the small</strong>, short-lived and bounded by one machine. Removing that limit is the rest of the course.</p>
+</div>
+<h2>A familiar example</h2>
+<p>One schema runs all course: <code>Songs</code> (about a hundred million of them on real Spotify), <code>Listens</code> (billions of rows, one per play), and <code>Users</code>. The task: the top 10 songs by play count.</p>
+<p>In pure Python you would write nested <code>for</code> loops over the rows, build a dictionary of counts, and sort it at the end. That is <strong>imperative</strong> code: you spell out <em>how</em> to compute the answer, step by step.</p>
+<p><a id="declarative"></a></p>
+<p>Pandas and Polars give you something better, and so does SQL. Same intent, two surfaces, side by side:</p>
+<div class="side-by-side">
+<div><p><strong>Polars (Python)</strong></p>
+<pre><code class="language-python">import polars as pl
+
+popular = (
+    listens_df
+    .join(songs_df, left_on='song_id',
+          right_on='song_id', how='inner')
+    .group_by(['title', 'artist'])
+    .agg(pl.len().alias('plays'))
+    .sort('plays', descending=True)
+    .head(10)
+)
+</code></pre></div><div><p><strong>SQL</strong></p>
+<pre><code><span class="sql-keyword">SELECT</span> title, artist, <span class="sql-keyword">COUNT</span>(<span class="sql-operator">*</span>) <span class="sql-keyword">AS</span> plays
+<span class="sql-keyword">FROM</span> <span class="sql-table">listens</span>
+<span class="sql-keyword">JOIN</span> <span class="sql-table">songs</span> <span class="sql-keyword">ON</span> <span class="sql-table">listens</span>.song_id <span class="sql-operator">=</span> <span class="sql-table">songs</span>.song_id
+<span class="sql-keyword">GROUP BY</span> title, artist
+<span class="sql-keyword">ORDER BY</span> plays DESC
+<span class="sql-keyword">LIMIT</span> <span class="sql-number">10</span>;
+</code></pre></div>
+</div>
+<p>Read them together. Neither one says <em>how</em>: no loops, no counters, no sort algorithm. You declare the join, the grouping, and the order; the engine works out how to walk the rows. That is the <strong>declarative</strong> style, and SQL is its canonical form.</p>
+<p>The SQL version has one extra property: it is a program that does not change with scale. It runs unchanged against a thousand rows on your laptop or a hundred billion across two thousand machines; only the execution plan changes. You do not rewrite the query when the data grows. You point it at a bigger engine.</p>
+<h2>Pandas, Polars, and a database</h2>
+<p>That last property is the whole story, because Spotify's <code>Listens</code> table does not fit in a laptop's sixteen gigabytes, or a sixty-four gigabyte workstation. What each tool does when the data gets that big is what separates them.</p>
+<div style="width:100%;max-width:1100px;margin:2rem auto;">
+<p><img src="assets/Module0-Kickoff/svgs/pandas-grows.svg" alt="Same query as the data grows: Pandas loads every row into RAM and dies past RAM; Polars runs a lazy all-cores streaming plan, pushing the limit far out but still one machine; a database ships the query to the data across many machines, with no single-machine limit." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Pandas loads every row into RAM and copies at each step, so it stops the moment the data passes RAM. Polars keeps almost the same API but runs a lazy, streaming, all-cores plan that only materializes what it needs, which pushes that point far out, though it is still one machine with a finite disk and CPU. A database flips the problem: you send the query to the data, and the engine spreads the scan and join across many machines, returning just your rows. The first two make one machine go further. The third stops the data from having to fit on one machine at all.</p>
+</div>
+<h2>Where this leaves Pandas in 2026</h2>
+<p>Pandas and Polars are not going away. A lot of data science work happens at small scale, and a DataFrame on a laptop is the right tool for those jobs. The Rust rewrite trend (Polars and friends) keeps pushing the single-machine ceiling higher every year, squeezing more out of one box before forcing the jump to a cluster.</p>
+<p>But the moment your dataset crosses the single-machine line, you need something different. The next teardown shows the same RAM-ceiling failure in a place you would not expect: inside an AI coding agent, when its context window fills.</p>
+<h2>Takeaway</h2>
+<p>Pandas on a laptop is the small case of a database, one you already know. The RAM limit you just saw is the same limit an AI agent hits when its context window fills. The rest of CS145 is about what happens when <em>small</em> is no longer enough.</p>

@@ -1,0 +1,64 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.573
+One play on Spotify has to reach recommendations, royalty payouts, analytics, and fraud at once, none of them slowing the others.
+
+00:00:07.573 --> 00:00:13.146
+The substrate that pulls this off is Kafka.
+
+00:00:13.146 --> 00:00:18.370
+Trace one play.
+
+00:00:18.370 --> 00:00:23.595
+The client sends an event; the producer hashes the user ID, picks a partition of the plays topic, and appends it to that partition's log.
+
+00:00:23.595 --> 00:00:28.820
+Three brokers replicate it, so the event survives any one of them dying.
+
+00:00:28.820 --> 00:00:34.044
+Downstream, two consumers read that same log at their own offsets.
+
+00:00:34.044 --> 00:00:38.061
+Here is the key idea.
+
+00:00:38.061 --> 00:00:42.078
+Kafka is not a queue, it is a log.
+
+00:00:42.078 --> 00:00:46.095
+A queue deletes a message once it is read.
+
+00:00:46.095 --> 00:00:50.112
+A log keeps every event until retention expires.
+
+00:00:50.112 --> 00:00:54.129
+So many consumers read the exact same log independently, each at its own offset.
+
+00:00:54.129 --> 00:00:58.146
+Recommendations reads in real time, royalties reads nightly, and either can rewind and replay.
+
+00:00:58.146 --> 00:01:03.487
+One guarantee to remember.
+
+00:01:03.487 --> 00:01:08.827
+Delivery is tunable, but in practice almost everyone runs at-least-once: never drop an event, tolerate a rare duplicate, and make the consumer idempotent.
+
+00:01:08.827 --> 00:01:14.168
+Exactly-once exists, for when money is on the line.
+
+00:01:14.168 --> 00:01:18.162
+Where does Kafka sit?
+
+00:01:18.162 --> 00:01:22.156
+MapReduce and Spark process data that already exists, in batches.
+
+00:01:22.156 --> 00:01:26.149
+Kafka is unbounded; it moves events as they happen, in milliseconds.
+
+00:01:26.149 --> 00:01:30.143
+It is what gets the data there in the first place, and makes it replayable.
+
+00:01:30.143 --> 00:01:38.804
+At scale this is everywhere: LinkedIn pushes a trillion messages a day, Netflix four million a second.
+
+00:01:38.804 --> 00:01:47.465
+That closes the module: storage that survives failure, computation that scales, and Kafka moving events in real time, on the same primitives throughout.

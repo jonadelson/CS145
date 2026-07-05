@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 690" role="img" aria-labelledby="tb-t tb-d" style="width:100%; height:auto; font-family:Inter, sans-serif;">
+  <title id="tb-t">The Module 3 toolbox: one tool per problem</title>
+  <desc id="tb-d">Seven Spotify workloads, each matched to the Module 3 structure that fits it: date-range queries to a B+Tree, similarity clustering to LSH, hyper-local zones to H3 geo-hashing, a write surge to an LSM tree, a viral surge to hash partitioning, a privacy-safe API to differential privacy, and messy feeds to versioned tables. Each row names the problem, the tool in a green chip, and why it fits. Color key: green marks the chosen tool.</desc>
+  <text x="600" y="44" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The Module 3 toolbox: one tool per problem</text>
+  <text x="600" y="74" text-anchor="middle" font-size="15" fill="#6B7280">One Spotify service, seven workloads. No single structure wins them all, so you match each problem to its tool.</text>
+  <text x="64" y="106" font-size="14" font-weight="700" fill="#3F3F46">THE WORKLOAD</text>
+  <text x="714" y="106" text-anchor="middle" font-size="14" font-weight="700" fill="#3F3F46">TOOL</text>
+  <text x="858" y="106" font-size="14" font-weight="700" fill="#3F3F46">WHY IT FITS</text>
+  <g data-step="1">
+    <rect x="40" y="122" width="1120" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="40" y="122" width="4" height="70" rx="2" fill="#059669"/>
+    <text x="64" y="163" font-size="17" fill="#0E0E10">Date-range queries over trillions of listens</text>
+    <text x="556" y="164" font-size="22" fill="#6B7280">&#8594;</text>
+    <rect x="590" y="136" width="248" height="42" rx="9" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="714" y="163" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">B+Tree</text>
+    <text x="858" y="163" font-size="15" fill="#6B7280">keys stay sorted: jump to the start, scan</text>
+  </g>
+  <g data-step="2">
+    <rect x="40" y="200" width="1120" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="40" y="200" width="4" height="70" rx="2" fill="#059669"/>
+    <text x="64" y="241" font-size="17" fill="#0E0E10">Cluster similar users and songs by feature</text>
+    <text x="556" y="242" font-size="22" fill="#6B7280">&#8594;</text>
+    <rect x="590" y="214" width="248" height="42" rx="9" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="714" y="241" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">LSH</text>
+    <text x="858" y="241" font-size="15" fill="#6B7280">similar vectors land in one bucket</text>
+  </g>
+  <g data-step="3">
+    <rect x="40" y="278" width="1120" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="40" y="278" width="4" height="70" rx="2" fill="#059669"/>
+    <text x="64" y="319" font-size="17" fill="#0E0E10">Pinpoint hyper-local fan zones over 100 fans</text>
+    <text x="556" y="320" font-size="22" fill="#6B7280">&#8594;</text>
+    <rect x="590" y="292" width="248" height="42" rx="9" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="714" y="319" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">H3 geo-hash</text>
+    <text x="858" y="319" font-size="15" fill="#6B7280">a hierarchical grid you can GROUP BY</text>
+  </g>
+  <g data-step="4">
+    <rect x="40" y="356" width="1120" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="40" y="356" width="4" height="70" rx="2" fill="#059669"/>
+    <text x="64" y="397" font-size="17" fill="#0E0E10">Absorb a live-drop write surge, 50k at once</text>
+    <text x="556" y="398" font-size="22" fill="#6B7280">&#8594;</text>
+    <rect x="590" y="370" width="248" height="42" rx="9" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="714" y="397" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">LSM tree</text>
+    <text x="858" y="397" font-size="15" fill="#6B7280">random writes become sequential flushes</text>
+  </g>
+  <g data-step="5">
+    <rect x="40" y="434" width="1120" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="40" y="434" width="4" height="70" rx="2" fill="#059669"/>
+    <text x="64" y="475" font-size="17" fill="#0E0E10">Spread a viral surge across the cluster</text>
+    <text x="556" y="476" font-size="22" fill="#6B7280">&#8594;</text>
+    <rect x="590" y="448" width="248" height="42" rx="9" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="714" y="475" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">Hash partitioning</text>
+    <text x="858" y="475" font-size="15" fill="#6B7280">balances load, avoids hot spots</text>
+  </g>
+  <g data-step="6">
+    <rect x="40" y="512" width="1120" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="40" y="512" width="4" height="70" rx="2" fill="#059669"/>
+    <text x="64" y="553" font-size="17" fill="#0E0E10">Expose a privacy-safe aggregate API</text>
+    <text x="556" y="554" font-size="22" fill="#6B7280">&#8594;</text>
+    <rect x="590" y="526" width="248" height="42" rx="9" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="714" y="553" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">Differential privacy</text>
+    <text x="858" y="553" font-size="15" fill="#6B7280">noise hides any single user</text>
+  </g>
+  <g data-step="7">
+    <rect x="40" y="590" width="1120" height="70" rx="10" fill="#FFFFFF" stroke="#D4D7DC"/>
+    <rect x="40" y="590" width="4" height="70" rx="2" fill="#059669"/>
+    <text x="64" y="631" font-size="17" fill="#0E0E10">Ingest messy third-party feeds with rollback</text>
+    <text x="556" y="632" font-size="22" fill="#6B7280">&#8594;</text>
+    <rect x="590" y="604" width="248" height="42" rx="9" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="714" y="631" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">Versioned tables</text>
+    <text x="858" y="631" font-size="15" fill="#6B7280">revert to the last known good</text>
+  </g>
+</svg>

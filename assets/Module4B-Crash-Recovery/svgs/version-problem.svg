@@ -1,0 +1,55 @@
+<svg viewBox="0 0 1100 470" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="vp-t vp-d"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif">
+  <title id="vp-t">The version problem: everyone needs a past version, but full copies explode under concurrency, so a database logs the change instead</title>
+  <desc id="vp-d">Two panels. On the left, the problem in red: to keep every past version you would copy the whole database on every change, and with millions of accounts changing thousands of times a second that is billions of rows per second, impossible. On the right, the answer in violet: log only the change, one small entry each, and replay the entries to reconstruct what was true at any past moment. Color key: red = copying every version, which cannot scale; violet = the change log and the version it rebuilds; grey = the full-database copies you avoid.</desc>
+
+  <defs>
+    <marker id="ah-vp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="40" y="34" font-size="24" font-weight="700" fill="#0E0E10">The version problem: keep the past without copying it</text>
+  <text x="40" y="58" font-size="14" fill="#6B7280">Millions of accounts, thousands of changes a second. You need any past version, but full copies explode.</text>
+
+  <!-- LEFT: the problem -->
+  <g data-step="1">
+    <rect x="40" y="88" width="490" height="330" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="2"/>
+    <rect x="40" y="88" width="490" height="6" rx="3" fill="#DC2626"/>
+    <text x="64" y="122" font-size="18" font-weight="700" fill="#DC2626">Snapshot every version</text>
+    <text x="64" y="147" font-size="14" fill="#6B7280">copy all accounts on every single change</text>
+    <rect x="86" y="176" width="300" height="150" rx="6" fill="#F7F8FA" stroke="#D4D7DC"/>
+    <rect x="104" y="194" width="300" height="150" rx="6" fill="#F7F8FA" stroke="#D4D7DC"/>
+    <rect x="122" y="212" width="300" height="150" rx="6" fill="#F7F8FA" stroke="#D4D7DC"/>
+    <text x="272" y="292" text-anchor="middle" font-size="15" font-weight="700" fill="#3F3F46">whole database</text>
+    <text x="272" y="316" text-anchor="middle" font-size="14" fill="#6B7280">a fresh copy per change</text>
+    <rect x="64" y="374" width="442" height="34" rx="6" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="285" y="397" text-anchor="middle" font-size="15" font-weight="700" fill="#DC2626">billions of rows per second, impossible</text>
+  </g>
+
+  <line x1="534" y1="250" x2="566" y2="250" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vp)"/>
+
+  <!-- RIGHT: the answer -->
+  <g data-step="2">
+    <rect x="570" y="88" width="490" height="330" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="570" y="88" width="490" height="6" rx="3" fill="#7C3AED"/>
+    <text x="594" y="122" font-size="18" font-weight="700" fill="#7C3AED">Log the change</text>
+    <text x="594" y="147" font-size="14" fill="#6B7280">one small entry per change, not a copy</text>
+    <rect x="594" y="168" width="442" height="30" rx="5" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1"/>
+    <text x="608" y="188" font-size="14" fill="#0E0E10" font-family="JetBrains Mono, monospace">10:31:04  acct 12  cash 5000 &#8594; 4820</text>
+    <rect x="594" y="204" width="442" height="30" rx="5" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1"/>
+    <text x="608" y="224" font-size="14" fill="#0E0E10" font-family="JetBrains Mono, monospace">10:31:04  acct 88  cash 210 &#8594; 640</text>
+    <rect x="594" y="240" width="442" height="30" rx="5" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1"/>
+    <text x="608" y="260" font-size="14" fill="#0E0E10" font-family="JetBrains Mono, monospace">10:31:05  acct 12  shares 3 &#8594; 4</text>
+  </g>
+
+  <!-- step 3: replay to any version -->
+  <g data-step="3">
+    <line x1="815" y1="276" x2="815" y2="314" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-vp)"/>
+    <rect x="594" y="318" width="442" height="82" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="614" y="347" font-size="15" font-weight="700" fill="#7C3AED">Replay to any moment</text>
+    <text x="614" y="371" font-size="14" fill="#3F3F46">What was acct 12 at 10:31:04? Sum the entries up to then.</text>
+    <text x="614" y="391" font-size="14" fill="#6B7280">Any past version, rebuilt, with no full copy stored.</text>
+  </g>
+
+  <text x="40" y="448" font-size="14" fill="#6B7280"><tspan fill="#DC2626" font-weight="700">red</tspan> = copying every version, cannot scale &#160;&#183;&#160; <tspan fill="#7C3AED" font-weight="700">violet</tspan> = the change log and the version it rebuilds &#160;&#183;&#160; grey = copies avoided</text>
+</svg>

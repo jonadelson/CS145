@@ -1,0 +1,209 @@
+<h1>Course Logistics and Policies</h1>
+<p>CS145 teaches you to build data systems that hold terabytes to petabytes and serve thousands of reads and writes per second, on the cloud. This page is <strong>how the class runs</strong>.</p>
+<h2>Before You Start</h2>
+<div class="side-by-side">
+<div><div style="width:100%;">
+<svg viewBox="0 0 420 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="req-t req-d">
+  <title id="req-t">Required: Python + Colab</title>
+  <desc id="req-d">A single panel in the same card style as the M1 through M6 module figure, with an ink top strip marking it as required from day one. A code cell shows df.head(), an arrow points to an output cell showing a 10-row result. Caption: read Python, run Jupyter and Colab. Color key: ink top strip marks the non-negotiable component.</desc>
+
+  <defs>
+    <marker id="ah-req" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <text x="210" y="30" font-size="18" font-weight="700" fill="#0E0E10" text-anchor="middle">Required</text>
+  <text x="210" y="50" font-size="11" fill="#6B7280" text-anchor="middle">From day one of the course</text>
+
+  <rect x="30" y="70" width="360" height="140" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="30" y="70" width="360" height="4" rx="2" fill="#0E0E10"/>
+  <text x="210" y="98" font-size="14" font-weight="700" fill="#0E0E10" text-anchor="middle">Python + Colab literacy</text>
+
+  <!-- code cell -->
+  <rect x="70" y="120" width="120" height="36" rx="4" fill="#F1F2F4" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="130" y="143" font-family="JetBrains Mono, monospace" font-size="11" fill="#3F3F46" text-anchor="middle">df.head()</text>
+
+  <!-- arrow -->
+  <line x1="195" y1="138" x2="225" y2="138" stroke="#475569" stroke-width="1.4" marker-end="url(#ah-req)"/>
+
+  <!-- output cell -->
+  <rect x="230" y="120" width="120" height="36" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="290" y="143" font-family="JetBrains Mono, monospace" font-size="11" fill="#3F3F46" text-anchor="middle">[10 rows]</text>
+
+  <text x="210" y="190" font-size="10" fill="#6B7280" text-anchor="middle" font-style="italic">read Python &middot; run Jupyter / Colab</text>
+</svg>
+</div></div><div><div style="width:100%;">
+<svg viewBox="0 0 420 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;" font-family="Inter, sans-serif" role="img" aria-labelledby="soft-t soft-d">
+  <title id="soft-t">Soft prerequisite: CS161 and CS111</title>
+  <desc id="soft-d">Two compact panels in the same card style as the M1 through M6 module figure, both with a slate top strip. Left panel: CS161 Algorithms, with an ascending-bars icon for sort, the topics sort, hash, and complexity, captioned how operations scale. Right panel: CS111 Systems, with a three-tier memory-hierarchy icon, the topics filesystems, memory, and scheduling, captioned where bytes live. Color key: slate top strips mark both as prerequisite courses whose ideas reappear throughout CS145.</desc>
+
+  <text x="210" y="30" font-size="18" font-weight="700" fill="#0E0E10" text-anchor="middle">Soft prerequisite</text>
+  <text x="210" y="50" font-size="11" fill="#6B7280" text-anchor="middle">Helps. Not required.</text>
+
+  <!-- CS161 panel -->
+  <rect x="20" y="70" width="185" height="140" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="20" y="70" width="185" height="4" rx="2" fill="#475569"/>
+  <text x="112.5" y="96" font-size="13" font-weight="700" fill="#475569" text-anchor="middle">CS161 &middot; Algorithms</text>
+
+  <!-- sort icon: 4 ascending bars -->
+  <g fill="#475569">
+    <rect x="82" y="148" width="9" height="12" rx="1"/>
+    <rect x="97" y="138" width="9" height="22" rx="1"/>
+    <rect x="112" y="125" width="9" height="35" rx="1"/>
+    <rect x="127" y="115" width="9" height="45" rx="1"/>
+  </g>
+
+  <text x="112.5" y="183" font-size="10" fill="#3F3F46" text-anchor="middle">sort &middot; hash &middot; complexity</text>
+  <text x="112.5" y="200" font-size="9" fill="#6B7280" text-anchor="middle" font-style="italic">how operations scale</text>
+
+  <!-- CS111 panel -->
+  <rect x="215" y="70" width="185" height="140" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="215" y="70" width="185" height="4" rx="2" fill="#475569"/>
+  <text x="307.5" y="96" font-size="13" font-weight="700" fill="#475569" text-anchor="middle">CS111 &middot; Systems</text>
+
+  <!-- memory hierarchy icon: 3-tier pyramid -->
+  <g fill="#FFFFFF" stroke="#475569" stroke-width="1.4">
+    <rect x="294" y="118" width="27" height="11" rx="1"/>
+    <rect x="285" y="132" width="45" height="11" rx="1"/>
+    <rect x="275" y="146" width="65" height="11" rx="1"/>
+  </g>
+
+  <text x="307.5" y="183" font-size="10" fill="#3F3F46" text-anchor="middle">filesystems &middot; memory &middot; scheduling</text>
+  <text x="307.5" y="200" font-size="9" fill="#6B7280" text-anchor="middle" font-style="italic">where bytes live</text>
+</svg>
+</div></div>
+</div>
+<div class="paper-caption">
+<p>Python + Colab on day one. CS161 and CS111 help: CS145 studies problems roughly 100&times; bigger in data than those classes cover, so their algorithms (sort, hash, complexity) and systems concepts (filesystems, the memory hierarchy, scheduling) reappear here applied at 100&times; scale. Rusty? Catch up before the module hits: <a href="https://www.techspot.com/article/2024-anatomy-ram/">RAM</a> &middot; <a href="https://www.youtube.com/watch?v=KN8YgJnShPM">Filesystems &amp; OS</a> &middot; <a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/resources/lecture-3-insertion-sort-merge-sort/">Merge sort</a> &middot; <a href="https://viterbi-web.usc.edu/~adamchik/15-121/lectures/Algorithmic%20Complexity/complexity.html">Complexity</a>.</p>
+</div>
+<h2>How Grading Works</h2>
+<p>CS145 offers <strong>two flexible paths for your grade</strong>, and you automatically get whichever one scores higher. Most students find Path 1 easier.</p>
+<ul>
+<li>
+<p><strong>Path 1 is the safety net: Keep up with the class pace and material.</strong> Answer the low-stakes nano-quizzes at lecture and section each week, do the PSets. The modules build on each other and compound, so keeping up is the easier path. By the final the thinking is mostly done; the final at 35% feels like review, with lower stakes.</p>
+</li>
+<li>
+<p><strong>Path 2: bet on the final.</strong> If you don't collect enough points from the lectures + sections, or if your quarter just got messy, the nano-quizzes' weight rolls into the final exam on its own. No paperwork, no decision. The final is reweighed at 50%.</p>
+</li>
+</ul>
+<div style="margin: 1.25rem 0;">
+<table style="width:100%; table-layout:fixed; border-collapse:collapse; font-size:14px;">
+<colgroup>
+  <col style="width:18%;">
+  <col style="width:20%;">
+  <col style="width:62%;">
+</colgroup>
+<thead>
+  <tr>
+    <th style="text-align:left; padding:10px 12px; border-bottom:1px solid #D4D7DC; font-weight:700; color:#6B7280; text-transform:uppercase; font-size:11px; letter-spacing:0.05em;">Component</th>
+    <th style="text-align:left; padding:10px 12px; border-bottom:1px solid #D4D7DC; font-weight:700; color:#6B7280; text-transform:uppercase; font-size:11px; letter-spacing:0.05em;">Weight</th>
+    <th style="text-align:left; padding:10px 12px; border-bottom:1px solid #D4D7DC; font-weight:700; color:#6B7280; text-transform:uppercase; font-size:11px; letter-spacing:0.05em;">Details</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;"><strong>Project 1</strong></td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">10%</td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">BigQuery SQL project</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;"><strong>Project 2</strong></td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">25%</td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">Data Science or Systems</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;"><strong>PSets</strong></td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">15%</td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">Problem sets</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;"><strong>Nano Quizzes</strong></td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">15% (cap)</td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">Nano-quizzes via Poll Everywhere, live during lecture or section. Lectures: 0.5 pt each (~20 of them). Sections: 0.75 pt each (10 of them). The 15% cap is built-in flexibility for missed quizzes. <strong>No makeups.</strong></td>
+  </tr>
+  <tr>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;"><strong>Final Exam</strong></td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;"><strong>Path 1:</strong> 35%<br><strong>Path 2:</strong> 50%</td>
+    <td style="padding:10px 12px; border-bottom:1px solid #E5E7EB; vertical-align:top;">Comprehensive</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 12px; vertical-align:top;"><strong>Total</strong></td>
+    <td style="padding:10px 12px; vertical-align:top;">100%</td>
+    <td style="padding:10px 12px; vertical-align:top;"></td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+<p><code>Grade = Projects + PSets + max(Final @ 35% + Quizzes @ 15%, Final @ 50%)</code></p>
+<h3>Grade scale</h3>
+<ul>
+<li>
+<p>&ge; 97: A+, &ge; 93: A, &ge; 90: A&minus;</p>
+</li>
+<li>
+<p>&ge; 87: B+, &ge; 83: B, &ge; 80: B&minus;</p>
+</li>
+<li>
+<p>&ge; 77: C+, &ge; 73: C, &ge; 70: C&minus;</p>
+</li>
+<li>
+<p>&ge; 60: D, &lt; 60: F</p>
+</li>
+</ul>
+<p><strong>P/NP:</strong> need at least a <strong>C&minus;</strong> (&ge; 70) to pass.</p>
+<h2>Final Exam</h2>
+<div class="v5-callout v5-callout--danger">
+<p><strong>Exam conflict policy: no rescheduling of the final exam.</strong></p>
+<ul>
+<li>
+<p>OAE accommodations: same day, extended hours, alternate location</p>
+</li>
+<li>
+<p>Verify conflicts before enrolling in CS145</p>
+</li>
+<li>
+<p>For illness or emergencies on exam day, see the "When life gets in the way" section below</p>
+</li>
+</ul>
+</div>
+<h2>When life gets in the way</h2>
+<p>CS145 is a large class, so we have built routine flexibility into the grading. Path 2 above (bet on the final) and the structure of the PSets absorb most weeks of bad luck without paperwork. Use those first.</p>
+<p>For genuine emergencies that go beyond routine misses, please loop in your undergraduate advisor or your physician, and forward us their note or email through Gradescope. We trust their judgment rather than asking you for personal details, and at our class size this is the only way we can respond fairly and quickly to everyone who needs help.</p>
+<p><strong>Incompletes</strong> from a missed final resolve the next time CS145 runs (usually once a year). See <a href="https://advising.stanford.edu/current-students/advising-student-handbook/incompletes">Stanford's Incomplete policy</a> and talk to your undergrad advisor.</p>
+<h2>Accessibility</h2>
+<p>Students with OAE needs are a valued part of Stanford. If you already have an Academic Accommodation Letter, upload it to Gradescope at the earliest opportunity so we can partner with you and <a href="https://oae.stanford.edu">OAE</a> to identify any barriers to access in this course.</p>
+<p>OAE accommodations apply to the final exam (extended time, alternate location, alternate timing) and to deadline accommodations on PSets and projects.</p>
+<p><a id="ai-policy"></a></p>
+<h2>AI Policy: Learn Like You'll Work</h2>
+<p>The policy here is the rule that follows from how the field has changed.</p>
+<div class="v5-callout v5-callout--info">
+<p><strong>The rule. Ship with AI; own the result.</strong></p>
+<ul>
+<li>
+<p><strong>On the projects:</strong> use any AI tool you like, and credit the ones you use. The skill we grade is whether you can verify correctness, fix the semantics, optimize the cost, and defend the design.</p>
+</li>
+<li>
+<p><strong>On the paper test and whiteboard interview:</strong> no AI mode. These measure the part that is now scarce: designing the system and finding the bug with your own understanding.</p>
+</li>
+</ul>
+</div>
+<div class="side-by-side">
+<div><h3>Experiment Freely</h3>
+<p>Use your favorite LLMs (GPT, Claude, Gemini). Try different prompting strategies. Compare their approaches. This is how modern engineers work at startups and big tech alike. Just credit the AI tools you use in your submissions.</p></div><div><h3>Understand Deeply</h3>
+<p>Build real understanding of:</p>
+<ul>
+<li>Query semantics, what the SQL does</li>
+<li>Performance debugging, why queries are slow</li>
+<li>Index strategies, when they help or hurt</li>
+<li>Join algorithms, which one fits your data</li>
+<li>System tradeoffs, memory vs. disk, latency vs. throughput</li>
+</ul></div>
+</div>
+<div class="v5-callout v5-callout--warn">
+<p>Whiteboard interviews and paper tests assess full-stack understanding. Jobs require shipping with AI. Master both modes here.</p>
+</div>
+<h2>Feedback</h2>
+<p><strong>Anonymous course feedback</strong> goes to a short <a href="https://forms.gle/RqoDDTm9D5b5uavf7">Google Form</a>. Use it for pacing, content, what is working, what is not. Nothing is attributed.</p>
+<p><strong>Per-page bugs or typos</strong> are easier to fix when we know which page. Click the small feedback button in the bottom-right corner of any course page and tell us what is wrong. That one is signed in as you so we can follow up.</p>

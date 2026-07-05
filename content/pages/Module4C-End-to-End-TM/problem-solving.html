@@ -1,0 +1,178 @@
+<h1>Problem Solving: The Taylor Swift Ticket Disaster</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A correct transaction manager still falls over under real load. The Taylor Swift Eras Tour sale put fifty thousand fans on one checkout flow at once, and the flow held coarse locks for minutes at a time. Three redesigns fix it: hold locks for less time, lock fewer seats, and fall back to an async queue when blocking is unavoidable. The mechanism is the same one from scheduling and locking; the win is in how the application uses it.</p>
+<p><strong>Intuition.</strong> The old flow locked a whole zone the moment you picked it, then kept that lock while you browsed seats and typed your card. Thousands of seats sat frozen behind one slow user. Lock briefly, lock small, and the same hardware serves a hundred times more fans.</p>
+</div>
+<hr />
+<h2>The Core Problems</h2>
+<p>The Eras Tour sale on Ticketdisaster.com creates massive concurrent load on one checkout flow.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/ticketdisaster-flow.svg"
+     alt="Ticketdisaster.com checkout flow: a neutral Virtual Queue with no lock, then an amber Zone Selection that locks 1000+ seats and starts a 5-minute timer, an amber Seat Browsing step holding the lock, a red Payment Entry with the timer critical, and a red TIMEOUT that releases the lock and kicks the user back to the queue."
+     style="width:100%; max-width:1200px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> The Ticketdisaster.com checkout flow under Eras Tour load. The lock acquires the instant a user picks a zone and stays held through browsing and payment, so one slow user freezes a thousand seats for minutes. The three worst bottlenecks come next.</p>
+</div>
+<p>Three bottlenecks drive the failure:</p>
+<div class="v5-callout">
+<h4>Queue management</h4>
+<p>Fans wait hours in a virtual queue behind thousands of others, with no priority handling or smart routing. The app must show available seats and a live count per event, and serving that read to thousands of concurrent users is itself a bottleneck.</p>
+<h4>Lock contention</h4>
+<p>Zone-level locks block thousands of seats for a single user session. When a fan dislikes the first zone, they retry with another, adding load and stretching lock duration further.</p>
+<h4>Payment blocking</h4>
+<p>The lock stays held through the entire payment process, five to ten minutes per user. Worse, reserved-but-not-purchased seats are uncertain: you cannot cleanly count them as available or taken while payment is pending. That uncertainty is the core problem.</p>
+</div>
+<hr />
+<h2>The Smart Solutions: Ticketsfaster.com</h2>
+<p>Three redesigns scale the same flow to 100x more load. None of them invents a new lock; they change when and how the application takes one.</p>
+<h3>Strategy 1: Higher-Resolution Locking</h3>
+<p>Locking a whole zone blocks everyone else in it. Locking individual seats lets thousands of fans browse different seats at once.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/fix-lock-granularity.svg"
+     alt="Before, red: lock the whole zone, 1,000 seats, 999 fans blocked, about 100 concurrent users. After, green: lock one seat, 0 fans blocked, about 10,000 concurrent users."
+     style="width:100%; max-width:920px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Shrink the lock. A zone lock freezes a thousand seats, so nine hundred ninety-nine other fans wait on one. A seat-level lock blocks nobody else, and about a hundred times more fans browse at once.</p>
+</div>
+<div class="side-by-side">
+<div><div class="v5-callout v5-callout--danger">
+<h4>Before: zone-level locks</h4>
+<p><strong>Lock scope:</strong></p>
+<ul>
+<li>Entire zone: 1,000 seats locked, 999 users blocked</li>
+<li>Section block: 100 seats locked, 99 users blocked</li>
+</ul>
+<p><strong>Problem:</strong> massive lock contention<br>
+<strong>Result:</strong> only ~100 concurrent users<br>
+<strong>Why:</strong> locking 1,000 seats blocks 999 potential buyers</p>
+</div></div><div><div class="v5-callout v5-callout--info">
+<h4>After: seat-level locks</h4>
+<p><strong>Lock scope:</strong></p>
+<ul>
+<li>Individual seat: 1 seat locked, 0 users blocked</li>
+<li>Seat group: 2 to 8 seats locked, 1 to 2 users blocked</li>
+</ul>
+<p><strong>Solution:</strong> minimal lock contention<br>
+<strong>Result:</strong> ~10,000 concurrent users<br>
+<strong>Benefit:</strong> 100x more users browse different seats at once</p>
+</div></div>
+</div>
+<div class="v5-callout">
+<ul>
+<li>
+<p><strong>Lock scope:</strong> 99% reduction, from 1,000 seats to 1 to 8.</p>
+</li>
+<li>
+<p><strong>Wait time:</strong> 95% faster. Almost no blocking.</p>
+</li>
+<li>
+<p><strong>Key insight:</strong> Higher-resolution locks mean lower contention and better throughput.</p>
+</li>
+</ul>
+</div>
+<h3>Strategy 2: Cut Lock Duration</h3>
+<p>The other lever is how long you hold the lock. The slowest step in checkout is a human typing: card number, billing address, the CVV. None of it needs a lock. So collect it all up front, in the queue, before you ever lock a seat, and hold the lock only for the final write.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/fix-lock-duration.svg"
+     alt="Before, red: lock the whole zone and hold it through browsing and payment, 5 to 10 minutes, about 100 concurrent users. After, green: preview and pre-fill while waiting with no lock, then lock only the final write, 30 seconds, about 10,000 concurrent users."
+     style="width:100%; max-width:920px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Cut lock duration. The old flow holds the zone lock through browsing and payment, five to ten minutes, so only about a hundred fans run at once. The fix does the slow steps in the queue with no lock and takes the lock only for the final write, about thirty seconds, so about ten thousand fans run at once.</p>
+</div>
+<div class="side-by-side">
+<div><div class="v5-callout v5-callout--danger">
+<h4>Before: long lock sessions</h4>
+<p><strong>Workflow:</strong></p>
+<ul>
+<li>Enter virtual queue</li>
+<li>Wait for your turn (hours)</li>
+<li>Select a zone, lock the entire zone (1000+ seats)</li>
+<li>Browse seats, 5+ minutes with the lock held</li>
+<li>Enter payment, more time with the lock held</li>
+<li>Complete or time out, then release the lock</li>
+</ul>
+<p><strong>Lock duration:</strong> 5 to 10 minutes<br>
+<strong>Seats blocked:</strong> 1000+ per user<br>
+<strong>Concurrent users:</strong> ~100 max</p>
+</div></div><div><div class="v5-callout v5-callout--info">
+<h4>After: quick lock sessions</h4>
+<p><strong>During the queue (no lock):</strong></p>
+<ul>
+<li>View approximate availability by zone</li>
+<li>Pre-fill card number, billing address, and CVV</li>
+<li>Set tentative zone preferences</li>
+</ul>
+<p><strong>When your turn arrives (minimal lock):</strong></p>
+<ul>
+<li>Select specific seats from the preferred zone</li>
+<li>Lock only chosen seats (1 to 8, not 1000)</li>
+<li>Confirm pre-filled payment (30 seconds)</li>
+<li>Complete the purchase, release the lock immediately</li>
+</ul>
+<p><strong>Lock duration:</strong> 30 seconds<br>
+<strong>Seats blocked:</strong> 1 to 8 per user<br>
+<strong>Concurrent users:</strong> ~10,000 max</p>
+</div></div>
+</div>
+<div class="v5-callout">
+<ul>
+<li>
+<p><strong>Speed:</strong> 90% faster. Lock time drops from minutes to ~30 seconds.</p>
+</li>
+<li>
+<p><strong>Capacity:</strong> 100x more concurrent users (~100 to ~10,000).</p>
+</li>
+<li>
+<p><strong>Key insight:</strong> Move browsing and decision-making outside the critical section.</p>
+</li>
+</ul>
+</div>
+<h3>Strategy 3: Fall Back to an Async Timestamp System</h3>
+<p>When load still overwhelms the locks, drop real-time blocking entirely. Take requests instantly, stamp them, and process them in the background.</p>
+<p><img src="assets/Module4C-End-to-End-TM/svgs/fix-async.svg"
+     alt="Before, red: block in real time, 3-hour queue waits holding locks, about 100 concurrent users. After, green: submit instantly with a timestamp, a background job processes it and emails the confirmation, about 50,000 concurrent users."
+     style="width:100%; max-width:920px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Fall back to async. Instead of blocking in real time, fans submit instantly with a timestamp, a background job processes them in order, and the confirmation arrives by email. The three-hour queue becomes a sixty-second submit.</p>
+</div>
+<div class="side-by-side">
+<div><div class="v5-callout v5-callout--danger">
+<h4>Before: real-time blocking</h4>
+<p><strong>Process:</strong> fans wait hours in virtual queues while holding database locks through browsing and payment. Each transaction blocks seats for 5+ minutes.</p>
+<p><strong>Experience:</strong> 3-hour queue waits<br>
+<strong>Scalability:</strong> ~100 concurrent users<br>
+<strong>Problem:</strong> synchronous processing creates massive bottlenecks</p>
+</div></div><div><div class="v5-callout v5-callout--info">
+<h4>After: async confirmation</h4>
+<p><strong>Process:</strong> fans submit ticket requests instantly with timestamps. Background systems process requests in order and email confirmations within 60 minutes. No blocking waits.</p>
+<p><strong>Experience:</strong> 60-minute confirmations<br>
+<strong>Scalability:</strong> ~50,000 concurrent users<br>
+<strong>Benefit:</strong> fans submit instantly and get confirmation by email</p>
+</div></div>
+</div>
+<div class="v5-callout">
+<ul>
+<li>
+<p><strong>Response time:</strong> 99% faster. Submission in 60 seconds vs. a 3-hour queue wait.</p>
+</li>
+<li>
+<p><strong>Scalability:</strong> 500x more concurrent users (~100 to ~50,000).</p>
+</li>
+<li>
+<p><strong>Key insight:</strong> When blocking is unavoidable, make waits predictable and transparent.</p>
+</li>
+</ul>
+</div>
+<hr />
+<h2>Key Takeaways</h2>
+<div class="v5-callout">
+<p>Three moves generalize from Ticketsfaster to any high-contention system (inventory, seat reservations, limited drops, payments):</p>
+<ul>
+<li>
+<p><strong>Shrink lock granularity.</strong> Lock the seat, not the zone: the smallest scope that stays correct.</p>
+</li>
+<li>
+<p><strong>Shorten lock duration.</strong> A human typing card and address is the slow part, and none of it needs the lock. Pre-fill it up front, then take the lock only for the final write.</p>
+</li>
+<li>
+<p><strong>Fall back to async when contention is unavoidable.</strong> A timestamp queue beats real-time locking; make the wait predictable and transparent.</p>
+</li>
+</ul>
+</div>

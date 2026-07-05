@@ -1,0 +1,125 @@
+<h1>Distributed Sort &amp; Hash</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Distributed sort and hash are the two foundational data-movement primitives in a cluster: <em>hash partitioning</em> routes every row with the same key to the same machine (so joins and group-bys can run locally), and <em>distributed sort</em> orders the rows on each machine so per-key reductions can stream.</p>
+<p><strong>Intuition.</strong> When Spotify wants to count "lifetime listens per user" across a year of play logs, hash-partitioning by <code>user_id</code> sends every event for Mickey to the same node, every event for Minnie to another, so each node can sort its own subset and emit <code>(user_id, count)</code> pairs without ever talking to peers about other users.</p>
+</div>
+<h2>Distributed Sort: One Total Order Across Machines</h2>
+<p>The first primitive puts the <em>entire</em> dataset in order across the cluster, in three passes: each machine sorts locally, the cluster samples split points, and rows redistribute so the machines line up end to end.</p>
+<p><a id="distributed-sort-figure"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/distributed-sort.svg" alt="Three machines sort a dataset in three phases: each node sorts its own partition, the cluster samples two split points that cut the value range into thirds, then rows redistribute so node one holds the lowest third, node two the middle, node three the highest, a total order across the cluster." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Distributed sort in three phases. Each node first sorts its own partition locally. The cluster then samples the data to pick split points that divide the value range into equal pieces (here ≤3, 4 to 6, ≥7). Finally rows redistribute so each node owns one contiguous range, and reading the nodes in order gives a single total sort. Sampling is what keeps each node's share balanced even when the data is skewed.</p>
+</div>
+<hr />
+<h2>Hash Partitioning: Foundation of Distribution</h2>
+<h3>The Core Problem</h3>
+<p>When your dataset outgrows RAM, you split it across machines. Hash partitioning keeps related data together: it sends every row for one key to one machine, so a user's events never scatter between Ohio and Tokyo.</p>
+<h3>The Payoff: a Distributed Join</h3>
+<p>The point of keeping a key's rows together is that a <strong>join</strong> can then run locally. Hash <em>both</em> tables on the join key (here <code>user_id</code>), and every row for a given <code>user_id</code>, from either table, lands on the same machine. Each machine joins only its own slice, and the parts union into the full result.</p>
+<p><a id="distributed-hash-join-figure"></a></p>
+<p><img src="assets/Module5-Distributed/svgs/distributed-hash-join.svg" alt="Two tables, Listens and Users, are each hashed on the join key user_id, so all rows for user_id 7 land on machine one, 42 on machine two, 88 on machine three; each machine joins its own slice on user_id and the parts union into the full join, with no coordinator." style="width:100%; max-width:1120px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> A distributed hash join. Both tables are hashed on the join key <code>user_id</code>, so every row for one <code>user_id</code>, from either table, is routed to the same machine (the colour is the key value: 7 blue, 42 orange, 88 purple). Each machine joins only the rows it holds, then the partial results union into the full join. No machine compares its rows against another machine's, so throughput scales with the cluster.</p>
+</div>
+<hr />
+<h2>Consistent Hashing</h2>
+<h3>The Problem: Adding/Removing Machines</h3>
+<p>Standard hashing (<code>machine = hash(key) % N</code>) reshuffles almost everything when you change the machine count:</p>
+<ul>
+<li>
+<p>From 3 to 4 machines: about 75% of data moves.</p>
+</li>
+<li>
+<p>From 100 to 101 machines: about 99% of data moves.</p>
+</li>
+</ul>
+<h3>The Hash Ring</h3>
+<p>Replace modulo with a ring:</p>
+<ol>
+<li>
+<p><strong>Create a ring</strong>: Numbers 0 to 2³²-1 form a circle.</p>
+</li>
+<li>
+<p><strong>Place machines on the ring</strong>: <code>hash(machine_id)</code> determines their spot.</p>
+</li>
+<li>
+<p><strong>Place keys on the ring</strong>: <code>hash(key)</code> finds their position.</p>
+</li>
+<li>
+<p><strong>Key ownership rule</strong>: Move clockwise from a key until you hit a machine, that's its home.</p>
+</li>
+</ol>
+<p><a id="consistent-hashing-figure"></a></p>
+<!-- Consistent Hashing Ring Visualization -->
+<div style="width: 100%; max-width: 900px; margin: 2rem auto">
+<p><img src="assets/Module5-Distributed/svgs/consistent-hashing-ring.svg" alt="A ring over 0 to 2^32 minus 1 with three grey nodes A, B, C and three grey key dots at hashed positions; from each key a pink arrow walks clockwise to the first node it meets, the node that owns it" style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Consistent hashing places both keys and machines on a ring over <code>0</code> to <code>2³²−1</code>; each key belongs to the first node clockwise from it. A new node steals only the keys between it and its predecessor, about <code>1/N</code> of them, so the cluster grows without the near-total reshuffle <code>hash % N</code> forces. DynamoDB, Cassandra, memcached pools, and CDN load balancers all run on this.</p>
+</div>
+<hr />
+<h2>Key Takeaways</h2>
+<h3>1. Hash Partitioning</h3>
+<p><strong>The backbone of distributed processing</strong></p>
+<ul>
+<li>
+<p>Keeps all rows with the same key on one machine.</p>
+</li>
+<li>
+<p>Runs joins and group-bys in parallel without cross-talk.</p>
+</li>
+<li>
+<p>Cost: 2N IOs (one read, one write).</p>
+</li>
+<li>
+<p>Scales to hundreds of machines.</p>
+</li>
+</ul>
+<h3>2. Distributed Hash Joins</h3>
+<p><strong>Scaling joins</strong></p>
+<ul>
+<li>
+<p>Route both tables by the join key.</p>
+</li>
+<li>
+<p>Each machine joins its local partition.</p>
+</li>
+<li>
+<p>Union the local results for the full join.</p>
+</li>
+<li>
+<p>More machines give linear speedup.</p>
+</li>
+</ul>
+<h3>3. Consistent Hashing</h3>
+<p><strong>Scaling without a full reshuffle</strong></p>
+<ul>
+<li>
+<p>Maps keys and nodes to a ring instead of modulo.</p>
+</li>
+<li>
+<p>Adding a node only touches its immediate neighbors.</p>
+</li>
+<li>
+<p>On average only K/N keys move, versus K keys with standard hashing.</p>
+</li>
+<li>
+<p>Used by Cassandra, DynamoDB, Memcached.</p>
+</li>
+</ul>
+<h3>4. Distributed Sort (BigSort)</h3>
+<p><strong>Total order across the cluster</strong></p>
+<ul>
+<li>
+<p>Phase 1: each machine sorts its own partition.</p>
+</li>
+<li>
+<p>Phase 2: sample the data to pick global split points.</p>
+</li>
+<li>
+<p>Phase 3: redistribute by split point and finalize.</p>
+</li>
+<li>
+<p>The result is a total order across the cluster.</p>
+</li>
+</ul>

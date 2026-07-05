@@ -1,0 +1,94 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.084
+Sixty-four gigabytes to sort.
+
+00:00:05.084 --> 00:00:08.167
+Six point four gigabytes of RAM.
+
+00:00:08.167 --> 00:00:11.251
+Quicksort wants the whole table in memory at once, so Quicksort is dead.
+
+00:00:11.251 --> 00:00:14.334
+The same divide and conquer trick that broke a table into chunks now sorts it.
+
+00:00:14.334 --> 00:00:17.418
+Watch it run at scale.
+
+00:00:17.418 --> 00:00:22.141
+Here is the whole algorithm as a memory model.
+
+00:00:22.141 --> 00:00:26.864
+Each little tile is one page, shaded by its sort key.
+
+00:00:26.864 --> 00:00:31.587
+Light means a small value, dark means a large one.
+
+00:00:31.587 --> 00:00:36.310
+Start with the unsorted file on disk, just scattered shades with no order.
+
+00:00:36.310 --> 00:00:41.032
+RAM holds only four pages at a time.
+
+00:00:41.032 --> 00:00:45.755
+Phase one reads four pages into memory, quicksorts them in place until they run light to dark, then writes that sorted run back to disk.
+
+00:00:45.755 --> 00:00:50.478
+Repeat across the file and you get a handful of sorted runs.
+
+00:00:50.478 --> 00:00:55.201
+Phase two reads the head of each run into memory, the smallest value still waiting in each, and emits the smallest of those, over and over.
+
+00:00:55.201 --> 00:00:59.924
+The runs merge into one fully sorted file.
+
+00:00:59.924 --> 00:01:04.647
+We never held more than a few pages in RAM at once.
+
+00:01:04.647 --> 00:01:08.037
+And in code, three beats.
+
+00:01:08.037 --> 00:01:11.427
+Split the file into RAM-sized chunks, sort each into a run, then merge the runs down to one.
+
+00:01:11.427 --> 00:01:14.817
+Divide and conquer.
+
+00:01:14.817 --> 00:01:20.257
+Here is the cost, and the headline is that it is logarithmic, not linear.
+
+00:01:20.257 --> 00:01:25.697
+Each pass reeds and writes every page, so two N per pass.
+
+00:01:25.697 --> 00:01:31.137
+What grows is the number of passes.
+
+00:01:31.137 --> 00:01:36.578
+Phase one builds the runs, then each merge pass folds about B runs into one, so the passes grow with the log of the data.
+
+00:01:36.578 --> 00:01:42.018
+Small data takes two passes, about four N, but that four N is the easy case, not the rule.
+
+00:01:42.018 --> 00:01:47.458
+Bigger data takes more passes.
+
+00:01:47.458 --> 00:01:52.898
+So BigSort is two N times a logarithmic number of passes, never a flat multiple of N.
+
+00:01:52.898 --> 00:01:56.466
+Divide and conquer.
+
+00:01:56.466 --> 00:02:00.034
+Split a large sort into small sorts, then merge.
+
+00:02:00.034 --> 00:02:03.602
+You can sort terabytes with gigabytes of RAM, and the cost grows only with the log of the data size.
+
+00:02:03.602 --> 00:02:07.171
+This is how Postgres, BigQuery, and Spark handle ORDER BY.
+
+00:02:07.171 --> 00:02:10.739
+Next, the first algorithm that joins two big tables.
+
+00:02:10.739 --> 00:02:14.307
+Block nested loop.

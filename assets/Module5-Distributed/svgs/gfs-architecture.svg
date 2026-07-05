@@ -1,0 +1,61 @@
+<svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="gfs-t gfs-d">
+  <title id="gfs-t">GFS: a leader directory over cheap chunk servers</title>
+  <desc id="gfs-d">A client, a leader, and three chunk servers. The leader keeps an in-memory
+  directory mapping each file to its ordered chunks and each chunk to the servers holding a
+  replica. To read, the client first asks the leader for a chunk's replica locations, the
+  leader replies with the chunk handle and server list, then the client reads the chunk
+  directly from a chunk server. Every chunk is stored as three replicas on different servers,
+  shown by chunk C7 appearing on all three. Color key: pink is the leader's reply and the
+  replicated chunk, grey is the nodes and messages.</desc>
+
+  <defs><marker id="ah-gfs" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+    <marker id="ah-gfsp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#DB2777"/></marker></defs>
+
+  <text x="450" y="32" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Google File System</text>
+  <text x="450" y="56" text-anchor="middle" font-size="14" fill="#6B7280">One leader directs reads; cheap chunk servers hold replicated 64 MB chunks.</text>
+
+  <!-- architecture -->
+  <g data-step="1">
+    <rect x="40" y="100" width="140" height="60" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="110" y="135" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Client</text>
+
+    <rect x="520" y="92" width="340" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="690" y="116" text-anchor="middle" font-size="15" font-weight="700" fill="#0E0E10">Leader</text>
+    <text x="690" y="136" text-anchor="middle" font-size="13" fill="#6B7280">in-memory directory</text>
+    <text x="690" y="155" text-anchor="middle" font-size="13" fill="#3F3F46">file → chunk list · chunk → replica servers</text>
+
+    <rect x="40"  y="312" width="250" height="84" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="165" y="334" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Chunk Server 1</text>
+    <rect x="325" y="312" width="250" height="84" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="450" y="334" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Chunk Server 2</text>
+    <rect x="610" y="312" width="250" height="84" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <text x="735" y="334" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Chunk Server 3</text>
+
+    <rect x="62"  y="350" width="48" height="30" rx="4" fill="#FFFFFF" stroke="#6B7280" stroke-width="1"/><text x="86"  y="370" text-anchor="middle" font-size="12" fill="#3F3F46">C3</text>
+    <rect x="347" y="350" width="48" height="30" rx="4" fill="#FFFFFF" stroke="#6B7280" stroke-width="1"/><text x="371" y="370" text-anchor="middle" font-size="12" fill="#3F3F46">C9</text>
+    <rect x="632" y="350" width="48" height="30" rx="4" fill="#FFFFFF" stroke="#6B7280" stroke-width="1"/><text x="656" y="370" text-anchor="middle" font-size="12" fill="#3F3F46">C1</text>
+  </g>
+
+  <!-- lookup -->
+  <g data-step="2">
+    <line x1="182" y1="118" x2="518" y2="118" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-gfs)"/>
+    <text x="350" y="110" text-anchor="middle" font-size="12.5" fill="#6B7280">1 · (file, byte offset)</text>
+    <line x1="518" y1="146" x2="182" y2="146" stroke="#DB2777" stroke-width="2.5" marker-end="url(#ah-gfsp)"/>
+    <text x="350" y="164" text-anchor="middle" font-size="12.5" font-weight="700" fill="#DB2777">2 · chunk handle + replica servers</text>
+  </g>
+
+  <!-- direct read + replication -->
+  <g data-step="3">
+    <line x1="110" y1="162" x2="150" y2="310" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-gfs)"/>
+    <text x="60" y="250" font-size="12.5" fill="#6B7280">3 · read</text>
+    <text x="60" y="266" font-size="12.5" fill="#6B7280">directly</text>
+    <rect x="118" y="350" width="48" height="30" rx="4" fill="#FFFFFF" stroke="#DB2777" stroke-width="2"/><text x="142" y="370" text-anchor="middle" font-size="12" font-weight="700" fill="#0E0E10">C7</text>
+    <rect x="403" y="350" width="48" height="30" rx="4" fill="#FFFFFF" stroke="#DB2777" stroke-width="2"/><text x="427" y="370" text-anchor="middle" font-size="12" font-weight="700" fill="#0E0E10">C7</text>
+    <rect x="688" y="350" width="48" height="30" rx="4" fill="#FFFFFF" stroke="#DB2777" stroke-width="2"/><text x="712" y="370" text-anchor="middle" font-size="12" font-weight="700" fill="#0E0E10">C7</text>
+    <text x="450" y="304" text-anchor="middle" font-size="13" font-weight="700" fill="#DB2777">Every chunk = 3 replicas on different servers (chunk C7 shown on all three)</text>
+  </g>
+
+  <text x="450" y="418" text-anchor="middle" font-size="13"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the leader's reply &amp; the replicated chunk&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = nodes &amp; messages</tspan></text>
+</svg>

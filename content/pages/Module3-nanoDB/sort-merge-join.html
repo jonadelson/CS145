@@ -1,0 +1,49 @@
+<h1>Sort-Merge Join: When Order Matters</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Sort-merge join sorts both tables on the join key, then walks them in lockstep, emitting matching rows wherever the keys agree.</p>
+<p><strong>Intuition.</strong> When you need to join Users to Listens by <code>user_id</code> and one or both is already sorted (or you have to sort anyway), sort both, then walk them like merging two sorted lists. Mickey's Users row meets Mickey's Listens rows at the same point in the walk.</p>
+</div>
+<h2>The Sort-Merge Join Algorithm</h2>
+<p>Sort both tables on the join key with BigSort, then walk them in lockstep with two pointers, matching as you go.</p>
+<p><a id="smj-figure"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/smj-algorithm.svg" alt="Sort-Merge Join: after Phase 1 BigSort, both R and S are sorted on the join key. Phase 2 walks both tables in one pass with two pointers, emitting matched groups as it goes." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Sort-Merge Join, <code>R ⋈ S</code> on <code>user_id</code> (Phase 2 shown). Phase 1 (not shown) BigSorts both <code>R</code> and <code>S</code> on the join key (see the <a href="#/page/Module3-nanoDB/big-sort">big sort</a> page); Phase 2 walks the two sorted runs with two pointers, emitting every pair in a matching key group and advancing the smaller side otherwise, here <code>user_id</code> 7 → 2, 13 → 2, 42 → 3, 99 → 1, total 8 rows. A key on one side only emits nothing (inner join); a key with m matches on one side and n on the other emits the m × n cross-product for that group. The output comes out already sorted on the join key, so a following operator that wants order pays no extra sort. Best case is <code>P(R) + P(S) + OUT</code> for a single linear pass per run (plus the two Phase-1 BigSort costs); the worst case is <code>O(P(R) × P(S)) + OUT</code> when one key dominates and the merge degenerates into a per-key cross-product, and <code>OUT</code> itself can dominate when match rates are high.</p>
+</div>
+<p><a id="smj-pseudocode"></a></p>
+<div class="algo">
+<p class="algo-head">Algorithm · Sort-Merge Join</p>
+<pre class="algo-code">
+<span class="sig">SortMergeJoin(T1, T2, key):</span>           <span class="cmt">// assume |T1| &lt; |T2|</span>
+
+    <span class="cmt phase">Phase 1: Sort both tables on the join key</span>
+    S1 = BigSort(T1, key)
+    S2 = BigSort(T2, key)
+
+    <span class="cmt phase">Phase 2: Walk both runs in lockstep</span>
+    i = 0, j = 0
+    while i &lt; |S1| and j &lt; |S2|:
+        if S1[i].key &lt; S2[j].key: i++
+        elif S1[i].key &gt; S2[j].key: j++
+        else:                          <span class="cmt">// keys match</span>
+            output all pairs (S1[i..i'], S2[j..j'])
+            where S1[i..i'].key = S2[j..j'].key
+            i = i'+1, j = j'+1
+</pre>
+</div>
+<hr />
+<h2>Multi-Table Sort-Merge Joins</h2>
+<h3>Three-Way Join: Users, Listens, Songs</h3>
+<h3>Sequential Approach</h3>
+<div class="algo">
+<p class="algo-head">Algorithm · Three-Way Join</p>
+<pre class="algo-code">
+<span class="sig">ThreeWayJoin(U, L, S):</span>              <span class="cmt">// assume |U| &lt; |L| &lt; |S|</span>
+    temp   = SMJ(U, L, 'user_id')   <span class="cmt">// U ⋈ L</span>
+    result = SMJ(temp, S, 'song_id')   <span class="cmt">// temp ⋈ S</span>
+    return result
+</pre>
+</div>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/io-algorithms">IO Cost Summary →</a></strong> The reference equations for every algorithm in this module, applied to concrete Spotify-scale scenarios.</p>

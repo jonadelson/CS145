@@ -1,0 +1,144 @@
+<h1>Writing Debug Tables: Hand-Tracing a Query</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Debug tables, also called handtraces, validate a query's logic by walking the input rows through each clause and writing down what survives at each step. They expose semantic errors that syntax-checking tools miss.</p>
+<p><strong>Intuition.</strong> When an LLM claims a query groups Listens into 4 user-genre pairs but a trace shows 3, build a debug table. List the 9 Listens rows, then for each clause (FROM, WHERE, GROUP BY, HAVING) cross out the rows that drop. The surviving rows are the real answer.</p>
+</div>
+<h2>Why This Matters</h2>
+<div style="width:100%;max-width:1100px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/why-debug.svg" style="width:100%;height:auto;display:block;" alt="Three reasons to hand-trace: LLMs are 95%+ correct on syntax but only 16-82% on semantics (BIRD), so a query can parse and still be wrong; interviews ask whether a query is correct; and a 5-minute trace beats a 30-minute re-prompt loop."></p>
+</div>
+<div style="display: flex; gap: 1rem; margin: 2rem 0;">
+<div style="flex: 1; background: #ECF1FE; border-radius: 12px; padding: 1.5rem; border-top: 4px solid #60A5FA;">
+<h3 style="margin-top: 0;">LLMs and Semantics</h3>
+<ul style="margin: 0.5rem 0;">
+<li><strong>Syntax: 95%+ accurate</strong> 
+<li><strong>Semantics: 16-82% accurate</strong> per <a href="https://bird-bench.github.io">BIRD benchmarks</a>
+<li>See <a href="#/page/Module1B-Intermediate-SQL/llm-debug">LLMs and SQL</a>
+</li>
+</li>
+</li>
+</ul>
+</div>
+<div style="flex: 1; background: #FEF7E6; border-radius: 12px; padding: 1.5rem; border-top: 4px solid #D97706;">
+<h3 style="margin-top: 0;">Whiteboard Interviews and Tests</h3>
+<ul style="margin: 0.5rem 0;">
+<li>Filter out expensive LLM cut-and-pasters
+<li>"Is this query correct?" - common question
+<li>Logic, not memorized syntax, is what is tested
+<li>See <a href="#/page/Module1B-Intermediate-SQL/learning-outcomes">Learning Outcomes</a>
+</li>
+</li>
+</li>
+</li>
+</ul>
+</div>
+<div style="flex: 1; background: #ECF1FE; border-radius: 12px; padding: 1.5rem; border-top: 4px solid #16a34a;">
+<h3 style="margin-top: 0;">Faster</h3>
+<ul style="margin: 0.5rem 0;">
+<li>Avoid reprompting loop: <strong>30 minutes</strong>
+<li>Drawing one debug table: <strong>5 minutes</strong>
+<li>Catch the bug on the first pass
+</li>
+</li>
+</li>
+</ul>
+</div>
+</div>
+<hr />
+<h2>Example 1: Users' Genres with 2+ Songs</h2>
+<p><strong>The query under test.</strong> An L L M wrote this and claims it returns 4 user-genre pairs. We hand-trace to verify.</p>
+<p><a id="example-query"></a></p>
+<div style="width:100%;max-width:1200px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/debug-trace.svg" style="width:100%;height:auto;display:block;" alt="The query under test, then three trace tables side by side: FROM + JOIN gives 9 rows, GROUP BY makes 6 user-genre groups, and HAVING COUNT(*) >= 2 keeps 3 (Mickey-Pop, Minnie-Classic, Daffy-Pop), with the other 3 struck out. The answer is 3 pairs, not the 4 claimed."&gt;</p>
+</div>
+<p>The figure walks all three clauses. Below is the full joined working set the trace starts from, showing exactly which songs each user listened to (the figure abbreviates each row to user, genre, rating):</p>
+<p><a id="example-step1"></a></p>
+<p><strong>FROM + JOIN</strong> · 9 rows, every listen with its song's genre</p>
+<table>
+<thead>
+<tr><th class="color-bar"></th><th>user_id</th><th>name</th><th>song_id</th><th>genre</th><th>rating</th></tr>
+</thead>
+<tbody>
+<tr><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>1</td><td>Pop</td><td>4.5</td></tr><tr><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>2</td><td>Pop</td><td>4.2</td></tr><tr><td class="color-bar blue"></td><td>1</td><td>Mickey</td><td>6</td><td>Classic</td><td>3.9</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>2</td><td>Pop</td><td>4.7</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>7</td><td>Classic</td><td>4.6</td></tr><tr><td class="color-bar orange"></td><td>2</td><td>Minnie</td><td>8</td><td>Classic</td><td>3.9</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>1</td><td>Pop</td><td>2.9</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>2</td><td>Pop</td><td>4.9</td></tr><tr><td class="color-bar purple"></td><td>3</td><td>Daffy</td><td>6</td><td>Classic</td><td><span class="null-value">NULL</span></td></tr>
+</tbody>
+</table>
+<hr />
+<h2>Shortcuts for Big Data</h2>
+<h3>Nobody Traces 100,000 Rows</h3>
+<p>You never trace every row. You trace the rows that matter and approximate the rest. The shorthand below keeps a hand-trace honest without drowning in data.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Full Trace</th>
+<th>Shorthand</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1000 rows after JOIN</td>
+<td>Show all 1000</td>
+<td>"First 3... middle ties... last 2"</td>
+</tr>
+<tr>
+<td>GROUP BY with counts</td>
+<td>List every row</td>
+<td>"Rock: ~500, Pop: ~300"</td>
+</tr>
+<tr>
+<td>Window function ranks</td>
+<td>Show all ranks</td>
+<td>"Top 3, any ties, bottom 2"</td>
+</tr>
+<tr>
+<td>Complex aggregation</td>
+<td>Calculate exactly</td>
+<td>"AVG ≈ 4.2" (close enough!)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Quick Verification Checklist</h2>
+<div style="width:100%;max-width:1100px;margin:1.5rem auto;">
+<p><img src="assets/Module1B-Intermediate-SQL/svgs/debug-checklist.svg" style="width:100%;height:auto;display:block;" alt="A five-point checklist for every trace: JOINs (expected row count, INNER vs LEFT vs OUTER), NULLs (IS NULL not = NULL, NOT IN guarded), Groups (right granularity), Aggregates (COUNT(*) vs COUNT(column)), and Windows (RANK vs ROW_NUMBER vs DENSE_RANK on ties)."></p>
+</div>
+<ul style="margin: 0.5rem 0;">
+<li> JOINs: Expected row count? (not accidentally cartesian? INNER? LEFT? OUTER?)
+<li> NULLs: Handled correctly? (IS NULL vs = NULL?)
+<li> Groups: Right granularity? (user vs user+genre?)
+<li> Aggregates: Makes sense? (COUNT(*) vs COUNT(column)?)
+<li> Windows: Partitions correct? (RANK vs ROW_NUMBER?)
+</ul>
+
+<hr />
+<h2>Remember: It's YOUR Tool</h2>
+<ul style="margin: 0.5rem 0;">
+<li><strong>A correctness check: skip the obvious parts, focus on the confusing bits.</strong></li>
+<li><strong>Like multiplication tables in school</strong> - use them often early to build intuition</li>
+<li><strong>You'll naturally start skipping easy steps</strong> as your SQL brain develops</li>
+<li><strong>Use simple conventions</strong> that interviewers and graders can follow (for partial credit!)</li>
+<li><strong>Approximate liberally</strong> - "~500 rows" is perfectly fine</li>
+</ul>
+
+<h3>For Interviews, PSETs, Tests</h3>
+<div class="side-by-side">
+<div><div class="v5-callout v5-callout--danger">
+<p><strong>Cryptic hieroglyphs.</strong></p>
+<pre style="font-size:1.1rem; line-height:1.8; margin:0; background:none; border:0; padding:0;">
+𓀀 → 𓂋 𓊖 = 2 𓆣
+𓁶 → 𓂋 𓄿 = 1 ✗
+𓅱 → 𓂋 𓊖 = 2 𓆣
+∴ 𓆣 = {𓀀𓊖, 𓅱𓊖}
+</pre>
+<p>"Trust me, 𓀀 means Mickey and 𓆣 means keep..."</p>
+</div></div><div><div class="v5-callout v5-callout--info">
+<p><strong>Clear convention.</strong></p>
+<pre style="font-size:0.9rem; line-height:1.6; margin:0; background:none; border:0; padding:0;">
+User 1, Pop: 2 songs → Keep ✓
+User 2, Pop: 1 song → Filter ✗
+User 3, Pop: 2 songs → Keep ✓
+Final: {(1,Pop,2), (3,Pop,2)}
+</pre>
+<p>Interviewer: "I can follow this!" (+partial credit)</p>
+</div></div>
+</div>

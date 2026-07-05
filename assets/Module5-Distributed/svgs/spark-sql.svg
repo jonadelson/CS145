@@ -1,0 +1,53 @@
+<svg viewBox="0 0 1100 470" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="ssql-t ssql-d">
+  <title id="ssql-t">Spark SQL: the same SQL text, executed distributed</title>
+  <desc id="ssql-d">The top box holds the Spotify genre-by-week analytics
+  query, a join across listens and songs, identical text to single-node
+  SQL. The lower-left grey box lists Catalyst's execution plan:
+  broadcast the smaller songs table to every node, join it locally
+  against each listens partition, group by genre and week, count distinct users.
+  The lower-right pink box is the payoff: PostgreSQL on one machine takes
+  about 2 hours for 1 TB, spilling to disk on a single node, while Spark
+  on 100 machines finishes in about 3 minutes and scales linearly. Color key:
+  pink is the distributed-scale payoff; grey is the query and
+  the execution plan.</desc>
+
+  <text x="550" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Spark SQL: same syntax, distributed scale</text>
+  <text x="550" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Catalyst compiles the same SQL text into distributed RDD operations.</text>
+
+  <!-- Query box -->
+  <g data-step="1">
+  <rect x="40" y="78" width="1020" height="170" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="60" y="104" font-size="15" font-weight="700" fill="#0E0E10">Spotify analytics query (same text as the OLAP section)</text>
+  <text x="60" y="132" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">SELECT</text>
+  <text x="80" y="154" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">s.genre,</text>
+  <text x="80" y="176" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">DATE_TRUNC('week', l.listen_time) AS week,</text>
+  <text x="80" y="198" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">COUNT(DISTINCT l.user_id) AS unique_listeners</text>
+  <text x="60" y="220" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">FROM</text>
+  <text x="80" y="242" font-family="JetBrains Mono, monospace" font-size="14" fill="#3F3F46">listens l JOIN songs s ON l.song_id = s.song_id</text>
+  </g>
+
+  <!-- Execution plan (grey) -->
+  <g data-step="2">
+  <rect x="40" y="270" width="510" height="166" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="295" y="296" text-anchor="middle" font-size="16" font-weight="700" fill="#0E0E10">Catalyst execution plan</text>
+  <text x="60" y="334" font-size="14" fill="#3F3F46">1. Broadcast the small songs table to all nodes</text>
+  <text x="60" y="362" font-size="14" fill="#3F3F46">2. Join locally on each listens partition</text>
+  <text x="60" y="390" font-size="14" fill="#3F3F46">3. Group by genre and week</text>
+  <text x="60" y="418" font-size="14" fill="#3F3F46">4. Count distinct users per group</text>
+  </g>
+
+  <!-- Performance (pink) -->
+  <g data-step="3">
+  <rect x="570" y="270" width="490" height="166" rx="8" fill="#FBE3EE" stroke="#DB2777" stroke-width="2"/>
+  <rect x="570" y="270" width="490" height="6" rx="3" fill="#DB2777"/>
+  <text x="815" y="298" text-anchor="middle" font-size="16" font-weight="700" fill="#DB2777">Same query, two systems</text>
+  <text x="590" y="326" font-size="14" font-weight="700" fill="#0E0E10">PostgreSQL (one machine):</text>
+  <text x="610" y="348" font-size="14" fill="#3F3F46">~2 hours for 1 TB · disk-bound on one node</text>
+  <text x="590" y="378" font-size="14" font-weight="700" fill="#0E0E10">Spark (100 machines):</text>
+  <text x="610" y="400" font-size="14" fill="#3F3F46">~3 minutes for 1 TB · scales linearly</text>
+  </g>
+
+  <text x="550" y="458" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the distributed-scale payoff&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the query and the execution plan</tspan></text>
+</svg>

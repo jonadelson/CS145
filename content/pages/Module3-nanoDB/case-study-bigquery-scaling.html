@@ -1,0 +1,124 @@
+<h1>Case Study 3.1: BigQuery, From Web Crawl to Petabyte Analytics</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> BigQuery scales to trillions of rows by storing data in columnar format and decoupling storage from compute, so queries spin up thousands of workers on demand and only read the columns they touch.</p>
+<p><strong>Intuition.</strong> When Spotify queries a 100-billion-row Listens table for "average rating per genre," BigQuery reads only the <code>rating</code> and <code>genre</code> columns, skipping <code>user_id</code>, <code>listen_time</code>, and <code>song_id</code>. Then it parallelizes the scan across thousands of workers that exist only for the seconds the query runs.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 3.1</span>
+<span>Reading Time: 8 mins</span></p>
+</div>
+<p><a id="bigquery-hero"></a></p>
+<p><img src="assets/Module3-nanoDB/svgs/bigquery-columnar-tree.svg"
+     alt="BigQuery answers a query over trillions of rows: columnar storage reads only the rating and genre columns (green) and skips user_id, song_id, listen_time (grey); thousands of on-demand leaf workers each scan a column slice and their results bubble up a tree to a root that aggregates the answer."
+     style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> How BigQuery answers a query over trillions of rows. Storage is columnar: a query for average rating per genre reads only the rating and genre column files (green) and skips user_id, song_id, and listen_time (grey). Thousands of leaf workers, spun up only while the query runs, each scan a slice of those columns, and their partial results bubble up a tree to a root that aggregates the answer. Storage and compute are decoupled, so what took hours on row storage finishes in seconds.</p>
+</div>
+<h2>The Origin: An Engineer's Foosball Problem</h2>
+<p>In 2005, <strong>Andrey Gubarev</strong>, a Google engineer, faced an annoyance. He needed insights from Google's web datasets, but the existing infrastructure was sluggish. Queries dragged on for hours, eating into his foosball time. Frustrated, he dug into the bottlenecks. That investigation laid the groundwork for <strong>Dremel</strong>, the system that would later ship as <strong>BigQuery</strong> and change large-scale data analysis.</p>
+<h2>The Bottleneck: Row Storage on Web Documents</h2>
+<p>Google's web document storage held data points like:</p>
+<ul>
+<li>
+<p>URL</p>
+</li>
+<li>
+<p>Title</p>
+</li>
+<li>
+<p>Date</p>
+</li>
+<li>
+<p>Keywords</p>
+</li>
+<li>
+<p><strong>Body (HTML).</strong> The heavyweight, often megabytes per row.</p>
+</li>
+</ul>
+<p>In a row-based system, querying trends by <strong>Date</strong> required processing the entire row, including the bulky HTML body, even though only one tiny field was needed. Fetching a few bytes (Date) involved dragging along megabytes (Body) per record. At Google scale, that was hours of wasted I/O.</p>
+<h2>The Solution: Columnar Storage via Dremel</h2>
+<p>Dremel flipped the layout. Store all <strong>URL</strong> values together, all <strong>Date</strong> values together, all <strong>Body</strong> values together, each column on its own pages.</p>
+<ol>
+<li>
+<p><strong>Targeted reads.</strong> Query by Date? Only the Date column is touched. The HTML Body is never read.</p>
+</li>
+<li>
+<p><strong>Better compression.</strong> A column of dates compresses far better than a row of mixed types, because uniform data has uniform patterns.</p>
+</li>
+<li>
+<p><strong>Tree-based parallel execution.</strong> A query is split across thousands of leaf workers; each scans a slice of one column; results bubble up the tree.</p>
+</li>
+</ol>
+<p>The result: queries that took hours on row storage finished in seconds.</p>
+<h2>Real Numbers: A Spotify-Scale Query</h2>
+<pre><code><span class="sql-comment">-- Analytics across 5 billion music listens</span>
+<span class="sql-keyword">SELECT</span> genre, <span class="sql-keyword">AVG</span>(rating) <span class="sql-keyword">AS</span> avg_rating
+<span class="sql-keyword">FROM</span> spotify.listens_1tb       <span class="sql-comment">-- 1 TB table, 20 columns</span>
+<span class="sql-keyword">GROUP BY</span> genre
+<span class="sql-keyword">ORDER BY</span> avg_rating DESC;
+</code></pre>
+<p>The query touches only <strong>2 of 20 columns</strong> (<code>rating</code>, <code>genre</code>). On row storage every byte is read; on BigQuery only the relevant columns are scanned, then compressed:</p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Bytes read</th>
+<th>Time</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Row storage</strong> (full table scan, all 20 columns)</td>
+<td>1 TB</td>
+<td>10+ minutes</td>
+<td>baseline</td>
+</tr>
+<tr>
+<td><strong>BigQuery</strong> (2 columns, compressed, distributed)</td>
+<td>~50 GB</td>
+<td>~15 seconds</td>
+<td>20× cheaper</td>
+</tr>
+<tr>
+<td><strong>Speedup</strong></td>
+<td><strong>20× less I/O</strong></td>
+<td><strong>40× faster</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>Why It Works: Three Pillars</h2>
+<div class="v5-callout">
+<p><strong>Columnar layout.</strong> Only <code>rating</code> and <code>genre</code> files are read; the other 18 columns are skipped.</p>
+<p><strong>Compression.</strong> Dictionary encoding on <code>genre</code> (a few dozen genres) plus run-length encoding on <code>rating</code> (values 1 to 5) shrink the read by another order of magnitude.</p>
+<p><strong>Distribution.</strong> The scan is sharded across ~100 workers, each processing ~500 MB. Workers exist only for the seconds the query runs.</p>
+<p>Together these three turn "scan a petabyte" into "scan a few GB on hundreds of machines in parallel."</p>
+</div>
+<h2>The Paper</h2>
+<p>BigQuery is Google's implementation of <strong>Dremel</strong>, first described in their 2010 VLDB paper. Dremel introduced <strong>interactive analysis of web-scale datasets</strong> using nested columnar storage and tree-based query execution.</p>
+<iframe src="https://www.vldb.org/pvldb/vol13/p3461-melnik.pdf" width="100%" height="600px" style="border: 1px solid #ddd; border-radius: 8px; margin: 1rem 0;" title="Dremel: Interactive Analysis of Web-Scale Datasets, VLDB Paper"></iframe>
+
+<h2>Modern Heirs</h2>
+<p>The columnar-plus-compression-plus-distribution pattern now powers most of the analytics ecosystem:</p>
+<ul>
+<li>
+<p><strong>Google BigQuery.</strong> Petabyte-scale data warehouse.</p>
+</li>
+<li>
+<p><strong>Amazon Redshift.</strong> Cloud data warehouse.</p>
+</li>
+<li>
+<p><strong>Snowflake.</strong> Modern cloud analytics platform.</p>
+</li>
+<li>
+<p><strong>Apache Parquet.</strong> Open-source columnar file format.</p>
+</li>
+<li>
+<p><strong>ClickHouse.</strong> Real-time analytics database.</p>
+</li>
+</ul>
+<p><strong>Takeaway:</strong> BigQuery turns "scan a petabyte" into "scan a few columns on thousands of on-demand workers" by combining columnar storage, heavy compression, and tree-based distribution, with storage decoupled from compute. It is the workload-driven opposite of PostgreSQL's row layout: pick the storage shape that matches how you query.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3-nanoDB/hybrid-storage-example">Hybrid Storage →</a></strong> When you need both OLTP-speed inserts and OLAP-speed analytics, you mix the two layouts instead of picking one.</p>

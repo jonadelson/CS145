@@ -1,0 +1,112 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.464
+You already know how small analytics works.
+
+00:00:05.464 --> 00:00:08.929
+Pandas loads your whole dataset into your machine's RAM and works on it there.
+
+00:00:08.929 --> 00:00:12.393
+Read a file from disk, build a DataFrame, group, sort, and join, all in memory, and hand back a result fast.
+
+00:00:12.393 --> 00:00:15.858
+One process, one machine.
+
+00:00:15.858 --> 00:00:19.322
+But there is a wall.
+
+00:00:19.322 --> 00:00:22.786
+When the data is larger than RAM, the program does not slow down.
+
+00:00:22.786 --> 00:00:26.251
+It crashes.
+
+00:00:26.251 --> 00:00:29.715
+A laptop holds maybe sixteen gigabytes.
+
+00:00:29.715 --> 00:00:33.180
+Spotify holds billions of listens.
+
+00:00:33.180 --> 00:00:36.644
+Bridging those two numbers is the rest of this course.
+
+00:00:36.644 --> 00:00:40.110
+Make it concrete.
+
+00:00:40.110 --> 00:00:43.575
+One schema runs the whole course.
+
+00:00:43.575 --> 00:00:47.041
+Songs, about a hundred million of them.
+
+00:00:47.041 --> 00:00:50.507
+Listens, billions of rows, one per play.
+
+00:00:50.507 --> 00:00:53.972
+And Users.
+
+00:00:53.972 --> 00:00:57.438
+Take a common task: the top ten songs by play count.
+
+00:00:57.438 --> 00:01:00.903
+In Pandas you load the listens into a DataFrame, join, group by song, count, sort, and take ten.
+
+00:01:00.903 --> 00:01:04.369
+The same shape as a spreadsheet, or a query you once ran by hand.
+
+00:01:04.369 --> 00:01:10.898
+Here is the deeper idea, and it is the heart of this course.
+
+00:01:10.898 --> 00:01:17.428
+In plain Python you would write nested for-loops, build a dictionary of counts, and sort it yourself.
+
+00:01:17.428 --> 00:01:23.957
+You spell out how, step by step.
+
+00:01:23.957 --> 00:01:30.487
+Pandas, Polars, and SQL let you describe what you want instead, the top ten by play count, and the engine decides how to run it.
+
+00:01:30.487 --> 00:01:37.016
+That declarative model is what lets the very same query move from a laptop to a thousand-machine cluster, unchanged.
+
+00:01:37.016 --> 00:01:42.868
+Now watch the same query as the data grows.
+
+00:01:42.868 --> 00:01:48.719
+Pandas loads every row into RAM with one core and copies at each step, so it dies the moment the data passes RAM.
+
+00:01:48.719 --> 00:01:54.571
+Polars keeps almost the same code but runs a lazy, streaming, all-cores plan that only materializes what it needs, which pushes the limit far out, but it is still one machine.
+
+00:01:54.571 --> 00:02:00.422
+A database flips the problem.
+
+00:02:00.422 --> 00:02:06.274
+It ships the query to the data, plans across many machines and disks, and returns just your rows.
+
+00:02:06.274 --> 00:02:12.125
+No single-machine limit at all.
+
+00:02:12.125 --> 00:02:15.989
+So where does this leave Pandas?
+
+00:02:15.989 --> 00:02:19.853
+Exactly where it belongs.
+
+00:02:19.853 --> 00:02:23.716
+Fast, familiar, and bounded by one machine.
+
+00:02:23.716 --> 00:02:27.580
+For data that fits, it is the right tool.
+
+00:02:27.580 --> 00:02:31.444
+The moment it does not fit, you reach for the thing this course is about: a database that spreads the work across many machines.
+
+00:02:31.444 --> 00:02:37.280
+Pandas and Polars are a database in the small.
+
+00:02:37.280 --> 00:02:43.116
+The same operations, group, sort, and join, but in RAM on one machine.
+
+00:02:43.116 --> 00:02:48.952
+The whole rest of the course is removing that one limit, making those operations work when the data is far bigger than any single machine's memory.

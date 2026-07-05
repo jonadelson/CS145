@@ -1,0 +1,91 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.547
+You ask a language model for a query.
+
+00:00:05.547 --> 00:00:09.094
+It writes valid SQL.
+
+00:00:09.094 --> 00:00:12.641
+It runs without an error and hands you a number.
+
+00:00:12.641 --> 00:00:16.188
+The number looks reasonable.
+
+00:00:16.188 --> 00:00:19.734
+But did that query answer the question you actually asked?
+
+00:00:19.734 --> 00:00:23.281
+That is a separate question, and the fact that it ran does not answer it.
+
+00:00:23.281 --> 00:00:26.828
+A query that runs is not a query that is right.
+
+00:00:26.828 --> 00:00:30.375
+Closing the gap between a query that runs and a query that is correct is the whole job of this section.
+
+00:00:30.375 --> 00:00:34.617
+The BIRD benchmark splits the problem in two.
+
+00:00:34.617 --> 00:00:38.858
+On syntax, does the query compile and run, models score about ninety five percent.
+
+00:00:38.858 --> 00:00:43.100
+That part is solved.
+
+00:00:43.100 --> 00:00:47.341
+Semantics is the open problem: the same model scores anywhere from sixteen to seventy seven percent.
+
+00:00:47.341 --> 00:00:51.583
+The low end is one shot, a single blind attempt with no feedback.
+
+00:00:51.583 --> 00:00:55.824
+The high end is multi shot, where the model runs the query, reads the error, and tries again.
+
+00:00:55.824 --> 00:01:00.066
+The loop helps a lot, and it only works because SQL runs.
+
+00:01:00.066 --> 00:01:04.307
+But even multi shot tops out below correct.
+
+00:01:04.307 --> 00:01:08.549
+Running a wrong query more times cannot make it right.
+
+00:01:08.549 --> 00:01:12.437
+The model does one thing.
+
+00:01:12.437 --> 00:01:16.324
+It generates the query.
+
+00:01:16.324 --> 00:01:20.212
+You add three steps around it, and each one catches a different failure.
+
+00:01:20.212 --> 00:01:24.100
+Precision pins what the question means, and catches the wrong reading.
+
+00:01:24.100 --> 00:01:27.988
+Execution runs the query on real data, and catches a crash or an empty result.
+
+00:01:27.988 --> 00:01:31.875
+Verification tests the result, and catches the subtle errors that slip past everything else.
+
+00:01:31.875 --> 00:01:35.763
+The model only generates; all three steps are yours.
+
+00:01:35.763 --> 00:01:39.130
+And here is the thread through all three.
+
+00:01:39.130 --> 00:01:42.497
+Every step is SQL.
+
+00:01:42.497 --> 00:01:45.864
+You can run it, test it, and build on it, and you can do none of that to an English sentence.
+
+00:01:45.864 --> 00:01:49.230
+That is why this skill matters more now, not less.
+
+00:01:49.230 --> 00:01:52.597
+The next three pages take the steps one at a time.
+
+00:01:52.597 --> 00:01:55.964
+First, precision.

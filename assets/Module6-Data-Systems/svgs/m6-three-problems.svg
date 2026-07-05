@@ -1,0 +1,45 @@
+<svg viewBox="0 0 1100 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="m6p-t m6p-d" font-family="Inter, sans-serif">
+  <title id="m6p-t">What Module 6 solves: scale, architecture, and trust once one machine is not enough</title>
+  <desc id="m6p-d">Three cyan panels naming the problems this module solves. Scale: data outgrows one machine, so you spread it across a cluster (the startup, complex-types, and big-tech-scale pages). Architecture: data structure dictates capability, choosing relational, JSONB, or vector, and one stack or many systems (the SQL-vs-NoSQL and key-value pages). Trust: data is a liability, so you keep attackers out and keep people anonymous (the security and privacy pages). Color key: cyan marks the three problems the module is organized around.</desc>
+
+  <text x="550" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">What Module 6 solves</text>
+  <text x="550" y="60" text-anchor="middle" font-size="16" fill="#3F3F46">Three problems that appear once one machine is no longer enough</text>
+
+  <g>
+    <rect x="30" y="88" width="320" height="206" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="30" y="88" width="320" height="6" rx="3" fill="#0891B2"/>
+    <text x="50" y="120" font-size="18" font-weight="700" fill="#0891B2">Scale</text>
+    <text x="50" y="150" font-size="14" font-weight="700" fill="#3F3F46">Data outgrows one machine.</text>
+    <text x="50" y="176" font-size="14" fill="#3F3F46">A laptop CSV cannot hold it, so</text>
+    <text x="50" y="194" font-size="14" fill="#3F3F46">you spread it across a cluster.</text>
+    <line x1="50" y1="222" x2="330" y2="222" stroke="#D4D7DC"/>
+    <text x="50" y="246" font-size="13" font-style="italic" fill="#6B7280">startup · complex types ·</text>
+    <text x="50" y="266" font-size="13" font-style="italic" fill="#6B7280">big-tech scale</text>
+  </g>
+
+  <g>
+    <rect x="390" y="88" width="320" height="206" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="390" y="88" width="320" height="6" rx="3" fill="#0891B2"/>
+    <text x="410" y="120" font-size="18" font-weight="700" fill="#0891B2">Architecture</text>
+    <text x="410" y="150" font-size="14" font-weight="700" fill="#3F3F46">Structure dictates capability.</text>
+    <text x="410" y="176" font-size="14" fill="#3F3F46">Relational, JSONB, or vector;</text>
+    <text x="410" y="194" font-size="14" fill="#3F3F46">one stack or many systems.</text>
+    <line x1="410" y1="222" x2="690" y2="222" stroke="#D4D7DC"/>
+    <text x="410" y="246" font-size="13" font-style="italic" fill="#6B7280">SQL vs NoSQL ·</text>
+    <text x="410" y="266" font-size="13" font-style="italic" fill="#6B7280">key-value stores</text>
+  </g>
+
+  <g>
+    <rect x="750" y="88" width="320" height="206" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="750" y="88" width="320" height="6" rx="3" fill="#0891B2"/>
+    <text x="770" y="120" font-size="18" font-weight="700" fill="#0891B2">Trust</text>
+    <text x="770" y="150" font-size="14" font-weight="700" fill="#3F3F46">Data is a liability.</text>
+    <text x="770" y="176" font-size="14" fill="#3F3F46">Keep attackers out, and keep</text>
+    <text x="770" y="194" font-size="14" fill="#3F3F46">the people in it anonymous.</text>
+    <line x1="770" y1="222" x2="1050" y2="222" stroke="#D4D7DC"/>
+    <text x="770" y="246" font-size="13" font-style="italic" fill="#6B7280">data security ·</text>
+    <text x="770" y="266" font-size="13" font-style="italic" fill="#6B7280">data privacy</text>
+  </g>
+
+  <text x="550" y="322" text-anchor="middle" font-size="13"><tspan fill="#0891B2" font-weight="700">cyan</tspan><tspan fill="#3F3F46"> = the three problems this module is organized around</tspan></text>
+</svg>

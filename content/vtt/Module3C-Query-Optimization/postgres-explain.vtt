@@ -1,0 +1,88 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:07.120
+You spent this module picking plans by hand, comparing Plan One against Plan Two with cost formulas.
+
+00:00:07.120 --> 00:00:12.240
+A real optimizer does that picking for you.
+
+00:00:12.240 --> 00:00:17.360
+EXPLAIN is how it shows its work: every operator, every cost estimate, every row count it chose.
+
+00:00:17.360 --> 00:00:22.480
+Same vocabulary, read off a live plan.
+
+00:00:22.480 --> 00:00:27.937
+Here is the query.
+
+00:00:27.937 --> 00:00:33.394
+SELECT title and artist, with a count of song id, FROM Songs joined to Listens, GROUP BY title and artist, ORDER BY that count descending, LIMIT ten.
+
+00:00:33.394 --> 00:00:38.850
+In plain English, the most popular songs by number of listens.
+
+00:00:38.850 --> 00:00:44.307
+Run EXPLAIN on it and the optimizer hands back the exact plan it will run.
+
+00:00:44.307 --> 00:00:49.218
+This is the plan Postgres handed back, and you read it bottom up, because the leaves run first.
+
+00:00:49.218 --> 00:00:54.129
+Start at the bottom.
+
+00:00:54.129 --> 00:00:59.040
+A sequential scan on Songs, then a hash built on it.
+
+00:00:59.040 --> 00:01:03.951
+Next, a sequential scan on Listens feeds a hash join on song id, the same hash partition join from Module Three.
+
+00:01:03.951 --> 00:01:08.862
+Above that, a hash aggregate groups by title and artist.
+
+00:01:08.862 --> 00:01:13.773
+Then one sort orders by the count, and a limit takes the top ten.
+
+00:01:13.773 --> 00:01:18.684
+Each line carries the optimizer's own cost, from startup to total, and a row estimate.
+
+00:01:18.684 --> 00:01:23.595
+At fifty-five point two four, this was the cheapest plan it found.
+
+00:01:23.595 --> 00:01:29.663
+Now map each operator to a formula you already know.
+
+00:01:29.663 --> 00:01:35.731
+The two sequential scans are each C sub r times pages.
+
+00:01:35.731 --> 00:01:41.799
+The hash join is the hash partition join from Module Three.
+
+00:01:41.799 --> 00:01:47.868
+The hash aggregate is the one worth knowing.
+
+00:01:47.868 --> 00:01:53.936
+Our simplified model assumed grouping needs a sort, but a real optimizer also builds an in-memory hash table keyed by group, accumulates the counts, and emits one row per group, with no sort.
+
+00:01:53.936 --> 00:02:00.004
+The optimizer chose hash join because the inputs were not pre-sorted, and hash aggregate because one row per artist and title pair fits in memory.
+
+00:02:00.004 --> 00:02:04.276
+Each operator maps to one formula.
+
+00:02:04.276 --> 00:02:08.549
+Sequential scan, hash join, hash aggregate, BigSort, index scan, materialize.
+
+00:02:08.549 --> 00:02:12.821
+EXPLAIN is the optimizer telling you exactly what it picked.
+
+00:02:12.821 --> 00:02:17.094
+Reed it, then spot check the costs against your mental model.
+
+00:02:17.094 --> 00:02:21.366
+When they do not match, something is off, and it is usually stale statistics.
+
+00:02:21.366 --> 00:02:25.639
+Next, the same cost-based reasoning, now stretched across many machines.
+
+00:02:25.639 --> 00:02:29.911
+Distributed queries.

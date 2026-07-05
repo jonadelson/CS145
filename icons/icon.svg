@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2563eb"/>
+  <!-- database cylinder -->
+  <ellipse cx="256" cy="150" rx="130" ry="46" fill="none" stroke="#fff" stroke-width="26"/>
+  <path d="M126 150v120c0 25.4 58.2 46 130 46s130-20.6 130-46V150" fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round"/>
+  <path d="M126 270v92c0 25.4 58.2 46 130 46s130-20.6 130-46v-92" fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" opacity="0.55"/>
+  <!-- spark -->
+  <path d="M368 330l14 40 40 14-40 14-14 40-14-40-40-14 40-14z" fill="#fbbf24" stroke="#2563eb" stroke-width="10"/>
+</svg>

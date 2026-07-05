@@ -1,0 +1,70 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.334
+Every December, 700 million people open Spotify Wrapped at almost the same moment.
+
+00:00:06.334 --> 00:00:10.669
+Each one wants a year of their own listening, summarized and instant.
+
+00:00:10.669 --> 00:00:15.003
+Behind each card sit 365 billion play events.
+
+00:00:15.003 --> 00:00:19.337
+You cannot scan a year of plays the second someone taps.
+
+00:00:19.337 --> 00:00:23.672
+So how does the card come back in a blink.
+
+00:00:23.672 --> 00:00:28.006
+The hard work already happened, last night, while everyone slept.
+
+00:00:28.006 --> 00:00:33.607
+Watch the whole design in one picture.
+
+00:00:33.607 --> 00:00:39.209
+A year of raw plays lands chronologically, so your thousand listens scatter across a thousand pages.
+
+00:00:39.209 --> 00:00:44.810
+Fetching them, even with an index on user i-d, is a thousand random seeks, and doing that for everyone takes weeks.
+
+00:00:44.810 --> 00:00:50.412
+So overnight, before December, Spotify reorders the table to cluster all of one user's plays onto the same page.
+
+00:00:50.412 --> 00:00:56.013
+Your whole year now sits together, and a batch job reads each user in one sequential scan instead of a thousand seeks.
+
+00:00:56.013 --> 00:01:01.614
+From that scan it writes one tiny summary row per user, keyed on user i-d, into a small Wrapped table.
+
+00:01:01.614 --> 00:01:07.216
+On December first your card is a single hash index lookup on user i-d, constant time, which is what millions of simultaneous taps need.
+
+00:01:07.216 --> 00:01:12.817
+One catch lives in this layout.
+
+00:01:12.817 --> 00:01:18.418
+A table can be clustered one way only.
+
+00:01:18.418 --> 00:01:24.020
+Sorted by user i-d, Wrapped and your own history are fast, but the top fans of one artist are now scattered.
+
+00:01:24.020 --> 00:01:29.621
+So Spotify keeps multiple physical copies of Listens, each clustered for a different feature.
+
+00:01:29.621 --> 00:01:35.223
+Storage is cheap.
+
+00:01:35.223 --> 00:01:40.824
+Disk seeks at query time are not.
+
+00:01:40.824 --> 00:01:47.117
+Wrapped feels instant for one reason.
+
+00:01:47.117 --> 00:01:53.409
+The expensive aggregation ran overnight, and the online path is a tiny hash lookup on a table clustered by user i-d.
+
+00:01:53.409 --> 00:01:59.701
+Match the index to the dominant access pattern, and clustering turns a thousand random reads into one.
+
+00:01:59.701 --> 00:02:05.994
+The right physical layout, chosen the night before, is what lets 700 million cards come back the moment they are tapped.

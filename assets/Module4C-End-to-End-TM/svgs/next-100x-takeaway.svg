@@ -1,0 +1,39 @@
+<svg viewBox="0 0 1100 480" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="n1t-t n1t-d">
+  <title id="n1t-t">The takeaway: Strict 2PL is the baseline, the next 100x lives in the schedules it refuses, the same correctness math holds, and next the machine splits into many</title>
+  <desc id="n1t-d">Three stacked statements. First, Strict 2PL is the correctness baseline, and the next 100 times leap lives in the schedules it refuses to admit. Second, correct still means serializable; conflict-serializability is only the test 2PL passes, so a smarter scheduler can admit even the serializable-but-not-conflict-serializable schedules. Third, every protocol here was one database on one machine, and next we break that machine into a thousand, which is distributed systems. The third row is the ink takeaway pointing forward. Color key: violet = the protocols beyond Strict 2PL; green = the correctness math that still holds; ink = the takeaway, where we go next.</desc>
+  <defs>
+    <marker id="n1t-ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="550" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">The next 100&#215; lives in the schedules Strict 2PL refuses</text>
+
+  <!-- STEP 1: baseline + headroom -->
+  <g data-step="1">
+    <rect x="60" y="78" width="980" height="104" rx="8" fill="#EFE8FB" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="60" y="78" width="980" height="6" rx="3" fill="#7C3AED"/>
+    <text x="84" y="114" font-size="18" font-weight="700" fill="#7C3AED">Strict 2PL is the baseline of database concurrency</text>
+    <text x="84" y="144" font-size="15" fill="#3F3F46">The correctness baseline modern systems build beyond. The leap lives in the safe schedules</text>
+    <text x="84" y="166" font-size="15" fill="#3F3F46">it refuses to admit, the ones a smarter protocol can run.</text>
+  </g>
+
+  <!-- STEP 2: same correctness math -->
+  <g data-step="2">
+    <rect x="60" y="198" width="980" height="92" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="2"/>
+    <rect x="60" y="198" width="980" height="6" rx="3" fill="#16A34A"/>
+    <text x="84" y="234" font-size="18" font-weight="700" fill="#16A34A">Correct still means serializable</text>
+    <text x="84" y="264" font-size="15" fill="#3F3F46">Conflict-serializability is only the test 2PL passes; a smarter scheduler can admit more.</text>
+  </g>
+
+  <!-- STEP 3: forward to distributed, ink takeaway -->
+  <g data-step="3">
+    <rect x="60" y="306" width="980" height="104" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+    <rect x="60" y="404" width="980" height="6" rx="3" fill="#0E0E10"/>
+    <text x="84" y="340" font-size="13.5" font-weight="700" fill="#0E0E10">&#8857; TAKEAWAY</text>
+    <text x="84" y="368" font-size="16" font-weight="700" fill="#0E0E10">Every protocol here was one database on one machine.</text>
+    <text x="84" y="394" font-size="15" fill="#3F3F46">Next we break that machine into a thousand: the data, the locks, and the clock on different computers.</text>
+  </g>
+
+  <text x="550" y="450" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#7C3AED" font-weight="700">violet</tspan><tspan fill="#3F3F46"> = the protocols beyond Strict 2PL&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#16A34A" font-weight="700">green</tspan><tspan fill="#3F3F46"> = the correctness math that still holds&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#0E0E10" font-weight="700">ink</tspan><tspan fill="#3F3F46"> = where we go next</tspan></text>
+</svg>

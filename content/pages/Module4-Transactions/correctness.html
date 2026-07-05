@@ -1,0 +1,147 @@
+<h1>Correctness: Ensuring Safe Concurrent Execution</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> The database reorders the actions of concurrent transactions to run them fast, but the outcome must still be correct: equivalent to running the transactions in <em>some</em> serial order. That property is <strong>conflict-serializability</strong>, and the test for it is a conflict graph with no cycle.</p>
+<p><strong>Intuition.</strong> When Mickey's and Minnie's playlist updates interleave at the action level, the schedule is correct as long as the resulting Listens table looks identical to "all of Mickey, then all of Minnie" or the reverse. The per-step order can change; the end state must match some serial run. This page goes from "the database reorders for speed" to the exact test for when that reordering is safe.</p>
+</div>
+<p>The <a href="#/page/Module4-Transactions/naive-concurrency">naive ways</a> both failed: serial is too slow, free-for-all corrupts. The fix interleaves for speed while keeping the result correct, which demands a precise test for when an interleaving is safe. The rest of this page makes it mechanical: name the schedule types, define what a conflict is, and turn any schedule into a graph whose cycles flag the unsafe ones.</p>
+<h2>Key Definitions</h2>
+<p>An <strong>action</strong> is a single read or write of one row. A transaction is a sequence of them:</p>
+<p><a id="actions-fig"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/actions.svg" alt="A transaction T1 as a sequence of action boxes T1.R(A), T1.W(A), T1.R(B); blue boxes are reads, orange boxes are writes." style="width:100%; max-width:760px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> A transaction is a sequence of actions, each one a read or write of a single row, written T1.R(A) for transaction T1 reading row A. Blue boxes are reads, orange boxes are writes. Correctness tracks only their order, not the values they compute.</p>
+</div>
+<p><a id="schedule-types"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/definitions.svg" alt="Three kinds of schedule for two transactions T1 and T2, each box one action like T1.R(A): serial runs T1 fully then T2; interleaved mixes their reads and writes; serializable is an interleaving whose result matches some serial order. Blue boxes are reads, orange boxes are writes." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> Serial runs one transaction's actions to completion, then the next. Interleaved mixes them in time. Serializable is an interleaving whose result matches <em>some</em> serial order. Blue boxes are reads, orange writes; the T1 or T2 prefix names the transaction, and the page tracks only the R/W order, the macro view.</p>
+</div>
+<p><strong>Serializable is not serial.</strong> A serial schedule never overlaps; a serializable one interleaves freely, but its result still matches <em>some</em> serial order.</p>
+<h2>Conflicts: The Heart of Concurrency Control</h2>
+<p>A <strong>conflict</strong> is two actions on the same row where at least one is a write: their order changes the result, so the database must never swap that pair. Every other pair is free. The three failures from <a href="#/page/Module4-Transactions/naive-concurrency">Naive Concurrency</a> were exactly these conflicts, and they come in three kinds, set by which action reads and which writes.</p>
+<p><img src="assets/Module4-Transactions/svgs/conflict-matrix.svg" alt="A 2 by 2 matrix comparing one action of transaction T1 against one action of T2, both on the same row: read-read commutes (no conflict); read-write, write-read, and write-write are conflicts. A conflict needs two different transactions on the same row." style="width:100%; max-width:460px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> A conflict needs two transactions, the same row, and at least one write. Only read-read commutes; the other three each leave an order-dependent result, each a named anomaly: read-write a stale read, write-read a dirty read, write-write a lost update. Every conflict becomes a directed edge in the conflict graph, next.</p>
+</div>
+<p>Only conflicts are pinned; every other pair of actions can move. The next section turns that into a test for a whole schedule, then shows why that freedom is exactly enough.</p>
+<h2>How to Test for Conflict-Serializability</h2>
+<div class="definition-cards">
+<div class="definition-card" id="conflict-graph-def">
+<h4>Build a conflict graph, then check for a cycle</h4>
+<p>The <strong>conflict graph</strong> has one node per transaction and a directed edge from Ti to Tj whenever an action of Ti conflicts with and precedes an action of Tj. The schedule is conflict-serializable exactly when that graph is acyclic.</p>
+<div class="example-box">
+<p><strong>Acyclic:</strong> a topological sort gives a serial order that respects every conflict edge, so the schedule is CS.<br>
+<strong>Cycle:</strong> two conflicts demand opposite orders, no serial order satisfies them all, so the schedule is not CS.</p>
+</div>
+</div>
+</div>
+<p><img src="assets/Module4-Transactions/svgs/cs-algorithm.svg" alt="The test in three steps: one node per transaction, one directed edge per conflict forming the acyclic chain T3 to T1 to T2, then check for a cycle; a green box says no cycle means conflict-serializable, a red box says a cycle means not." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> The whole test in three steps. Build one node per transaction, add a directed edge for every conflict, then look for a cycle. No cycle (green) means a serial order respects every edge, so the schedule is conflict-serializable; a cycle (red) means two edges demand opposite orders, so none does.</p>
+</div>
+<hr />
+<h2>Example 1: Concert Ticket Booking</h2>
+<p>A concrete scenario: 3 transactions and 2 shared variables.</p>
+<h3>Setup: The Scenario</h3>
+<div class="definition-cards">
+<div class="definition-card">
+<h4>Scenario</h4>
+<p>Concert venue with 2 sections. Three customers simultaneously try to book tickets during a high-demand sale.</p>
+<div class="example-box">
+<p><strong>Shared Variables:</strong><br>
+• <strong>A:</strong> VIP section tickets (initially: 10)<br>
+• <strong>B:</strong> General section tickets (initially: 22)</p>
+</div>
+</div>
+<div class="definition-card">
+<h4>Transaction Actions</h4>
+<p>Each customer performs specific booking actions on the shared ticket counters.</p>
+<div class="example-box">
+<p><strong>T1:</strong> R(A), W(A) - books a VIP seat<br>
+<strong>T2:</strong> R(A), R(B), W(B) - checks VIP, then books General<br>
+<strong>T3:</strong> R(B), W(B) - books a General seat</p>
+</div>
+</div>
+<div class="definition-card">
+<h4>Expected Results</h4>
+<p>Once all three transactions commit, the counts must land here under any correct schedule.</p>
+<div class="example-box">
+<p><strong>Final Values:</strong><br>
+• <strong>A:</strong> 9 tickets<br>
+• <strong>B:</strong> 20 tickets</p>
+</div>
+</div>
+</div>
+<h3>Serial Schedule S1: T1 → T2 → T3</h3>
+<p><img src="assets/Module4-Transactions/svgs/sched-serial.svg" alt="Serial schedule of the concert booking running T1, then T2, then T3 with no overlap: a table of Transaction, Action, Variable, Step, and Value, reads in blue and writes in orange, ending at A=9, B=20." style="width:100%; max-width:800px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 5.</strong> A serial schedule runs T1, then T2, then T3 with no overlap. The brackets on the left make the shape plain: each transaction's actions form one contiguous block, the visual signature of serial. It ends at A=9, B=20 with ACID intact, but with no parallelism it is the slowest of the three.</p>
+</div>
+<h3>Conflict Identification</h3>
+<div class="conflict-visualization">
+<p><img src="assets/Module4-Transactions/svgs/conflict-serial.svg" alt="Conflict analysis of the serial schedule: a Conflicting-Actions table (T1 and T2 conflict on A; T2 and T3 conflict on B), a conflict graph forming the acyclic chain T1 to T2 to T3, and the verdict that it is conflict-serializable with equivalent serial order T1, T2, T3." style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+</div>
+<div class="paper-caption">
+<p><strong>Figure 6.</strong> Even a serial schedule has conflicts wherever transactions touch a shared variable: a W-R on A (T1 → T2), a W-W on B (T2 → T3), four in all. They chain T1 → T2 → T3, which is exactly the serial order that produced them.</p>
+</div>
+<hr />
+<h2>Example 2: Interleaved Schedule Analysis</h2>
+<p>Now interleave the transactions. Two interleaved schedules below show the difference between conflict-serializable and non-conflict-serializable.</p>
+<h3>Schedule S1': Our First Interleaved Schedule</h3>
+<p>This first interleaving mixes the actions but preserves correctness.</p>
+<p><img src="assets/Module4-Transactions/svgs/sched-inter1.svg" alt="Interleaved schedule S1' of T1, T2, T3: a table of Transaction, Action, Variable, Step, and Value in step order, reads in blue and writes in orange, ending at A=9, B=20." style="width:100%; max-width:800px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 7.</strong> S1' interleaves T1, T2, and T3 instead of running them serially. Whether the interleaving stays correct depends entirely on its conflict graph, built next.</p>
+</div>
+<p><a id="s1-prime-graph"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/conflict-inter1.svg" alt="Conflict analysis for interleaved schedule S1': a Conflicting-Actions table, a conflict graph with edges T2 to T1 and T2 to T3 and no cycle, and the verdict that it is conflict-serializable, equivalent to the serial order T2, T1, T3 (with that serial schedule shown)." style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 8.</strong> The conflict graph of S1' has four conflicts and no cycle, so S1' is conflict-serializable: it matches the serial order T2 → T1 → T3 (or T2 → T3 → T1). The faster interleaving is still correct.</p>
+</div>
+<hr />
+<h3>Schedule S2': Our Second Interleaved Schedule</h3>
+<p>This second interleaving creates conflicts that break serializability.</p>
+<p><img src="assets/Module4-Transactions/svgs/sched-inter2.svg" alt="Interleaved schedule S2' of T1, T2, T3 with an extra T2 write on B: a table of Transaction, Action, Variable, Step, and Value in step order, reads in blue and writes in orange." style="width:100%; max-width:800px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 9.</strong> S2' is a different interleaving of the same three transactions. The extra T2 write on B breaks it; the conflict graph next shows how.</p>
+</div>
+<p><a id="s2-prime-graph"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/conflict-inter2.svg" alt="Conflict analysis for interleaved schedule S2': a Conflicting-Actions table, a conflict graph with edges T2 to T1, T2 to T3, and T3 to T2 forming a red cycle between T2 and T3, and the verdict that the cycle makes it NOT conflict-serializable." style="width:100%; max-width:900px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 10.</strong> The conflict graph of S2' contains a cycle, so S2' is not conflict-serializable, and the interleaving is unsafe.</p>
+</div>
+<div class="definition-cards">
+<div class="definition-card">
+<h4>Conflicts Identified</h4>
+<p>We compute the conflicting actions and the Conflict Graph:</p>
+<div class="example-box">
+<p>The cycle lives on variable B. T2 writes B at step 5, then T3 reads B at step 6, so T2's value reaches T3 and the order must be T2 before T3 (edge T2 &#8594; T3). But T3 writes B at step 7, then T2 writes B again at step 9, overwriting T3, so the order must also be T3 before T2 (edge T3 &#8594; T2). Those two B-conflicts point opposite ways, giving the cycle T2 &#8594; T3 &#8594; T2.</p>
+</div>
+</div>
+</div>
+<hr />
+<h2>Why the cycle test works</h2>
+<p>You have now watched the cycle test decide two schedules: S1' was acyclic and safe, S2' held a cycle and was not. But why does an acyclic graph mean safe? Because you can slide the schedule into a serial order. Two actions that do not conflict swap with no effect, so slide the non-conflicting neighbours until each transaction's actions sit together in one block. What is left is a serial schedule. The only adjacencies you cannot slide past are the conflicts, the graph's own edges, and they fix which block comes first. When the edges form a cycle, two of them demand opposite orders, the schedule will not untangle, and no serial order exists, which is exactly what trapped S2'.</p>
+<p><img src="assets/Module4-Transactions/svgs/slide-to-serial.svg" alt="An interleaved schedule of four action tiles. T1's two tiles (read A, write B) are highlighted in violet and start apart, with a T2 action between them. Violet swap markers sit on the two non-conflicting neighbour pairs and a red cross on the write-write pair on B. One free swap gathers T1 into a block and T2 into the next, the serial order below." style="width:100%; max-width:1100px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 11.</strong> Can we swap an interleaved schedule into a serial one? The goal is to gather each transaction's actions into one contiguous block. T1's two tiles (violet) start apart, with a T2 action between them. A neighbour pair may swap only when it does not conflict; here the middle pair touches different rows, so one swap drops T1 into a block and T2 into the next, leaving the serial order T1 then T2. The write-write conflict on B (red) is the one pair that cannot move. A schedule untangles like this exactly when its conflict graph is acyclic.</p>
+</div>
+<p>Two things follow, and they are the whole reordering story:</p>
+<ul>
+<li>
+<p><strong>Non-conflicting actions reorder freely.</strong> That overlap is where the throughput comes from.</p>
+</li>
+<li>
+<p><strong>Whole transactions have no fixed order.</strong> The database runs them in any sequence the conflicts allow, and never promises T1 before T2.</p>
+</li>
+</ul>
+<p>Need a guaranteed order? Put both in one transaction, so their actions form a single block nothing can slide into.</p>
+<hr />
+<h2>The Landscape of Schedule Classes</h2>
+<p>A schedule is <strong>serializable</strong> when its result matches some serial run, which is the correctness goal. But serializability is expensive to check directly: proving it means comparing the outcome against every serial order, for every possible data value. <strong>Conflict-serializable</strong> is the practical stand-in, a stricter class decided by one mechanical test, the acyclic conflict graph. The classes nest.</p>
+<p><img src="assets/Module4-Transactions/svgs/correctness-hierarchy.svg" alt="Nested hierarchy: S2PL inside 2PL inside Conflict-Serializable inside Serializable" style="width:100%; max-width:460px; display:block; margin:1rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 12.</strong> Each ring is a set of schedules, strictly contained in the next: every conflict-serializable schedule is serializable, every two-phase-locking (2PL) schedule is conflict-serializable, and Strict-2PL sits inside 2PL. The gap between serializable and CS is a few rare blind-write schedules (a write that never reads its row), serializable yet not CS. The containment is also a difficulty gradient: the outer ring is checkable only by brute force, CS by the mechanical cycle test, and the 2PL rings, which the Two-Phase Locking page builds a few pages on, need no test at all, since the protocol enforces membership.</p>
+</div>
+<p>Because CS is sufficient for serializability and mechanical to check, it is the working standard: when this course says "serializable," it means conflict-serializable. The cycle test tells you <em>whether</em> a finished schedule is safe; it does not produce safe ones. Two-Phase Locking does: it yields only schedules already inside the CS ring, so the database never runs the test at runtime. The rest of this section builds that machinery, starting with the lock itself, top to bottom.</p>
+<hr />

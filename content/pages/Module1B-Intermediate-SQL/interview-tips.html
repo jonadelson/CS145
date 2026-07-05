@@ -1,0 +1,57 @@
+<h1>SQL Interview Tips</h1>
+<p>Do not memorize syntax; memorize structures. Master the five patterns in <strong><a href="#/page/Module1B-Intermediate-SQL/sql-writing-queries">Writing Queries</a></strong> and most data-logic questions reduce to one of them.</p>
+<h2>How Interviews Work</h2>
+<h3>Round 1: Single Pattern Test</h3>
+<p>Interviewers start simple. The first question tests one pattern in isolation:</p>
+<ul>
+<li>
+<p>"Find the top 3 products by revenue" → <strong>Ladder pattern</strong></p>
+</li>
+<li>
+<p>"Show user activity over time" → <strong>Timeline pattern</strong></p>
+</li>
+<li>
+<p>"Find users who did X but not Y" → <strong>Funnel pattern</strong></p>
+</li>
+</ul>
+<h3>Round 2: Pattern Composition</h3>
+<p>In the second round, they ask you to combine patterns.</p>
+<ul>
+<li>
+<p>"Top 3 products by revenue <strong>over time</strong>" → Ladder + Timeline</p>
+</li>
+<li>
+<p>"Users who played but never shared, <strong>then flag the sudden spikes</strong>" → Funnel + Exception</p>
+</li>
+<li>
+<p>"Peak usage hours <strong>by user segment</strong>" → Timeline + Ladder</p>
+</li>
+</ul>
+<h2>Why interviewers reward CTEs</h2>
+<p><strong>Why interviewers like CTEs:</strong></p>
+<ul>
+<li>
+<p>They show you can break a complex problem into modular steps.</p>
+</li>
+<li>
+<p>Each CTE handles one step (for example, compute the average before you compute the offset).</p>
+</li>
+<li>
+<p>They are straightforward to debug and to explain aloud.</p>
+</li>
+</ul>
+<h2>Systems Design Bonus: Scaling Reads</h2>
+<p>If the interview pivots from writing queries to Systems Design ("How do we scale this database when traffic spikes?"), do not jump to a NoSQL migration.</p>
+<p>Instead, name the primary-plus-read-replica pattern: standard SQL databases scale read-heavy workloads by deploying <strong>read replicas</strong>. Citing ChatGPT's ~800 million users on standard Postgres with read replicas shows you reach for the simplest scaling tool first.</p>
+<h2>Practice Strategy</h2>
+<ol>
+<li>
+<p><strong>Start Single:</strong> Master individual patterns on your datasets.</p>
+</li>
+<li>
+<p><strong>Combine:</strong> Progress to combining 2 patterns (e.g., Ladder + Funnel to map top conversion paths).</p>
+</li>
+<li>
+<p><strong>Alias Smartly:</strong> In an interview, readability matters. Use <code>user_signup_rank</code> instead of generic aliases like <code>r</code>.</p>
+</li>
+</ol>

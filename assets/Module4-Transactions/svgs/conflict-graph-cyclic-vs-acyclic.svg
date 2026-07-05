@@ -1,0 +1,38 @@
+<svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:460px; display:block; margin:0.75rem auto;" role="img" aria-labelledby="conflict-graph-cyclic-vs-acyclic-t conflict-graph-cyclic-vs-acyclic-d">
+  <title id="conflict-graph-cyclic-vs-acyclic-t">Side-by-side: an acyclic 3-node graph T1→T2→T3 vs a cyclic 3-node graph T1→T2→T3→T1</title>
+  <desc id="conflict-graph-cyclic-vs-acyclic-d">Side-by-side: an acyclic 3-node graph T1→T2→T3 vs a cyclic 3-node graph T1→T2→T3→T1</desc>
+            <defs>
+                <marker id="ar-acyc" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><polygon points="0 0, 12 4, 0 8" fill="#16A34A"/></marker>
+                <marker id="ar-cyc"  markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto"><polygon points="0 0, 12 4, 0 8" fill="#DC2626"/></marker>
+            </defs>
+
+            <!-- divider (static) -->
+            <line x1="240" y1="40" x2="240" y2="190" stroke="#D4D7DC" stroke-width="1"/>
+
+            <!-- LEFT: Acyclic. 3 nodes in a line with straight arrows -->
+            <g data-step="1">
+            <text x="115" y="24" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#16A34A">Acyclic (DAG)</text>
+            <circle cx="40"  cy="105" r="20" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="40"  y="110" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T1</text>
+            <circle cx="115" cy="105" r="20" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="115" y="110" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T2</text>
+            <circle cx="190" cy="105" r="20" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="190" y="110" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T3</text>
+            <line x1="60"  y1="105" x2="93"  y2="105" stroke="#16A34A" stroke-width="2.5" marker-end="url(#ar-acyc)"/>
+            <line x1="135" y1="105" x2="168" y2="105" stroke="#16A34A" stroke-width="2.5" marker-end="url(#ar-acyc)"/>
+            <text x="115" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#6B7280">T1 → T2 → T3</text>
+            </g>
+
+            <!-- RIGHT: Cyclic. Wider triangle, curved arrows that bow OUT of the
+                 triangle so each arrowhead reaches its target without overlapping -->
+            <g data-step="2">
+            <text x="350" y="24" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#DC2626">Cyclic (not a DAG)</text>
+            <circle cx="290" cy="75"  r="20" fill="#fff" stroke="#DC2626" stroke-width="2.5"/><text x="290" y="80"  text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T1</text>
+            <circle cx="410" cy="75"  r="20" fill="#fff" stroke="#DC2626" stroke-width="2.5"/><text x="410" y="80"  text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T2</text>
+            <circle cx="350" cy="150" r="20" fill="#fff" stroke="#DC2626" stroke-width="2.5"/><text x="350" y="155" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0E0E10">T3</text>
+            <!-- T1 → T2 (top edge bows up) -->
+            <path d="M 310 70 Q 350 38, 390 70" fill="none" stroke="#DC2626" stroke-width="2.5" marker-end="url(#ar-cyc)"/>
+            <!-- T2 → T3 (right edge bows right) -->
+            <path d="M 408 95 Q 408 130, 369 145" fill="none" stroke="#DC2626" stroke-width="2.5" marker-end="url(#ar-cyc)"/>
+            <!-- T3 → T1 (left edge bows left) -->
+            <path d="M 332 142 Q 280 130, 285 95" fill="none" stroke="#DC2626" stroke-width="2.5" marker-end="url(#ar-cyc)"/>
+            <text x="350" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#6B7280">T1 → T2 → T3 → T1</text>
+            </g>
+        </svg>

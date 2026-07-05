@@ -1,0 +1,133 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.833
+It is three in the morning.
+
+00:00:04.833 --> 00:00:07.666
+A user named Mickey taps Pay, nine dollars and ninety-nine cents, for a book on a Stripe checkout.
+
+00:00:07.666 --> 00:00:10.498
+Half a second later he is looking at a receipt.
+
+00:00:10.498 --> 00:00:13.331
+In that half second, real money moved.
+
+00:00:13.331 --> 00:00:16.164
+Stripe moves about a trillion dollars a year, one tap like this at a time.
+
+00:00:16.164 --> 00:00:18.997
+You already know the four letters that keep that tap honest.
+
+00:00:18.997 --> 00:00:21.830
+Atomicity.
+
+00:00:21.830 --> 00:00:24.663
+Consistency.
+
+00:00:24.663 --> 00:00:27.495
+Isolation.
+
+00:00:27.495 --> 00:00:30.328
+Durability.
+
+00:00:30.328 --> 00:00:33.161
+Watch them work on this one charge.
+
+00:00:33.161 --> 00:00:36.934
+That one tap is four writes to the database.
+
+00:00:36.934 --> 00:00:40.708
+Stripe asks Visa to charge the card.
+
+00:00:40.708 --> 00:00:44.481
+It records the payment in a ledger, and that ledger uses double entry, so the payment is two rows that must sum to zero.
+
+00:00:44.481 --> 00:00:48.254
+It bumps the merchant's running balance.
+
+00:00:48.254 --> 00:00:52.027
+And it queues a webhook so the merchant knows to ship the book.
+
+00:00:52.027 --> 00:00:55.800
+Charge the card, write the ledger, bump the balance, queue the webhook.
+
+00:00:55.800 --> 00:00:59.574
+Four writes, hiding behind one button.
+
+00:00:59.574 --> 00:01:03.347
+Now watch what happens when they go wrong.
+
+00:01:03.347 --> 00:01:06.823
+Take Mickey's charge.
+
+00:01:06.823 --> 00:01:10.300
+Stripe charges his card, writes the ledger, and then the connection drops before the webhook is queued.
+
+00:01:10.300 --> 00:01:13.776
+The card charged but the rest never landed.
+
+00:01:13.776 --> 00:01:17.252
+Money left, no book shipped.
+
+00:01:17.252 --> 00:01:20.729
+That partial charge is atomicity's job, all of it or none of it.
+
+00:01:20.729 --> 00:01:24.205
+Next failure.
+
+00:01:24.205 --> 00:01:27.681
+A bug in Mickey's ledger writes nine ninety-nine on one row and nine ninety-eight on the other.
+
+00:01:27.681 --> 00:01:31.158
+The two rows no longer sum to zero.
+
+00:01:31.158 --> 00:01:34.634
+A ledger that stops balancing is consistency's job, the database refuses to invent a cent.
+
+00:01:34.634 --> 00:01:38.111
+Third.
+
+00:01:38.111 --> 00:01:41.587
+Two charges hit the same merchant balance at the same instant.
+
+00:01:41.587 --> 00:01:45.063
+Both read the balance, both add their amount, both write it back.
+
+00:01:45.063 --> 00:01:48.540
+Predict what the balance shows.
+
+00:01:48.540 --> 00:01:52.016
+One update is lost.
+
+00:01:52.016 --> 00:01:55.492
+The second write lands on the stale read and erases the first.
+
+00:01:55.492 --> 00:01:58.969
+That lost update is isolation's job.
+
+00:01:58.969 --> 00:02:02.445
+Run the two as if one ran after the other, and no money vanishes.
+
+00:02:02.445 --> 00:02:05.921
+Last failure.
+
+00:02:05.921 --> 00:02:09.398
+The receipt prints, and five milliseconds later a power event takes the server down.
+
+00:02:09.398 --> 00:02:12.874
+A confirmed charge that vanishes in a crash is durability's job.
+
+00:02:12.874 --> 00:02:17.955
+So that is ACID, running in production at three in the morning.
+
+00:02:17.955 --> 00:02:23.035
+The partial charge, the ledger that drifts, the lost update, the receipt the crash forgets.
+
+00:02:23.035 --> 00:02:28.116
+Four ways money goes missing, four guarantees that stop it.
+
+00:02:28.116 --> 00:02:33.196
+Now we stop reading about transactions and start writing them.
+
+00:02:33.196 --> 00:02:38.277
+The next page does each one in plain SQL, with BEGIN and COMMIT around the writes that have to land together.

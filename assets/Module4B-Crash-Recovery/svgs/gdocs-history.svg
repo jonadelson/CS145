@@ -1,0 +1,53 @@
+<svg viewBox="0 0 1080 440" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="gdocs-t gdocs-d"
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"
+     font-family="Inter, sans-serif">
+  <title id="gdocs-t">Google Docs version history is a log of edits, not fifty stored copies.</title>
+  <desc id="gdocs-d">A Google Doc evolves left to right. The history panel does not hold fifty full copies of the document. It appends one entry per edit: typed a sentence, deleted a paragraph, fixed a typo. Docs keeps the current document and snapshots itself now and then, so scrolling the history replays edits from a recent snapshot, not from the first keystroke, to reconstruct any past version. This is exactly the model a database uses for crash recovery. Color key: violet = the appended edit entries, the diffs; grey = the full-copy approach it avoids.</desc>
+
+  <defs>
+    <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+  </defs>
+
+  <text x="540" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Google Docs logs edits, not a copy of every version</text>
+  <text x="540" y="64" text-anchor="middle" font-size="14" fill="#3F3F46">Each version-history line is one change. Scroll the history and Docs replays the edits.</text>
+
+  <text x="245" y="104" text-anchor="middle" font-size="15" font-weight="700" fill="#7C3AED">Version history (edit log)</text>
+
+  <!-- edit-log entries -->
+  <g data-step="1">
+    <rect x="60" y="116" width="370" height="48" rx="6" fill="#EFE8FB" stroke="#7C3AED" stroke-width="1.5"/>
+    <rect x="60" y="116" width="6" height="48" rx="3" fill="#7C3AED"/>
+    <text x="84" y="138" font-size="14" font-weight="700" fill="#0E0E10">10:02  typed a sentence</text>
+    <text x="84" y="157" font-size="13" fill="#6B7280" font-family="JetBrains Mono, monospace">+ "Recovery logs the diff."</text>
+  </g>
+  <g data-step="2">
+    <rect x="60" y="172" width="370" height="48" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+    <rect x="60" y="172" width="6" height="48" rx="3" fill="#7C3AED"/>
+    <text x="84" y="194" font-size="14" font-weight="700" fill="#0E0E10">10:05  deleted a paragraph</text>
+    <text x="84" y="213" font-size="13" fill="#6B7280" font-family="JetBrains Mono, monospace">- intro draft</text>
+  </g>
+  <g data-step="3">
+    <rect x="60" y="228" width="370" height="48" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.2"/>
+    <rect x="60" y="228" width="6" height="48" rx="3" fill="#7C3AED"/>
+    <text x="84" y="250" font-size="14" font-weight="700" fill="#0E0E10">10:09  fixed a typo</text>
+    <text x="84" y="269" font-size="13" fill="#6B7280" font-family="JetBrains Mono, monospace">"teh" to "the"</text>
+  </g>
+
+  <!-- replay arrow + reconstructed version -->
+  <g data-step="4">
+    <line x1="440" y1="222" x2="600" y2="222" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah)"/>
+    <text x="520" y="212" text-anchor="middle" font-size="14" fill="#6B7280">replay the edits</text>
+    <rect x="610" y="140" width="410" height="170" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+    <rect x="610" y="140" width="410" height="6" rx="3" fill="#7C3AED"/>
+    <text x="815" y="172" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED">Any past version</text>
+    <text x="815" y="202" text-anchor="middle" font-size="14" fill="#3F3F46">Docs keeps the current doc and</text>
+    <text x="815" y="226" text-anchor="middle" font-size="14" fill="#3F3F46">logs each edit, three small entries,</text>
+    <text x="815" y="250" text-anchor="middle" font-size="14" fill="#3F3F46">not three full document copies.</text>
+    <text x="815" y="284" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">Same idea as a database log.</text>
+  </g>
+
+  <text x="540" y="416" text-anchor="middle" font-size="14" fill="#3F3F46">Color key: <tspan fill="#7C3AED" font-weight="700">violet</tspan> = the appended edit entries, the diffs · <tspan fill="#6B7280" font-weight="700">grey</tspan> = the deleted text and the full-copy approach Docs avoids.</text>
+</svg>

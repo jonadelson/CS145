@@ -1,0 +1,26 @@
+<h1>DB Locks Lifecycle</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A <strong>lock</strong> is a claim a transaction puts on a row before it reads or writes. It moves through one fixed cycle: request, get, read or write while holding it, release. A lock comes in two modes, <strong>shared (S)</strong> for reads and <strong>exclusive (X)</strong> for writes, and their compatibility decides who proceeds and who waits.</p>
+<p><strong>Intuition.</strong> Mickey wants to write the Likes row. He requests an exclusive lock, the manager grants it, he writes, then releases. While he holds it, Minnie's request for the same row waits. Two readers, though, can hold a shared lock at once, because reads never conflict.</p>
+</div>
+<p>You met the lock manager and its lock table on the last page. Now zoom into one lock: what it looks like start to finish, and the two modes it comes in.</p>
+<h2>One lock, start to finish</h2>
+<p>A single lock is not instant. A transaction <strong>requests</strong> it, the manager <strong>grants</strong> it, the transaction <strong>reads or writes</strong> the row while holding it, then <strong>releases</strong> it. Anyone else who wants that row waits the whole time it is held.</p>
+<p><a id="lock-cycle-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/lock-lifecycle.svg" alt="One lock through its lifecycle: T1 requests the lock on row A, the lock manager grants it, T1 reads then writes A while holding the lock, and T1 releases it. A second transaction T2 requests the same lock, waits the whole time T1 holds it, and gets it only after T1 releases." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One lock through its cycle, in the notation the schedules ahead use: a green flag is the request (Req), a red flag the grant (Get), a blue box the read, an orange box the write, and a purple flag the release (Unl). T1 takes row A, reads then writes while holding it, and releases. T2 wants the same row: it requests, waits the whole hold, and gets it only once T1 releases.</p>
+</div>
+<h2>Two kinds of lock: shared and exclusive</h2>
+<p>Reading does not change a row; writing does. The manager exploits that with two lock modes: a <strong>shared (S)</strong> lock for reads and an <strong>exclusive (X)</strong> lock for writes. Many readers can hold S on the same row at once; a writer needs X alone.</p>
+<p><img src="assets/Module4-Transactions/svgs/shared-exclusive.svg" alt="Two lock modes on seat A15. A shared lock (S) is for reading: T1, T2, and T3 all take S and read the status at once, because reads do not conflict. An exclusive lock (X) is for writing: T1 takes X and writes the status to sold, while T2 and T3 are blocked." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> A shared lock (S) is for reading: several transactions can hold S on one row and read it together, because reads do not conflict. An exclusive lock (X) is for writing: only one transaction holds X, and everyone else waits.</p>
+</div>
+<p><a id="lock-compat-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/lock-compatibility.svg" alt="A two-by-two lock compatibility matrix. Rows are the lock already held, columns the lock requested. Shared then shared is compatible, because two reads do not conflict. The other three combinations, shared then exclusive, exclusive then shared, and exclusive then exclusive, make the requester wait." style="width:100%; max-width:760px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> The one compatible pairing is shared-with-shared; every cell touching an exclusive lock forces a wait. This is the conflict rule from the Correctness page made operational: two operations collide only when they touch the same row and at least one writes.</p>
+</div>
+<hr />
+<p>The manager grants one lock at a time, correctly. But a transaction holds <em>many</em> locks across its life, and handing out each one safely on its own still lets the transaction interleave into a result no serial run could produce. The discipline that closes that gap is <a href="#/page/Module4-Transactions/db-locks-2pl">Two-Phase Locking</a>.</p>

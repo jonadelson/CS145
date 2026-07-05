@@ -1,0 +1,113 @@
+<svg viewBox="0 0 900 392" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="dfs-t dfs-d">
+  <title id="dfs-t">Distributed file systems: how metadata coordination evolved</title>
+  <desc id="dfs-d">Four columns, left to right by year. GFS (2003) and HDFS
+  (2006) put all metadata on one pink node, a single Master or NameNode,
+  which caps them near petabyte scale (64 MB / 128 MB chunks, 3x
+  replication, CP). S3 (2006) spreads metadata across many pink nodes with
+  no leader and scales without limit (redundant across at least 3
+  availability zones, designed for 11 nines of durability; strongly
+  read-after-write consistent since 2020, earlier eventually consistent).
+  Colossus (2010+) shards metadata across many
+  nodes with Reed-Solomon erasure coding and reaches exabyte scale (CP,
+  about 50 percent storage overhead). The grey boxes are the chunk or
+  block servers underneath. Color key: pink is the metadata-coordination
+  tier; grey is the chunk servers underneath.</desc>
+  <defs><marker id="ah-dfs" markerWidth="10" markerHeight="7" refX="9" refY="3.5"
+    orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Distributed file systems</text>
+  <text x="450" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Same chunks-and-replicas substrate; metadata coordination is what evolved.</text>
+
+  <!-- column dividers (static) -->
+  <line x1="222" y1="74" x2="222" y2="334" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="450" y1="74" x2="450" y2="334" stroke="#D4D7DC" stroke-width="1"/>
+  <line x1="678" y1="74" x2="678" y2="334" stroke="#D4D7DC" stroke-width="1"/>
+
+  <!-- GFS -->
+  <g data-step="1">
+  <text x="113" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#6B7280">2003</text>
+  <text x="113" y="114" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">GFS</text>
+  <rect x="48" y="128" width="130" height="44" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="2"/>
+  <text x="113" y="148" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">Master</text>
+  <text x="113" y="164" text-anchor="middle" font-size="14" fill="#3F3F46">all metadata</text>
+  <line x1="113" y1="172" x2="113" y2="196" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-dfs)"/>
+  <rect x="50" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="69" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">CS</text>
+  <rect x="94" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="113" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">CS</text>
+  <rect x="138" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="157" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">CS</text>
+  <text x="113" y="258" text-anchor="middle" font-size="14" fill="#3F3F46">64 MB chunks · 3×</text>
+  <text x="113" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">CP · ~PB scale</text>
+  <text x="113" y="298" text-anchor="middle" font-size="14" fill="#6B7280">Master = bottleneck</text>
+  </g>
+
+  <!-- HDFS -->
+  <g data-step="2">
+  <text x="336" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#6B7280">2006</text>
+  <text x="336" y="114" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">HDFS</text>
+  <rect x="271" y="128" width="130" height="44" rx="6" fill="#FBE3EE" stroke="#DB2777" stroke-width="2"/>
+  <text x="336" y="148" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">NameNode</text>
+  <text x="336" y="164" text-anchor="middle" font-size="14" fill="#3F3F46">all metadata</text>
+  <line x1="336" y1="172" x2="336" y2="196" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-dfs)"/>
+  <rect x="273" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="292" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">DN</text>
+  <rect x="317" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="336" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">DN</text>
+  <rect x="361" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="380" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">DN</text>
+  <text x="336" y="258" text-anchor="middle" font-size="14" fill="#3F3F46">128 MB · 3× rack-aware</text>
+  <text x="336" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">CP · ~PB scale</text>
+  <text x="336" y="298" text-anchor="middle" font-size="14" fill="#6B7280">same bottleneck</text>
+  </g>
+
+  <!-- S3 -->
+  <g data-step="3">
+  <text x="564" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#6B7280">2006</text>
+  <text x="564" y="114" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">S3</text>
+  <rect x="499" y="128" width="40" height="26" rx="4" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="519" y="145" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">md</text>
+  <rect x="544" y="128" width="40" height="26" rx="4" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="564" y="145" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">md</text>
+  <rect x="589" y="128" width="40" height="26" rx="4" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="609" y="145" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">md</text>
+  <text x="564" y="170" text-anchor="middle" font-size="14" fill="#6B7280">no leader</text>
+  <line x1="564" y1="176" x2="564" y2="196" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-dfs)"/>
+  <rect x="501" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="520" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">AZ</text>
+  <rect x="545" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="564" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">AZ</text>
+  <rect x="589" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="608" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">AZ</text>
+  <text x="564" y="258" text-anchor="middle" font-size="14" fill="#3F3F46">variable · ≥3 AZs (erasure)</text>
+  <text x="564" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">leaderless · ∞ scale</text>
+  <text x="564" y="298" text-anchor="middle" font-size="13" fill="#6B7280">strong RAW (since 2020)</text>
+  </g>
+
+  <!-- Colossus -->
+  <g data-step="4">
+  <text x="789" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#6B7280">2010+</text>
+  <text x="789" y="114" text-anchor="middle" font-size="17" font-weight="700" fill="#0E0E10">Colossus</text>
+  <rect x="724" y="128" width="40" height="26" rx="4" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="744" y="145" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">md</text>
+  <rect x="769" y="128" width="40" height="26" rx="4" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="789" y="145" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">md</text>
+  <rect x="814" y="128" width="40" height="26" rx="4" fill="#FBE3EE" stroke="#DB2777" stroke-width="1.5"/>
+  <text x="834" y="145" text-anchor="middle" font-size="14" font-weight="700" fill="#DB2777">md</text>
+  <text x="789" y="170" text-anchor="middle" font-size="14" fill="#6B7280">distributed metadata</text>
+  <line x1="789" y1="176" x2="789" y2="196" stroke="#6B7280" stroke-width="1.5" marker-end="url(#ah-dfs)"/>
+  <rect x="726" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="745" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">RS</text>
+  <rect x="770" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="789" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">RS</text>
+  <rect x="814" y="200" width="38" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <text x="833" y="220" text-anchor="middle" font-size="14" fill="#3F3F46">RS</text>
+  <text x="789" y="258" text-anchor="middle" font-size="14" fill="#3F3F46">variable · Reed-Solomon</text>
+  <text x="789" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#0E0E10">CP · EB+ scale</text>
+  <text x="789" y="298" text-anchor="middle" font-size="14" fill="#6B7280">~50% overhead</text>
+  </g>
+
+  <text x="450" y="364" text-anchor="middle" font-size="14"><tspan fill="#0E0E10" font-weight="700">Color key&#160;&#160;</tspan><tspan fill="#DB2777" font-weight="700">pink</tspan><tspan fill="#3F3F46"> = the metadata-coordination tier&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = the chunk servers underneath</tspan></text>
+</svg>

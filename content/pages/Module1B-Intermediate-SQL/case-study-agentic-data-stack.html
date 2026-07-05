@@ -1,0 +1,72 @@
+<h1>Case Study 1.3: Anthropic's Self-Service Analytics Stack</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Without context, Claude answers Anthropic's internal business questions at <strong>21%</strong>. Give it precision as infrastructure, a governed semantic layer and skills that route it to the right definitions, and the same model reaches <strong>95%</strong>. Here the same three steps run across a company, not one analyst: precision supplies the definitions, execution runs the query, verification gates it. Every step runs as SQL. The numbers are Anthropic's own, on their own data.</p>
+<p><strong>Intuition.</strong> One analyst runs the three steps by hand: <a href="#/page/Module1B-Intermediate-SQL/precision-lives-somewhere">precision</a>, <a href="#/page/Module1B-Intermediate-SQL/execution-environment">execution</a>, <a href="#/page/Module1B-Intermediate-SQL/verifying-machine-sql">verification</a>. A company wires them into infrastructure so thousands of questions a week get the same treatment. The model still only generates; the steps stay yours.</p>
+</div>
+<div class="case-study-meta">
+<p><span class="tag">Case Study 1.3</span>
+<span>Reading Time: 5 mins</span></p>
+</div>
+<p>A stakeholder asks in Slack: <em>"How many active users did we have last week?"</em> Claude writes SQL, runs it, and returns a confident, wrong number, because "active user" has a dozen definitions in the warehouse and the model picked one. That is <a href="#/page/Module1B-Intermediate-SQL/llm-debug">runs ≠ correct</a> across a company. Anthropic's data team wrote up how they closed it in <a href="https://claude.com/blog/how-anthropic-enables-self-service-data-analytics-with-claude">"How Anthropic enables self-service data analytics with Claude"</a>.</p>
+<h2>21% to 95%</h2>
+<div class="metrics-grid">
+<div class="metric-card">
+<div class="metric-value">
+<p>21%</p>
+</div>
+<div class="metric-label">
+<p>Bare model, no context</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>95%</p>
+</div>
+<div class="metric-label">
+<p>With the stack (precision)</p>
+</div>
+</div>
+<div class="metric-card">
+<div class="metric-value">
+<p>&lt;1 pt</p>
+</div>
+<div class="metric-label">
+<p>From raw SQL access alone</p>
+</div>
+</div>
+</div>
+<p>The 21% is the bare model: it can run and retry against the warehouse, so multi-shot execution is already there, but with no context it guesses what "active user" means. The definitions and the routing to them lift it to 95%. The third number says how: handing the model the company's entire history of past SQL, raw, moved accuracy less than a point. Structure does the work, not raw access.</p>
+<p>These are Anthropic's <strong>internal</strong> numbers: their own warehouse, their own questions, scored on their own offline evals. They are one company's results. They are not <a href="https://bird-bench.github.io/">BIRD</a>, the general benchmark that spans many varied, complex external databases. On the public BIRD leaderboard, execution accuracy ranges widely (roughly 16 to 77 percent); 95% on your own warehouse is a different, narrower test, and the blog never runs on BIRD. The method is what carries over: context and checks lift a bare model, at one desk or across a company.</p>
+<h2>The Stack Is the Three Steps</h2>
+<p>The same three steps you ran by hand, now built as infrastructure, one person versus a company:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>You, one query</th>
+<th>Anthropic, every query</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Precision</strong></td>
+<td>the spec in your prompt</td>
+<td>a governed semantic layer; skills route the model to the ~30 docs that matter</td>
+</tr>
+<tr>
+<td><strong>Execution</strong></td>
+<td>run it in a CLI</td>
+<td>the agent loop, automated</td>
+</tr>
+<tr>
+<td><strong>Verification</strong></td>
+<td>a debug table</td>
+<td>the same table as a regression suite of evals, gating each domain at ~90%</td>
+</tr>
+</tbody>
+</table>
+<p>Both scales refuse the same wrong answer, the model's guess. The model writes the query; precision and verification stay yours.</p>
+<p><strong>Takeaway:</strong> The bare model scores 21% on Anthropic's own data; the three steps lift it to 95%. The numbers are Anthropic's internal evals, separate from the public BIRD leaderboard, but the method is the one you run by hand: precision, execution, verification, all on SQL.</p>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module1B-Intermediate-SQL/intermediate-sql-quiz">Intermediate SQL Quiz →</a></strong> That closes the Agentic Data Stacks section: one-shot versus multi-shot, the three steps, and a company that runs all of it at 95%. The quiz tests the intermediate toolkit underneath.</p>

@@ -1,0 +1,186 @@
+{
+  "module": "Module4B-Crash-Recovery",
+  "title": "Crash Recovery",
+  "questions": [
+    {
+      "id": "m4b-q01",
+      "category": "Change Tracking",
+      "page": "Module4B-Crash-Recovery/recovery-intuition",
+      "difficulty": "intro",
+      "question": "A trading app must show a user's exact balance at 10:31:04 yesterday, but it cannot snapshot millions of accounts on every trade. What is the database's solution to this version problem?",
+      "options": [
+        "Keep a full copy of the database at fixed intervals and interpolate between copies",
+        "Log each change (not the whole database) and replay the log to reconstruct what was true at any past moment",
+        "Store every row with a validity timestamp and query the row as of any time",
+        "Refuse historical queries and keep only the current state, since storage is finite"
+      ],
+      "correct": 1,
+      "explanation": "Copying the whole database per version would be billions of rows per second, impossible; logging each change is a handful of small entries, and replaying them reaches any moment. This is the same move Google Docs and Git make: save the change, not the whole thing."
+    },
+    {
+      "id": "m4b-q02",
+      "category": "Change Tracking",
+      "page": "Module4B-Crash-Recovery/recovery-intuition",
+      "difficulty": "core",
+      "question": "Google Docs shows your document as it was an hour ago by starting from a recent snapshot and replaying edits forward; undo steps back from where you are. What are the database names for these two moves?",
+      "options": [
+        "Checkpoint and vacuum",
+        "Commit and abort",
+        "Replay and rollback segments",
+        "Redo (replay forward) and undo (step back)"
+      ],
+      "correct": 3,
+      "explanation": "Replaying logged changes forward is exactly what a database calls redo, and stepping back through them is undo. Commit and abort are transaction outcomes, not log-traversal operations, though undo is how an abort gets carried out."
+    },
+    {
+      "id": "m4b-q03",
+      "category": "The WAL Log",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "difficulty": "intro",
+      "question": "Every update is three writes in order. What are they?",
+      "options": [
+        "Append the diff to the log, update the value in a page in the RAM buffer, and flush the big data page to disk later",
+        "Write the data page to disk, append to the log, then update the RAM buffer",
+        "Update the RAM buffer, flush it to disk, then log the change for auditing",
+        "Lock the row, write the value to disk, and append a commit record"
+      ],
+      "correct": 0,
+      "explanation": "Append now, update now, flush later: the tiny log row is durable at once, the RAM page update is fast but volatile, and the 64 MB page flush is deferred. The order matters, because the log being durable before the page reaches disk is the write-ahead rule itself."
+    },
+    {
+      "id": "m4b-q04",
+      "category": "The WAL Log",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "difficulty": "core",
+      "question": "Why is appending to the WAL on every change not a performance disaster?",
+      "options": [
+        "The WAL is kept only in RAM, so appends cost nothing until a checkpoint",
+        "A WAL row is tiny (~40 bytes vs a 64 MB page) and appends are sequential writes to one growing file, roughly 1,000x cheaper than the random I/O a data-page write needs",
+        "The WAL is written only for transactions that eventually abort",
+        "WAL rows are compressed in large batches before they ever touch storage"
+      ],
+      "correct": 1,
+      "explanation": "Small and sequential beats big and random: a 64 KB WAL page flushes in about 13 &micro;s against roughly 13 ms for a 64 MB data page, and battery-backed NVRAM makes a row durable in ~100 ns. The WAL must reach durable storage before commit, so keeping it 'only in RAM' would defeat its purpose."
+    },
+    {
+      "id": "m4b-q05",
+      "category": "The WAL Log",
+      "page": "Module4B-Crash-Recovery/recovery-concepts",
+      "difficulty": "core",
+      "question": "Why must the log record reach disk <em>before</em> the data page it describes (the write-ahead rule)?",
+      "options": [
+        "Because the log is smaller, writing it first minimizes total disk seek time",
+        "Because data pages can only be flushed after their transaction commits",
+        "If the data page flushed first and a crash hit before the log row landed, the data changed with no record of why, which recovery cannot fix; log-first leaves the change in the durable log, ready to re-apply",
+        "Because the log must assign each change its position number before the page is allowed to move"
+      ],
+      "correct": 2,
+      "explanation": "A crash can strike between the two writes, so the order decides recoverability: log-first means the worst case is a durable record of a change that must be re-applied or undone, both possible. Data-first can leave a mutation with no explanation, unrecoverable. Performance is a bonus of the log, not the reason for the ordering."
+    },
+    {
+      "id": "m4b-q06",
+      "category": "Undo for Aborts",
+      "page": "Module4B-Crash-Recovery/recovery-wal",
+      "difficulty": "intro",
+      "question": "Which ACID property does undo deliver, and what information does it need from the log?",
+      "options": [
+        "Durability; it needs each change's new value to re-apply it",
+        "Atomicity; it needs each change's old value so it can write it back, making an aborted transaction leave no trace",
+        "Isolation; it needs the lock table to know which rows the transaction held",
+        "Consistency; it needs the schema constraints to re-validate each row"
+      ],
+      "correct": 1,
+      "explanation": "Undo makes abort all-or-nothing, which is atomicity: it walks the transaction's log rows and restores each old value. New values are redo's tool, used for durability after a crash, the mirror operation."
+    },
+    {
+      "id": "m4b-q07",
+      "category": "Undo for Aborts",
+      "page": "Module4B-Crash-Recovery/recovery-wal",
+      "difficulty": "core",
+      "question": "When undo reverses an aborting transaction's writes, what does it do besides fixing the data pages?",
+      "options": [
+        "It deletes the transaction's original rows from the log to save space",
+        "It flushes every affected data page to disk immediately",
+        "It takes exclusive locks on the whole table to prevent interference",
+        "It appends each reversal to the log as a W-abort row, then closes with an abort record, so the log records exactly how the transaction was unwound (the ARIES logged-undo approach)"
+      ],
+      "correct": 3,
+      "explanation": "Undo writes its own steps into the log as it runs; the rollback itself becomes part of the durable history. The log is append-only and never rewritten, so deleting rows is exactly what it never does, and that completeness is what lets post-crash recovery replay undos too."
+    },
+    {
+      "id": "m4b-q08",
+      "category": "Undo for Aborts",
+      "page": "Module4B-Crash-Recovery/recovery-wal",
+      "difficulty": "stretch",
+      "question": "TLong ran for hours, and the buffer flushed some of its pages to disk before it committed. TLong now aborts, and one uncommitted value (A0 = 22.8) is already on disk with no old copy of the page kept. How is it undone?",
+      "options": [
+        "It can't be; the database must restore that page from the last full backup",
+        "The log's row for A0 holds the old value (19), so undo simply writes 19 back to the page, walking the log backward newest-write-first and logging each reversal",
+        "The flush is impossible: the buffer manager never flushes a page holding uncommitted data",
+        "The database waits for TLong's locks to expire, then marks the page as free"
+      ],
+      "correct": 1,
+      "explanation": "This is the hard case the log is designed for: no old page copy is needed because every log row already carries the old value. The tempting distractor, 'uncommitted pages never flush', is false here: a long transaction touches more than RAM holds, so pages must flush before commit."
+    },
+    {
+      "id": "m4b-q09",
+      "category": "Post-Crash Recovery",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "difficulty": "core",
+      "question": "What are the two passes of post-crash recovery, and what does each fix?",
+      "options": [
+        "REPLAY forward re-applies every logged change to rebuild the exact crash state (protecting durability); UNDO backward then reverses every transaction that never committed (protecting atomicity)",
+        "UNDO backward removes uncommitted work first; REPLAY forward then re-applies only committed transactions",
+        "ANALYSIS builds the transaction table; REDO then applies only the changes marked committed",
+        "REPLAY re-applies committed changes and UNDO deletes the log entries of aborted transactions"
+      ],
+      "correct": 0,
+      "explanation": "The forward pass redoes <em>every</em> row, committed or not, to reach a known state; the backward pass then peels off the losers. Note the course's algorithm replays everything and needs no separate analysis pass: commit status is tracked for free as the forward pass reads the log."
+    },
+    {
+      "id": "m4b-q10",
+      "category": "Post-Crash Recovery",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "difficulty": "stretch",
+      "question": "Why must the forward REPLAY pass run <em>before</em> the backward UNDO pass?",
+      "options": [
+        "Because undo entries are stored at the end of the log and can only be read last",
+        "Because replay must release the locks that crashed transactions still hold",
+        "After a crash you can't tell which data pages reached disk, so there is no consistent state to roll back from; replay first rebuilds the exact crash state, and only then can undo reverse the uncommitted work against a known starting point",
+        "Because durability is more important than atomicity, so committed work is always processed first"
+      ],
+      "correct": 2,
+      "explanation": "The disk after a crash is a half-written mix: some committed writes missing, some uncommitted writes present. Undoing against those half-written pages would be undefined. Replay establishes ground truth; undo then works from it. It's an ordering requirement of correctness, not a priority ranking of ACID letters."
+    },
+    {
+      "id": "m4b-q11",
+      "category": "Post-Crash Recovery",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "difficulty": "core",
+      "question": "In the crash example, T4 commits <em>after</em> T3's writes appear in the log, yet T4 survives recovery and T3 is undone. What determines which transactions get undone?",
+      "options": [
+        "Position in the log: everything after the last checkpoint is undone",
+        "Commit status: any transaction without a COMMIT record by the crash is undone, regardless of where its writes sit in the log",
+        "Recency: the newest N transactions are undone as a safety margin",
+        "Page state: only transactions whose pages never flushed are undone"
+      ],
+      "correct": 1,
+      "explanation": "The undone rows are scattered through the log, not a trailing block; what matters is whether the forward pass ever met that transaction's COMMIT. T4 committed late but committed, so it survives; T3 and T5 never committed, so their writes are reversed newest-first."
+    },
+    {
+      "id": "m4b-q12",
+      "category": "Post-Crash Recovery",
+      "page": "Module4B-Crash-Recovery/recovery-postcrash",
+      "difficulty": "core",
+      "question": "What does checkpointing buy, and what does it cost?",
+      "options": [
+        "It compresses the log to save disk space, at the cost of slower appends",
+        "It makes commits durable without writing the log, at the cost of extra RAM",
+        "It eliminates the undo pass entirely, at the cost of blocking all writes during the checkpoint",
+        "It periodically flushes all dirty pages so replay can start from the last checkpoint instead of the start of the log, trading checkpoint overhead for faster recovery"
+      ],
+      "correct": 3,
+      "explanation": "Checkpoints bound how far back recovery must read, cutting recovery time from potentially hours. The trade-off is the runtime cost of the flushes, plus one wrinkle: recovery must scan from the last checkpoint to rebuild the live-transaction table, the one case where that tracking isn't free."
+    }
+  ]
+}

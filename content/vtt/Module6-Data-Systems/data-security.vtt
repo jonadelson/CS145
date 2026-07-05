@@ -1,0 +1,82 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.634
+At scale, your data is also a liability.
+
+00:00:05.634 --> 00:00:09.268
+One unpatched library, one plaintext password, one missing MFA prompt, and millions of records walk out the door.
+
+00:00:09.268 --> 00:00:12.902
+The rule is simple.
+
+00:00:12.902 --> 00:00:16.536
+Trust nothing.
+
+00:00:16.536 --> 00:00:19.615
+Equifax leaked a hundred forty-eight million Social Security numbers.
+
+00:00:19.615 --> 00:00:22.695
+The vector, a clever zero-day?
+
+00:00:22.695 --> 00:00:25.774
+No.
+
+00:00:25.774 --> 00:00:28.853
+An unpatched library.
+
+00:00:28.853 --> 00:00:31.932
+National Public Data left its passwords in plaintext.
+
+00:00:31.932 --> 00:00:35.012
+Change Healthcare had no MFA on a remote portal.
+
+00:00:35.012 --> 00:00:38.091
+Mundane mistakes, half a billion records between them.
+
+00:00:38.091 --> 00:00:42.514
+At the center sits the database, your crown jewels.
+
+00:00:42.514 --> 00:00:46.938
+Around it, assume every surface is already hostile.
+
+00:00:46.938 --> 00:00:51.361
+The network is sniffed, the user phished, the admin compromised, the code injected, the backups a ransomware target.
+
+00:00:51.361 --> 00:00:55.785
+Verify every request, at every one.
+
+00:00:55.785 --> 00:00:59.770
+Take the oldest attack.
+
+00:00:59.770 --> 00:01:03.754
+A user types Robert, semicolon, DROP TABLE users.
+
+00:01:03.754 --> 00:01:07.739
+Glue that into your query as text, and the database runs the DROP.
+
+00:01:07.739 --> 00:01:11.723
+Pass it as a parameter instead, and it is just a harmless name that matches nobody.
+
+00:01:11.723 --> 00:01:15.708
+Never concatenate input into SQL.
+
+00:01:15.708 --> 00:01:17.698
+SQL's power cuts both ways.
+
+00:01:17.698 --> 00:01:19.689
+One mistake hands an attacker your whole database.
+
+00:01:19.689 --> 00:01:21.679
+Do not trust the network.
+
+00:01:21.679 --> 00:01:23.669
+Do not trust the user.
+
+00:01:23.669 --> 00:01:25.659
+Verify every query.
+
+00:01:25.659 --> 00:01:27.650
+Next, the harder problem.
+
+00:01:27.650 --> 00:01:29.640
+Privacy.

@@ -1,0 +1,124 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:06.133
+A Spotify analyst runs a SQL query against ten terabytes.
+
+00:00:06.133 --> 00:00:10.267
+Thirty seconds later: the top artists.
+
+00:00:10.267 --> 00:00:14.400
+No cluster provisioned, no DBA paged, about a dollar twenty-five.
+
+00:00:14.400 --> 00:00:18.533
+That is serverless OLAP.
+
+00:00:18.533 --> 00:00:22.875
+The trick is decoupling.
+
+00:00:22.875 --> 00:00:27.217
+Old data warehouses bundled storage and compute into one cluster.
+
+00:00:27.217 --> 00:00:31.559
+To hold more data, you bought bigger nodes, and you paid for those nodes whether you queried them or not.
+
+00:00:31.559 --> 00:00:35.902
+BigQuery split the two.
+
+00:00:35.902 --> 00:00:40.244
+Data sits in Colossus as compressed columnar files at twenty dollars a terabyte per month.
+
+00:00:40.244 --> 00:00:44.586
+Compute is a separate fleet of ephemeral slots that spin up per query, do their work, and vanish.
+
+00:00:44.586 --> 00:00:48.885
+Walk through what happens behind one API call.
+
+00:00:48.885 --> 00:00:53.184
+First, plan.
+
+00:00:53.184 --> 00:00:57.483
+BigQuery reads the query and the schema, sees it only touches two columns, artist and year, so the columnar layout reads just those and skips the rest.
+
+00:00:57.483 --> 00:01:01.782
+Ten terabytes to scan drops to two hundred gigabytes.
+
+00:01:01.782 --> 00:01:06.081
+Second, schedule.
+
+00:01:06.081 --> 00:01:10.380
+The scheduler hands out up to two thousand ephemeral slots, split across the stages.
+
+00:01:10.380 --> 00:01:14.679
+Third, scan.
+
+00:01:14.679 --> 00:01:18.978
+Each slot reads a partition of the columnar files in Colossus and hash-aggregates by artist into partial counts.
+
+00:01:18.978 --> 00:01:23.277
+Fourth, shuffle and merge.
+
+00:01:23.277 --> 00:01:27.576
+A second wave of slots takes those partial counts, hash-partitioned by artist, sums, sorts, and trims to the top hundred, the same hash partitioning from distributed sort and hash.
+
+00:01:27.576 --> 00:01:31.875
+Fifth, return.
+
+00:01:31.875 --> 00:01:36.174
+The result lands in about thirty seconds.
+
+00:01:36.174 --> 00:01:40.473
+The slots release.
+
+00:01:40.473 --> 00:01:44.772
+You pay for the bytes scanned, about a dollar twenty-five, and nothing else.
+
+00:01:44.772 --> 00:01:48.487
+Decoupled storage and compute flipped pipeline economics.
+
+00:01:48.487 --> 00:01:52.202
+Old ETL: extract, transform separately, then load.
+
+00:01:52.202 --> 00:01:55.918
+New ELT: load raw, transform inside with SQL.
+
+00:01:55.918 --> 00:01:59.633
+Storage is cheap, compute elastic.
+
+00:01:59.633 --> 00:02:03.348
+dbt is built on this.
+
+00:02:03.348 --> 00:02:09.424
+The modern OLAP engines all made the same core move: decouple storage from compute.
+
+00:02:09.424 --> 00:02:15.500
+BigQuery, Snowflake, Redshift, Spark SQL.
+
+00:02:15.500 --> 00:02:21.576
+What separates them is smaller design choices, and those track use cases more than raw power.
+
+00:02:21.576 --> 00:02:27.651
+BigQuery is serverless, so it fits spiky ad-hoc analytics where you never want to run a cluster.
+
+00:02:27.651 --> 00:02:33.727
+Snowflake gives you warehouses you size yourself, better for steady workloads with a predictable cost ceiling.
+
+00:02:33.727 --> 00:02:39.803
+The lesson is the pattern, not the table: pick the engine whose model matches how you actually query.
+
+00:02:39.803 --> 00:02:44.880
+BigQuery is one piece of a chain.
+
+00:02:44.880 --> 00:02:49.958
+Kafka ingests events, a distributed file system holds them cheaply, Spark or dbt transforms them in place, and BigQuery serves interactive queries.
+
+00:02:49.958 --> 00:02:55.035
+Each piece plays a role you have now seen.
+
+00:02:55.035 --> 00:03:00.933
+The serverless OLAP pattern is the modern default for analytics.
+
+00:03:00.933 --> 00:03:06.831
+You stop managing clusters and start managing data: schema design, query economics, pipeline architecture.
+
+00:03:06.831 --> 00:03:12.729
+BigQuery did not just make queries faster, it changed who could ask them.

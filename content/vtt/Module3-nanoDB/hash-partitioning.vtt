@@ -1,0 +1,100 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:04.856
+The Listens table is sixty-four gigabytes.
+
+00:00:04.856 --> 00:00:07.712
+Your machine has six point four gigabytes of RAM.
+
+00:00:07.712 --> 00:00:10.568
+Ten times too big to load.
+
+00:00:10.568 --> 00:00:13.424
+So you break it into RAM-sized chunks and touch one at a time.
+
+00:00:13.424 --> 00:00:16.280
+The trick is hash partitioning.
+
+00:00:16.280 --> 00:00:19.136
+Here is how it runs.
+
+00:00:19.136 --> 00:00:23.601
+Watch the workspace.
+
+00:00:23.601 --> 00:00:28.066
+Disk on the left, a small RAM strip in the middle, disk partitions on the right.
+
+00:00:28.066 --> 00:00:32.531
+First, reed the input file one page at a time into a RAM input buffer.
+
+00:00:32.531 --> 00:00:36.995
+That is all the memory you spend.
+
+00:00:36.995 --> 00:00:41.460
+Second, hash every row on the key and route it to one of about sixteen output buffers.
+
+00:00:41.460 --> 00:00:45.925
+Mickey's rows always hash to the same buffer, no matter which page they arrive on.
+
+00:00:45.925 --> 00:00:50.390
+Third, when an output buffer fills, flush it to its partition file on disk and clear it.
+
+00:00:50.390 --> 00:00:54.855
+Repeat until the input is consumed.
+
+00:00:54.855 --> 00:00:59.320
+One pass.
+
+00:00:59.320 --> 00:01:03.785
+About sixteen partition files, each one small enough to fit in RAM.
+
+00:01:03.785 --> 00:01:08.249
+Sixty-four gigabytes hashed into sixteen partitions of four gigabytes each.
+
+00:01:08.249 --> 00:01:12.714
+The same key never splits across two files, so the next stage can sort, join, or group one partition at a time, never the whole table.
+
+00:01:12.714 --> 00:01:17.179
+This is not elegance.
+
+00:01:17.179 --> 00:01:21.644
+When the table dwarfs RAM, there is no other way to touch all of it.
+
+00:01:21.644 --> 00:01:24.864
+And in code, one streaming pass.
+
+00:01:24.864 --> 00:01:28.084
+Hash each row to a bucket and spill full buffers to disk.
+
+00:01:28.084 --> 00:01:31.304
+Equal keys always land in the same bucket.
+
+00:01:31.304 --> 00:01:35.985
+The cost is one reed of every page and one write of every page.
+
+00:01:35.985 --> 00:01:40.666
+Two N total.
+
+00:01:40.666 --> 00:01:45.348
+Linear in the data size.
+
+00:01:45.348 --> 00:01:50.029
+A RAM-blind join of two big tables is quadratic, order N squared.
+
+00:01:50.029 --> 00:01:54.710
+One partitioning pass makes every downstream sort, join, and group by linear instead, because each partition now fits in RAM and is touched once.
+
+00:01:54.710 --> 00:01:58.741
+Divide and conquer.
+
+00:01:58.741 --> 00:02:02.772
+Split a big problem into small ones, then process terabytes with gigabytes of RAM at linear cost.
+
+00:02:02.772 --> 00:02:06.803
+As we will see later, these underpin most modern data systems, including Postgres, BigQuery, and Spark.
+
+00:02:06.803 --> 00:02:10.834
+Next, the same trick applied to sorting.
+
+00:02:10.834 --> 00:02:14.865
+BigSort.

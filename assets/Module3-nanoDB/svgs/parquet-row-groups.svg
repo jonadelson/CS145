@@ -1,0 +1,103 @@
+<svg viewBox="0 0 1100 645" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="parquet-row-groups-t parquet-row-groups-d" font-family="Inter, sans-serif">
+  <title id="parquet-row-groups-t">Parquet nests rows into row-groups, columns into column chunks, and bytes into ~1 MB pages, all in one file, for a sliver of compression in exchange for big gains in row access, file count, and write simplicity</title>
+  <desc id="parquet-row-groups-d">Two layouts compared, revealed in steps. On the left, pure columnar (grey, out of focus) puts each column in its own file, so one row needs a seek per column and a wide table explodes into a hundred thousand files. On the right, one Parquet file (emerald, in focus) builds up in three beats: first the file as a sequence of row-groups of about 128 MB and a million rows, then the column chunks inside one row-group with the rating chunk highlighted, then a zoom showing a column chunk is a stack of roughly 1 MB pages. A note flags that Parquet's page is finer than the 64 MB DbFile page from earlier. A footer of per-row-group min/max statistics lets a query skip whole row-groups. The trade panel states the cost in amber and the gains in emerald. Color key: emerald is the Parquet file in focus, grey is pure columnar out of focus, amber is the cost.</desc>
+  <defs>
+    <marker id="pq-ar" markerWidth="11" markerHeight="8" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker>
+  </defs>
+
+  <text x="550" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0E0E10">Parquet: columnar, packed into row-groups</text>
+  <text x="550" y="60" text-anchor="middle" font-size="16" fill="#3F3F46">the practical middle: one file, columns kept local inside each row-group</text>
+
+  <!-- STEP 1: pure columnar, out of focus -->
+  <g data-step="1">
+    <rect x="40" y="92" width="300" height="350" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="40" y="92" width="300" height="6" rx="3" fill="#E7EAEE"/>
+    <text x="190" y="122" text-anchor="middle" font-size="18" font-weight="700" fill="#6B7280">Pure columnar</text>
+    <text x="190" y="142" text-anchor="middle" font-size="14" fill="#6B7280">one file per column</text>
+    <rect x="66" y="158" width="248" height="34" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="80" y="180" font-size="14" font-family="JetBrains Mono, monospace" fill="#3F3F46">user_id.col</text>
+    <rect x="66" y="200" width="248" height="34" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="80" y="222" font-size="14" font-family="JetBrains Mono, monospace" fill="#3F3F46">song_id.col</text>
+    <rect x="66" y="242" width="248" height="34" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="80" y="264" font-size="14" font-family="JetBrains Mono, monospace" fill="#3F3F46">rating.col</text>
+    <rect x="66" y="284" width="248" height="34" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="80" y="306" font-size="14" font-family="JetBrains Mono, monospace" fill="#3F3F46">listen_time.col</text>
+    <line x1="66" y1="338" x2="314" y2="338" stroke="#D4D7DC"/>
+    <text x="190" y="362" text-anchor="middle" font-size="14" fill="#6B7280">one row = a seek per column</text>
+    <text x="190" y="384" text-anchor="middle" font-size="14" fill="#6B7280">100 cols &#215; 1000 parts</text>
+    <text x="190" y="404" text-anchor="middle" font-size="16" font-weight="700" fill="#6B7280">= 100,000 files</text>
+  </g>
+
+  <!-- STEP 2: the Parquet file = a sequence of row-groups -->
+  <g data-step="2">
+    <rect x="372" y="92" width="688" height="410" rx="8" fill="#FFFFFF" stroke="#059669" stroke-width="2"/>
+    <text x="716" y="118" text-anchor="middle" font-size="18" font-weight="700" fill="#059669">listens.parquet &#183; one file on disk</text>
+    <text x="716" y="138" text-anchor="middle" font-size="14" fill="#6B7280">nesting:  row group  &#9656;  column chunk  &#9656;  ~1 MB page</text>
+    <rect x="392" y="150" width="648" height="106" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="404" y="170" font-size="14" font-weight="700" fill="#6B7280">Row Group 1 &#183; ~128 MB &#183; ~1M rows</text>
+    <rect x="392" y="378" width="648" height="32" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="404" y="399" font-size="14" font-weight="700" fill="#6B7280">Row Group 2 &#183; ~128 MB<tspan font-weight="400">    &#8943;  the file is a sequence of row-groups</tspan></text>
+  </g>
+
+  <!-- STEP 3: inside a row-group, each column is a column chunk (rating highlighted) -->
+  <g data-step="3" font-family="JetBrains Mono, monospace">
+    <text x="700" y="170" font-size="14" font-style="italic" fill="#6B7280" font-family="Inter, sans-serif">one column chunk per column</text>
+    <rect x="404" y="178" width="150" height="68" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="404" y="178" width="150" height="18" rx="4" fill="#E7EAEE"/>
+    <text x="479" y="191" text-anchor="middle" font-size="13" font-weight="700" fill="#6B7280" font-family="Inter, sans-serif">user_id</text>
+    <text x="479" y="215" text-anchor="middle" font-size="14" fill="#3F3F46">42 &#183; 7 &#183; 13</text>
+    <text x="479" y="237" text-anchor="middle" font-size="12" font-style="italic" fill="#6B7280" font-family="Inter, sans-serif">dictionary</text>
+
+    <rect x="564" y="178" width="150" height="68" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="564" y="178" width="150" height="18" rx="4" fill="#E7EAEE"/>
+    <text x="639" y="191" text-anchor="middle" font-size="13" font-weight="700" fill="#6B7280" font-family="Inter, sans-serif">song_id</text>
+    <text x="639" y="215" text-anchor="middle" font-size="14" fill="#3F3F46">100 &#183; 200 &#183; 100</text>
+    <text x="639" y="237" text-anchor="middle" font-size="12" font-style="italic" fill="#6B7280" font-family="Inter, sans-serif">dictionary</text>
+
+    <rect x="724" y="178" width="150" height="68" rx="4" fill="#FFFFFF" stroke="#059669" stroke-width="2"/>
+    <rect x="724" y="178" width="150" height="18" rx="4" fill="#059669"/>
+    <text x="799" y="191" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF" font-family="Inter, sans-serif">rating</text>
+    <text x="799" y="215" text-anchor="middle" font-size="14" font-weight="700" fill="#059669">5 &#183; 4 &#183; 3</text>
+    <text x="799" y="237" text-anchor="middle" font-size="12" font-style="italic" fill="#6B7280" font-family="Inter, sans-serif">run-length</text>
+
+    <rect x="884" y="178" width="148" height="68" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="884" y="178" width="148" height="18" rx="4" fill="#E7EAEE"/>
+    <text x="958" y="191" text-anchor="middle" font-size="13" font-weight="700" fill="#6B7280" font-family="Inter, sans-serif">listen_time</text>
+    <text x="958" y="215" text-anchor="middle" font-size="14" fill="#3F3F46">10:32 &#183; 10:35</text>
+    <text x="958" y="237" text-anchor="middle" font-size="12" font-style="italic" fill="#6B7280" font-family="Inter, sans-serif">delta</text>
+  </g>
+
+  <!-- STEP 4: a column chunk is a stack of ~1 MB pages -->
+  <g data-step="4">
+    <path d="M 799 246 L 660 274" stroke="#6B7280" stroke-width="2" marker-end="url(#pq-ar)" fill="none"/>
+    <rect x="392" y="276" width="648" height="92" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="392" y="276" width="648" height="6" rx="3" fill="#E7EAEE"/>
+    <text x="404" y="300" font-size="14" font-weight="700" fill="#6B7280">Inside the rating chunk: a stack of ~1 MB pages</text>
+    <rect x="404" y="310" width="150" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="479" y="330" text-anchor="middle" font-size="14" fill="#3F3F46">page &#183; ~1 MB</text>
+    <rect x="564" y="310" width="150" height="30" rx="4" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <text x="639" y="330" text-anchor="middle" font-size="14" fill="#3F3F46">page &#183; ~1 MB</text>
+    <text x="744" y="330" font-size="18" font-weight="700" fill="#6B7280">&#8943;</text>
+    <text x="790" y="330" font-size="13" font-style="italic" fill="#6B7280">Parquet's page (~1 MB), not the 64 MB DbFile page from earlier</text>
+  </g>
+
+  <!-- STEP 5: footer / skipping -->
+  <g data-step="5">
+    <rect x="392" y="420" width="648" height="74" rx="6" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="392" y="420" width="6" height="74" rx="3" fill="#059669"/>
+    <text x="412" y="443" font-size="15" font-weight="700" fill="#059669">Footer &#183; schema + per-row-group min/max stats</text>
+    <text x="412" y="465" font-size="14" fill="#3F3F46">WHERE listen_time &gt; T reads the footer first, then</text>
+    <text x="412" y="485" font-size="14" font-weight="700" fill="#3F3F46">skips whole row-groups that cannot match.</text>
+  </g>
+
+  <!-- STEP 6: the trade -->
+  <g data-step="6">
+    <rect x="40" y="522" width="1020" height="84" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1.5"/>
+    <rect x="40" y="522" width="1020" height="6" rx="3" fill="#059669"/>
+    <text x="60" y="550" font-size="17" font-weight="700" fill="#0E0E10">The trade</text>
+    <text x="60" y="576" font-size="15" fill="#3F3F46"><tspan fill="#D97706" font-weight="700">Pay:</tspan> compression resets at each row-group boundary, a sliver.</text>
+    <text x="60" y="597" font-size="15" fill="#3F3F46"><tspan fill="#059669" font-weight="700">Gain:</tspan> a row stays local &#183; one file, not 100,000 &#183; the row-group is the unit of work for writes and parallel scans.</text>
+  </g>
+
+  <text x="550" y="630" text-anchor="middle" font-size="13"><tspan fill="#059669" font-weight="700">emerald</tspan><tspan fill="#3F3F46"> = the Parquet file in focus&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#6B7280" font-weight="700">grey</tspan><tspan fill="#3F3F46"> = pure columnar, out of focus&#160;&#160;&#183;&#160;&#160;</tspan><tspan fill="#D97706" font-weight="700">amber</tspan><tspan fill="#3F3F46"> = the cost</tspan></text>
+</svg>

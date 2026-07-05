@@ -1,0 +1,42 @@
+<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg"
+     style="width:100%;height:auto;" font-family="Inter, sans-serif"
+     role="img" aria-labelledby="lc-t lc-d">
+  <title id="lc-t">Lock compatibility matrix: shared and exclusive locks</title>
+  <desc id="lc-d">A two-by-two matrix. Rows are the lock already held, columns the
+  lock now requested. Holding a shared lock and requesting a shared lock is
+  compatible, because two reads do not conflict. Every other combination, shared
+  then exclusive, exclusive then shared, exclusive then exclusive, is incompatible,
+  so the requester waits. A write excludes everyone.</desc>
+
+  <text x="380" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#0E0E10">Lock compatibility</text>
+  <text x="380" y="58" text-anchor="middle" font-size="14" fill="#6B7280">Two reads share one row. A write excludes everyone.</text>
+
+  <!-- column headers -->
+  <text x="280" y="106" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">wants Shared (S)</text>
+  <text x="540" y="106" text-anchor="middle" font-size="13" font-weight="700" fill="#3F3F46">wants Exclusive (X)</text>
+  <text x="92" y="92" text-anchor="middle" font-size="11.5" fill="#9AA0AA">holds &#8595; / wants &#8594;</text>
+
+  <!-- row: holds Shared -->
+  <g data-step="1">
+    <text x="92" y="170" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3F3F46">holds Shared (S)</text>
+    <rect x="180" y="122" width="200" height="96" rx="8" fill="#E1F4EC" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="280" y="162" text-anchor="middle" font-size="26" font-weight="700" fill="#16A34A">&#10003;</text>
+    <text x="280" y="190" text-anchor="middle" font-size="13" fill="#3F3F46">compatible, both read</text>
+    <rect x="440" y="122" width="200" height="96" rx="8" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="540" y="162" text-anchor="middle" font-size="26" font-weight="700" fill="#DC2626">&#10007;</text>
+    <text x="540" y="190" text-anchor="middle" font-size="13" fill="#3F3F46">wait</text>
+  </g>
+
+  <!-- row: holds Exclusive -->
+  <g data-step="2">
+    <text x="92" y="290" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3F3F46">holds Exclusive (X)</text>
+    <rect x="180" y="242" width="200" height="96" rx="8" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="280" y="282" text-anchor="middle" font-size="26" font-weight="700" fill="#DC2626">&#10007;</text>
+    <text x="280" y="310" text-anchor="middle" font-size="13" fill="#3F3F46">wait</text>
+    <rect x="440" y="242" width="200" height="96" rx="8" fill="#FCEBEA" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="540" y="282" text-anchor="middle" font-size="26" font-weight="700" fill="#DC2626">&#10007;</text>
+    <text x="540" y="310" text-anchor="middle" font-size="13" fill="#3F3F46">wait</text>
+  </g>
+
+  <text x="380" y="382" text-anchor="middle" font-size="13.5"><tspan font-weight="700" fill="#16A34A">one green cell:</tspan><tspan fill="#3F3F46"> two shared locks coexist. Any exclusive lock, held or wanted, forces a wait.</tspan></text>
+</svg>

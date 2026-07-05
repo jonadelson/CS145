@@ -1,0 +1,140 @@
+<h1>Distributed Query Planning</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A distributed query splits work across many machines by partitioning the input tables, executing local plans on each shard, and shuffling intermediate results so matching keys land together.</p>
+<p><strong>Intuition.</strong> When Listens is 100 TB and lives on 1,000 machines, no one machine can join it to Users alone. The optimizer hashes both tables on <code>user_id</code>, ships each user's rows to one shard, then runs the same join algorithm locally on every shard.</p>
+</div>
+<h2>Scaling Queries Across Multiple Machines</h2>
+<p>When your data outgrows a single machine, the query has to be split across nodes, run in parallel, and its partial results reassembled.</p>
+<hr />
+<h2>What is "Shuffle"?</h2>
+<p><strong>Shuffle</strong> is data relocation across nodes. It gets all rows with the same key onto the same machine before joining or grouping. It is hash partitioning over the network.</p>
+<p><a id="shuffle-figure"></a>
+<img src="assets/Module3C-Query-Optimization/svgs/distributed-shuffle.svg" alt="Distributed shuffle: rows starting on multiple nodes are hashed on the join key and sent over the network so all rows with the same key land on the same target node, ready for local join." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Rows begin scattered across multiple nodes. Hashing each row on the join key picks its target machine, so every row sharing a key travels over the network to the same node. Once the keys sit together, each node runs an ordinary local join on the rows it now owns. This is exactly hash partitioning with the network as the destination, so the cost is the same 2N IO plus the network transfer.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Local hash partitioning</th>
+<th>Distributed shuffle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hash(key) % B</code> picks a partition file on the same disk</td>
+<td><code>hash(key) % nodes</code> picks a target machine on the network</td>
+</tr>
+<tr>
+<td>Output: B files on local disk</td>
+<td>Output: each node receives the keys it owns</td>
+</tr>
+<tr>
+<td>Cost: 2N IO</td>
+<td>Cost: 2N IO <strong>+ network transfer</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Same algorithm, different destination.</strong> See <a href="#/page/Module3C-Query-Optimization/hash-partitioning">Hash Partitioning</a> for the local primitive.</p>
+<hr />
+<h2>Core Concepts of Distributed Planning</h2>
+<h3>Fragmentation</h3>
+<p>The optimizer dissects the logical plan into <strong>independent fragments</strong>. Each node runs the same code but on its own data slice.</p>
+<hr />
+<h2>Shuffle Strategies</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Strategy</th>
+<th style="text-align: left;">Mechanism</th>
+<th style="text-align: left;">Best For</th>
+<th style="text-align: left;">Network Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Broadcast Shuffle</strong></td>
+<td style="text-align: left;">Send a copy of the <em>entire</em> table to every node.</td>
+<td style="text-align: left;">Joining a <strong>tiny</strong> table with a massive one.</td>
+<td style="text-align: left;"><code>Small Table Size × # Nodes</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Hash Shuffle</strong></td>
+<td style="text-align: left;">Redistribute <em>both</em> tables by a common hash key.</td>
+<td style="text-align: left;">Joining two <strong>large</strong> tables.</td>
+<td style="text-align: left;"><code>Total Size of Both Tables</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Co-located (Zero Shuffle)</strong></td>
+<td style="text-align: left;">No movement; data is already partitioned correctly.</td>
+<td style="text-align: left;">Tables pre-partitioned on the same key.</td>
+<td style="text-align: left;"><strong>Zero Network I/O</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Reaggregation Patterns: The Two-Phase Execution</h2>
+<p><strong>Problem</strong>: Global grouping across 1,000 nodes would flood the network with billions of minuscule records.</p>
+<h3>Phase 1: Local Pre-Aggregation</h3>
+<p>Each node groups and aggregates its local data.</p>
+<ul>
+<li>
+<p><strong>Input</strong>: 1,000,000 "listen" rows per node.</p>
+</li>
+<li>
+<p><strong>Output</strong>: 1,000 "artist totals" per node.</p>
+</li>
+<li>
+<p><strong>Impact</strong>: Shrinks data by <strong>1,000x</strong> before network transfer.</p>
+</li>
+</ul>
+<h3>Phase 2: Global Merge</h3>
+<p>Partial results are shuffled by the grouping key (e.g., <code>artist_id</code>) to a coordinator node.</p>
+<ul>
+<li>
+<p><strong>Action</strong>: Coordinator aggregates partial counts to derive the true total.</p>
+</li>
+<li>
+<p><strong>Why</strong>: Ensures accuracy while reducing network load.</p>
+</li>
+</ul>
+<hr />
+<h2>Optional: Real Systems Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Architecture</th>
+<th>Key Optimization</th>
+<th>Shuffle Strategy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apache Spark</strong></td>
+<td>In-memory RDDs</td>
+<td>Catalyst optimizer + code gen</td>
+<td>Hash &amp; broadcast joins</td>
+</tr>
+<tr>
+<td><strong>BigQuery (Dremel)</strong></td>
+<td>Columnar tree</td>
+<td>Hierarchical aggregation</td>
+<td>Minimize data movement</td>
+</tr>
+<tr>
+<td><strong>Snowflake</strong></td>
+<td>Storage/compute separation</td>
+<td>Micro-partitions + caching</td>
+<td>Automatic clustering</td>
+</tr>
+<tr>
+<td><strong>Presto/Trino</strong></td>
+<td>Pipelined execution</td>
+<td>Dynamic filtering</td>
+<td>Statistics-driven</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Next:</strong> <a href="#/page/Module3C-Query-Optimization/spotify-architecture-end-to-end">Spotify End-to-End</a> ties everything together. See how one click on a play button cascades through OLTP writes, ETL transforms (with the shuffle and broadcast joins from this page), and OLAP dashboards.</p>

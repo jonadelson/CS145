@@ -1,0 +1,41 @@
+<svg viewBox="0 0 1100 560" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif" role="img" aria-labelledby="sh-t sh-d">
+  <title id="sh-t">The storage hierarchy as a staircase</title>
+  <desc id="sh-d">Four storage tiers as a descending staircase. Cache and registers at about 1 ns sit at the top, then RAM at 100 ns, 3,500 dollars per TB, 16 GB. One step down is SSD at 10 microseconds, 75 dollars per TB, 512 GB, 100 times slower. One more step is HDD at 10 milliseconds, 25 dollars per TB, 4 TB, another 1,000 times slower. A left-side axis marks faster, costlier, smaller at the top and slower, cheaper, bigger at the bottom. Color key: orange is a storage tier, grey is the speed cost size axis.</desc>
+  <defs><marker id="ah-sh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/></marker></defs>
+
+  <text x="550" y="40" text-anchor="middle" style="font-size:24px;font-weight:700;fill:#0E0E10;">The storage hierarchy: faster costs more, holds less</text>
+  <text x="550" y="66" text-anchor="middle" style="font-size:16px;fill:#3F3F46;">Each step down trades latency for capacity and price.</text>
+
+  <!-- left axis -->
+  <line x1="60" y1="104" x2="60" y2="500" stroke="#6B7280" stroke-width="2" marker-end="url(#ah-sh)"/>
+  <text x="44" y="150" text-anchor="middle" transform="rotate(-90 44 150)" style="font-size:14px;font-weight:700;fill:#6B7280;">faster · costlier · smaller</text>
+  <text x="44" y="430" text-anchor="middle" transform="rotate(-90 44 430)" style="font-size:14px;font-weight:700;fill:#6B7280;">slower · cheaper · bigger</text>
+
+  <!-- step 1: cache/registers -->
+  <rect x="130" y="100" width="430" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="130" y="100" width="6" height="78" rx="3" fill="#EA580C"/>
+  <text x="156" y="132" style="font-size:16px;font-weight:700;fill:#0E0E10;">CPU registers + L1/L2 cache</text>
+  <text x="156" y="158" style="font-size:14px;fill:#3F3F46;">~1 ns  ·  kilobytes  ·  the hottest data</text>
+
+  <!-- step 2: RAM -->
+  <rect x="280" y="210" width="430" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="280" y="210" width="6" height="78" rx="3" fill="#EA580C"/>
+  <text x="306" y="242" style="font-size:16px;font-weight:700;fill:#0E0E10;">RAM (buffer pool)</text>
+  <text x="306" y="268" style="font-size:14px;fill:#3F3F46;">100 ns  ·  $3,500 / TB  ·  16 GB</text>
+  <text x="650" y="205" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#6B7280;">×100 slower</text>
+
+  <!-- step 3: SSD -->
+  <rect x="430" y="320" width="430" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="430" y="320" width="6" height="78" rx="3" fill="#EA580C"/>
+  <text x="456" y="352" style="font-size:16px;font-weight:700;fill:#0E0E10;">SSD</text>
+  <text x="456" y="378" style="font-size:14px;fill:#3F3F46;">10 µs  ·  $75 / TB  ·  512 GB</text>
+  <text x="800" y="315" text-anchor="middle" style="font-size:14px;font-weight:700;fill:#6B7280;">×1,000 slower</text>
+
+  <!-- step 4: HDD -->
+  <rect x="580" y="430" width="430" height="78" rx="8" fill="#FFFFFF" stroke="#D4D7DC" stroke-width="1"/>
+  <rect x="580" y="430" width="6" height="78" rx="3" fill="#EA580C"/>
+  <text x="606" y="462" style="font-size:16px;font-weight:700;fill:#0E0E10;">HDD</text>
+  <text x="606" y="488" style="font-size:14px;fill:#3F3F46;">10 ms  ·  $25 / TB  ·  4 TB</text>
+
+  <text x="550" y="540" text-anchor="middle" style="font-size:14px;"><tspan style="fill:#0E0E10;font-weight:700;">Color key&#160;&#160;</tspan><tspan style="fill:#EA580C;font-weight:700;">orange</tspan><tspan style="fill:#3F3F46;"> = a storage tier&#160;&#160;·&#160;&#160;</tspan><tspan style="fill:#6B7280;font-weight:700;">grey</tspan><tspan style="fill:#3F3F46;"> = the speed, cost, size axis</tspan></text>
+</svg>

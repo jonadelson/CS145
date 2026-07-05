@@ -1,0 +1,237 @@
+{
+  "module": "Module1-SQL",
+  "title": "SQL Basics",
+  "cards": [
+    {
+      "id": "m1-c01",
+      "front": "What three tables make up the course's Spotify schema, and what does each hold?",
+      "back": "<strong>Users</strong> (who), <strong>Songs</strong> (what), and <strong>Listens</strong> (each play event). Listens carries foreign keys to both, plus the rating and listen_time.",
+      "page": "Module1-SQL/spotify-db",
+      "tags": ["schema", "spotify"]
+    },
+    {
+      "id": "m1-c02",
+      "front": "PRIMARY KEY vs FOREIGN KEY — what does each guarantee?",
+      "back": "A PRIMARY KEY uniquely identifies each row (e.g. listen_id). A FOREIGN KEY references a primary key in another table, so a Listens row can never point at a user or song that does not exist.",
+      "page": "Module1-SQL/spotify-db",
+      "tags": ["schema", "constraints"]
+    },
+    {
+      "id": "m1-c03",
+      "front": "In the Spotify schema, which columns are allowed to be NULL, and why?",
+      "back": "Columns with no NOT NULL constraint: <code>genre</code>, <code>rating</code>, and <code>listen_time</code>. NOT NULL columns (name, title, artist, user_id, song_id) are required.",
+      "page": "Module1-SQL/spotify-db",
+      "tags": ["schema", "nulls"]
+    },
+    {
+      "id": "m1-c04",
+      "front": "What does it mean that SQL is declarative?",
+      "back": "You state WHAT data you want; the query planner decides HOW to compute it — which scan, which join order. You never write the execution steps yourself.",
+      "page": "Module1-SQL/section1-intro",
+      "tags": ["declarative", "planner"]
+    },
+    {
+      "id": "m1-c05",
+      "front": "What order do FROM, WHERE, and SELECT execute in?",
+      "back": "FROM → WHERE → SELECT (the FloWS order), the reverse of how you write them. The table loads first, rows are filtered, then columns are chosen.",
+      "page": "Module1-SQL/select-from-where",
+      "tags": ["execution-order", "select-from-where"]
+    },
+    {
+      "id": "m1-c06",
+      "front": "Why can't WHERE use an alias defined in SELECT?",
+      "back": "WHERE runs before SELECT, so the alias does not exist yet. <code>WHERE double_rating &gt; 8</code> fails; <code>WHERE rating * 2 &gt; 8</code> works because the expression already exists.",
+      "page": "Module1-SQL/select-from-where",
+      "tags": ["aliases", "execution-order"]
+    },
+    {
+      "id": "m1-c07",
+      "front": "What is CASE ... WHEN in a SELECT clause?",
+      "back": "SQL's if-then-else for computing a new column, e.g. <code>CASE WHEN rating &gt;= 4.5 THEN 'Excellent' WHEN rating &gt;= 4.0 THEN 'Good' ELSE 'Average' END</code>.",
+      "page": "Module1-SQL/select-from-where",
+      "tags": ["case", "expressions"]
+    },
+    {
+      "id": "m1-c08",
+      "front": "What does NULL mean in SQL, and what does it do to logic?",
+      "back": "NULL means \"unknown\" — not 0, not empty. It adds a third truth value, UNKNOWN, beyond TRUE and FALSE; any comparison with NULL evaluates to UNKNOWN.",
+      "page": "Module1-SQL/nulls",
+      "tags": ["nulls", "three-valued-logic"]
+    },
+    {
+      "id": "m1-c09",
+      "front": "How do you test whether a column is NULL?",
+      "back": "Use <code>IS NULL</code> / <code>IS NOT NULL</code> — the only tests that return a definite TRUE or FALSE. <code>rating = NULL</code> is always UNKNOWN, so WHERE drops every row.",
+      "page": "Module1-SQL/nulls",
+      "tags": ["nulls", "where"]
+    },
+    {
+      "id": "m1-c10",
+      "front": "When can AND/OR give a definite answer even with a NULL operand?",
+      "back": "A known value can dominate: FALSE wins an AND (FALSE AND UNKNOWN = FALSE), TRUE wins an OR (TRUE OR UNKNOWN = TRUE). Otherwise the result stays UNKNOWN — and NOT UNKNOWN is still UNKNOWN.",
+      "page": "Module1-SQL/nulls",
+      "tags": ["nulls", "three-valued-logic"]
+    },
+    {
+      "id": "m1-c11",
+      "front": "How do aggregates treat NULL values?",
+      "back": "COUNT(*) counts every row; COUNT(column), SUM, AVG, MIN, MAX skip NULLs. So AVG divides by the non-NULL count (9-row Listens: COUNT(*)=9, COUNT(rating)=8, AVG divides by 8).",
+      "page": "Module1-SQL/nulls",
+      "tags": ["nulls", "aggregates"]
+    },
+    {
+      "id": "m1-c12",
+      "front": "How does SELECT DISTINCT treat multiple NULLs?",
+      "back": "All NULLs collapse into ONE distinct value, even though NULL = NULL evaluates to NULL. GROUP BY buckets NULLs together the same way.",
+      "page": "Module1-SQL/nulls",
+      "tags": ["nulls", "distinct"]
+    },
+    {
+      "id": "m1-c13",
+      "front": "What does GROUP BY do to the rows of a table?",
+      "back": "It collapses every row sharing a value in the named column(s) into one output row per group, so aggregates like COUNT and AVG run once per group. 9 Listens rows grouped by user_id become 3 rows.",
+      "page": "Module1-SQL/groupby",
+      "tags": ["groupby", "aggregates"]
+    },
+    {
+      "id": "m1-c14",
+      "front": "What happens when you GROUP BY multiple columns?",
+      "back": "The bucket key is the column combination: <code>GROUP BY user_id, song_id</code> makes one group per unique (user, song) pair. More columns = finer buckets.",
+      "page": "Module1-SQL/groupby",
+      "tags": ["groupby"]
+    },
+    {
+      "id": "m1-c15",
+      "front": "What is the SELECT restriction under GROUP BY?",
+      "back": "SELECT may only contain GROUP BY columns and aggregates. A non-aggregated column not in GROUP BY (e.g. song_id when grouping by user_id) is ambiguous — the group holds many values — so the database errors or silently guesses.",
+      "page": "Module1-SQL/groupby",
+      "tags": ["groupby", "errors"]
+    },
+    {
+      "id": "m1-c16",
+      "front": "COUNT(*) vs COUNT(column) vs COUNT(DISTINCT column)?",
+      "back": "COUNT(*) = all rows including NULLs; COUNT(column) = non-NULL values only; COUNT(DISTINCT column) = unique non-NULL values.",
+      "page": "Module1-SQL/groupby",
+      "tags": ["aggregates", "nulls"]
+    },
+    {
+      "id": "m1-c17",
+      "front": "WHERE vs HAVING — which filters what, and when?",
+      "back": "WHERE filters individual rows BEFORE grouping and cannot see aggregates. HAVING filters whole groups AFTER GROUP BY and can test aggregates like COUNT(*) or AVG(rating). A group passes whole or drops whole.",
+      "page": "Module1-SQL/having",
+      "tags": ["having", "where"]
+    },
+    {
+      "id": "m1-c18",
+      "front": "What is the full SQL execution pipeline for a grouped query?",
+      "back": "FROM → WHERE → GROUP BY → HAVING → SELECT / ORDER BY. Aggregates only exist after GROUP BY, which is why WHERE can't use them and HAVING can.",
+      "page": "Module1-SQL/having",
+      "tags": ["execution-order", "having"]
+    },
+    {
+      "id": "m1-c19",
+      "front": "Why does <code>HAVING avg_r &gt; 4.0</code> fail when avg_r is a SELECT alias?",
+      "back": "HAVING executes before SELECT creates aliases. Repeat the aggregate expression instead: <code>HAVING AVG(rating) &gt; 4.0</code>.",
+      "page": "Module1-SQL/having",
+      "tags": ["having", "aliases"]
+    },
+    {
+      "id": "m1-c20",
+      "front": "Set vs multiset (bag) — which are SQL tables?",
+      "back": "SQL tables are multisets: duplicates ARE allowed and each duplicate counts separately. A mathematical set has each element at most once. DISTINCT or UNION turn a multiset result into a set.",
+      "page": "Module1-SQL/sets",
+      "tags": ["sets", "multisets"]
+    },
+    {
+      "id": "m1-c21",
+      "front": "UNION vs UNION ALL — behavior and performance?",
+      "back": "UNION removes duplicate rows; UNION ALL keeps every row. UNION ALL is faster because it skips the deduplication sort — use it when you need all rows for counting or aggregation.",
+      "page": "Module1-SQL/sets",
+      "tags": ["sets", "union"]
+    },
+    {
+      "id": "m1-c22",
+      "front": "What do INTERSECT and EXCEPT return?",
+      "back": "INTERSECT: rows that appear in BOTH query results. EXCEPT: rows in the first result but NOT the second (set difference) — e.g. all songs EXCEPT listened songs = never-played songs.",
+      "page": "Module1-SQL/sets",
+      "tags": ["sets", "intersect", "except"]
+    },
+    {
+      "id": "m1-c23",
+      "front": "What is the mental model for INNER JOIN, and how many rows does Users JOIN Listens produce?",
+      "back": "A double for-loop: for each user, for each matching listen, emit one row. Mickey's 3 listens become 3 rows (the ×3); 9 rows total, and unmatched users like Pluto drop out.",
+      "page": "Module1-SQL/joins",
+      "tags": ["joins", "inner-join"]
+    },
+    {
+      "id": "m1-c24",
+      "front": "What does a LEFT JOIN keep that an INNER JOIN drops?",
+      "back": "Every row of the LEFT table, even with no match — Pluto (zero listens) returns as an extra row with the listen columns NULL-filled. RIGHT JOIN is the mirror, keeping every right-table row.",
+      "page": "Module1-SQL/joins",
+      "tags": ["joins", "outer-join"]
+    },
+    {
+      "id": "m1-c25",
+      "front": "What is a FULL OUTER JOIN, and does SQLite support it?",
+      "back": "The union of LEFT + RIGHT: every row from both tables stays, NULL-padded where unmatched. SQLite lacks it — emulate with a LEFT JOIN, UNION, and a RIGHT-equivalent join.",
+      "page": "Module1-SQL/joins",
+      "tags": ["joins", "outer-join"]
+    },
+    {
+      "id": "m1-c26",
+      "front": "What happens if you JOIN two tables without an ON clause?",
+      "back": "A cartesian product: every possible row pair. 4 users × 9 listens = 36 rows — usually a mistake.",
+      "page": "Module1-SQL/joins",
+      "tags": ["joins", "cartesian"]
+    },
+    {
+      "id": "m1-c27",
+      "front": "Why did Users RIGHT JOIN Listens return the same rows as the INNER JOIN?",
+      "back": "The foreign key on Listens.user_id forces every listen to have a real user, so there are no orphan listens to preserve. An outer join only adds rows on a side that can have unmatched rows (like unplayed Songs).",
+      "page": "Module1-SQL/joins",
+      "tags": ["joins", "foreign-keys"]
+    },
+    {
+      "id": "m1-c28",
+      "front": "In what order do nested subqueries execute?",
+      "back": "Inside-out: the innermost query finishes first and feeds its result (a value, a list, or an existence test) to the query around it.",
+      "page": "Module1-SQL/subqueries-basic",
+      "tags": ["subqueries", "execution-order"]
+    },
+    {
+      "id": "m1-c29",
+      "front": "What is the NOT IN NULL trap, and what are the safe alternatives?",
+      "back": "If the subquery list contains a NULL, every NOT IN test becomes UNKNOWN and the result silently collapses to 0 rows. Fixes: add <code>IS NOT NULL</code> in the subquery, use NOT EXISTS, or use LEFT JOIN ... WHERE key IS NULL.",
+      "page": "Module1-SQL/subqueries-basic",
+      "tags": ["subqueries", "nulls"]
+    },
+    {
+      "id": "m1-c30",
+      "front": "Why is EXISTS more efficient than COUNT(*) &gt; 0 for a presence check?",
+      "back": "EXISTS returns TRUE at the FIRST matching row and stops scanning; COUNT(*) must tally every matching row before the comparison. Use EXISTS when any match suffices.",
+      "page": "Module1-SQL/subqueries-basic",
+      "tags": ["subqueries", "performance"]
+    },
+    {
+      "id": "m1-c31",
+      "front": "What is a scalar subquery?",
+      "back": "A subquery returning exactly one value, used like a constant: <code>WHERE rating &gt; (SELECT AVG(rating) FROM Listens)</code>. It runs once; using <code>=</code> against a multi-row subquery is an error — use IN instead.",
+      "page": "Module1-SQL/subqueries-basic",
+      "tags": ["subqueries", "scalar"]
+    },
+    {
+      "id": "m1-c32",
+      "front": "What makes a subquery 'correlated'?",
+      "back": "The inner query references a column from the outer query's row (e.g. <code>l2.user_id = u.user_id</code>), so it re-runs once per outer row — a double for-loop — instead of once total.",
+      "page": "Module1-SQL/subqueries-correlated",
+      "tags": ["subqueries", "correlated"]
+    },
+    {
+      "id": "m1-c33",
+      "front": "What phrase in a question signals you need a correlated subquery, and what is the performance risk?",
+      "back": "\"Their own\" / \"its own\" — the comparison threshold changes per row (above THEIR average). Risk: the N+1 problem, 1 + N inner executions; optimizers often rewrite it as a join or windowed aggregate.",
+      "page": "Module1-SQL/subqueries-correlated",
+      "tags": ["correlated", "performance"]
+    }
+  ]
+}

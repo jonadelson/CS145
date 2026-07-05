@@ -1,0 +1,95 @@
+<h1>Optional: Modern Big Data Economics</h1>
+<div class="case-study-meta">
+<p><span>Reading Time: 5 mins</span></p>
+</div>
+<blockquote>
+<p>This is an optional exploration of how Big Tech pays for scale. Recommended after completing the SQL Introduction.</p>
+</blockquote>
+<h2>Beyond the Syntax: The Economics of Scale</h2>
+<p>Once you master SQL, the game changes from "How do I write this?" to "How do I pay for this?" Here are current trends in the industry (2020s-now)</p>
+<hr />
+<h3>Trend 1: Scaling Economics (2020s - now)</h3>
+<ul>
+<li>
+<p><strong>Startup</strong>: Use "Boring" Postgres. It’s free and stable.</p>
+</li>
+<li>
+<p><strong>Big Tech</strong>: You pay a <strong>"Specialization Tax"</strong> (Managed Services, Custom Engines) because the cost of doing it manually would bankrupt you.</p>
+</li>
+</ul>
+<hr />
+<h3>Trend 2: The Extract-Load-Transform (ELT) Flip (2020s - now)</h3>
+<p><strong>The Concept</strong>: Get the raw, "dirty" data into a cheap cloud "bucket" (S3/GCS) immediately. Then, use SQL to clean it up later. In the past, we used to do the opposite (ETL), the flip you met in the big-tech data stack.</p>
+<blockquote>
+<p><strong>The Why</strong>: </p>
+</blockquote>
+<ol>
+<li>
+<p>Raw data is your most valuable asset. If your cleaning logic has a bug, re-run the process from the raw source. <strong>Store first, ask questions later.</strong> </p>
+</li>
+<li>
+<p>The flip matters for the 2020s. It is only possible because the cost of storing and managing terabytes of data has dropped by orders of magnitude in the past decade. For example, in the 2020s BigQuery costs under $10/TB/month. </p>
+</li>
+<li>
+<p>Also, it's a lot easier to work with streaming data when you store it first. And you can use SQL to process it in real-time.</p>
+</li>
+</ol>
+<hr />
+<h3>Trend 3: SQL plus JSONB (over pure NoSQL ) (2020s - now)</h3>
+<p><strong>The Concept</strong>: Use SQL databases with JSONB columns to store semi-structured data. </p>
+<blockquote>
+<p><strong>The Why</strong>: </p>
+</blockquote>
+<ol>
+<li>
+<p>JSONB is a first-class citizen in modern SQL databases. It's fast, flexible, and easy to use. </p>
+</li>
+<li>
+<p>Pure NoSQL databases are easy to start with (don't need to structure anything), but they tend to have consistency challenges and don't have the declarative power of SQL.</p>
+</li>
+</ol>
+<hr />
+<h3>Trend 4: Split Storage from Compute (Apache Iceberg, 2020s - now)</h3>
+<p><strong>The Problem</strong>: Legacy architectures mandate that if you want to store 100TB, you must pay for a massive, always-on server cluster to house it, even if you only query that data once a week. You are paying a premium for RAM/CPU that sits idle.
+<strong>The Solution</strong>: Separating <strong>Storage</strong> from <strong>Compute</strong>. </p>
+<blockquote>
+<p><strong>The Why</strong>: </p>
+</blockquote>
+<ol>
+<li>
+<p>Why pay for a 24/7 supercomputer just to hold files? By splitting them, you dump your raw data into dirt-cheap object storage (like AWS S3) and only spin up the expensive "Compute" engines (the CPU/RAM) for the 5 minutes you actually run your query. </p>
+</li>
+<li>
+<p>This decouples scale: you can scale storage to infinity for pennies, and scale compute independently based on how fast you need answers.</p>
+</li>
+<li>
+<p>This is the foundation of modern Data Lakes and tools like Apache Iceberg.</p>
+</li>
+</ol>
+<p><img src="assets/Module6-Data-Systems/svgs/sql-trends-storage-compute.svg"
+     alt="Coupled architecture pays for an always-on 100 TB cluster billed 24/7; decoupled architecture keeps raw data in cheap object storage and spins up compute only per query."
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> Coupled versus decoupled storage and compute. The legacy cluster bolts 100 TB to CPU and RAM and bills all of it around the clock, even when the data is queried once a week. Splitting them parks raw data in dirt-cheap object storage that scales for pennies and rents compute only for the minutes a query runs, so each scales on its own.</p>
+</div>
+<h3>Trend 5: The ORM Scale Wall (A Trade-off)</h3>
+<p><strong>The Concept</strong>: Many developers start with an <strong>ORM</strong> (Object-Relational Mapper) like SQLAlchemy.org. It lets you write Python objects that "magically" become database rows. No SQL required.</p>
+<p><strong>The Trade-off</strong>: </p>
+<ul>
+<li>
+<p><strong>Startup Phase (The Win)</strong>: ORMs are a good deal. They let you build features in minutes. They also hide a lot of details.</p>
+</li>
+<li>
+<p><strong>Scale Phase (The Disaster)</strong>: As you get more users and machines (Distributed Systems), the "hidden details" can cause silent failures that corrupt data.</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>The Why</strong>: We focus on <strong>Raw SQL</strong> in CS145. When you know how it works, you can find the right balance of raw SQL and ORM. At scale, you need a lot more control.</p>
+</blockquote>
+<p><img src="assets/Module6-Data-Systems/svgs/sql-trends-orm-wall.svg"
+     alt="An ORM saves time in the startup phase but at scale its hidden details cause silent failures that need raw SQL to fix."
+     style="width:100%; max-width:1080px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The ORM scale wall. Early on an ORM turns Python objects into rows with no SQL, so features ship in minutes. At scale those same hidden details run across distributed machines, where they fire redundant queries and can corrupt data silently. Learn the SQL first, then choose where an ORM still pays.</p>
+</div>
+<hr />

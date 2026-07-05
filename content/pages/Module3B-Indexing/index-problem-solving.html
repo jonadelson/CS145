@@ -1,0 +1,222 @@
+<h1>Index Problem Solving: Design Patterns</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> Choosing an index is really about matching the query pattern to the index type. Hash for exact match, B+Tree for ranges and sorts, LSM for write-heavy workloads, and combinations for everything in between.</p>
+<p><strong>Intuition.</strong> The ten scenarios below start with "what are the queries this system has to answer?" and work backward to the index. Same database, same data, different access patterns produce different answers.</p>
+</div>
+<p><a href="#/page/Module3B-Indexing/io-indexes">IO Cost &amp; Trade-offs</a> gave the cost of each structure under each access pattern. Picking one is then a business decision: when a task says "optimize queries," "scale writes," or "support range scans," the right index isn't just a technical choice, it's a call about what access pattern matters most.</p>
+<hr />
+<h3>Problem 1: User Lookup Service (1 M scale)</h3>
+<p><strong>Problem.</strong> Handle 1 M user requests per second with email or username lookups. Speed is non-negotiable.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> Hash index.</p>
+</li>
+<li>
+<p><strong>Design.</strong> Hash index on <code>email</code> and <code>username</code> for O(1) exact-match lookups.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> 1 to 2 IOs per lookup; scales horizontally.</p>
+</li>
+<li>
+<p><strong>Why.</strong> Logins are exact matches (<code>email = 'user@example.com'</code>). A hash index beats a B+Tree's 3 to 4 IOs for this pattern.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 2: Song Rating Lookup (100 M scale)</h3>
+<p><strong>Problem.</strong> Spotify needs to answer "has User X already rated Song Y?" across 100 M ratings.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> Composite B+Tree vs concatenated hash.</p>
+</li>
+<li>
+<p><strong>Design.</strong> Option A: B+Tree on <code>(user_id, song_id)</code> for flexibility. Option B: Hash on <code>concat(user_id, '_', song_id)</code> for pure speed.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> B+Tree: 3 to 4 IOs, flexible. Hash: 1 to 2 IOs for exact match only.</p>
+</li>
+<li>
+<p><strong>Why.</strong> If you only need the exists check, hash wins. A <a href="#/page/Module2-Systems/case-study-bloomfilters">bloom filter</a> can also cheaply answer "definitely not rated" before you touch the main index.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 3: E-commerce Price Filtering (10 M scale)</h3>
+<p><strong>Problem.</strong> Filter products by price ranges quickly.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> B+Tree index.</p>
+</li>
+<li>
+<p><strong>Design.</strong> B+Tree on the <code>price</code> column, plus a compound index on <code>(category, price)</code> if category filtering is common.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> 3 to 4 IOs to find the start, then a sequential scan across the range.</p>
+</li>
+<li>
+<p><strong>Why.</strong> Hash indexes can't handle <code>BETWEEN</code> or <code>&lt;</code> / <code>&gt;</code>. The B+Tree's sorted leaves are exactly what range queries and <code>ORDER BY</code> want.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 4: Song Analytics Dashboard (50 M scale)</h3>
+<p><strong>Problem.</strong> Query 50 M songs by various criteria. Sorting the data multiple ways at once isn't feasible.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> Primary clustered index plus secondary indexes.</p>
+</li>
+<li>
+<p><strong>Design.</strong> Primary B+Tree clustered on <code>song_id</code>. Secondary B+Trees on <code>release_date</code> and on <code>popularity_score DESC</code>. Hash on <code>genre</code>.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> Primary: 3 IOs. Secondary: 4 to 5 IOs. Genre lookup: 1 to 2 IOs via hash.</p>
+</li>
+<li>
+<p><strong>Why.</strong> The table is physically sorted by <code>song_id</code>. Secondary indexes point back to the primary key. You pay an extra IO hop for each secondary lookup, but that's cheaper than maintaining several physically clustered copies of the table.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 5: User Activity Tracking (10 M scale)</h3>
+<p><strong>Problem.</strong> Track 10 M user sessions with mixed query patterns.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> Mix index types to match each pattern.</p>
+</li>
+<li>
+<p><strong>Design.</strong> Hash on <code>session_id</code>. Composite B+Tree on <code>(user_id, timestamp)</code>. B+Tree on <code>last_active</code>. <a href="#/page/Module2-Systems/case-study-bloomfilters">Bloom filter</a> for existence checks.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> Session lookup: 1 to 2 IOs. User history: 3 to 4 IOs plus scan. Dormant detection: range scan. Existence check: answered in memory.</p>
+</li>
+<li>
+<p><strong>Why.</strong> Each query pattern gets the structure that fits it best. Hash for point lookups, B+Tree for ranges and sorting, bloom filter for cheap existence.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 6: Similar Image Search (1 B+ scale)</h3>
+<p><strong>Problem.</strong> Pinterest-style "find similar images" and detect exact duplicates efficiently.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> Locality-Sensitive Hashing (LSH) plus a hash index. LSH is a specialized topic beyond the core index types and is covered only lightly here.</p>
+</li>
+<li>
+<p><strong>Design.</strong> LSH for similarity search. Hash index on image fingerprints for duplicate detection. Two-stage query: check the hash first for exact matches, then run LSH for near-matches.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> Exact duplicate: O(1). Similar images: O(k), where k is the average bucket size in LSH.</p>
+</li>
+<li>
+<p><strong>Why.</strong> LSH handles high-dimensional data by reducing dimensionality while preserving approximate similarity. A plain hash index covers the exact-duplicate path.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 7: Instagram Feed (600 M scale)</h3>
+<p><strong>Problem.</strong> Deliver Instagram feeds without writing a single celebrity post to 600 M timelines.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> B+Tree plus hybrid fanout.</p>
+</li>
+<li>
+<p><strong>Design.</strong> Two tables. <code>posts</code> is indexed by <code>(user_id, timestamp)</code> B+Tree. <code>timelines</code> is indexed by <code>(user_id, timestamp)</code> for regular users. For celebrities, query the <code>posts</code> table on demand via JOIN. For regular users, pre-populate timelines.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> Celebrity: a JOIN using B+Tree indexes. Regular user: a single B+Tree lookup.</p>
+</li>
+<li>
+<p><strong>Why.</strong> Fanning out one celebrity post to 600 M timelines is wasteful. Instagram JOINs celebrity posts with your follow list at read time instead.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 8: Real-time Event Stream (1 M writes/sec)</h3>
+<p><strong>Problem.</strong> Spotify logs 1 M song plays per second.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> LSM tree.</p>
+</li>
+<li>
+<p><strong>Design.</strong> LSM with size-tiered compaction. Time-based partitioning. Secondary LSM indexes on <code>user_id</code> for per-user queries.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> Effectively 0 IOs per write (append to RAM). Reads cost K × 2 IOs where K is the number of tiers that might hold the key.</p>
+</li>
+<li>
+<p><strong>Why.</strong> Writes hit memory first. A B+Tree would require 4 M IOPS on disk; LSM's batched flushes absorb the load. Recent data stays in memory for fast access.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 9: IoT Time-Series Data (100 K sensors)</h3>
+<p><strong>Problem.</strong> 100 K sensors sending readings, queried by <code>sensor_id</code> and time range.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> LSM tree plus bloom filters.</p>
+</li>
+<li>
+<p><strong>Design.</strong> LSM with leveled compaction. Primary key <code>(sensor_id, timestamp)</code>. Monthly partitions. <a href="#/page/Module2-Systems/case-study-bloomfilters">Bloom filters</a> per SSTable.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> Effectively 0 write IOs. Efficient range scans with bloom-filter pruning on reads.</p>
+</li>
+<li>
+<p><strong>Why.</strong> Append-only sensor data fits LSM perfectly. Bloom filters skip SSTables that can't contain the requested sensor. Run-length encoding compresses repeated values well.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h3>Problem 10: Driver Location Tracking (10 M scale)</h3>
+<p><strong>Problem.</strong> Uber tracks driver locations every 5 seconds but only needs the latest location per driver.</p>
+<details>
+<summary><strong>Show Solution</strong></summary>
+<ul>
+<li>
+<p><strong>Concept.</strong> LSM with a keep-latest merge function.</p>
+</li>
+<li>
+<p><strong>Design.</strong> LSM tree with a custom merge that keeps only the newest timestamp per <code>driver_id</code>. Writes append to memory, and compaction discards older locations.</p>
+</li>
+<li>
+<p><strong>Rough performance.</strong> Effectively 0 write IOs. Compaction reduces data roughly 100× by keeping only the latest location per driver.</p>
+</li>
+<li>
+<p><strong>Why.</strong> The LSM merge function implements latest-wins directly. A B+Tree would require a costly random update for every ping. Old locations are garbage-collected for free during compaction.</p>
+</li>
+</ul>
+</details>
+<hr />
+<h2>Key Takeaways</h2>
+<ol>
+<li>
+<p><strong>Match the index to the access pattern, not the data.</strong> The same 100 M rows can warrant a hash, a B+Tree, or an LSM depending on the query.</p>
+</li>
+<li>
+<p><strong>Composite indexes are one of the highest-leverage moves.</strong> A single B+Tree on <code>(user_id, timestamp)</code> serves personal history, most-recent lookups, and range filters all at once.</p>
+</li>
+<li>
+<p><strong>Mix index types on the same table when patterns conflict.</strong> Hash for point lookups, B+Tree for ranges, bloom for existence. None of them are mutually exclusive.</p>
+</li>
+</ol>
+<hr />
+<h2>Next</h2>
+<p><strong><a href="#/page/Module3B-Indexing/indexing-quiz">Indexing Quiz →</a></strong> Check yourself on the four index types and when to use each.</p>

@@ -1,0 +1,36 @@
+<h1>Transactions Motivation</h1>
+<div class="v5-concept">
+<p><strong>Concept.</strong> A transaction is a multi-step database operation that must run as if it were a single atomic unit, even when thousands of other transactions are running on the same data simultaneously.</p>
+<p><strong>Intuition.</strong> When millions of Taylor Swift fans hit Ticketmaster at once, each purchase (check the seat, charge the card, mark it sold) must complete entirely or not at all, so no two fans get the same seat. That guarantee held. What buckled was the load around it: queues froze, sales were paused, payments timed out. The hard problem is keeping transactions correct <em>and</em> fast under that crush.</p>
+</div>
+<h2>Case Study: Taylor Swift Concert Sales on Ticketmaster</h2>
+<p><img src="assets/Module4-Transactions/svgs/transaction-unit.svg" alt="Alice clicks Buy; that one click is a single transaction wrapping three steps (check the seat, charge the card, record the sale) that either all commit or all abort, run about ten thousand times per second." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 1.</strong> One fan's Buy click is a single transaction: check the seat is open, charge the card, record the sale, bundled so either all three commit or none do, never a charge without a seat and never the same seat to two fans. Multiply by the on-sale crush, every fan racing for the same seats, and you have the problem this module solves.</p>
+</div>
+<h3>The Scale of the Problem</h3>
+<p><img src="assets/Module4-Transactions/svgs/ticketmaster-scale.svg" alt="The on-sale by the numbers: 52 show dates, 3.5 million fans pre-registered, 2.4 million tickets sold in a single day, and 3.5 billion system requests in a few hours." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<h3>What Went Wrong?</h3>
+<p>The popular story is that Ticketmaster double-booked seats. It did not. The transactions did their job: no seat went to two fans, the bots walked off with zero tickets, and 2.4 million tickets sold in a single day, a record. What broke was everything <em>around</em> that guarantee, under four times the load the site had ever seen.</p>
+<p><a id="txn-problem-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/txn-problem.svg" alt="Three panels. The demand: about 12 million visitors plus scalper bots generated 3.5 billion system requests, four times the prior peak. What bent: virtual queues froze thousands deep, sales were slowed and paused on purpose to stay up, and seat holds and payments timed out under contention. What held: no seat sold twice, bots got zero tickets, 2.4 million sold in a day." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 2.</strong> The real failure was load, not correctness. About 12 million visitors and scalper bots drove 3.5 billion requests, four times the prior peak (violet). Under it, availability bent: queues froze thousands deep, Ticketmaster throttled and paused sales to stay up, and seat holds and payments timed out (red). But the transactions held: no seat sold twice, bots got nothing, and a record 2.4 million tickets sold in a day (green). Keeping that correctness while also staying fast under the crush is the problem this module solves.</p>
+</div>
+<h3>How That Compares</h3>
+<p><a id="scale-comparison-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/scale-comparison.svg" alt="Three systems by peak throughput and whether they held: Visa clears about 100,000 transactions per second every day and held; Amazon on Prime Day serves about 105 million requests per second under 10 ms and held; Ticketmaster peaked at just 4 times its own prior record and fell over." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 3.</strong> Other systems clear far more, every day, without melting. Visa settles 100,000 transactions a second at peak; Amazon answers 105 million requests a second on Prime Day in under ten milliseconds. Ticketmaster fell over at four times its own prior record. The lesson is not that transactions are slow. It is that absorbing a sudden, massive spike of concurrent load takes the kind of engineering Visa and Amazon built over decades, and a one-off flash on-sale had not.</p>
+</div>
+<hr />
+<h2>The 100× Scale</h2>
+<p>The whole stack moves together. Concurrency, hardware, and the data structures underneath each jumped by orders of magnitude per generation. The challenges you will solve sit on top of all three.</p>
+<p><a id="scale-generations-figure"></a></p>
+<p><img src="assets/Module4-Transactions/svgs/scale-generations.svg" alt="Three generations, each roughly 10,000 times the last. Classic (1990s-2000s): about 1,000 transactions per second, HDD with 1-4 cores, B-Trees. Modern (2000s-2020s): about 10 million per second, SSD with 128+ cores, LSM Trees. Future (2030s on): millions of AI agents per second, NVMe with 10,000+ cores, learned indexes." style="width:100%; max-width:1000px; display:block; margin:1.5rem auto;"></p>
+<div class="paper-caption">
+<p><strong>Figure 4.</strong> Each generation runs roughly 10,000 times the load of the last (about 100× per decade), and concurrency, hardware, and data structures all jump together. The classic era ran thousands of transactions a second on disks and B-Trees; the modern era runs tens of millions on solid-state and LSM Trees; the agent era stacks a third jump on top, and has to hold the same correctness guarantees the classic era did.</p>
+</div>
+<hr />
+<h2>What We'll Learn</h2>
+<p>The four guarantees that make this safe under load, atomicity, consistency, isolation, and durability, are ACID. They start on the next page.</p>

@@ -1,0 +1,118 @@
+WEBVTT
+
+00:00:02.000 --> 00:00:05.982
+MapReduce won the decade, then hit a wall.
+
+00:00:05.982 --> 00:00:09.965
+Iterative work and interactive analytics both paid the disk tax, over and over.
+
+00:00:09.965 --> 00:00:13.947
+Spark fixed both with one change: keep intermediate data in memory between stages.
+
+00:00:13.947 --> 00:00:17.929
+A hundred-fold speedup.
+
+00:00:17.929 --> 00:00:21.417
+The heart of Spark is the RDD.
+
+00:00:21.417 --> 00:00:24.905
+Resilient distributed dataset.
+
+00:00:24.905 --> 00:00:28.393
+It is a partitioned, lineage-tracked collection that sits in cluster memory.
+
+00:00:28.393 --> 00:00:31.881
+You chain transformations: filter, map, group-by.
+
+00:00:31.881 --> 00:00:35.370
+Each step produces a new RDD from the previous one.
+
+00:00:35.370 --> 00:00:38.858
+MapReduce wrote the intermediate to disk after every stage.
+
+00:00:38.858 --> 00:00:42.346
+Spark holds it in RAM.
+
+00:00:42.346 --> 00:00:45.834
+For a single map-reduce, small win.
+
+00:00:45.834 --> 00:00:49.322
+For a ten-stage ML training loop, hundred-fold win.
+
+00:00:49.322 --> 00:00:53.369
+The R in RDD is resilient.
+
+00:00:53.369 --> 00:00:57.415
+RAM is volatile, so if a node crashes mid-job, what do you do?
+
+00:00:57.415 --> 00:01:01.462
+Spark records the lineage of every RDD.
+
+00:01:01.462 --> 00:01:05.508
+Start from the input, RDD zero.
+
+00:01:05.508 --> 00:01:09.555
+Apply filter to get RDD one.
+
+00:01:09.555 --> 00:01:13.601
+Apply map to get RDD two.
+
+00:01:13.601 --> 00:01:17.648
+A second map gives RDD three.
+
+00:01:17.648 --> 00:01:21.694
+Now the worker holding one partition of RDD three dies, and that partition is lost.
+
+00:01:21.694 --> 00:01:25.740
+MapReduce would have kept three copies.
+
+00:01:25.740 --> 00:01:29.787
+Does Spark store copies too?
+
+00:01:29.787 --> 00:01:33.834
+No replicas were stored.
+
+00:01:33.834 --> 00:01:37.880
+Spark instead replays the lineage.
+
+00:01:37.880 --> 00:01:41.927
+It re-runs filter, then map, then map, on just the one surviving upstream partition.
+
+00:01:41.927 --> 00:01:45.973
+These are all narrow steps, so one partition needs only one upstream partition.
+
+00:01:45.973 --> 00:01:50.019
+The recovery is an equation Spark already knows.
+
+00:01:50.019 --> 00:01:54.066
+The cost is computation, not memory, and the trick only works because every transformation is deterministic.
+
+00:01:54.066 --> 00:01:59.794
+Now the optimization layer on top.
+
+00:01:59.794 --> 00:02:05.521
+Most teams do not write low-level RDD code anymore.
+
+00:02:05.521 --> 00:02:11.249
+They write SQL or DataFrame transformations.
+
+00:02:11.249 --> 00:02:16.977
+Spark's Catalyst optimizer compiles them into the underlying RDD operations.
+
+00:02:16.977 --> 00:02:22.704
+The same SQL you wrote in Module One against a Postgres laptop runs across a thousand Spark executors with no code change.
+
+00:02:22.704 --> 00:02:28.432
+The optimizer chooses join strategies and predicate pushdowns based on table statistics, just like the single-node optimizers you have already studied.
+
+00:02:28.432 --> 00:02:34.365
+That is Spark's whole edge over MapReduce.
+
+00:02:34.365 --> 00:02:40.297
+When your working set fits in memory, keep it there instead of round-tripping to disk between every stage, and an overnight batch job becomes an interactive one.
+
+00:02:40.297 --> 00:02:46.230
+When it does not fit, MapReduce's disk approach still wins.
+
+00:02:46.230 --> 00:02:52.163
+Next, BigQuery: the same in-memory idea, but you never even see the cluster.
